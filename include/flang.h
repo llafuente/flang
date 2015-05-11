@@ -57,17 +57,25 @@ enum fl_tokens {
   FL_TK_SCOMMENT,
   FL_TK_MCOMMENT_START,
   FL_TK_MCOMMENT_END,
+  FL_TK_ASTERISKEQUAL,
   FL_TK_ASTERISK,
+  FL_TK_SLASHEQUAL,
   FL_TK_SLASH,
+  FL_TK_MINUSQUAL,
   FL_TK_MINUS,
   FL_TK_MINUS2,
+  FL_TK_PLUSEQUAL,
   FL_TK_PLUS,
   FL_TK_PLUS2,
+  FL_TK_MODEQUAL,
   FL_TK_MOD,
+  FL_TK_GT3EQUAL,
+  FL_TK_GT2EQUAL,
   FL_TK_GT,
   FL_TK_GT2,
   FL_TK_GTE,
   FL_TK_LT,
+  FL_TK_LT2EQUAL,
   FL_TK_LT2,
   FL_TK_LTE,
   FL_TK_ASSIGNAMENT,
@@ -80,9 +88,12 @@ enum fl_tokens {
   FL_TK_QMARK,
   FL_TK_SQUOTE,
   FL_TK_DQUOTE,
+  FL_TK_ANDEQUAL,
   FL_TK_AND,
   FL_TK_AND2,
+  FL_TK_CEQUAL,
   FL_TK_CARET,
+  FL_TK_OREQUAL,
   FL_TK_OR,
   FL_TK_OR2,
   FL_TK_BOOL,
@@ -98,6 +109,7 @@ enum fl_tokens {
   FL_TK_U64,
   FL_TK_F32,
   FL_TK_F64,
+  FL_TK_CAST,
   FL_TK_STRING,
   FL_TK_NULL,
   FL_TK_BACKTICK,
@@ -139,6 +151,7 @@ struct fl_token_list {
   size_t size;
   fl_token_t tokens[];
 };
+
 typedef struct fl_token_list fl_token_list_t;
 
 extern size_t fl_token_list_count;
@@ -146,3 +159,5 @@ extern fl_tokens_cfg_t fl_token_list[];
 
 extern void fl_tokens_init();
 extern fl_token_list_t* fl_tokenize(string* file);
+extern void fl_tokens_debug(fl_token_t* tokens, size_t tokens_s);
+extern void fl_tokens_delete(fl_token_list_t* tokens);

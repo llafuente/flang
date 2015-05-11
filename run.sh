@@ -18,4 +18,4 @@ make "CC='clang'" "CFLAGS=-g -O0 -fsanitize=integer -fsanitize=undefined -fsanit
 
 cd ..
 
-./build/test ./test/fl/hello-world.fl
+./build/flang ./test/fl/hello-world.fl

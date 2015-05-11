@@ -1,7 +1,7 @@
 #include "flang.h"
 
-size_t fl_token_list_count = 83;
-fl_tokens_cfg_t fl_token_list[83] = {
+size_t fl_token_list_count = 95;
+fl_tokens_cfg_t fl_token_list[95] = {
     {FL_TK_EOF, false, "\0", 1, 0, 0, false},
     {FL_TK_NEWLINE, false, "\n", 1, 0, 0, false},
     {FL_TK_LOG, false, "log", 3, 0, 0, false},
@@ -16,8 +16,6 @@ fl_tokens_cfg_t fl_token_list[83] = {
     {FL_TK_LPARANTHESIS, false, "(", 1, 0, 0, false},
     {FL_TK_RPARANTHESIS, false, ")", 1, 0, 0, false},
     {FL_TK_DOT, false, ".", 1, 0, 0, false},
-    {FL_TK_LBRACKET, false, "[", 1, 0, 0, false},
-    {FL_TK_RBRACKET, false, "]", 1, 0, 0, false},
     {FL_TK_LCBRACKET, false, "{", 1, 0, 0, false},
     {FL_TK_RCBRACKET, false, "}", 1, 0, 0, false},
     {FL_TK_NEW, false, "new", 3, 0, 0, false},
@@ -27,41 +25,73 @@ fl_tokens_cfg_t fl_token_list[83] = {
     {FL_TK_EXIST, false, "?", 1, 0, 0, false},
     {FL_TK_COLON, false, ":", 1, 0, 0, false},
     {FL_TK_SEMICOLON, false, ";", 1, 0, 0, false},
-    {FL_TK_EXCLAMATION, false, "!", 1, 0, 0, false},
-    {FL_TK_TILDE, false, "~", 1, 0, 0, false},
+
     {FL_TK_SCOMMENT, false, "//", 2, "\n", 1, false},
     {FL_TK_MCOMMENT_START, false, "/*", 2, "*/", 2, false},
     {FL_TK_MCOMMENT_END, false, "*/", 2, 0, 0, false},
+    {FL_TK_ASTERISKEQUAL, false, "*=", 1, 0, 0, false},
     {FL_TK_ASTERISK, false, "*", 1, 0, 0, false},
+    {FL_TK_SLASHEQUAL, false, "/=", 2, 0, 0, false},
     {FL_TK_SLASH, false, "/", 1, 0, 0, false},
-    {FL_TK_MINUS, false, "-", 1, 0, 0, false},
+
     {FL_TK_MINUS2, false, "--", 2, 0, 0, false},
-    {FL_TK_PLUS, false, "+", 1, 0, 0, false},
+    {FL_TK_MINUSQUAL, false, "-=", 2, 0, 0, false},
+    {FL_TK_MINUS, false, "-", 1, 0, 0, false},
+
     {FL_TK_PLUS2, false, "++", 2, 0, 0, false},
+    {FL_TK_PLUSEQUAL, false, "+=", 2, 0, 0, false},
+    {FL_TK_PLUS, false, "+", 1, 0, 0, false},
+
+    {FL_TK_MODEQUAL, false, "%=", 2, 0, 0, false},
     {FL_TK_MOD, false, "%", 1, 0, 0, false},
-    {FL_TK_GT, false, ">", 1, 0, 0, false},
+
+    {FL_TK_GT3EQUAL, false, ">>>=", 3, 0, 0, false},
+    {FL_TK_GT2EQUAL, false, ">>=", 3, 0, 0, false},
     {FL_TK_GT2, false, ">>", 2, 0, 0, false},
     {FL_TK_GTE, false, ">=", 2, 0, 0, false},
-    {FL_TK_LT, false, "<", 1, 0, 0, false},
+    {FL_TK_GT, false, ">", 1, 0, 0, false},
+
+    {FL_TK_LT2EQUAL, false, "<<=", 2, 0, 0, false},
     {FL_TK_LT2, false, "<<", 2, 0, 0, false},
     {FL_TK_LTE, false, "<=", 2, 0, 0, false},
-    {FL_TK_ASSIGNAMENT, false, "=", 1, 0, 0, false},
-    {FL_TK_SASSIGNAMENT, false, "?=", 2, 0, 0, false},
+    {FL_TK_LT, false, "<", 1, 0, 0, false},
+
     {FL_TK_EQUAL2, false, "==", 2, 0, 0, false},
-    {FL_TK_TEQUAL, false, "~=", 2, 0, 0, false},
-    {FL_TK_EEQUAL, false, "!=", 2, 0, 0, false},
-    {FL_TK_AT, false, "@", 1, 0, 0, false},
-    {FL_TK_ARRAY, false, "[]", 2, 0, 0, false},
+    {FL_TK_ASSIGNAMENT, false, "=", 1, 0, 0, false},
+
+    {FL_TK_SASSIGNAMENT, false, "?=", 2, 0, 0, false},
     {FL_TK_QMARK, false, "?", 1, 0, 0, false},
-    {FL_TK_SQUOTE, false, "'", 1, "'", 1, true},
-    {FL_TK_DQUOTE, false, "\"", 1, "\"", 1, true},
-    {FL_TK_AND, false, "&", 1, 0, 0, false},
-    {FL_TK_AND2, false, "&&", 2, 0, 0, false},
-    {FL_TK_AND2, false, "and", 3, 0, 0, false},
+
+    {FL_TK_TEQUAL, false, "~=", 2, 0, 0, false},
+    {FL_TK_TILDE, false, "~", 1, 0, 0, false},
+
+    // ≠
+    {FL_TK_EEQUAL, false, "!=", 2, 0, 0, false},
+    {FL_TK_EXCLAMATION, false, "!", 1, 0, 0, false},
+
+    {FL_TK_CEQUAL, false, "^=", 2, 0, 0, false},
     {FL_TK_CARET, false, "^", 1, 0, 0, false},
+
+    {FL_TK_OREQUAL, false, "|=", 1, 0, 0, false},
     {FL_TK_OR, false, "|", 1, 0, 0, false},
     {FL_TK_OR2, false, "||", 2, 0, 0, false},
     {FL_TK_OR2, false, "or", 2, 0, 0, false},
+
+    {FL_TK_AND2, false, "&&", 2, 0, 0, false},
+    {FL_TK_ANDEQUAL, false, "&=", 2, 0, 0, false},
+    {FL_TK_AND, false, "&", 1, 0, 0, false},
+    {FL_TK_AND2, false, "and", 3, 0, 0, false},
+
+    {FL_TK_ARRAY, false, "[]", 2, 0, 0, false},
+    {FL_TK_LBRACKET, false, "[", 1, 0, 0, false},
+    {FL_TK_RBRACKET, false, "]", 1, 0, 0, false},
+
+    // strings literals
+    {FL_TK_SQUOTE, false, "'", 1, "'", 1, true},
+    {FL_TK_DQUOTE, false, "\"", 1, "\"", 1, true},
+
+
+    // types
     {FL_TK_BOOL, false, "bool", 4, 0, 0, false},
     {FL_TK_TRUE, false, "true", 4, 0, 0, false},
     {FL_TK_TRUE, false, "on", 2, 0, 0, false},
@@ -73,15 +103,19 @@ fl_tokens_cfg_t fl_token_list[83] = {
     {FL_TK_I16, false, "i16", 3, 0, 0, false},
     {FL_TK_I32, false, "i32", 3, 0, 0, false},
     {FL_TK_I64, false, "i64", 3, 0, 0, false},
-    {FL_TK_u8, false, "u8", 2, 0, 0, false},
-    {FL_TK_u16, false, "u16", 3, 0, 0, false},
-    {FL_TK_u32, false, "u32", 3, 0, 0, false},
+    {FL_TK_U8, false, "u8", 2, 0, 0, false},
+    {FL_TK_U16, false, "u16", 3, 0, 0, false},
+    {FL_TK_U32, false, "u32", 3, 0, 0, false},
     {FL_TK_U64, false, "u64", 3, 0, 0, false},
     {FL_TK_F32, false, "f32", 3, 0, 0, false},
     {FL_TK_F64, false, "f64", 3, 0, 0, false},
     {FL_TK_STRING, false, "string", 6, 0, 0, false},
     {FL_TK_NULL, false, "null", 3, 0, 0, false},
     {FL_TK_NULL, false, "nil", 3, 0, 0, false},
+
+    {FL_TK_CAST, false, "cast", 4, 0, 0, false},
+    // special chars
+    {FL_TK_AT, false, "@", 1, 0, 0, false},
     {FL_TK_BACKTICK, false, "`", 1, 0, 0, false},
     {FL_TK_DOLLAR, false, "$", 1, 0, 0, false},
     {FL_TK_HASH, false, "#", 1, 0, 0, 0}};

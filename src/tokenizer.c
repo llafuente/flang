@@ -1,5 +1,14 @@
 #include "flang.h"
 
+struct tokenize_state {
+  size_t line;
+  size_t column;
+  char* itr;
+  char* end;
+};
+
+typedef struct tokenize_state tokenize_state_t;
+
 fl_tokens_cfg_t* fl_get_token(char* itr, size_t len) {
   size_t tidx = 0;
   size_t tk_size;
@@ -41,14 +50,6 @@ void fl_tokenize_push(fl_token_list_t* tokens, char* p, size_t p_s,
   ++tokens->size;
 }
 
-struct tokenize_state {
-  size_t line;
-  size_t column;
-  char* itr;
-  char* end;
-};
-typedef struct tokenize_state tokenize_state_t;
-
 void fl_token_process(fl_token_list_t* tokens, fl_tokens_cfg_t* tk,
                       tokenize_state_t* state, tokenize_state_t* lstate) {
   size_t size = (state->itr - lstate->itr);
@@ -84,8 +85,6 @@ void fl_tokens_debug(fl_token_t* tokens, size_t tokens_s) {
     printf("[%zu|%zu:%zu-%zu:%zu] %s\n", i, tokens[i].start.line,
            tokens[i].start.column, tokens[i].end.line, tokens[i].end.column,
            tokens[i].value->value);
-
-    st_delete(&tokens[i].value);
   }
 }
 
@@ -147,4 +146,13 @@ fl_token_list_t* fl_tokenize(string* file) {
   }
 
   return tokens;
+}
+
+
+void fl_tokens_delete(fl_token_list_t* tokens) {
+  size_t i = 0;
+  for (; i < tokens->size; ++i) {
+    st_delete(&tokens->tokens[i].value);
+  }
+  free(tokens);
 }

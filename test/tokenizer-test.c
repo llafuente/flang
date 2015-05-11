@@ -23,20 +23,30 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/// @file
-
+#include "flang.h"
 #include "tasks.h"
-#include "fixtures.h"
 
-int main(int argc, const char* argv[]) {
+TASK_IMPL(tokenizer) {
+  string* code;
+  fl_token_list_t* tokens;
+  // tets priority <= gt than '<' '='
+  code = st_newc("a<=b;", st_enc_utf8);
+  tokens = fl_tokenize(code);
 
-  printf("    ###############\n");
-  printf("    ## unit test ##\n");
-  printf("    ###############\n");
+  ASSERT(tokens->size == 4, "priority token test");
 
-  TASK_RUN(tokenizer);
+  fl_tokens_delete(tokens);
+  st_delete(&code);
 
-  printf("OK\n");
 
-  return 0;
+  // test escape string
+  code = st_newc("log \"hello\"; log \"\\\"hell\\\"\"; ", st_enc_utf8);
+  tokens = fl_tokenize(code);
+
+  ASSERT(tokens->size == 13, "escape string test");
+
+  fl_tokens_delete(tokens);
+  st_delete(&code);
+
+  //fl_tokens_debug(tokens->tokens, tokens->size);
 }
