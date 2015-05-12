@@ -24,30 +24,28 @@
 */
 
 #include "flang.h"
-#include "tasks.h"
 
-TASK_IMPL(tokenizer) {
-  string* code;
-  fl_token_list_t* tokens;
-  // tets priority <= gt than '<' '='
-  code = st_newc("a<=b;", st_enc_utf8);
-  tokens = fl_tokenize(code);
+void fl_parser_stack_init(fl_psrstack_t* stack, fl_token_list_t* tokens,
+                          fl_psrstate_t* state) {
+  state->look_ahead_idx = 0;
+  state->current = 0;
+  state->token = &tokens->tokens[0];
+  state->next_token = &tokens->tokens[1];
+  state->prev_token = 0;
+}
 
-  ASSERT(tokens->size == 4, "priority token test");
+void fl_parser_look_ahead(fl_psrstack_t* stack, fl_psrstate_t* state) {
+  memcpy(&stack->states[stack->current], state, sizeof(fl_psrstate_t));
+  ++stack->current;
+  ++state->look_ahead_idx;
+}
 
-  fl_tokens_delete(tokens);
-  st_delete(&code);
+void fl_parser_commit(fl_psrstack_t* stack, fl_psrstate_t* state) {
+  --stack->current;
+  --state->look_ahead_idx;
+}
 
-  // test escape string
-  code = st_newc("log \"hello\"; log \"\\\"hell\\\"\"; ", st_enc_utf8);
-  tokens = fl_tokenize(code);
-
-  ASSERT(tokens->size == 13, "escape string test");
-
-  fl_tokens_delete(tokens);
-  st_delete(&code);
-
-  // fl_tokens_debug(tokens->tokens, tokens->size);
-
-  return 0;
+void fl_parser_rollback(fl_psrstack_t* stack, fl_psrstate_t* state) {
+  --stack->current;
+  memcpy(state, &stack->states[stack->current], sizeof(fl_psrstate_t));
 }

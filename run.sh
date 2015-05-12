@@ -1,8 +1,5 @@
 #!/bin/sh
 
-#temporary
-node tokens.js
-
 mkdir build
 cd build
 

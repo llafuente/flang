@@ -27,6 +27,10 @@
 #include <stdio.h>
 #include "stringc.h"
 
+//-
+//- types
+//-
+
 enum fl_tokens {
   FL_TK_UNKOWN,
   FL_TK_EOF,
@@ -103,9 +107,9 @@ enum fl_tokens {
   FL_TK_I16,
   FL_TK_I32,
   FL_TK_I64,
-  FL_TK_u8,
-  FL_TK_u16,
-  FL_TK_u32,
+  FL_TK_U8,
+  FL_TK_U16,
+  FL_TK_U32,
   FL_TK_U64,
   FL_TK_F32,
   FL_TK_F64,
@@ -152,12 +156,111 @@ struct fl_token_list {
   fl_token_t tokens[];
 };
 
+enum fl_parser_result_level {
+  FL_PR_ERROR_FINAL,
+  FL_PR_WARNING,
+  FL_PR_NOTICE,
+  FL_PR_ERROR,
+};
+
+struct fl_parser_result {
+  fl_token_t* token;
+  char* text;
+  enum fl_parser_result_level level;
+};
+typedef struct fl_parser_result fl_parser_result_t;
+
+struct fl_parser_state {
+  size_t current;
+  fl_token_t* token;
+  fl_token_t* prev_token;
+  fl_token_t* next_token;
+  size_t look_ahead_idx;
+};
+
+typedef struct fl_parser_state fl_psrstate_t;
+
+enum fl_ast_type {
+  FL_AST_STMT_LOG,
+  FL_AST_LIT_ARRAY,
+  FL_AST_LIT_OBJECT,
+  FL_AST_LIT_NUMERIC,
+  FL_AST_LIT_STRING,
+  FL_AST_LIT_BOOLEAN,
+  FL_AST_LIT_NULL,
+  FL_AST_EXPR,
+};
+typedef enum fl_ast_type fl_ast_type_t;
+
+struct fl_ast {
+  fl_token_t* token_start;
+  fl_token_t* token_end;
+  fl_ast_type_t type; // TODO enum
+};
+
+typedef struct fl_ast fl_ast_t;
+
 typedef struct fl_token_list fl_token_list_t;
 
+// TODO resize support
+struct fl_parser_stack {
+  size_t current;
+  fl_psrstate_t states[500];
+};
+
+typedef struct fl_parser_stack fl_psrstack_t;
+
+//-
+//- functions
+//-
+
 extern size_t fl_token_list_count;
+
 extern fl_tokens_cfg_t fl_token_list[];
 
 extern void fl_tokens_init();
-extern fl_token_list_t* fl_tokenize(string* file);
-extern void fl_tokens_debug(fl_token_t* tokens, size_t tokens_s);
+
 extern void fl_tokens_delete(fl_token_list_t* tokens);
+
+/* cldoc:begin-category(parser-stack.c) */
+
+extern void fl_tokens_debug(fl_token_list_t* tokens);
+
+extern fl_token_list_t* fl_tokenize(string* file);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(parser.c) */
+
+extern void fl_parser(fl_token_list_t* tokens);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(parser-utils.c) */
+
+extern bool fl_parser_next(fl_token_list_t* tokens, fl_psrstate_t* state);
+
+extern bool fl_parser_prev(fl_token_list_t* tokens, fl_psrstate_t* state);
+
+extern bool fl_parser_eof(fl_token_list_t* tokens, fl_psrstate_t* state);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(parser-stack.c) */
+
+extern void fl_parser_stack_init(fl_psrstack_t* stack, fl_token_list_t* tokens,
+                                 fl_psrstate_t* state);
+
+extern void fl_parser_look_ahead(fl_psrstack_t* stack, fl_psrstate_t* state);
+
+extern void fl_parser_commit(fl_psrstack_t* stack, fl_psrstate_t* state);
+
+extern void fl_parser_rollback(fl_psrstack_t* stack, fl_psrstate_t* state);
+
+extern fl_parser_result_t* fl_parser_expect(fl_token_list_t* tokens,
+                                            fl_psrstate_t* state, char* text,
+                                            char* err_msg, bool final);
+
+extern void fl_parser_skipws(fl_token_list_t* tokens, fl_psrstate_t* state);
+
+/* cldoc:end-category() */

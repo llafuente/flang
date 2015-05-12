@@ -1,7 +1,10 @@
 ACLOCAL_AMFLAGS = -I m4
 
 COMPILER_SOURCES = src/tokenizer.c \
-                src/tokens.c
+                src/tokens.c \
+                src/parser.c \
+                src/parser-utils.c \
+                src/parser-stack.c
 
 AM_CPPFLAGS = -I$(top_srcdir)/include \
               -I$(top_srcdir)/src
@@ -16,7 +19,8 @@ flang_LDFLAGS = -L/usr/local/lib '-lstringc'
 flang_LDADD =
 
 SOURCES_TEST = test/tasks.c \
-               test/tokenizer-test.c
+               test/tokenizer-test.c \
+               test/parser-utils-test.c
 
 TESTS = test/run-tests
 check_PROGRAMS = test/run-tests

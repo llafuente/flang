@@ -24,30 +24,51 @@
 */
 
 #include "flang.h"
-#include "tasks.h"
 
-TASK_IMPL(tokenizer) {
-  string* code;
-  fl_token_list_t* tokens;
-  // tets priority <= gt than '<' '='
-  code = st_newc("a<=b;", st_enc_utf8);
-  tokens = fl_tokenize(code);
-
-  ASSERT(tokens->size == 4, "priority token test");
-
-  fl_tokens_delete(tokens);
-  st_delete(&code);
-
-  // test escape string
-  code = st_newc("log \"hello\"; log \"\\\"hell\\\"\"; ", st_enc_utf8);
-  tokens = fl_tokenize(code);
-
-  ASSERT(tokens->size == 13, "escape string test");
-
-  fl_tokens_delete(tokens);
-  st_delete(&code);
-
-  // fl_tokens_debug(tokens->tokens, tokens->size);
-
-  return 0;
+void fl_state_debug(fl_psrstate_t* state) {
+  printf("[%s] current: %zu | look_ahead_idx: %zu\n",
+         state->token->value->value, state->current, state->look_ahead_idx);
+  /*
+  size_t ;
+  fl_token_t* token;
+  fl_token_t* prev_token;
+  fl_token_t* next_token;
+  size_t ;
+  */
 }
+
+extern void fl_read_block();
+extern void fl_read_body();
+
+void fl_parser(fl_token_list_t* tokens) {
+  fl_psrstack_t stack;
+  fl_psrstate_t state;
+  fl_ast_t ast;
+
+  fl_parser_stack_init(&stack, tokens, &state);
+
+  fl_read_body(&stack, &state, &ast);
+
+  fl_parser_next(tokens, &state);
+  fl_state_debug(&state);
+
+  fl_parser_look_ahead(&stack, &state);
+
+  fl_parser_next(tokens, &state);
+  fl_parser_next(tokens, &state);
+  fl_state_debug(&state);
+
+  fl_parser_commit(&stack, &state);
+  fl_state_debug(&state);
+
+  fl_parser_look_ahead(&stack, &state);
+  fl_parser_prev(tokens, &state);
+  fl_parser_prev(tokens, &state);
+
+  fl_parser_rollback(&stack, &state);
+  fl_state_debug(&state);
+}
+
+void fl_read_block() {}
+
+void fl_read_body(fl_psrstack_t* stack, fl_psrstate_t* state, fl_ast_t* ast) {}
