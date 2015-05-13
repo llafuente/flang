@@ -192,6 +192,7 @@ enum fl_ast_type {
   FL_AST_LIT_STRING,
   FL_AST_LIT_BOOLEAN,
   FL_AST_LIT_NULL,
+  FL_AST_LIT_IDENTIFIER,
   FL_AST_EXPR,
 };
 typedef enum fl_ast_type fl_ast_type_t;
@@ -214,6 +215,9 @@ struct fl_ast {
     struct fl_ast_lit_numeric {
       double value;
     } numeric;
+    struct fl_ast_lit_identifier {
+      string* string;
+    } identifier;
   };
 };
 
@@ -346,5 +350,6 @@ FL_READER_DECL(lit_null);
 FL_READER_DECL(lit_boolean);
 FL_READER_DECL(lit_string);
 FL_READER_DECL(lit_numeric);
+FL_READER_DECL(lit_identifier);
 
 /* cldoc:end-category() */

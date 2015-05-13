@@ -84,5 +84,12 @@ TASK_IMPL(parser_literals) {
   // TODO binary 0b000000001
   // TODO octal 0o777
 
+  ast = fl_parse_utf8("wtf");
+  ASSERT(ast != 0, "identifier literal found!");
+  ASSERT(ast->type == FL_AST_LIT_IDENTIFIER, "FL_AST_LIT_IDENTIFIER");
+  ASSERT(strcmp(ast->identifier.string->value, "wtf") == 0, "identifier = wtf");
+  st_delete(&ast->identifier.string);
+  free(ast);
+
   return 0;
 }

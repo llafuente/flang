@@ -32,6 +32,7 @@ FL_READER_IMPL(literal) {
   FL_TRY_READ(lit_boolean);
   FL_TRY_READ(lit_string);
   FL_TRY_READ(lit_numeric);
+  FL_TRY_READ(lit_identifier);
 
   return 0;
 }
@@ -146,4 +147,16 @@ FL_READER_IMPL(lit_numeric) {
   printf("not-found\n");
 
   FL_RETURN_NOT_FOUND();
+}
+
+// TODO review what should be valid and what not
+// right now we should accept "anything that is not token"
+FL_READER_IMPL(lit_identifier) {
+  if (state->token->type == FL_TK_UNKOWN) {
+    FL_AST_START(FL_AST_LIT_IDENTIFIER);
+    ast->identifier.string = st_clone(state->token->string);
+    return ast;
+  }
+
+  return 0;
 }
