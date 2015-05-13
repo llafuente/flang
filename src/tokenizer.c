@@ -136,7 +136,7 @@ fl_token_list_t* fl_tokenize(string* file) {
   state.line = 1;
   state.column = 1;
   state.itr = start;
-  state.end = start + file->used + 1; // include zeronull
+  state.end = start + file->used + 2; // include zeronull
 
   tokenize_state_t lstate;
   lstate.line = 1;
@@ -145,7 +145,7 @@ fl_token_list_t* fl_tokenize(string* file) {
 
   while (state.itr < state.end) {
     tk = fl_get_token(state.itr, state.end - state.itr);
-    if (tk != FL_TK_UNKOWN) {
+    if (tk) {
       fl_token_process(tokens, tk, &state, &lstate);
 
       // continue until close_text

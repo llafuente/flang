@@ -31,6 +31,7 @@ FL_READER_IMPL(literal) {
   FL_TRY_READ(lit_null);
   FL_TRY_READ(lit_boolean);
   FL_TRY_READ(lit_string);
+  FL_TRY_READ(lit_numeric);
 
   return 0;
 }
@@ -106,4 +107,43 @@ FL_READER_IMPL(lit_string) {
   }
 
   return 0;
+}
+
+// TODO
+FL_READER_IMPL(lit_array) {
+  return 0;
+}
+// TODO
+FL_READER_IMPL(lit_object) {
+  return 0;
+}
+
+FL_READER_IMPL(lit_numeric) {
+  FL_AST_START(FL_AST_LIT_NUMERIC);
+
+  printf("litnumeric\n");
+
+  string* str = state->token->string;
+  char* start = str->value;
+  if (isdigit(start[0])) {
+    char** end;
+    *end = (start + str->used);
+    // must be a number and error will be final!
+    double result = strtod(start, end);
+    if (errno) {
+      if((result == HUGE_VAL || result == -HUGE_VAL) &&
+        errno == ERANGE) {
+        fprintf(stderr, "ERROR! overflow\n");
+      } else if (errno == ERANGE) {
+        fprintf(stderr, "ERROR! underflow\n");
+      }
+    }
+    ast->numeric.value = result;
+    printf("found\n");
+    return ast;
+  }
+
+  printf("not-found\n");
+
+  FL_RETURN_NOT_FOUND();
 }

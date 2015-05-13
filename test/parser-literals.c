@@ -29,32 +29,60 @@
 TASK_IMPL(parser_literals) {
   fl_ast_t* ast;
 
-  ast = fl_parse_utf8("\"hello:\\\"world\"");
+  ast = fl_parse_utf8("\"hello:\\\"w\'orld\"");
   ASSERT(ast != 0, "string literal found!");
   ASSERT(ast->type == FL_AST_LIT_STRING, "FL_AST_LIT_STRING");
   free(ast);
 
-  ast = fl_parse_utf8("'hello:\"world'");
+  ast = fl_parse_utf8("'hello:\"wo\\\'rld'");
   ASSERT(ast != 0, "string literal found!");
   ASSERT(ast->type == FL_AST_LIT_STRING, "FL_AST_LIT_STRING");
   free(ast);
 
   ast = fl_parse_utf8("null");
   ASSERT(ast != 0, "null literal found!");
-  ASSERT(ast->type == FL_AST_LIT_NULL, "FL_AST_LIT_STRING");
+  ASSERT(ast->type == FL_AST_LIT_NULL, "FL_AST_LIT_NULL");
+  free(ast);
+
+  ast = fl_parse_utf8("nil");
+  ASSERT(ast != 0, "null literal found!");
+  ASSERT(ast->type == FL_AST_LIT_NULL, "FL_AST_LIT_NULL");
   free(ast);
 
   ast = fl_parse_utf8("true");
   ASSERT(ast != 0, "boolean literal found!");
-  ASSERT(ast->type == FL_AST_LIT_BOOLEAN, "FL_AST_LIT_STRING");
+  ASSERT(ast->type == FL_AST_LIT_BOOLEAN, "FL_AST_LIT_BOOLEAN");
   ASSERT(ast->boolean.value == true, "value = true");
   free(ast);
 
   ast = fl_parse_utf8("false");
   ASSERT(ast != 0, "boolean literal found!");
-  ASSERT(ast->type == FL_AST_LIT_BOOLEAN, "FL_AST_LIT_STRING");
+  ASSERT(ast->type == FL_AST_LIT_BOOLEAN, "FL_AST_LIT_BOOLEAN");
   ASSERT(ast->boolean.value == false, "value = true");
   free(ast);
+
+#define FL_VERBOSE
+
+  ast = fl_parse_utf8("1567");
+  ASSERT(ast != 0, "numeric literal found!");
+  ASSERT(ast->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  ASSERT(ast->numeric.value == 1567, "value = true");
+  free(ast);
+
+  ast = fl_parse_utf8("1e1");
+  ASSERT(ast != 0, "numeric literal found!");
+  ASSERT(ast->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  ASSERT(ast->numeric.value == 10, "value = true");
+  free(ast);
+
+  ast = fl_parse_utf8("0xff");
+  ASSERT(ast != 0, "numeric literal found!");
+  ASSERT(ast->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  ASSERT(ast->numeric.value == 0xff, "value = true");
+  free(ast);
+
+  // TODO binary 0b000000001
+  // TODO octal 0o777
 
   return 0;
 }

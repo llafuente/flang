@@ -34,7 +34,7 @@ TASK_IMPL(parser_utils) {
   code = st_newc("log \"hello:\\\"world\";", st_enc_utf8);
   tokens = fl_tokenize(code);
 
-  ASSERT(tokens->size == 6, "6 tokens parsed");
+  ASSERT(tokens->size == 7, "6 tokens parsed");
 
   fl_tokens_debug(tokens);
 

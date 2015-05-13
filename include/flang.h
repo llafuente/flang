@@ -25,6 +25,10 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
+#include <ctype.h>
+#include <math.h>
+
 #include "stringc.h"
 
 //-
@@ -198,15 +202,18 @@ struct fl_ast {
   fl_ast_type_t type; // TODO enum
 
   union {
-    struct fl_ast_boolean_lit {
+    struct fl_ast_lit_boolean {
       bool value;
     } boolean;
-    struct fl_ast_string_lit {
+    struct fl_ast_lit_string {
       // single true, doubles false
       // TODO if support <<<XXX ... XXX; this should be changed to enum
       bool quoted;
       string* value;
     } string;
+    struct fl_ast_lit_numeric {
+      double value;
+    } numeric;
   };
 };
 
@@ -308,6 +315,9 @@ extern bool fl_parser_eof(fl_token_list_t* tokens, fl_psrstate_t* state);
 extern bool fl_parser_accept(fl_token_list_t* tokens, fl_psrstate_t* state,
                              char* text);
 
+extern bool fl_parser_accept_token(fl_token_list_t* tokens, fl_psrstate_t* state,
+                             fl_tokens_t token_type);
+
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(parser-stack.c) */
@@ -335,5 +345,6 @@ FL_READER_DECL(literal);
 FL_READER_DECL(lit_null);
 FL_READER_DECL(lit_boolean);
 FL_READER_DECL(lit_string);
+FL_READER_DECL(lit_numeric);
 
 /* cldoc:end-category() */

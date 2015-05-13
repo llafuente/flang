@@ -26,19 +26,16 @@
 #include "flang.h"
 
 bool fl_parser_next(fl_token_list_t* tokens, fl_psrstate_t* state) {
-  if (tokens->size > state->current + 1) {
-    state->prev_token = &tokens->tokens[state->current];
-    ++state->current;
-    state->token = &tokens->tokens[state->current];
-    if (tokens->size > state->current + 1) {
-      state->next_token = &tokens->tokens[state->current + 1];
-    } else {
-      state->next_token = 0;
-    }
-    return true;
+  if (fl_parser_eof(tokens, state)) {
+    return false;
   }
 
-  return false;
+  state->prev_token = &tokens->tokens[state->current];
+  ++state->current;
+  state->token = &tokens->tokens[state->current];
+  state->next_token = &tokens->tokens[state->current + 1];
+
+  return true;
 }
 
 bool fl_parser_prev(fl_token_list_t* tokens, fl_psrstate_t* state) {
@@ -58,7 +55,7 @@ bool fl_parser_prev(fl_token_list_t* tokens, fl_psrstate_t* state) {
 }
 
 bool fl_parser_eof(fl_token_list_t* tokens, fl_psrstate_t* state) {
-  return tokens->size == state->current + 1;
+  return state->next_token->type == FL_TK_EOF;
 }
 
 bool fl_parser_accept(fl_token_list_t* tokens, fl_psrstate_t* state,
