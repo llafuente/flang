@@ -62,11 +62,13 @@ size_t fl_get_escape_count(char* itr, char* start) {
   return count;
 }
 
-void fl_tokenize_push(fl_token_list_t* tokens, char* p, size_t p_s,
-                      size_t ltoken_line, size_t ltoken_column, size_t line,
-                      size_t column) {
+void fl_tokenize_push(fl_token_list_t* tokens, fl_tokens_t type, char* p,
+                      size_t p_s, size_t ltoken_line, size_t ltoken_column,
+                      size_t line, size_t column) {
   size_t tokens_s = tokens->size;
-  tokens->tokens[tokens_s].value = st_new_subc(p, p_s, st_enc_utf8);
+
+  tokens->tokens[tokens_s].type = type;
+  tokens->tokens[tokens_s].string = st_new_subc(p, p_s, st_enc_utf8);
   tokens->tokens[tokens_s].start.line = ltoken_line;
   tokens->tokens[tokens_s].start.column = ltoken_column;
 
@@ -79,22 +81,22 @@ void fl_token_process(fl_token_list_t* tokens, fl_tokens_cfg_t* tk,
                       tokenize_state_t* state, tokenize_state_t* lstate) {
   size_t size = (state->itr - lstate->itr);
   if (size) {
-    fl_tokenize_push(tokens, lstate->itr, size, lstate->line, lstate->column,
-                     state->line, state->column);
+    fl_tokenize_push(tokens, FL_TK_UNKOWN, lstate->itr, size, lstate->line,
+                     lstate->column, state->line, state->column);
 
     lstate->itr = state->itr;
     lstate->line = state->line;
     lstate->column = state->column;
   }
 
-  if (tk->token != FL_TK_NEWLINE) {
+  if (tk->type != FL_TK_NEWLINE) {
     ++state->line;
     state->column = 1;
   } else {
     state->column += tk->text_s;
   }
 
-  fl_tokenize_push(tokens, lstate->itr, tk->text_s, lstate->line,
+  fl_tokenize_push(tokens, tk->type, lstate->itr, tk->text_s, lstate->line,
                    lstate->column, state->line, state->column);
 
   state->itr += tk->text_s;
@@ -108,9 +110,9 @@ void fl_tokens_debug(fl_token_list_t* tokens) {
   for (; i < tokens->size; ++i) {
     fl_token_t* token = &tokens->tokens[i];
     // print debug tokens
-    printf("[%zu|%zu:%zu-%zu:%zu] %s\n", i, token->start.line,
+    printf("[%zu|%6d|%zu:%zu-%zu:%zu] %s\n", i, token->type, token->start.line,
            token->start.column, token->end.line, token->end.column,
-           token->value->value);
+           token->string->value);
   }
 }
 
@@ -177,7 +179,7 @@ fl_token_list_t* fl_tokenize(string* file) {
 void fl_tokens_delete(fl_token_list_t* tokens) {
   size_t i = 0;
   for (; i < tokens->size; ++i) {
-    st_delete(&tokens->tokens[i].value);
+    st_delete(&tokens->tokens[i].string);
   }
   free(tokens);
 }

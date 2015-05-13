@@ -59,8 +59,8 @@ enum fl_tokens {
   FL_TK_EXCLAMATION,
   FL_TK_TILDE,
   FL_TK_SCOMMENT,
-  FL_TK_MCOMMENT_START,
-  FL_TK_MCOMMENT_END,
+  FL_TK_MCOMMENT,
+  // FL_TK_MCOMMENT_END,
   FL_TK_ASTERISKEQUAL,
   FL_TK_ASTERISK,
   FL_TK_SLASHEQUAL,
@@ -124,7 +124,7 @@ enum fl_tokens {
 typedef enum fl_tokens fl_tokens_t;
 
 struct fl_tokens_cfg {
-  fl_tokens_t token;
+  fl_tokens_t type;
   bool can_be_escaped;
   char* text;
   size_t text_s;
@@ -143,8 +143,8 @@ struct fl_token_pos {
 typedef struct fl_token_pos fl_token_pos_t;
 
 struct fl_token {
-  string* value;
-  fl_tokens_t token;
+  string* string;
+  fl_tokens_t type;
   fl_token_pos_t start;
   fl_token_pos_t end;
 };
@@ -196,6 +196,18 @@ struct fl_ast {
   fl_token_t* token_start;
   fl_token_t* token_end;
   fl_ast_type_t type; // TODO enum
+
+  union {
+    struct fl_ast_boolean_lit {
+      bool value;
+    } boolean;
+    struct fl_ast_string_lit {
+      // single true, doubles false
+      // TODO if support <<<XXX ... XXX; this should be changed to enum
+      bool quoted;
+      string* value;
+    } string;
+  };
 };
 
 typedef struct fl_ast fl_ast_t;
@@ -209,6 +221,50 @@ struct fl_parser_stack {
 };
 
 typedef struct fl_parser_stack fl_psrstack_t;
+
+//-
+//- MACROS
+//-
+
+#define FL_READER_DECL(name)                                                   \
+  extern fl_ast_t* fl_read_##name(fl_token_list_t* tokens,                     \
+                                  fl_psrstack_t* stack, fl_psrstate_t* state);
+
+#define FL_READER_IMPL(name)                                                   \
+  fl_ast_t* fl_read_##name(fl_token_list_t* tokens, fl_psrstack_t* stack,      \
+                           fl_psrstate_t* state)
+
+// , printf("%s\n", #name)
+#define FL_READ(name)                                                          \
+  fl_read_##name(tokens, stack, state)
+
+// TODO handle errors when done :)
+#define FL_TRY_READ(name)                                                      \
+  ast = FL_READ(name);                                                         \
+  if (ast) {                                                                   \
+    return ast;                                                                \
+  }
+
+#define FL_AST_START(ast_type)                                                 \
+  fl_ast_t* ast = (fl_ast_t*)malloc(sizeof(fl_ast_t));                         \
+  ast->token_start = state->token;                                             \
+  ast->type = ast_type;
+
+#define FL_RETURN_AST()                                                        \
+  ast->token_end = state->token;                                               \
+  return ast;
+
+#define FL_RETURN_NOT_FOUND()                                                  \
+  free(ast);                                                                   \
+  return 0;
+
+#define FL_ACCEPT(string) fl_parser_accept(tokens, state, string)
+
+#define FL_ACCEPT_TOKEN(token_type)                                            \
+fl_parser_accept_token(tokens, state, token_type)
+
+// , printf("next!\n")
+#define FL_NEXT() fl_parser_next(tokens, state)
 
 //-
 //- functions
@@ -232,7 +288,12 @@ extern fl_token_list_t* fl_tokenize(string* file);
 
 /* cldoc:begin-category(parser.c) */
 
-extern void fl_parser(fl_token_list_t* tokens);
+extern fl_ast_t* fl_parser(fl_token_list_t* tokens);
+
+extern fl_ast_t* fl_parse(string* str);
+extern fl_ast_t* fl_parse_utf8(char* str);
+
+FL_READER_DECL(body);
 
 /* cldoc:end-category() */
 
@@ -243,6 +304,9 @@ extern bool fl_parser_next(fl_token_list_t* tokens, fl_psrstate_t* state);
 extern bool fl_parser_prev(fl_token_list_t* tokens, fl_psrstate_t* state);
 
 extern bool fl_parser_eof(fl_token_list_t* tokens, fl_psrstate_t* state);
+
+extern bool fl_parser_accept(fl_token_list_t* tokens, fl_psrstate_t* state,
+                             char* text);
 
 /* cldoc:end-category() */
 
@@ -262,5 +326,14 @@ extern fl_parser_result_t* fl_parser_expect(fl_token_list_t* tokens,
                                             char* err_msg, bool final);
 
 extern void fl_parser_skipws(fl_token_list_t* tokens, fl_psrstate_t* state);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(parser-literal.c) */
+
+FL_READER_DECL(literal);
+FL_READER_DECL(lit_null);
+FL_READER_DECL(lit_boolean);
+FL_READER_DECL(lit_string);
 
 /* cldoc:end-category() */

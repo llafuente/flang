@@ -25,57 +25,85 @@
 
 #include "flang.h"
 
-void fl_state_debug(fl_psrstate_t* state) {
-  printf("[%s] current: %zu | look_ahead_idx: %zu\n",
-         state->token->string->value, state->current, state->look_ahead_idx);
-  /*
-  size_t ;
-  fl_token_t* token;
-  fl_token_t* prev_token;
-  fl_token_t* next_token;
-  size_t ;
-  */
-}
-
-fl_ast_t* fl_parser(fl_token_list_t* tokens) {
-  fl_psrstack_t* stack = malloc(sizeof(fl_psrstack_t));
-  fl_psrstate_t* state = malloc(sizeof(fl_psrstate_t));
+FL_READER_IMPL(literal) {
   fl_ast_t* ast;
 
-  fl_parser_stack_init(stack, tokens, state);
-
-  ast = FL_READ(body);
-
-  free(stack);
-  free(state);
-
-  return ast;
-}
-
-FL_READER_IMPL(body) {
-  fl_ast_t* ast;
-
-  FL_TRY_READ(literal);
+  FL_TRY_READ(lit_null);
+  FL_TRY_READ(lit_boolean);
+  FL_TRY_READ(lit_string);
 
   return 0;
 }
 
-fl_ast_t* fl_parse_utf8(char* str) {
-  string* code;
-  fl_token_list_t* tokens;
-  fl_parser_result_t* err;
-  // tets priority <= gt than '<' '='
-  code = st_newc(str, st_enc_utf8);
-  tokens = fl_tokenize(code);
+FL_READER_IMPL(lit_null) {
+  FL_AST_START(FL_AST_LIT_NULL);
 
-#ifdef FL_VERBOSE
-    fl_tokens_debug(tokens);
-#endif
+  if (FL_ACCEPT("null") || FL_ACCEPT("nil")) {
+    FL_RETURN_AST();
+  }
+  FL_RETURN_NOT_FOUND();
+}
 
-  fl_ast_t* ast = fl_parser(tokens);
+FL_READER_IMPL(lit_boolean) {
+  FL_AST_START(FL_AST_LIT_BOOLEAN);
 
-  fl_tokens_delete(tokens);
-  st_delete(&code);
+  if (FL_ACCEPT_TOKEN(FL_TK_TRUE)) {
+    ast->boolean.value = true;
+    FL_RETURN_AST();
+  }
+  if (FL_ACCEPT_TOKEN(FL_TK_FALSE)) {
+    ast->boolean.value = false;
+    FL_RETURN_AST();
+  }
+
+  FL_RETURN_NOT_FOUND();
+}
+
+FL_READER_IMPL(lit_string_sq) {
+  FL_AST_START(FL_AST_LIT_STRING);
+
+  if (!FL_ACCEPT_TOKEN(FL_TK_SQUOTE)) {
+    FL_RETURN_NOT_FOUND();
+  }
+  ast->string.value = state->token->string;
+  FL_NEXT();
+
+  if (!FL_ACCEPT_TOKEN(FL_TK_SQUOTE)) {
+    FL_RETURN_NOT_FOUND();
+  }
 
   return ast;
+}
+
+FL_READER_IMPL(lit_string_dq) {
+  FL_AST_START(FL_AST_LIT_STRING);
+
+  if (!FL_ACCEPT_TOKEN(FL_TK_DQUOTE)) {
+    FL_RETURN_NOT_FOUND();
+  }
+  ast->string.value = state->token->string;
+  FL_NEXT();
+
+  if (!FL_ACCEPT_TOKEN(FL_TK_DQUOTE)) {
+    FL_RETURN_NOT_FOUND();
+  }
+
+  return ast;
+}
+
+FL_READER_IMPL(lit_string) {
+  fl_ast_t* ast;
+
+  ast = FL_READ(lit_string_sq);
+
+  if (ast) {
+    return ast;
+  }
+
+  ast = FL_READ(lit_string_dq);
+  if (ast) {
+    return ast;
+  }
+
+  return 0;
 }

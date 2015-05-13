@@ -63,7 +63,16 @@ bool fl_parser_eof(fl_token_list_t* tokens, fl_psrstate_t* state) {
 
 bool fl_parser_accept(fl_token_list_t* tokens, fl_psrstate_t* state,
                       char* text) {
-  if (strcmp(state->token->value->value, text) == 0) {
+  if (strcmp(state->token->string->value, text) == 0) {
+    fl_parser_next(tokens, state);
+    return true;
+  }
+  return false;
+}
+
+bool fl_parser_accept_token(fl_token_list_t* tokens, fl_psrstate_t* state,
+fl_tokens_t token_type) {
+  if (state->token->type == token_type) {
     fl_parser_next(tokens, state);
     return true;
   }
@@ -88,13 +97,14 @@ fl_parser_result_t* fl_parser_expect(fl_token_list_t* tokens,
 
   return err;
 }
-
+// maybe: 00A0 FEFF
 void fl_parser_skipws(fl_token_list_t* tokens, fl_psrstate_t* state) {
   char* itr;
   char c;
   do {
-    itr = state->token->value->value;
-    while ((c = *itr) && (c == ' ' || c == '\n')) {
+    itr = state->token->string->value;
+    while ((c = *itr) && (c == ' ' || c == '\n' || c == '\r' || c == '\t' ||
+                          c == '\v' || c == '\f')) {
       ++itr;
     };
 

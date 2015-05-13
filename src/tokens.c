@@ -25,8 +25,11 @@
 
 #include "flang.h"
 
-size_t fl_token_list_count = 95;
-fl_tokens_cfg_t fl_token_list[95] = {
+// warning
+// IF COUNT IS OUT OF SYNC, BAD THING HAPPEN!
+
+size_t fl_token_list_count = 94;
+fl_tokens_cfg_t fl_token_list[94] = {
     {FL_TK_EOF, false, "\0", 1, 0, 0, false},
     {FL_TK_NEWLINE, false, "\n", 1, 0, 0, false},
     {FL_TK_LOG, false, "log", 3, 0, 0, false},
@@ -52,8 +55,8 @@ fl_tokens_cfg_t fl_token_list[95] = {
     {FL_TK_SEMICOLON, false, ";", 1, 0, 0, false},
 
     {FL_TK_SCOMMENT, false, "//", 2, "\n", 1, false},
-    {FL_TK_MCOMMENT_START, false, "/*", 2, "*/", 2, false},
-    {FL_TK_MCOMMENT_END, false, "*/", 2, 0, 0, false},
+    {FL_TK_MCOMMENT, false, "/*", 2, "*/", 2, false},
+    //{FL_TK_MCOMMENT_END, false, "*/", 2, 0, 0, false},
     {FL_TK_ASTERISKEQUAL, false, "*=", 1, 0, 0, false},
     {FL_TK_ASTERISK, false, "*", 1, 0, 0, false},
     {FL_TK_SLASHEQUAL, false, "/=", 2, 0, 0, false},
@@ -134,7 +137,7 @@ fl_tokens_cfg_t fl_token_list[95] = {
     {FL_TK_F32, false, "f32", 3, 0, 0, false},
     {FL_TK_F64, false, "f64", 3, 0, 0, false},
     {FL_TK_STRING, false, "string", 6, 0, 0, false},
-    {FL_TK_NULL, false, "null", 3, 0, 0, false},
+    {FL_TK_NULL, false, "null", 4, 0, 0, false},
     {FL_TK_NULL, false, "nil", 3, 0, 0, false},
 
     {FL_TK_CAST, false, "cast", 4, 0, 0, false},

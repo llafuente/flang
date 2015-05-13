@@ -36,6 +36,7 @@ int main(int argc, const char* argv[]) {
 
   TASK_RUN(tokenizer);
   TASK_RUN(parser_utils);
+  TASK_RUN(parser_literals);
 
   printf("OK\n");
 

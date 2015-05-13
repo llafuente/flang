@@ -43,32 +43,32 @@ TASK_IMPL(parser_utils) {
 
   fl_parser_stack_init(&stack, tokens, &state);
 
-  ASSERT(strcmp(state.token->value->value, "log") == 0, "1st token");
+  ASSERT(strcmp(state.token->string->value, "log") == 0, "1st token");
   ASSERT(state.current == 0, "1st token id");
 
   fl_parser_next(tokens, &state);
-  ASSERT(strcmp(state.token->value->value, " ") == 0, "2nd token");
+  ASSERT(strcmp(state.token->string->value, " ") == 0, "2nd token");
   ASSERT(state.current == 1, "2nd token id");
 
   fl_parser_next(tokens, &state);
-  ASSERT(strcmp(state.token->value->value, "\"") == 0, "3rd token");
+  ASSERT(strcmp(state.token->string->value, "\"") == 0, "3rd token");
 
   fl_parser_next(tokens, &state);
-  ASSERT(strcmp(state.token->value->value, "hello:\\\"world") == 0,
+  ASSERT(strcmp(state.token->string->value, "hello:\\\"world") == 0,
          "4th token");
 
   fl_parser_next(tokens, &state);
-  ASSERT(strcmp(state.token->value->value, "\"") == 0, "5th token");
+  ASSERT(strcmp(state.token->string->value, "\"") == 0, "5th token");
   ASSERT(fl_parser_eof(tokens, &state) == false, "is eof - no");
 
   fl_parser_next(tokens, &state);
-  ASSERT(strcmp(state.token->value->value, ";") == 0, "6th token");
+  ASSERT(strcmp(state.token->string->value, ";") == 0, "6th token");
   ASSERT(state.current == 5, "6th token id");
   ASSERT(fl_parser_eof(tokens, &state) == true, "is eof - yes");
 
   // overflow - no problem
   fl_parser_next(tokens, &state);
-  ASSERT(strcmp(state.token->value->value, ";") == 0, "6th token");
+  ASSERT(strcmp(state.token->string->value, ";") == 0, "6th token");
   ASSERT(state.current == 5, "6th token id");
   ASSERT(fl_parser_eof(tokens, &state) == true, "is eof - yes");
 
@@ -79,7 +79,7 @@ TASK_IMPL(parser_utils) {
   fl_parser_look_ahead(&stack, &state);
   ASSERT(state.look_ahead_idx == 1, "look ahead is 1");
   fl_parser_prev(tokens, &state);
-  ASSERT(strcmp(state.token->value->value, "hello:\\\"world") == 0,
+  ASSERT(strcmp(state.token->string->value, "hello:\\\"world") == 0,
          "4th token");
   fl_parser_rollback(&stack, &state);
   ASSERT(state.current == 4, "5th token id");
@@ -122,4 +122,6 @@ TASK_IMPL(parser_utils) {
 
   fl_tokens_delete(tokens);
   st_delete(&code);
+
+  return 0;
 }
