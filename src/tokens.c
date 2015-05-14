@@ -87,7 +87,7 @@ fl_tokens_cfg_t fl_token_list[94] = {
     {FL_TK_EQUAL2, false, "==", 2, 0, 0, false},
     {FL_TK_ASSIGNAMENT, false, "=", 1, 0, 0, false},
 
-    {FL_TK_SASSIGNAMENT, false, "?=", 2, 0, 0, false},
+    {FL_TK_QMARKEQUAL, false, "?=", 2, 0, 0, false},
     {FL_TK_QMARK, false, "?", 1, 0, 0, false},
 
     {FL_TK_TEQUAL, false, "~=", 2, 0, 0, false},

@@ -57,6 +57,7 @@ fl_ast_t* fl_parser(fl_token_list_t* tokens) {
 FL_READER_IMPL(body) {
   fl_ast_t* ast;
 
+  FL_TRY_READ(expression);
   FL_TRY_READ(literal);
 
   return 0;

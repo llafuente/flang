@@ -27,6 +27,7 @@
 
 void fl_parser_stack_init(fl_psrstack_t* stack, fl_token_list_t* tokens,
                           fl_psrstate_t* state) {
+  stack->current = 0;
   state->look_ahead_idx = 0;
   state->current = 0;
   state->token = &tokens->tokens[0];
@@ -35,17 +36,22 @@ void fl_parser_stack_init(fl_psrstack_t* stack, fl_token_list_t* tokens,
 }
 
 void fl_parser_look_ahead(fl_psrstack_t* stack, fl_psrstate_t* state) {
-  memcpy(&stack->states[stack->current], state, sizeof(fl_psrstate_t));
-  ++stack->current;
+  // printf("- fl_parser_look_ahead [%ld]\n", state->current);
+
+  memcpy(&stack->states[stack->current++], state, sizeof(fl_psrstate_t));
   ++state->look_ahead_idx;
 }
 
 void fl_parser_commit(fl_psrstack_t* stack, fl_psrstate_t* state) {
+  // printf("- fl_parser_commit [%ld]\n", state->current);
   --stack->current;
   --state->look_ahead_idx;
 }
 
 void fl_parser_rollback(fl_psrstack_t* stack, fl_psrstate_t* state) {
+  // printf("- fl_parser_rollback [%ld]\n", state->current);
+
   --stack->current;
   memcpy(state, &stack->states[stack->current], sizeof(fl_psrstate_t));
+  // printf("- fl_parser_rollback end [%ld]\n", state->current);
 }

@@ -24,55 +24,60 @@
 */
 
 #include "flang.h"
+#include "tasks.h"
+// TODO review if ";" is required
 
-void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
-                     size_t level) {
-  if (!ast) {
+void parser_expressions_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
+  if (!node) {
     printf("(null)\n");
     return;
   }
 
-  cb(ast, parent, level);
-  ++level;
-
-  switch (ast->type) {
+  switch (node->type) {
   case FL_AST_PROGRAM:
-    return fl_ast_traverse(ast->program.body, cb, ast, level);
-
+    printf("%*s - program\n", (int)level, " ");
+    break;
   case FL_AST_EXPR_ASSIGNAMENT:
-    fl_ast_traverse(ast->assignament.left, cb, ast, level);
-    return fl_ast_traverse(ast->assignament.right, cb, ast, level);
-
+    printf("%*s - assignament\n", (int)level, " ");
+    break;
   case FL_AST_EXPR_BINOP:
-    fl_ast_traverse(ast->binop.left, cb, ast, level);
-    return fl_ast_traverse(ast->binop.right, cb, ast, level);
+    printf("%*s - binop\n", (int)level, " ");
+    break;
+  case FL_AST_LIT_NUMERIC:
+    printf("%*s - number\n", (int)level, " ");
+    break;
   default: {}
   }
 }
 
-void fl_ast_delete(fl_ast_t* ast) {
-  switch (ast->type) {
-  case FL_AST_PROGRAM:
-    fl_ast_delete(ast->program.body);
-    break;
-  case FL_AST_EXPR_ASSIGNAMENT:
-    if (ast->assignament.left) {
-      fl_ast_delete(ast->assignament.left);
-    }
+TASK_IMPL(parser_expressions) {
+  fl_ast_t* root;
+  fl_ast_t* ast;
+  root = fl_parse_utf8("1+2");
 
-    if (ast->assignament.right) {
-      fl_ast_delete(ast->assignament.right);
-    }
-    break;
-  case FL_AST_EXPR_BINOP:
-    if (ast->binop.left) {
-      fl_ast_delete(ast->binop.left);
-    }
-    if (ast->binop.right) {
-      fl_ast_delete(ast->binop.right);
-    }
-    break;
-  default: {}
-  }
-  free(ast);
+  // fl_ast_traverse(root, parser_expressions_cb, 0, 0);
+
+  ast = root->program.body;
+  ASSERT(ast != 0, "string literal found!");
+  ASSERT(ast->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+  ASSERT(ast->binop.left->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  ASSERT(ast->binop.right->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("1+2+3");
+
+  // fl_ast_traverse(root, parser_expressions_cb, 0, 0);
+
+  ast = root->program.body;
+  ASSERT(ast != 0, "string literal found!");
+  ASSERT(ast->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+  ASSERT(ast->binop.left->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  ASSERT(ast->binop.right->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+  ASSERT(ast->binop.right->binop.left->type == FL_AST_LIT_NUMERIC,
+         "FL_AST_LIT_NUMERIC");
+  ASSERT(ast->binop.right->binop.right->type == FL_AST_LIT_NUMERIC,
+         "FL_AST_LIT_NUMERIC");
+  fl_ast_delete(root);
+
+  return 0;
 }

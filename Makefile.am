@@ -6,6 +6,7 @@ COMPILER_SOURCES = src/tokenizer.c \
                 src/parser-utils.c \
                 src/parser-stack.c \
                 src/parser-literal.c \
+                src/parser-expression.c \
                 src/ast.c
 
 AM_CPPFLAGS = -I$(top_srcdir)/include \
@@ -23,7 +24,8 @@ flang_LDADD =
 SOURCES_TEST = test/tasks.c \
                test/tokenizer-test.c \
                test/parser-utils-test.c \
-               test/parser-literals.c
+               test/parser-literals.c \
+               test/parser-expressions-test.c
 
 TESTS = test/run-tests
 check_PROGRAMS = test/run-tests

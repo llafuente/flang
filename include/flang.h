@@ -87,7 +87,7 @@ enum fl_tokens {
   FL_TK_LT2,
   FL_TK_LTE,
   FL_TK_ASSIGNAMENT,
-  FL_TK_SASSIGNAMENT,
+  FL_TK_QMARKEQUAL,
   FL_TK_EQUAL2,
   FL_TK_TEQUAL,
   FL_TK_EEQUAL,
@@ -198,6 +198,9 @@ enum fl_ast_type {
   FL_AST_LIT_IDENTIFIER,
 
   FL_AST_EXPR,
+  FL_AST_EXPR_ASSIGNAMENT,
+  FL_AST_EXPR_CONDITIONAL,
+  FL_AST_EXPR_BINOP,
 };
 typedef enum fl_ast_type fl_ast_type_t;
 
@@ -225,6 +228,16 @@ struct fl_ast {
     struct fl_ast_lit_identifier {
       string* string;
     } identifier;
+    struct fl_ast_expr_assignament {
+      struct fl_ast* left;
+      fl_tokens_t operator;
+      struct fl_ast* right;
+    } assignament;
+    struct fl_ast_expr_binop {
+      struct fl_ast* left;
+      fl_tokens_t operator;
+      struct fl_ast* right;
+    } binop;
   };
 };
 
@@ -244,23 +257,31 @@ typedef struct fl_parser_stack fl_psrstack_t;
 //- MACROS
 //-
 
-#define FL_READER_DECL(name)                                                   \
-  extern fl_ast_t* fl_read_##name(fl_token_list_t* tokens,                     \
-                                  fl_psrstack_t* stack, fl_psrstate_t* state);
+#define FL_READER_FN(name) fl_read_##name
 
-#define FL_READER_IMPL(name)                                                   \
-  fl_ast_t* fl_read_##name(fl_token_list_t* tokens, fl_psrstack_t* stack,      \
-                           fl_psrstate_t* state)
+#define FL_READER_DECL(name)                                                   \
+  extern fl_ast_t* FL_READER_FN(name)(                                         \
+      fl_token_list_t * tokens, fl_psrstack_t * stack, fl_psrstate_t * state);
+
+#define FL_READER_HEADER                                                       \
+  fl_token_list_t* tokens, fl_psrstack_t* stack, fl_psrstate_t* state
+
+#define FL_READER_HEADER_SEND tokens, stack, state
+
+#define FL_READER_IMPL(name) fl_ast_t* FL_READER_FN(name)(FL_READER_HEADER)
 
 // , printf("%s\n", #name)
-#define FL_READ(name) fl_read_##name(tokens, stack, state)
+#define FL_READ(name) FL_READER_FN(name)(tokens, stack, state)
 
 // TODO handle errors when done :)
 #define FL_TRY_READ(name)                                                      \
+  fl_parser_look_ahead(stack, state);                                          \
   ast = FL_READ(name);                                                         \
   if (ast) {                                                                   \
+    fl_parser_commit(stack, state);                                            \
     return ast;                                                                \
-  }
+  }                                                                            \
+  fl_parser_rollback(stack, state);
 
 #define FL_AST_START(ast_type)                                                 \
   fl_ast_t* ast = (fl_ast_t*)malloc(sizeof(fl_ast_t));                         \
@@ -363,11 +384,24 @@ FL_READER_DECL(lit_identifier);
 
 /* cldoc:end-category() */
 
+/* cldoc:begin-category(parser-expression.c) */
+
+FL_READER_DECL(expression);
+FL_READER_DECL(expr_assignment);
+FL_READER_DECL(expr_conditional);
+FL_READER_DECL(expr_assignment_full);
+FL_READER_DECL(expr_lhs);
+FL_READER_DECL(expr_logical_or);
+
+typedef fl_ast_t* (*fl_reader_cb_t)(FL_READER_HEADER);
+/* cldoc:end-category() */
+
 /* cldoc:begin-category(ast.c) */
 
-typedef void (*fl_ast_cb_t)(fl_ast_t* node, fl_ast_t parent);
+typedef void (*fl_ast_cb_t)(fl_ast_t* node, fl_ast_t* parent, size_t level);
 
-void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t* cb);
+void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
+                     size_t level);
 
 void fl_ast_delete(fl_ast_t* ast);
 

@@ -118,15 +118,12 @@ FL_READER_IMPL(lit_object) { return 0; }
 FL_READER_IMPL(lit_numeric) {
   FL_AST_START(FL_AST_LIT_NUMERIC);
 
-  printf("litnumeric\n");
-
   string* str = state->token->string;
   char* start = str->value;
   if (isdigit(start[0])) {
-    char** end;
-    *end = (start + str->used);
+    char* endp = start + (str->used);
     // must be a number and error will be final!
-    double result = strtod(start, end);
+    double result = strtod(start, &endp);
     if (errno) {
       if ((result == HUGE_VAL || result == -HUGE_VAL) && errno == ERANGE) {
         fprintf(stderr, "ERROR! overflow\n");
@@ -135,11 +132,9 @@ FL_READER_IMPL(lit_numeric) {
       }
     }
     ast->numeric.value = result;
-    printf("found\n");
+    FL_NEXT();
     return ast;
   }
-
-  printf("not-found\n");
 
   FL_RETURN_NOT_FOUND();
 }

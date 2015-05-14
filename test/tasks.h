@@ -44,11 +44,14 @@ extern size_t st_assert_count;
 #define PASTE2(a, b) a##b
 #define PASTE(a, b) PASTE2(a, b)
 
+#define __RFILE__                                                              \
+  (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+
 #ifdef BENCHMARKING
 #define ASSERT(comparison, name)                                               \
   if (comparison == false) {                                                   \
     printf("[%6zu]\x1B[31mFAIL\x1B[39m: %-32s [%s:%d]\n", ++st_assert_count,   \
-           name, __FILE__, __LINE__);                                          \
+           name, __RFILE__, __LINE__);                                         \
     trace(stderr);                                                             \
     exit(1);                                                                   \
   }
@@ -67,10 +70,10 @@ extern size_t st_assert_count;
 #define ASSERT(comparison, name)                                               \
   if (comparison) {                                                            \
     printf("[%6zu]\x1B[32mPASS\x1B[39m: %-32s [%s:%d]\n", ++st_assert_count,   \
-           name, __FILE__, __LINE__);                                          \
+           name, __RFILE__, __LINE__);                                         \
   } else {                                                                     \
     printf("[%6zu]\x1B[31mFAIL\x1B[39m: %-32s [%s:%d]\n", ++st_assert_count,   \
-           name, __FILE__, __LINE__);                                          \
+           name, __RFILE__, __LINE__);                                         \
     trace(stderr);                                                             \
     exit(1);                                                                   \
   }
