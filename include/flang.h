@@ -185,7 +185,10 @@ struct fl_parser_state {
 typedef struct fl_parser_state fl_psrstate_t;
 
 enum fl_ast_type {
+  FL_AST_PROGRAM,
+
   FL_AST_STMT_LOG,
+
   FL_AST_LIT_ARRAY,
   FL_AST_LIT_OBJECT,
   FL_AST_LIT_NUMERIC,
@@ -193,6 +196,7 @@ enum fl_ast_type {
   FL_AST_LIT_BOOLEAN,
   FL_AST_LIT_NULL,
   FL_AST_LIT_IDENTIFIER,
+
   FL_AST_EXPR,
 };
 typedef enum fl_ast_type fl_ast_type_t;
@@ -203,6 +207,9 @@ struct fl_ast {
   fl_ast_type_t type; // TODO enum
 
   union {
+    struct fl_ast_program {
+      struct fl_ast* body;
+    } program;
     struct fl_ast_lit_boolean {
       bool value;
     } boolean;
@@ -246,8 +253,7 @@ typedef struct fl_parser_stack fl_psrstack_t;
                            fl_psrstate_t* state)
 
 // , printf("%s\n", #name)
-#define FL_READ(name)                                                          \
-  fl_read_##name(tokens, stack, state)
+#define FL_READ(name) fl_read_##name(tokens, stack, state)
 
 // TODO handle errors when done :)
 #define FL_TRY_READ(name)                                                      \
@@ -261,8 +267,10 @@ typedef struct fl_parser_stack fl_psrstack_t;
   ast->token_start = state->token;                                             \
   ast->type = ast_type;
 
+#define FL_AST_END() ast->token_end = state->token
+
 #define FL_RETURN_AST()                                                        \
-  ast->token_end = state->token;                                               \
+  FL_AST_END();                                                                \
   return ast;
 
 #define FL_RETURN_NOT_FOUND()                                                  \
@@ -272,7 +280,7 @@ typedef struct fl_parser_stack fl_psrstack_t;
 #define FL_ACCEPT(string) fl_parser_accept(tokens, state, string)
 
 #define FL_ACCEPT_TOKEN(token_type)                                            \
-fl_parser_accept_token(tokens, state, token_type)
+  fl_parser_accept_token(tokens, state, token_type)
 
 // , printf("next!\n")
 #define FL_NEXT() fl_parser_next(tokens, state)
@@ -319,8 +327,9 @@ extern bool fl_parser_eof(fl_token_list_t* tokens, fl_psrstate_t* state);
 extern bool fl_parser_accept(fl_token_list_t* tokens, fl_psrstate_t* state,
                              char* text);
 
-extern bool fl_parser_accept_token(fl_token_list_t* tokens, fl_psrstate_t* state,
-                             fl_tokens_t token_type);
+extern bool fl_parser_accept_token(fl_token_list_t* tokens,
+                                   fl_psrstate_t* state,
+                                   fl_tokens_t token_type);
 
 /* cldoc:end-category() */
 
@@ -351,5 +360,15 @@ FL_READER_DECL(lit_boolean);
 FL_READER_DECL(lit_string);
 FL_READER_DECL(lit_numeric);
 FL_READER_DECL(lit_identifier);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast.c) */
+
+typedef void (*fl_ast_cb_t)(fl_ast_t* node, fl_ast_t parent);
+
+void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t* cb);
+
+void fl_ast_delete(fl_ast_t* ast);
 
 /* cldoc:end-category() */

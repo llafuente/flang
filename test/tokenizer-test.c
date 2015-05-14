@@ -52,7 +52,6 @@ TASK_IMPL(tokenizer) {
   code = st_newc("1567", st_enc_utf8);
   tokens = fl_tokenize(code);
 
-
   ASSERT(tokens->size == 2, "just a number");
 
   fl_tokens_delete(tokens);

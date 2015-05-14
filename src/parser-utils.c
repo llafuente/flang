@@ -68,7 +68,7 @@ bool fl_parser_accept(fl_token_list_t* tokens, fl_psrstate_t* state,
 }
 
 bool fl_parser_accept_token(fl_token_list_t* tokens, fl_psrstate_t* state,
-fl_tokens_t token_type) {
+                            fl_tokens_t token_type) {
   if (state->token->type == token_type) {
     fl_parser_next(tokens, state);
     return true;

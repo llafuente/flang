@@ -5,7 +5,8 @@ COMPILER_SOURCES = src/tokenizer.c \
                 src/parser.c \
                 src/parser-utils.c \
                 src/parser-stack.c \
-                src/parser-literal.c
+                src/parser-literal.c \
+                src/ast.c
 
 AM_CPPFLAGS = -I$(top_srcdir)/include \
               -I$(top_srcdir)/src

@@ -111,13 +111,9 @@ FL_READER_IMPL(lit_string) {
 }
 
 // TODO
-FL_READER_IMPL(lit_array) {
-  return 0;
-}
+FL_READER_IMPL(lit_array) { return 0; }
 // TODO
-FL_READER_IMPL(lit_object) {
-  return 0;
-}
+FL_READER_IMPL(lit_object) { return 0; }
 
 FL_READER_IMPL(lit_numeric) {
   FL_AST_START(FL_AST_LIT_NUMERIC);
@@ -132,8 +128,7 @@ FL_READER_IMPL(lit_numeric) {
     // must be a number and error will be final!
     double result = strtod(start, end);
     if (errno) {
-      if((result == HUGE_VAL || result == -HUGE_VAL) &&
-        errno == ERANGE) {
+      if ((result == HUGE_VAL || result == -HUGE_VAL) && errno == ERANGE) {
         fprintf(stderr, "ERROR! overflow\n");
       } else if (errno == ERANGE) {
         fprintf(stderr, "ERROR! underflow\n");
