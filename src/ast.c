@@ -46,12 +46,18 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
   case FL_AST_EXPR_BINOP:
     fl_ast_traverse(ast->binop.left, cb, ast, level);
     return fl_ast_traverse(ast->binop.right, cb, ast, level);
+  case FL_AST_EXPR_LUNARY:
+    fl_ast_traverse(ast->lunary.element, cb, ast, level);
+    break;
+  case FL_AST_EXPR_RUNARY:
+    fl_ast_traverse(ast->runary.element, cb, ast, level);
+    break;
   default: {}
   }
 }
 
 void fl_ast_delete(fl_ast_t* ast) {
-  //fprintf(stderr, "ast [%p]", ast);
+  // fprintf(stderr, "ast [%p]", ast);
 
   switch (ast->type) {
   case FL_AST_PROGRAM:
@@ -91,6 +97,8 @@ void fl_ast_delete(fl_ast_t* ast) {
       ast->runary.element = 0;
     }
     break;
+  case FL_AST_LIT_IDENTIFIER:
+    st_delete(&ast->identifier.string);
   default: {}
   }
   free(ast);
@@ -115,6 +123,15 @@ void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
     break;
   case FL_AST_LIT_NUMERIC:
     printf("%*s - number [%p]\n", (int)level, " ", node);
+    break;
+  case FL_AST_LIT_IDENTIFIER:
+    printf("%*s - identifier [%p]\n", (int)level, " ", node);
+    break;
+  case FL_AST_EXPR_LUNARY:
+    printf("%*s - lunary (%d) [%p]\n", (int)level, " ", node->lunary.operator);
+    break;
+  case FL_AST_EXPR_RUNARY:
+    printf("%*s - runary (%d) [%p]\n", (int)level, " ", node->runary.operator);
     break;
   default: {}
   }

@@ -145,6 +145,7 @@ FL_READER_IMPL(lit_identifier) {
   if (state->token->type == FL_TK_UNKOWN) {
     FL_AST_START(FL_AST_LIT_IDENTIFIER);
     ast->identifier.string = st_clone(state->token->string);
+    FL_NEXT();
     return ast;
   }
 

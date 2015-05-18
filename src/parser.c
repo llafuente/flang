@@ -70,8 +70,8 @@ fl_ast_t* fl_parse_utf8(char* str) {
   code = st_newc(str, st_enc_utf8);
   tokens = fl_tokenize(code);
 
-#ifdef FL_VERBOSE
   fl_tokens_debug(tokens);
+#ifdef FL_VERBOSE
 #endif
 
   fl_ast_t* ast = fl_parser(tokens);

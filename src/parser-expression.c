@@ -82,7 +82,13 @@ FL_READER_IMPL(expr_assignment_full) {
   return ast;
 }
 
-FL_READER_IMPL(expr_lhs) { return FL_READ(literal); }
+FL_READER_IMPL(expr_lhs) {
+  fl_ast_t* ast;
+
+  FL_TRY_READ(literal);
+
+  return 0;
+}
 
 FL_READER_IMPL(expr_conditional) {
   // FL_AST_START(FL_AST_EXPR_CONDITIONAL);
@@ -118,7 +124,8 @@ fl_ast_t* fl_read_binop(FL_READER_HEADER, fl_tokens_t operators[], size_t n_ops,
     // printf("state before literal %lu [%p]\n", state->current,
     // ast->binop.left);
     ast->binop.left = next(FL_READER_HEADER_SEND);
-    //printf("state after literal %lu [%p]\n", state->current, ast->binop.left);
+    // printf("state after literal %lu [%p]\n", state->current,
+    // ast->binop.left);
 
     if (!ast->binop.left) {
       err_left = true;
@@ -250,7 +257,8 @@ FL_READER_IMPL(expr_unary) {
 
   FL_TRY_READ(expr_unary_right);
 
-  FL_TRY_READ(expr_lhs);
+  // lhs not needed, will be sent up by expr_unary_right
+  // FL_TRY_READ(expr_lhs);
 
   return 0;
 }
@@ -285,4 +293,39 @@ FL_READER_IMPL(expr_unary_left) {
 
   return ast;
 }
-FL_READER_IMPL(expr_unary_right) { return 0; }
+FL_READER_IMPL(expr_unary_right) {
+  FL_AST_START(FL_AST_EXPR_RUNARY);
+
+  ast->runary.element = FL_READ(expr_lhs);
+  // TODO handle errors
+  printf("WTF! [%p]\n", ast->runary.element);
+
+  fl_ast_debug_cb(ast->runary.element, 0, 5);
+  fl_ast_debug_cb(ast, 0, 5);
+
+  printf("???\n");
+
+  if (!ast->runary.element) {
+    FL_RETURN_NOT_FOUND();
+  }
+
+  printf("state->token->type %d\n", state->token->type);
+  printf("state->current %d\n", state->current);
+  // read operator
+  switch (state->token->type) {
+  case FL_TK_PLUS2:
+  case FL_TK_MINUS2:
+  case FL_TK_QMARK:
+    ast->runary.operator= state->token->type;
+    FL_NEXT();
+    break;
+  default: {
+    // lhs is valid, send up!
+    fl_ast_t* tmp = ast->runary.element;
+    free(ast);
+    return tmp;
+  }
+  };
+
+  return ast;
+}
