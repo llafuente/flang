@@ -43,6 +43,7 @@ FL_READER_IMPL(expr_assignment) {
 }
 
 FL_READER_IMPL(expr_assignment_full) {
+  return 0;
   FL_AST_START(FL_AST_EXPR_ASSIGNAMENT);
 
   ast->assignament.left = FL_READ(expr_lhs);
@@ -81,7 +82,7 @@ FL_READER_IMPL(expr_assignment_full) {
   return ast;
 }
 
-FL_READER_IMPL(expr_lhs) { return 0; }
+FL_READER_IMPL(expr_lhs) { return FL_READ(literal); }
 
 FL_READER_IMPL(expr_conditional) {
   // FL_AST_START(FL_AST_EXPR_CONDITIONAL);
@@ -117,8 +118,7 @@ fl_ast_t* fl_read_binop(FL_READER_HEADER, fl_tokens_t operators[], size_t n_ops,
     // printf("state before literal %lu [%p]\n", state->current,
     // ast->binop.left);
     ast->binop.left = next(FL_READER_HEADER_SEND);
-    // printf("state after literal %lu [%p]\n", state->current,
-    // ast->binop.left);
+    //printf("state after literal %lu [%p]\n", state->current, ast->binop.left);
 
     if (!ast->binop.left) {
       err_left = true;
@@ -243,4 +243,46 @@ FL_READER_IMPL(expr_multiplicative) {
                        FL_READER_FN(expr_unary));
 }
 
-FL_READER_IMPL(expr_unary) { return FL_READ(literal); }
+FL_READER_IMPL(expr_unary) {
+  fl_ast_t* ast;
+
+  FL_TRY_READ(expr_unary_left);
+
+  FL_TRY_READ(expr_unary_right);
+
+  FL_TRY_READ(expr_lhs);
+
+  return 0;
+}
+
+FL_READER_IMPL(expr_unary_left) {
+  FL_AST_START(FL_AST_EXPR_LUNARY);
+
+  // read operator
+  switch (state->token->type) {
+  case FL_TK_PLUS2:
+  case FL_TK_MINUS2:
+  case FL_TK_PLUS:
+  case FL_TK_MINUS:
+  case FL_TK_TILDE:
+  case FL_TK_EXCLAMATION:
+  case FL_TK_DELETE:
+    // case FL_TK_ASTERISK: // dereference pointer
+    // case FL_TK_TYPEOF:
+    // case FL_TK_CLONE:
+    ast->lunary.operator= state->token->type;
+    FL_NEXT();
+    break;
+  default:
+    FL_RETURN_NOT_FOUND();
+  };
+
+  ast->lunary.element = FL_READ(expr_lhs);
+  // TODO handle errors
+  if (!ast->lunary.element) {
+    FL_RETURN_NOT_FOUND();
+  }
+
+  return ast;
+}
+FL_READER_IMPL(expr_unary_right) { return 0; }

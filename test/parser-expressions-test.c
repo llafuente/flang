@@ -88,5 +88,18 @@ TASK_IMPL(parser_expressions) {
 
   fl_ast_delete(root);
 
+  root = fl_parse_utf8("-2"); // unary
+
+  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
+
+  ast = root->program.body;
+  ASSERT(ast != 0, "ast found!");
+  ASSERT(ast->type == FL_AST_EXPR_LUNARY, "FL_AST_EXPR_LUNARY");
+
+  ASSERT(ast->lunary.element->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  ASSERT(ast->lunary.operator== FL_TK_MINUS, "FL_TK_MINUS");
+
+  fl_ast_delete(root);
+
   return 0;
 }

@@ -64,7 +64,6 @@ enum fl_tokens {
   FL_TK_TILDE,
   FL_TK_SCOMMENT,
   FL_TK_MCOMMENT,
-  // FL_TK_MCOMMENT_END,
   FL_TK_ASTERISKEQUAL,
   FL_TK_ASTERISK,
   FL_TK_SLASHEQUAL,
@@ -201,6 +200,8 @@ enum fl_ast_type {
   FL_AST_EXPR_ASSIGNAMENT,
   FL_AST_EXPR_CONDITIONAL,
   FL_AST_EXPR_BINOP,
+  FL_AST_EXPR_LUNARY,
+  FL_AST_EXPR_RUNARY,
 };
 typedef enum fl_ast_type fl_ast_type_t;
 
@@ -238,6 +239,14 @@ struct fl_ast {
       fl_tokens_t operator;
       struct fl_ast* right;
     } binop;
+    struct fl_ast_expr_lunary {
+      fl_tokens_t operator;
+      struct fl_ast* element;
+    } lunary;
+    struct fl_ast_expr_runary {
+      fl_tokens_t operator;
+      struct fl_ast* element;
+    } runary;
   };
 };
 
@@ -286,8 +295,9 @@ typedef struct fl_parser_stack fl_psrstack_t;
   }                                                                            \
   fl_parser_rollback(stack, state);
 
+// calloc is necessary atm
 #define FL_AST_START(ast_type)                                                 \
-  fl_ast_t* ast = (fl_ast_t*)malloc(sizeof(fl_ast_t));                         \
+  fl_ast_t* ast = (fl_ast_t*)calloc(1, sizeof(fl_ast_t));                      \
   ast->token_start = state->token;                                             \
   ast->type = ast_type;
 
@@ -298,7 +308,10 @@ typedef struct fl_parser_stack fl_psrstack_t;
   return ast;
 
 #define FL_RETURN_NOT_FOUND()                                                  \
-  free(ast);                                                                   \
+  if (ast) {                                                                   \
+    fl_ast_delete(ast);                                                        \
+    ast = 0;                                                                   \
+  }                                                                            \
   return 0;
 
 #define FL_ACCEPT(string) fl_parser_accept(tokens, state, string)
@@ -406,6 +419,8 @@ FL_READER_DECL(expr_shift);
 FL_READER_DECL(expr_additive);
 FL_READER_DECL(expr_multiplicative);
 FL_READER_DECL(expr_unary);
+FL_READER_DECL(expr_unary_left);
+FL_READER_DECL(expr_unary_right);
 
 typedef fl_ast_t* (*fl_reader_cb_t)(FL_READER_HEADER);
 /* cldoc:end-category() */

@@ -51,25 +51,44 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
 }
 
 void fl_ast_delete(fl_ast_t* ast) {
+  //fprintf(stderr, "ast [%p]", ast);
+
   switch (ast->type) {
   case FL_AST_PROGRAM:
     fl_ast_delete(ast->program.body);
+    ast->program.body = 0;
     break;
   case FL_AST_EXPR_ASSIGNAMENT:
     if (ast->assignament.left) {
       fl_ast_delete(ast->assignament.left);
+      ast->assignament.left = 0;
     }
 
     if (ast->assignament.right) {
       fl_ast_delete(ast->assignament.right);
+      ast->assignament.right = 0;
     }
     break;
   case FL_AST_EXPR_BINOP:
     if (ast->binop.left) {
       fl_ast_delete(ast->binop.left);
+      ast->binop.left = 0;
     }
     if (ast->binop.right) {
       fl_ast_delete(ast->binop.right);
+      ast->binop.right = 0;
+    }
+    break;
+  case FL_AST_EXPR_LUNARY:
+    if (ast->lunary.element) {
+      fl_ast_delete(ast->lunary.element);
+      ast->lunary.element = 0;
+    }
+    break;
+  case FL_AST_EXPR_RUNARY:
+    if (ast->runary.element) {
+      fl_ast_delete(ast->runary.element);
+      ast->runary.element = 0;
     }
     break;
   default: {}
