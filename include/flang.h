@@ -257,10 +257,12 @@ typedef struct fl_parser_stack fl_psrstack_t;
 //- MACROS
 //-
 
+#define FL_EXTERN extern
+
 #define FL_READER_FN(name) fl_read_##name
 
 #define FL_READER_DECL(name)                                                   \
-  extern fl_ast_t* FL_READER_FN(name)(                                         \
+  FL_EXTERN fl_ast_t* FL_READER_FN(name)(                                      \
       fl_token_list_t * tokens, fl_psrstack_t * stack, fl_psrstate_t * state);
 
 #define FL_READER_HEADER                                                       \
@@ -273,6 +275,7 @@ typedef struct fl_parser_stack fl_psrstack_t;
 // , printf("%s\n", #name)
 #define FL_READ(name) FL_READER_FN(name)(tokens, stack, state)
 
+// printf("%s %p type %d\n", __FUNCTION__, ast, ast->type);
 // TODO handle errors when done :)
 #define FL_TRY_READ(name)                                                      \
   fl_parser_look_ahead(stack, state);                                          \
@@ -310,28 +313,28 @@ typedef struct fl_parser_stack fl_psrstack_t;
 //- functions
 //-
 
-extern size_t fl_token_list_count;
+FL_EXTERN size_t fl_token_list_count;
 
-extern fl_tokens_cfg_t fl_token_list[];
+FL_EXTERN fl_tokens_cfg_t fl_token_list[];
 
-extern void fl_tokens_init();
+FL_EXTERN void fl_tokens_init();
 
-extern void fl_tokens_delete(fl_token_list_t* tokens);
+FL_EXTERN void fl_tokens_delete(fl_token_list_t* tokens);
 
 /* cldoc:begin-category(parser-stack.c) */
 
-extern void fl_tokens_debug(fl_token_list_t* tokens);
+FL_EXTERN void fl_tokens_debug(fl_token_list_t* tokens);
 
-extern fl_token_list_t* fl_tokenize(string* file);
+FL_EXTERN fl_token_list_t* fl_tokenize(string* file);
 
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(parser.c) */
 
-extern fl_ast_t* fl_parser(fl_token_list_t* tokens);
+FL_EXTERN fl_ast_t* fl_parser(fl_token_list_t* tokens);
 
-extern fl_ast_t* fl_parse(string* str);
-extern fl_ast_t* fl_parse_utf8(char* str);
+FL_EXTERN fl_ast_t* fl_parse(string* str);
+FL_EXTERN fl_ast_t* fl_parse_utf8(char* str);
 
 FL_READER_DECL(body);
 
@@ -339,37 +342,38 @@ FL_READER_DECL(body);
 
 /* cldoc:begin-category(parser-utils.c) */
 
-extern bool fl_parser_next(fl_token_list_t* tokens, fl_psrstate_t* state);
+FL_EXTERN bool fl_parser_next(fl_token_list_t* tokens, fl_psrstate_t* state);
 
-extern bool fl_parser_prev(fl_token_list_t* tokens, fl_psrstate_t* state);
+FL_EXTERN bool fl_parser_prev(fl_token_list_t* tokens, fl_psrstate_t* state);
 
-extern bool fl_parser_eof(fl_token_list_t* tokens, fl_psrstate_t* state);
+FL_EXTERN bool fl_parser_eof(fl_token_list_t* tokens, fl_psrstate_t* state);
 
-extern bool fl_parser_accept(fl_token_list_t* tokens, fl_psrstate_t* state,
-                             char* text);
+FL_EXTERN bool fl_parser_accept(fl_token_list_t* tokens, fl_psrstate_t* state,
+                                char* text);
 
-extern bool fl_parser_accept_token(fl_token_list_t* tokens,
-                                   fl_psrstate_t* state,
-                                   fl_tokens_t token_type);
+FL_EXTERN bool fl_parser_accept_token(fl_token_list_t* tokens,
+                                      fl_psrstate_t* state,
+                                      fl_tokens_t token_type);
 
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(parser-stack.c) */
 
-extern void fl_parser_stack_init(fl_psrstack_t* stack, fl_token_list_t* tokens,
-                                 fl_psrstate_t* state);
+FL_EXTERN void fl_parser_stack_init(fl_psrstack_t* stack,
+                                    fl_token_list_t* tokens,
+                                    fl_psrstate_t* state);
 
-extern void fl_parser_look_ahead(fl_psrstack_t* stack, fl_psrstate_t* state);
+FL_EXTERN void fl_parser_look_ahead(fl_psrstack_t* stack, fl_psrstate_t* state);
 
-extern void fl_parser_commit(fl_psrstack_t* stack, fl_psrstate_t* state);
+FL_EXTERN void fl_parser_commit(fl_psrstack_t* stack, fl_psrstate_t* state);
 
-extern void fl_parser_rollback(fl_psrstack_t* stack, fl_psrstate_t* state);
+FL_EXTERN void fl_parser_rollback(fl_psrstack_t* stack, fl_psrstate_t* state);
 
-extern fl_parser_result_t* fl_parser_expect(fl_token_list_t* tokens,
-                                            fl_psrstate_t* state, char* text,
-                                            char* err_msg, bool final);
+FL_EXTERN fl_parser_result_t* fl_parser_expect(fl_token_list_t* tokens,
+                                               fl_psrstate_t* state, char* text,
+                                               char* err_msg, bool final);
 
-extern void fl_parser_skipws(fl_token_list_t* tokens, fl_psrstate_t* state);
+FL_EXTERN void fl_parser_skipws(fl_token_list_t* tokens, fl_psrstate_t* state);
 
 /* cldoc:end-category() */
 
@@ -388,10 +392,20 @@ FL_READER_DECL(lit_identifier);
 
 FL_READER_DECL(expression);
 FL_READER_DECL(expr_assignment);
-FL_READER_DECL(expr_conditional);
 FL_READER_DECL(expr_assignment_full);
 FL_READER_DECL(expr_lhs);
+FL_READER_DECL(expr_conditional);
 FL_READER_DECL(expr_logical_or);
+FL_READER_DECL(expr_logical_and);
+FL_READER_DECL(expr_bitwise_or);
+FL_READER_DECL(expr_bitwise_xor);
+FL_READER_DECL(expr_bitwise_and);
+FL_READER_DECL(expr_equality);
+FL_READER_DECL(expr_relational);
+FL_READER_DECL(expr_shift);
+FL_READER_DECL(expr_additive);
+FL_READER_DECL(expr_multiplicative);
+FL_READER_DECL(expr_unary);
 
 typedef fl_ast_t* (*fl_reader_cb_t)(FL_READER_HEADER);
 /* cldoc:end-category() */
@@ -400,9 +414,11 @@ typedef fl_ast_t* (*fl_reader_cb_t)(FL_READER_HEADER);
 
 typedef void (*fl_ast_cb_t)(fl_ast_t* node, fl_ast_t* parent, size_t level);
 
-void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
-                     size_t level);
+FL_EXTERN void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
+                               size_t level);
 
-void fl_ast_delete(fl_ast_t* ast);
+FL_EXTERN void fl_ast_delete(fl_ast_t* ast);
+
+FL_EXTERN void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level);
 
 /* cldoc:end-category() */

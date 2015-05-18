@@ -25,6 +25,7 @@
 
 #include "flang.h"
 #include "tasks.h"
+
 // TODO review if ";" is required
 TASK_IMPL(parser_literals) {
   fl_ast_t* root;
@@ -32,7 +33,11 @@ TASK_IMPL(parser_literals) {
 
   root = fl_parse_utf8("\"hello:\\\"w\'orld\"");
   ast = root->program.body;
+
+  // fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
+
   ASSERT(ast != 0, "string literal found!");
+
   ASSERT(ast->type == FL_AST_LIT_STRING, "FL_AST_LIT_STRING");
   fl_ast_delete(root);
 

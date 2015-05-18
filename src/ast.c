@@ -76,3 +76,27 @@ void fl_ast_delete(fl_ast_t* ast) {
   }
   free(ast);
 }
+
+void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
+  if (!node) {
+    printf("(null)\n");
+    return;
+  }
+
+  switch (node->type) {
+  case FL_AST_PROGRAM:
+    printf("%*s - program [%p]\n", (int)level, " ", node);
+    break;
+  case FL_AST_EXPR_ASSIGNAMENT:
+    printf("%*s - assignament [%p]\n", (int)level, " ", node);
+    break;
+  case FL_AST_EXPR_BINOP:
+    printf("%*s - binop (%d) [%p]\n", (int)level, " ", node->binop.operator,
+           node);
+    break;
+  case FL_AST_LIT_NUMERIC:
+    printf("%*s - number [%p]\n", (int)level, " ", node);
+    break;
+  default: {}
+  }
+}

@@ -57,7 +57,7 @@ fl_tokens_cfg_t fl_token_list[94] = {
     {FL_TK_SCOMMENT, false, "//", 2, "\n", 1, false},
     {FL_TK_MCOMMENT, false, "/*", 2, "*/", 2, false},
     //{FL_TK_MCOMMENT_END, false, "*/", 2, 0, 0, false},
-    {FL_TK_ASTERISKEQUAL, false, "*=", 1, 0, 0, false},
+    {FL_TK_ASTERISKEQUAL, false, "*=", 2, 0, 0, false},
     {FL_TK_ASTERISK, false, "*", 1, 0, 0, false},
     {FL_TK_SLASHEQUAL, false, "/=", 2, 0, 0, false},
     {FL_TK_SLASH, false, "/", 1, 0, 0, false},
