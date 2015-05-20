@@ -43,7 +43,6 @@ FL_READER_IMPL(expr_assignment) {
 }
 
 FL_READER_IMPL(expr_assignment_full) {
-  return 0;
   FL_AST_START(FL_AST_EXPR_ASSIGNAMENT);
 
   ast->assignament.left = FL_READ(expr_lhs);
@@ -69,8 +68,9 @@ FL_READER_IMPL(expr_assignment_full) {
   case FL_TK_CEQUAL:
   case FL_TK_OREQUAL:
   case FL_TK_ANDEQUAL:
-  case FL_TK_ASSIGNAMENT:
+  case FL_TK_EQUAL:
     ast->assignament.operator= state->token->type;
+    break;
   default:
     FL_RETURN_NOT_FOUND();
   }
@@ -306,8 +306,6 @@ FL_READER_IMPL(expr_unary_right) {
     FL_RETURN_NOT_FOUND();
   }
 
-  printf("state->token->type %d\n", state->token->type);
-  printf("state->current %d\n", state->current);
   // read operator
   switch (state->token->type) {
   case FL_TK_PLUS2:

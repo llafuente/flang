@@ -32,7 +32,7 @@ TASK_IMPL(codegen_expressions) {
   fl_ast_t* ast;
   root = fl_parse_utf8("c=1+2");
 
-  // fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
+  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
 
   ast = root->program.body;
   ASSERT(ast != 0, "ast parsed ok");

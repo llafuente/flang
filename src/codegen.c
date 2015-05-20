@@ -64,46 +64,53 @@ LLVMExecutionEngineRef fl_codegen_jit(LLVMModuleRef M) {
 
 int fl_codegen(fl_ast_t* root, char* module_name) {
   char* err;
+  LLVMContextRef context = LLVMGetGlobalContext();
   LLVMModuleRef module =
-      LLVMModuleCreateWithName(!module_name ? "main" : module_name);
+  //LLVMModuleCreateWithNameInContext(!module_name ? "main" : module_name, context);
+  LLVMModuleCreateWithName(!module_name ? "main" : module_name);
+  //LLVMBuilderRef builder = LLVMCreateBuilderInContext(context);
   LLVMBuilderRef builder = LLVMCreateBuilder();
 
-/*
-  LLVMExecutionEngineRef jit = fl_codegen_jit();
+  /*
+    LLVMExecutionEngineRef jit = fl_codegen_jit();
 
-  // Setup optimizations.
-  LLVMPassManagerRef pass_manager =
-      LLVMCreateFunctionPassManagerForModule(module);
-  LLVMAddTargetData(LLVMGetExecutionEngineTargetData(engine), pass_manager);
-  LLVMAddPromoteMemoryToRegisterPass(pass_manager);
-  LLVMAddInstructionCombiningPass(pass_manager);
-  LLVMAddReassociatePass(pass_manager);
-  LLVMAddGVNPass(pass_manager);
-  LLVMAddCFGSimplificationPass(pass_manager);
-  LLVMInitializeFunctionPassManager(pass_manager);
-*/
+    // Setup optimizations.
+    LLVMPassManagerRef pass_manager =
+        LLVMCreateFunctionPassManagerForModule(module);
+    LLVMAddTargetData(LLVMGetExecutionEngineTargetData(engine), pass_manager);
+    LLVMAddPromoteMemoryToRegisterPass(pass_manager);
+    LLVMAddInstructionCombiningPass(pass_manager);
+    LLVMAddReassociatePass(pass_manager);
+    LLVMAddGVNPass(pass_manager);
+    LLVMAddCFGSimplificationPass(pass_manager);
+    LLVMInitializeFunctionPassManager(pass_manager);
+  */
+  LLVMTypeRef printf_args[] = {LLVMPointerType(LLVMInt8Type(), 0)};
+   LLVMValueRef printf = LLVMAddFunction(
+   module, "printf", LLVMFunctionType(LLVMInt32Type(), printf_args, 1, true));
+   LLVMSetFunctionCallConv(printf, LLVMCCallConv);
+
 
   // create main
   LLVMTypeRef main_args[] = {LLVMPointerType(LLVMInt8Type(), 0),
                              LLVMInt32Type()};
+
+
   LLVMValueRef main = LLVMAddFunction(
       module, "main", LLVMFunctionType(LLVMInt32Type(), main_args, 2, 0));
   LLVMSetFunctionCallConv(main, LLVMCCallConv);
   LLVMBasicBlockRef entry = LLVMAppendBasicBlock(main, "main-entry");
 
   LLVMPositionBuilderAtEnd(builder, entry);
-  LLVMContextRef context = LLVMContextCreate();
 
   fl_codegen_ast(root, builder, module, context);
-
-  LLVMContextDispose(context);
 
   LLVMBuildRet(builder, LLVMConstInt(LLVMInt32Type(), 0, false));
   // optimize main
   // LLVMRunFunctionPassManager(pass_manager, main);
 
   // LLVMAbortProcessAction?
-  LLVMVerifyModule(module,  LLVMPrintMessageAction, &err);
+  LLVMVerifyModule(module, LLVMPrintMessageAction, &err);
   puts("LLVMVerifyModule\n");
   puts(err);
   LLVMDisposeMessage(err);
@@ -113,7 +120,7 @@ int fl_codegen(fl_ast_t* root, char* module_name) {
   puts(irstr);
   LLVMDisposeMessage(irstr);
 
-  //LLVMDumpModule(module);
+  // LLVMDumpModule(module);
   // LLVMDisposePassManager(pass_manager);
   LLVMDisposeBuilder(builder);
   LLVMDisposeModule(module);
@@ -121,8 +128,9 @@ int fl_codegen(fl_ast_t* root, char* module_name) {
   return 0;
 }
 
-
 LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
+  printf("node [%p] %d\n", node, node->type);
+
   switch (node->type) {
   case FL_AST_PROGRAM:
     return fl_codegen_ast(node->program.body, builder, module, context);
@@ -132,9 +140,10 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
     return fl_codegen_binop(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_NUMERIC:
     return fl_codegen_lit_number(FL_CODEGEN_HEADER_SEND);
-
+  case FL_AST_LIT_IDENTIFIER:
+    break;
   default:
-  fprintf(stderr, "(codegen) ast->type not handled %d\n", node->type);
+    fprintf(stderr, "(codegen) ast->type not handled %d\n", node->type);
   }
 }
 
@@ -144,12 +153,16 @@ LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER) {
 }
 
 LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
-  fprintf(stderr, "(codegen) assignament\n");
+    fprintf(stderr, "(codegen) assignament\n");
 
-  LLVMValueRef left = LLVMDoubleTypeInContext(context);
-  LLVMValueRef right = fl_codegen_ast(node->assignament.right, builder, module, context);
-  return LLVMBuildStore(builder, left, right);
+  LLVMValueRef left =
+      LLVMBuildAlloca(builder, LLVMDoubleType(), "xp");
 
+  // LLVMDoubleTypeInContext(context);
+  LLVMValueRef right =
+      fl_codegen_ast(node->assignament.right, builder, module, context);
+
+  return LLVMBuildStore(builder, right, left);
 }
 
 LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
@@ -157,7 +170,8 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
 
   // retrieve left/right side
   LLVMValueRef lhs = fl_codegen_ast(node->binop.left, builder, module, context);
-  LLVMValueRef rhs = fl_codegen_ast(node->binop.right, builder, module, context);
+  LLVMValueRef rhs =
+      fl_codegen_ast(node->binop.right, builder, module, context);
 
   if (lhs == 0 || rhs == 0) {
     fprintf(stderr, "something it not right!");
@@ -181,7 +195,8 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
     return LLVMBuildFDiv(builder, lhs, rhs, "divtmp");
   }
   default:
-    fprintf(stderr, "(codegen) binop not supported: %d\n", node->binop.operator);
+    fprintf(stderr, "(codegen) binop not supported: %d\n",
+            node->binop.operator);
   }
 
   return 0;

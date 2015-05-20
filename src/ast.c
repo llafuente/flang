@@ -99,6 +99,12 @@ void fl_ast_delete(fl_ast_t* ast) {
     break;
   case FL_AST_LIT_IDENTIFIER:
     st_delete(&ast->identifier.string);
+    break;
+  case FL_AST_DTOR_VAR:
+    if (ast->var.identifier) {
+      fl_ast_delete(ast->var.identifier);
+    }
+    break;
   default: {}
   }
   free(ast);

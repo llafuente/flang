@@ -92,7 +92,7 @@ enum fl_tokens {
   FL_TK_LT2EQUAL,
   FL_TK_LT2,
   FL_TK_LTE,
-  FL_TK_ASSIGNAMENT,
+  FL_TK_EQUAL,
   FL_TK_QMARKEQUAL,
   FL_TK_EQUAL2,
   FL_TK_TEQUAL,
@@ -209,6 +209,9 @@ enum fl_ast_type {
   FL_AST_EXPR_BINOP,
   FL_AST_EXPR_LUNARY,
   FL_AST_EXPR_RUNARY,
+
+  FL_AST_DTOR_VAR,
+  //TODO FL_AST_DECL_VAR
 };
 typedef enum fl_ast_type fl_ast_type_t;
 
@@ -254,6 +257,10 @@ struct fl_ast {
       fl_tokens_t operator;
       struct fl_ast* element;
     } runary;
+    struct fl_ast_dtor_variable {
+      //TODO add type
+      struct fl_ast* identifier;
+    } var;
   };
 };
 
@@ -329,9 +336,9 @@ typedef struct fl_parser_stack fl_psrstack_t;
 // , printf("next!\n")
 #define FL_NEXT() fl_parser_next(tokens, state)
 
-
-#define FL_CODEGEN_HEADER                                                       \
-fl_ast_t* node, LLVMBuilderRef builder, LLVMModuleRef module, LLVMContextRef context
+#define FL_CODEGEN_HEADER                                                      \
+  fl_ast_t* node, LLVMBuilderRef builder, LLVMModuleRef module,                \
+      LLVMContextRef context
 
 #define FL_CODEGEN_HEADER_SEND node, builder, module, context
 
@@ -376,11 +383,14 @@ FL_EXTERN bool fl_parser_eof(fl_token_list_t* tokens, fl_psrstate_t* state);
 
 FL_EXTERN bool fl_parser_accept(fl_token_list_t* tokens, fl_psrstate_t* state,
                                 char* text);
+                                FL_EXTERN bool fl_parser_accept_list(fl_token_list_t* tokens, fl_psrstate_t* state,
+                                char* text[], size_t text_count);
 
 FL_EXTERN bool fl_parser_accept_token(fl_token_list_t* tokens,
                                       fl_psrstate_t* state,
                                       fl_tokens_t token_type);
-
+                                      FL_EXTERN  bool fl_parser_accept_token_list(fl_token_list_t* tokens, fl_psrstate_t* state,
+                                      fl_tokens_t token_type[], size_t tk_count);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(parser-stack.c) */
@@ -440,6 +450,13 @@ typedef fl_ast_t* (*fl_reader_cb_t)(FL_READER_HEADER);
 
 /* cldoc:begin-category(ast.c) */
 
+FL_READER_DECL(decl_variable);
+
+/* cldoc:end-category() */
+
+
+/* cldoc:begin-category(ast.c) */
+
 typedef void (*fl_ast_cb_t)(fl_ast_t* node, fl_ast_t* parent, size_t level);
 
 FL_EXTERN void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
@@ -454,10 +471,8 @@ FL_EXTERN void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level);
 /* cldoc:begin-category(ast.c) */
 
 FL_EXTERN int fl_codegen(fl_ast_t* root, char* module_name);
-FL_EXTERN LLVMValueRef
-fl_codegen_ast(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef
-fl_codegen_binop(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER);
 

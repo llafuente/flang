@@ -115,5 +115,21 @@ TASK_IMPL(parser_expressions) {
 
   fl_ast_delete(root);
 
+  root = fl_parse_utf8("a=b"); // unary
+
+  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
+
+  ast = root->program.body;
+  ASSERT(ast != 0, "ast found!");
+  ASSERT(ast->type == FL_AST_EXPR_ASSIGNAMENT, "ast is FL_AST_EXPR_ASSIGNAMENT");
+  ASSERT(ast->assignament.operator == FL_TK_EQUAL, "operator: FL_TK_EQUAL");
+
+  ASSERT(ast->assignament.left->type == FL_AST_LIT_IDENTIFIER,
+  "left: FL_AST_LIT_IDENTIFIER");
+  ASSERT(ast->assignament.right->type == FL_AST_LIT_IDENTIFIER,
+  "right: FL_AST_LIT_IDENTIFIER");
+
+  fl_ast_delete(root);
+
   return 0;
 }

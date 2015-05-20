@@ -23,27 +23,21 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/// @file
+#include "flang.h"
+// TODO declaration - declarator list
+FL_READER_IMPL(decl_variable) {
+  FL_AST_START(FL_AST_DTOR_VAR);
 
-#include "tasks.h"
-#include "fixtures.h"
+  fl_tokens_t tks[] = {FL_TK_VAR, FL_TK_UNVAR, FL_TK_CONST, FL_TK_STATIC, FL_TK_GLOBAL};
+  if (!fl_parser_accept_token_list(tokens, state, tks, 5)) {
+    FL_RETURN_NOT_FOUND();
+  }
 
-int main(int argc, const char* argv[]) {
 
-  printf("    ###############\n");
-  printf("    ## unit test ##\n");
-  printf("    ###############\n");
+  ast->var.identifier = FL_READ(lit_identifier);
+  if (!ast->var.identifier) {
+    FL_RETURN_NOT_FOUND();
+  }
 
-  TASK_RUN(tokenizer);
-  
-  TASK_RUN(parser_utils);
-  TASK_RUN(parser_literals);
-  TASK_RUN(parser_expressions);
-  TASK_RUN(parser_variables);
-
-  TASK_RUN(codegen_expressions);
-
-  printf("OK\n");
-
-  return 0;
+  return ast;
 }
