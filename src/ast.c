@@ -128,10 +128,12 @@ void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
     printf("%*s - identifier [%p]\n", (int)level, " ", node);
     break;
   case FL_AST_EXPR_LUNARY:
-    printf("%*s - lunary (%d) [%p]\n", (int)level, " ", node->lunary.operator);
+    printf("%*s - lunary (%d) [%p]\n", (int)level, " ", node->lunary.operator,
+           node);
     break;
   case FL_AST_EXPR_RUNARY:
-    printf("%*s - runary (%d) [%p]\n", (int)level, " ", node->runary.operator);
+    printf("%*s - runary (%d) [%p]\n", (int)level, " ", node->runary.operator,
+           node);
     break;
   default: {}
   }

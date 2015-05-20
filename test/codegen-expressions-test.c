@@ -23,24 +23,23 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/// @file
-
+#include "flang.h"
 #include "tasks.h"
-#include "fixtures.h"
 
-int main(int argc, const char* argv[]) {
+// TODO review if ";" is required
+TASK_IMPL(codegen_expressions) {
+  fl_ast_t* root;
+  fl_ast_t* ast;
+  root = fl_parse_utf8("c=1+2");
 
-  printf("    ###############\n");
-  printf("    ## unit test ##\n");
-  printf("    ###############\n");
+  // fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
 
-  TASK_RUN(tokenizer);
-  TASK_RUN(parser_utils);
-  TASK_RUN(parser_literals);
-  TASK_RUN(parser_expressions);
-  TASK_RUN(codegen_expressions);
+  ast = root->program.body;
+  ASSERT(ast != 0, "ast parsed ok");
 
-  printf("OK\n");
+  fl_codegen(root, "test");
+
+  fl_ast_delete(root);
 
   return 0;
 }

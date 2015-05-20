@@ -86,6 +86,9 @@ FL_READER_IMPL(expr_lhs) {
   fl_ast_t* ast;
 
   FL_TRY_READ(literal);
+  // TODO
+  // expr_call,
+  // expr_new
 
   return 0;
 }
@@ -297,14 +300,8 @@ FL_READER_IMPL(expr_unary_right) {
   FL_AST_START(FL_AST_EXPR_RUNARY);
 
   ast->runary.element = FL_READ(expr_lhs);
+
   // TODO handle errors
-  printf("WTF! [%p]\n", ast->runary.element);
-
-  fl_ast_debug_cb(ast->runary.element, 0, 5);
-  fl_ast_debug_cb(ast, 0, 5);
-
-  printf("???\n");
-
   if (!ast->runary.element) {
     FL_RETURN_NOT_FOUND();
   }

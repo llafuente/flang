@@ -28,8 +28,15 @@
 #include <errno.h>
 #include <ctype.h>
 #include <math.h>
+#include <stdint.h>
 
 #include "stringc.h"
+
+#include <llvm-c/Core.h>
+#include <llvm-c/Analysis.h>
+#include <llvm-c/ExecutionEngine.h>
+#include <llvm-c/Target.h>
+#include <llvm-c/Transforms/Scalar.h>
 
 //-
 //- types
@@ -322,6 +329,12 @@ typedef struct fl_parser_stack fl_psrstack_t;
 // , printf("next!\n")
 #define FL_NEXT() fl_parser_next(tokens, state)
 
+
+#define FL_CODEGEN_HEADER                                                       \
+fl_ast_t* node, LLVMBuilderRef builder, LLVMModuleRef module, LLVMContextRef context
+
+#define FL_CODEGEN_HEADER_SEND node, builder, module, context
+
 //-
 //- functions
 //-
@@ -435,5 +448,17 @@ FL_EXTERN void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
 FL_EXTERN void fl_ast_delete(fl_ast_t* ast);
 
 FL_EXTERN void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast.c) */
+
+FL_EXTERN int fl_codegen(fl_ast_t* root, char* module_name);
+FL_EXTERN LLVMValueRef
+fl_codegen_ast(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef
+fl_codegen_binop(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER);
 
 /* cldoc:end-category() */
