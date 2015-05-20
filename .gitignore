@@ -45,3 +45,6 @@
 *.o
 *.lo
 *.la
+
+# vagrant
+/.vagrant/
