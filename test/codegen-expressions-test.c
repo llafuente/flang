@@ -48,7 +48,6 @@ TASK_IMPL(codegen_expressions) {
 
   fl_ast_delete(root);
 
-
   root = fl_parse_utf8("var c;c=1+2;");
 
   fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);

@@ -68,9 +68,9 @@ bool fl_parser_accept(fl_token_list_t* tokens, fl_psrstate_t* state,
 }
 
 bool fl_parser_accept_list(fl_token_list_t* tokens, fl_psrstate_t* state,
-char* text[], size_t text_count) {
+                           char* text[], size_t text_count) {
   size_t i = 0;
-  for (;i<text_count; ++i) {
+  for (; i < text_count; ++i) {
     if (strcmp(state->token->string->value, text[i]) == 0) {
       fl_parser_next(tokens, state);
       return true;
@@ -89,9 +89,9 @@ bool fl_parser_accept_token(fl_token_list_t* tokens, fl_psrstate_t* state,
 }
 
 bool fl_parser_accept_token_list(fl_token_list_t* tokens, fl_psrstate_t* state,
-fl_tokens_t token_type[], size_t tk_count) {
+                                 fl_tokens_t token_type[], size_t tk_count) {
   size_t i = 0;
-  for (;i<tk_count; ++i) {
+  for (; i < tk_count; ++i) {
     if (state->token->type == token_type[i]) {
       fl_parser_next(tokens, state);
       return true;

@@ -25,15 +25,6 @@
 
 #include "flang.h"
 
-struct tokenize_state {
-  size_t line;
-  size_t column;
-  char* itr;
-  char* end;
-};
-
-typedef struct tokenize_state tokenize_state_t;
-
 fl_tokens_cfg_t* fl_get_token(char* itr, size_t len) {
   size_t tidx = 0;
   size_t tk_size;
@@ -65,6 +56,7 @@ size_t fl_get_escape_count(char* itr, char* start) {
 void fl_tokenize_push(fl_token_list_t* tokens, fl_tokens_t type, char* p,
                       size_t p_s, size_t ltoken_line, size_t ltoken_column,
                       size_t line, size_t column) {
+  printf("fl_tokenize_push size: %d\n", p_s);
   size_t tokens_s = tokens->size;
 
   tokens->tokens[tokens_s].type = type;
@@ -78,15 +70,13 @@ void fl_tokenize_push(fl_token_list_t* tokens, fl_tokens_t type, char* p,
 }
 
 void fl_token_process(fl_token_list_t* tokens, fl_tokens_cfg_t* tk,
-                      tokenize_state_t* state, tokenize_state_t* lstate) {
+                      fl_tk_state_t* state, fl_tk_state_t* lstate) {
   size_t size = (state->itr - lstate->itr);
   if (size) {
     fl_tokenize_push(tokens, FL_TK_UNKOWN, lstate->itr, size, lstate->line,
                      lstate->column, state->line, state->column);
 
-    lstate->itr = state->itr;
-    lstate->line = state->line;
-    lstate->column = state->column;
+    fl_tokenize_cp_state(state, lstate);
   }
 
   if (tk->type != FL_TK_NEWLINE) {
@@ -98,17 +88,21 @@ void fl_token_process(fl_token_list_t* tokens, fl_tokens_cfg_t* tk,
 
   // add a fake new line at the end, will help the parser
   if (tk->type == FL_TK_EOF) {
-    fl_tokenize_push(tokens, FL_TK_NEWLINE, lstate->itr, tk->text_s, lstate->line,
-    lstate->column, state->line, state->column);
+    fl_tokenize_push(tokens, FL_TK_NEWLINE, lstate->itr, tk->text_s,
+                     lstate->line, lstate->column, state->line, state->column);
   }
 
   fl_tokenize_push(tokens, tk->type, lstate->itr, tk->text_s, lstate->line,
                    lstate->column, state->line, state->column);
 
   state->itr += tk->text_s;
-  lstate->itr = state->itr;
-  lstate->line = state->line;
-  lstate->column = state->column;
+  fl_tokenize_cp_state(state, lstate);
+}
+
+void fl_tokenize_cp_state(fl_tk_state_t* src, fl_tk_state_t* dst) {
+  dst->itr = src->itr;
+  dst->line = src->line;
+  dst->column = src->column;
 }
 
 void fl_tokens_debug(fl_token_list_t* tokens) {
@@ -138,19 +132,38 @@ fl_token_list_t* fl_tokenize(string* file) {
   size_t tokens_size = 0;
   size_t zone = 0;
 
-  tokenize_state_t state;
+  fl_tk_state_t state;
   state.line = 1;
   state.column = 1;
   state.itr = start;
-  state.end = start + file->used + 2; // include zeronull
+  state.end = start + file->used + 1; // include zeronull
 
-  tokenize_state_t lstate;
+  fl_tk_state_t lstate;
   lstate.line = 1;
   lstate.column = 1;
   lstate.itr = start;
 
+  char* last_space = 0;
+
   while (state.itr < state.end) {
-    tk = fl_get_token(state.itr, state.end - state.itr);
+    // printf("[%p] - [%p]\n", state.itr, state.end);
+    // printf("[%c]\n", *(state.itr));
+
+    // push spaces as independent tokens
+    if (!last_space && *(state.itr) == ' ') {
+      last_space = state.itr;
+    }
+    if (last_space && *(state.itr) != ' ') {
+      printf("space need to be pushed! [%ld]\n", state.itr - last_space);
+      fl_tokenize_push(tokens, FL_TK_WHITESPACE, last_space,
+                       state.itr - last_space, lstate.line, lstate.column,
+                       state.line, state.column);
+      fl_tokenize_cp_state(&state, &lstate);
+      last_space = 0;
+    }
+
+    tk = fl_get_token(state.itr, state.end - state.itr + 1);
+
     if (tk) {
       fl_token_process(tokens, tk, &state, &lstate);
 
@@ -171,13 +184,16 @@ fl_token_list_t* fl_tokenize(string* file) {
           ++state.itr;
         }
       }
-
     } else {
       ++state.column;
       jump = st_char_size(state.itr, enc);
       state.itr += jump;
     }
   }
+
+  fl_tokens_debug(tokens);
+#ifdef FL_VERBOSE
+#endif
 
   return tokens;
 }

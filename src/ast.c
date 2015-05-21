@@ -59,7 +59,7 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
   case FL_AST_EXPR_RUNARY:
     fl_ast_traverse(ast->runary.element, cb, ast, level);
     break;
-    case FL_AST_DTOR_VAR:
+  case FL_AST_DTOR_VAR:
     fl_ast_traverse(ast->var.identifier, cb, ast, level);
     break;
   default: {}
@@ -79,8 +79,7 @@ void fl_ast_delete(fl_ast_t* ast) {
     }
     free(ast->program.body);
     ast->program.body = 0;
-  }
-    break;
+  } break;
   case FL_AST_EXPR_ASSIGNAMENT:
     if (ast->assignament.left) {
       fl_ast_delete(ast->assignament.left);
@@ -148,7 +147,8 @@ void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
     printf("%*s - number [%p]\n", (int)level, " ", node);
     break;
   case FL_AST_LIT_IDENTIFIER:
-    printf("%*s - identifier (%s) [%p]\n", (int)level, " ", node->identifier.string->value, node);
+    printf("%*s - identifier (%s) [%p]\n", (int)level, " ",
+           node->identifier.string->value, node);
     break;
   case FL_AST_EXPR_LUNARY:
     printf("%*s - lunary (%d) [%p]\n", (int)level, " ", node->lunary.operator,
@@ -159,7 +159,7 @@ void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
            node);
     break;
   case FL_AST_DTOR_VAR:
-  printf("%*s - variable [%p]\n", (int)level, " ",  node);
+    printf("%*s - variable [%p]\n", (int)level, " ", node);
     break;
   default: {}
   }

@@ -59,7 +59,11 @@ FL_LIST_READER_IMPL(body) {
   fl_ast_t** list = calloc(100, sizeof(fl_ast_t*));
   size_t i = 0;
 
+  fl_token_t* last_token;
+
   while (!fl_parser_eof(tokens, state)) {
+    last_token = state->token;
+
     __FL_TRY_READ(decl_variable);
     if (ast) {
       printf("decl_variable\n");
@@ -74,15 +78,20 @@ FL_LIST_READER_IMPL(body) {
       goto body_end_read;
     }
 
-body_end_read:
+  body_end_read:
     // read "semicolon" or NEW-LINE
     fl_parser_skipws(tokens, state);
     FL_ACCEPT_TOKEN(FL_TK_SEMICOLON);
     fl_parser_skipws(tokens, state);
+
+    if (last_token == state->token) {
+      fprintf(stderr, "unkown statement @[%d:%d]\n", state->token->start.line,
+              state->token->start.column);
+      exit(1);
+    }
   }
 
   printf("body has %d elements\n", i);
-
 
   return list;
 }
@@ -95,16 +104,14 @@ fl_ast_t* fl_parse_utf8(char* str) {
   code = st_newc(str, st_enc_utf8);
   tokens = fl_tokenize(code);
 
-  fl_tokens_debug(tokens);
-#ifdef FL_VERBOSE
-#endif
-
   fl_ast_t* root = fl_parser(tokens);
 
   fl_tokens_delete(tokens);
   st_delete(&code);
 
   fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
+#ifdef FL_VERBOSE
+#endif
 
   return root;
 }

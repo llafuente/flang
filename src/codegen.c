@@ -66,9 +66,10 @@ int fl_codegen(fl_ast_t* root, char* module_name) {
   char* err;
   LLVMContextRef context = LLVMGetGlobalContext();
   LLVMModuleRef module =
-  //LLVMModuleCreateWithNameInContext(!module_name ? "main" : module_name, context);
-  LLVMModuleCreateWithName(!module_name ? "main" : module_name);
-  //LLVMBuilderRef builder = LLVMCreateBuilderInContext(context);
+      // LLVMModuleCreateWithNameInContext(!module_name ? "main" : module_name,
+      // context);
+      LLVMModuleCreateWithName(!module_name ? "main" : module_name);
+  // LLVMBuilderRef builder = LLVMCreateBuilderInContext(context);
   LLVMBuilderRef builder = LLVMCreateBuilder();
 
   /*
@@ -86,15 +87,14 @@ int fl_codegen(fl_ast_t* root, char* module_name) {
     LLVMInitializeFunctionPassManager(pass_manager);
   */
   LLVMTypeRef printf_args[] = {LLVMPointerType(LLVMInt8Type(), 0)};
-   LLVMValueRef printf = LLVMAddFunction(
-   module, "printf", LLVMFunctionType(LLVMInt32Type(), printf_args, 1, true));
-   LLVMSetFunctionCallConv(printf, LLVMCCallConv);
-
+  LLVMValueRef printf =
+      LLVMAddFunction(module, "printf",
+                      LLVMFunctionType(LLVMInt32Type(), printf_args, 1, true));
+  LLVMSetFunctionCallConv(printf, LLVMCCallConv);
 
   // create main
   LLVMTypeRef main_args[] = {LLVMPointerType(LLVMInt8Type(), 0),
                              LLVMInt32Type()};
-
 
   LLVMValueRef main = LLVMAddFunction(
       module, "main", LLVMFunctionType(LLVMInt32Type(), main_args, 2, 0));
@@ -150,7 +150,7 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
     return fl_codegen_lit_number(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_IDENTIFIER:
     break;
-    case FL_AST_DTOR_VAR:
+  case FL_AST_DTOR_VAR:
     return fl_codegen_dtor_var(FL_CODEGEN_HEADER_SEND);
     break;
   default:
@@ -165,10 +165,9 @@ LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER) {
 }
 
 LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
-    fprintf(stderr, "(codegen) assignament\n");
+  fprintf(stderr, "(codegen) assignament\n");
 
-  LLVMValueRef left =
-      LLVMBuildAlloca(builder, LLVMDoubleType(), "xp");
+  LLVMValueRef left = LLVMBuildAlloca(builder, LLVMDoubleType(), "xp");
 
   // LLVMDoubleTypeInContext(context);
   LLVMValueRef right =
@@ -214,10 +213,11 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
   return 0;
 }
 
-//TODO manage type
+// TODO manage type
 LLVMValueRef fl_codegen_dtor_var(FL_CODEGEN_HEADER) {
-  LLVMValueRef ref = LLVMBuildAlloca(builder, LLVMDoubleType(), node->identifier.string->value);
-  node->codegen = (void*) ref;
+  LLVMValueRef ref = LLVMBuildAlloca(builder, LLVMDoubleType(),
+                                     node->identifier.string->value);
+  node->codegen = (void*)ref;
 
   return ref;
 }

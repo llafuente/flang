@@ -57,5 +57,13 @@ TASK_IMPL(tokenizer) {
   fl_tokens_delete(tokens);
   st_delete(&code);
 
+  code = st_newc("var x;", st_enc_utf8);
+  tokens = fl_tokenize(code);
+
+  ASSERT(tokens->size == 6, "var space x semicolon new-line eof");
+
+  fl_tokens_delete(tokens);
+  st_delete(&code);
+
   return 0;
 }

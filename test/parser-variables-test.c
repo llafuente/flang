@@ -39,6 +39,5 @@ TASK_IMPL(parser_variables) {
   ASSERT(ast->type == FL_AST_DTOR_VAR, "type: FL_AST_DTOR_VAR");
   fl_ast_delete(root);
 
-
   return 0;
 }
