@@ -54,14 +54,37 @@ fl_ast_t* fl_parser(fl_token_list_t* tokens) {
   return ast;
 }
 
-FL_READER_IMPL(body) {
+FL_LIST_READER_IMPL(body) {
   fl_ast_t* ast;
+  fl_ast_t** list = calloc(100, sizeof(fl_ast_t*));
+  size_t i = 0;
 
-  FL_TRY_READ(decl_variable);
+  while (!fl_parser_eof(tokens, state)) {
+    __FL_TRY_READ(decl_variable);
+    if (ast) {
+      printf("decl_variable\n");
+      list[i++] = ast;
+      goto body_end_read;
+    }
 
-  FL_TRY_READ(expression);
+    __FL_TRY_READ(expression);
+    if (ast) {
+      printf("expression!");
+      list[i++] = ast;
+      goto body_end_read;
+    }
 
-  return 0;
+body_end_read:
+    // read "semicolon" or NEW-LINE
+    fl_parser_skipws(tokens, state);
+    FL_ACCEPT_TOKEN(FL_TK_SEMICOLON);
+    fl_parser_skipws(tokens, state);
+  }
+
+  printf("body has %d elements\n", i);
+
+
+  return list;
 }
 
 fl_ast_t* fl_parse_utf8(char* str) {
@@ -76,10 +99,12 @@ fl_ast_t* fl_parse_utf8(char* str) {
 #ifdef FL_VERBOSE
 #endif
 
-  fl_ast_t* ast = fl_parser(tokens);
+  fl_ast_t* root = fl_parser(tokens);
 
   fl_tokens_delete(tokens);
   st_delete(&code);
 
-  return ast;
+  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
+
+  return root;
 }

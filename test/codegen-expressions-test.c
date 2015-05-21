@@ -32,9 +32,28 @@ TASK_IMPL(codegen_expressions) {
   fl_ast_t* ast;
   root = fl_parse_utf8("c=1+2");
 
+  ast = *(root->program.body);
+  ASSERT(ast != 0, "ast parsed ok");
+
+  fl_codegen(root, "test");
+
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("var hello;");
+
+  ast = *(root->program.body);
+  ASSERT(ast != 0, "ast parsed ok");
+
+  fl_codegen(root, "test");
+
+  fl_ast_delete(root);
+
+
+  root = fl_parse_utf8("var c;c=1+2;");
+
   fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
 
-  ast = root->program.body;
+  ast = *(root->program.body);
   ASSERT(ast != 0, "ast parsed ok");
 
   fl_codegen(root, "test");

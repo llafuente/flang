@@ -33,7 +33,7 @@ TASK_IMPL(tokenizer) {
   code = st_newc("a<=b;", st_enc_utf8);
   tokens = fl_tokenize(code);
 
-  ASSERT(tokens->size == 5, "priority token test");
+  ASSERT(tokens->size == 6, "priority token test");
 
   fl_tokens_delete(tokens);
   st_delete(&code);
@@ -42,7 +42,7 @@ TASK_IMPL(tokenizer) {
   code = st_newc("log \"hello\"; log \"\\\"hell\\\"\"; ", st_enc_utf8);
   tokens = fl_tokenize(code);
 
-  ASSERT(tokens->size == 15, "escape string test");
+  ASSERT(tokens->size == 16, "escape string test");
 
   fl_tokens_delete(tokens);
   st_delete(&code);
@@ -52,7 +52,7 @@ TASK_IMPL(tokenizer) {
   code = st_newc("1567", st_enc_utf8);
   tokens = fl_tokenize(code);
 
-  ASSERT(tokens->size == 2, "just a number");
+  ASSERT(tokens->size == 3, "just a number");
 
   fl_tokens_delete(tokens);
   st_delete(&code);

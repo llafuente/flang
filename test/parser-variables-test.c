@@ -32,9 +32,7 @@ TASK_IMPL(parser_variables) {
   fl_ast_t* ast;
 
   root = fl_parse_utf8("var hello;");
-  ast = root->program.body;
-
-  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
+  ast = *(root->program.body);
 
   ASSERT(ast != 0, "string literal found!");
 

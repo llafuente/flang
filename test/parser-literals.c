@@ -32,7 +32,7 @@ TASK_IMPL(parser_literals) {
   fl_ast_t* ast;
 
   root = fl_parse_utf8("\"hello:\\\"w\'orld\"");
-  ast = root->program.body;
+  ast = *(root->program.body);
 
   // fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
 
@@ -42,32 +42,33 @@ TASK_IMPL(parser_literals) {
   fl_ast_delete(root);
 
   root = fl_parse_utf8("'hello:\"wo\\\'rld'");
-  ast = root->program.body;
+  ast = *(root->program.body);
   ASSERT(ast != 0, "string literal found!");
   ASSERT(ast->type == FL_AST_LIT_STRING, "FL_AST_LIT_STRING");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("null");
-  ast = root->program.body;
+
+  ast = *(root->program.body);
   ASSERT(ast != 0, "null literal found!");
   ASSERT(ast->type == FL_AST_LIT_NULL, "FL_AST_LIT_NULL");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("nil");
-  ast = root->program.body;
+  ast = *(root->program.body);
   ASSERT(ast != 0, "null literal found!");
   ASSERT(ast->type == FL_AST_LIT_NULL, "FL_AST_LIT_NULL");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("true");
-  ast = root->program.body;
+  ast = *(root->program.body);
   ASSERT(ast != 0, "boolean literal found!");
   ASSERT(ast->type == FL_AST_LIT_BOOLEAN, "FL_AST_LIT_BOOLEAN");
   ASSERT(ast->boolean.value == true, "value = true");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("false");
-  ast = root->program.body;
+  ast = *(root->program.body);
   ASSERT(ast != 0, "boolean literal found!");
   ASSERT(ast->type == FL_AST_LIT_BOOLEAN, "FL_AST_LIT_BOOLEAN");
   ASSERT(ast->boolean.value == false, "value = true");
@@ -76,21 +77,21 @@ TASK_IMPL(parser_literals) {
 #define FL_VERBOSE
 
   root = fl_parse_utf8("1567");
-  ast = root->program.body;
+  ast = *(root->program.body);
   ASSERT(ast != 0, "numeric literal found!");
   ASSERT(ast->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
   ASSERT(ast->numeric.value == 1567, "value = true");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("1e1");
-  ast = root->program.body;
+  ast = *(root->program.body);
   ASSERT(ast != 0, "numeric literal found!");
   ASSERT(ast->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
   ASSERT(ast->numeric.value == 10, "value = true");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("0xff");
-  ast = root->program.body;
+  ast = *(root->program.body);
   ASSERT(ast != 0, "numeric literal found!");
   ASSERT(ast->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
   ASSERT(ast->numeric.value == 0xff, "value = true");
@@ -100,7 +101,7 @@ TASK_IMPL(parser_literals) {
   // TODO octal 0o777
 
   root = fl_parse_utf8("wtf");
-  ast = root->program.body;
+  ast = *(root->program.body);
   ASSERT(ast != 0, "identifier literal found!");
   ASSERT(ast->type == FL_AST_LIT_IDENTIFIER, "FL_AST_LIT_IDENTIFIER");
   ASSERT(strcmp(ast->identifier.string->value, "wtf") == 0, "identifier = wtf");

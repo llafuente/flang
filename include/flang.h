@@ -219,10 +219,11 @@ struct fl_ast {
   fl_token_t* token_start;
   fl_token_t* token_end;
   fl_ast_type_t type; // TODO enum
+  void* codegen; // space for codegen injection "userdata"
 
   union {
     struct fl_ast_program {
-      struct fl_ast* body;
+      struct fl_ast** body;
     } program;
     struct fl_ast_lit_boolean {
       bool value;
@@ -286,7 +287,11 @@ typedef struct fl_parser_stack fl_psrstack_t;
 
 #define FL_READER_DECL(name)                                                   \
   FL_EXTERN fl_ast_t* FL_READER_FN(name)(                                      \
-      fl_token_list_t * tokens, fl_psrstack_t * stack, fl_psrstate_t * state);
+  FL_READER_HEADER);
+
+#define FL_LIST_READER_DECL(name)                                                   \
+      FL_EXTERN fl_ast_t** FL_READER_FN(name)(                                      \
+      FL_READER_HEADER);
 
 #define FL_READER_HEADER                                                       \
   fl_token_list_t* tokens, fl_psrstack_t* stack, fl_psrstate_t* state
@@ -294,6 +299,9 @@ typedef struct fl_parser_stack fl_psrstack_t;
 #define FL_READER_HEADER_SEND tokens, stack, state
 
 #define FL_READER_IMPL(name) fl_ast_t* FL_READER_FN(name)(FL_READER_HEADER)
+
+#define FL_LIST_READER_IMPL(name) fl_ast_t** FL_READER_FN(name)(FL_READER_HEADER)
+
 
 // , printf("%s\n", #name)
 #define FL_READ(name) FL_READER_FN(name)(tokens, stack, state)
@@ -308,6 +316,16 @@ typedef struct fl_parser_stack fl_psrstack_t;
     return ast;                                                                \
   }                                                                            \
   fl_parser_rollback(stack, state);
+
+#define __FL_TRY_READ(name)                                                      \
+  fl_parser_look_ahead(stack, state);                                          \
+  ast = FL_READ(name);                                                         \
+  if (ast) {                                                                   \
+    fl_parser_commit(stack, state);                                            \
+  } else {                                                                     \
+    fl_parser_rollback(stack, state); \
+  }
+
 
 // calloc is necessary atm
 #define FL_AST_START(ast_type)                                                 \
@@ -369,7 +387,7 @@ FL_EXTERN fl_ast_t* fl_parser(fl_token_list_t* tokens);
 FL_EXTERN fl_ast_t* fl_parse(string* str);
 FL_EXTERN fl_ast_t* fl_parse_utf8(char* str);
 
-FL_READER_DECL(body);
+FL_LIST_READER_DECL(body);
 
 /* cldoc:end-category() */
 
@@ -475,5 +493,5 @@ FL_EXTERN LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER);
-
+FL_EXTERN LLVMValueRef fl_codegen_dtor_var(FL_CODEGEN_HEADER);
 /* cldoc:end-category() */

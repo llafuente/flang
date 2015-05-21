@@ -55,7 +55,7 @@ LLVMExecutionEngineRef fl_codegen_jit(LLVMModuleRef M) {
 
   if (LLVMCreateMCJITCompilerForModule(&MCJIT, M, &Options, sizeof(Options),
                                        &err_str)) {
-    fprintf(stderr, err_str);
+    fputs(err_str, stderr);
     LLVMDisposeMessage(err_str);
   }
 
@@ -132,8 +132,16 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
   printf("node [%p] %d\n", node, node->type);
 
   switch (node->type) {
-  case FL_AST_PROGRAM:
-    return fl_codegen_ast(node->program.body, builder, module, context);
+  case FL_AST_PROGRAM: {
+    size_t i = 0;
+    fl_ast_t* tmp;
+
+    while ((tmp = node->program.body[i++])) {
+      fl_codegen_ast(tmp, builder, module, context);
+    }
+
+    return 0;
+  }
   case FL_AST_EXPR_ASSIGNAMENT:
     return fl_codegen_assignament(FL_CODEGEN_HEADER_SEND);
   case FL_AST_EXPR_BINOP:
@@ -142,9 +150,13 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
     return fl_codegen_lit_number(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_IDENTIFIER:
     break;
+    case FL_AST_DTOR_VAR:
+    return fl_codegen_dtor_var(FL_CODEGEN_HEADER_SEND);
+    break;
   default:
     fprintf(stderr, "(codegen) ast->type not handled %d\n", node->type);
   }
+  return 0;
 }
 
 LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER) {
@@ -200,4 +212,12 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
   }
 
   return 0;
+}
+
+//TODO manage type
+LLVMValueRef fl_codegen_dtor_var(FL_CODEGEN_HEADER) {
+  LLVMValueRef ref = LLVMBuildAlloca(builder, LLVMDoubleType(), node->identifier.string->value);
+  node->codegen = (void*) ref;
+
+  return ref;
 }

@@ -34,9 +34,7 @@ TASK_IMPL(parser_utils) {
   code = st_newc("log \"hello:\\\"world\";", st_enc_utf8);
   tokens = fl_tokenize(code);
 
-  ASSERT(tokens->size == 7, "6 tokens parsed");
-
-  fl_tokens_debug(tokens);
+  ASSERT(tokens->size == 8, "8 tokens parsed (6 + nl + eof)");
 
   fl_psrstack_t stack;
   fl_psrstate_t state;
@@ -64,14 +62,19 @@ TASK_IMPL(parser_utils) {
   fl_parser_next(tokens, &state);
   ASSERT(strcmp(state.token->string->value, ";") == 0, "6th token");
   ASSERT(state.current == 5, "6th token id");
+
+  ASSERT(fl_parser_eof(tokens, &state) == false, "is eof - no (fake nl left)");
+
+  fl_parser_next(tokens, &state);
   ASSERT(fl_parser_eof(tokens, &state) == true, "is eof - yes");
+  ASSERT(state.current == 6, "7th token id");
 
   // overflow - no problem
   fl_parser_next(tokens, &state);
-  ASSERT(strcmp(state.token->string->value, ";") == 0, "6th token");
-  ASSERT(state.current == 5, "6th token id");
+  ASSERT(state.current == 6, "7th token id");
   ASSERT(fl_parser_eof(tokens, &state) == true, "is eof - yes");
 
+  fl_parser_prev(tokens, &state);
   fl_parser_prev(tokens, &state);
   ASSERT(state.current == 4, "5th token id");
   ASSERT(fl_parser_eof(tokens, &state) == false, "is eof - no");

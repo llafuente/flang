@@ -96,6 +96,12 @@ void fl_token_process(fl_token_list_t* tokens, fl_tokens_cfg_t* tk,
     state->column += tk->text_s;
   }
 
+  // add a fake new line at the end, will help the parser
+  if (tk->type == FL_TK_EOF) {
+    fl_tokenize_push(tokens, FL_TK_NEWLINE, lstate->itr, tk->text_s, lstate->line,
+    lstate->column, state->line, state->column);
+  }
+
   fl_tokenize_push(tokens, tk->type, lstate->itr, tk->text_s, lstate->line,
                    lstate->column, state->line, state->column);
 

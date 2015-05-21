@@ -34,7 +34,7 @@ TASK_IMPL(parser_expressions) {
 
   // fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
 
-  ast = root->program.body;
+  ast = *(root->program.body);
   ASSERT(ast != 0, "string literal found!");
   ASSERT(ast->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
   ASSERT(ast->binop.left->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
@@ -45,7 +45,7 @@ TASK_IMPL(parser_expressions) {
 
   fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
 
-  ast = root->program.body;
+  ast = *(root->program.body);
   ASSERT(ast != 0, "string literal found!");
   ASSERT(ast->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
   ASSERT(ast->binop.left->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
@@ -60,7 +60,7 @@ TASK_IMPL(parser_expressions) {
 
   fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
 
-  ast = root->program.body;
+  ast = *(root->program.body);
   ASSERT(ast != 0, "string literal found!");
   ASSERT(ast->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
   ASSERT(ast->binop.left->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
@@ -72,7 +72,7 @@ TASK_IMPL(parser_expressions) {
 
   fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
 
-  ast = root->program.body;
+  ast = *(root->program.body);
   ASSERT(ast != 0, "string literal found!");
   ASSERT(ast->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
 
@@ -92,7 +92,7 @@ TASK_IMPL(parser_expressions) {
 
   fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
 
-  ast = root->program.body;
+  ast = *(root->program.body);
   ASSERT(ast != 0, "ast found!");
   ASSERT(ast->type == FL_AST_EXPR_LUNARY, "ast is FL_AST_EXPR_LUNARY");
 
@@ -105,7 +105,7 @@ TASK_IMPL(parser_expressions) {
 
   fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
 
-  ast = root->program.body;
+  ast = *(root->program.body);
   ASSERT(ast != 0, "ast found!");
   ASSERT(ast->type == FL_AST_EXPR_RUNARY, "ast is FL_AST_EXPR_RUNARY");
 
@@ -119,7 +119,7 @@ TASK_IMPL(parser_expressions) {
 
   fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
 
-  ast = root->program.body;
+  ast = *(root->program.body);
   ASSERT(ast != 0, "ast found!");
   ASSERT(ast->type == FL_AST_EXPR_ASSIGNAMENT, "ast is FL_AST_EXPR_ASSIGNAMENT");
   ASSERT(ast->assignament.operator == FL_TK_EQUAL, "operator: FL_TK_EQUAL");
