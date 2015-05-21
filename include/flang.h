@@ -39,6 +39,19 @@
 #include <llvm-c/Transforms/Scalar.h>
 
 //-
+//- type declaration
+//-
+
+struct fl_struct_members;
+typedef struct fl_struct_members fl_struct_members_t;
+
+struct fl_enum_members;
+typedef struct fl_enum_members fl_enum_members_t;
+
+struct fl_type;
+typedef struct fl_type fl_type_t;
+
+//-
 //- types
 //-
 
@@ -201,28 +214,31 @@ struct fl_parser_state {
 typedef struct fl_parser_state fl_psrstate_t;
 
 enum fl_ast_type {
-  FL_AST_PROGRAM,
+  FL_AST_PROGRAM = 1,
 
-  FL_AST_STMT_LOG,
+  FL_AST_LIT_ARRAY = 10,
+  FL_AST_LIT_OBJECT = 11,
+  FL_AST_LIT_NUMERIC = 12,
+  FL_AST_LIT_STRING = 13,
+  FL_AST_LIT_BOOLEAN = 14,
+  FL_AST_LIT_NULL = 15,
+  FL_AST_LIT_IDENTIFIER = 16,
 
-  FL_AST_LIT_ARRAY,
-  FL_AST_LIT_OBJECT,
-  FL_AST_LIT_NUMERIC,
-  FL_AST_LIT_STRING,
-  FL_AST_LIT_BOOLEAN,
-  FL_AST_LIT_NULL,
-  FL_AST_LIT_IDENTIFIER,
+  FL_AST_EXPR = 20,
+  FL_AST_EXPR_ASSIGNAMENT = 21,
+  FL_AST_EXPR_CONDITIONAL = 22,
+  FL_AST_EXPR_BINOP = 23,
+  FL_AST_EXPR_LUNARY = 24,
+  FL_AST_EXPR_RUNARY = 25,
 
-  FL_AST_EXPR,
-  FL_AST_EXPR_ASSIGNAMENT,
-  FL_AST_EXPR_CONDITIONAL,
-  FL_AST_EXPR_BINOP,
-  FL_AST_EXPR_LUNARY,
-  FL_AST_EXPR_RUNARY,
+  // TODO FL_AST_DECL_VAR = 30
+  FL_AST_DTOR_VAR = 31,
 
-  FL_AST_DTOR_VAR,
-  // TODO FL_AST_DECL_VAR
+  FL_AST_TYPE = 40,
+
+  FL_AST_STMT_LOG = 100,
 };
+
 typedef enum fl_ast_type fl_ast_type_t;
 
 struct fl_ast {
@@ -271,7 +287,12 @@ struct fl_ast {
     struct fl_ast_dtor_variable {
       // TODO add type
       struct fl_ast* identifier;
+      struct fl_ast* type;
     } var;
+    struct fl_ast_idtype {
+      // TODO use fl_type_t*
+      fl_tokens_t of;
+    } idtype;
   };
 };
 
@@ -286,6 +307,84 @@ struct fl_parser_stack {
 };
 
 typedef struct fl_parser_stack fl_psrstack_t;
+
+enum fl_types {
+  FL_INT = 0,
+  FL_FLOAT = 1,
+  FL_BOOL = 2,
+  FL_STRING = 3,
+  FL_POINTER = 4,
+  FL_FUNCTION = 5,
+  FL_VOID = 6,
+  FL_STRUCT = 7,
+  FL_ARRAY = 8,
+  FL_NULL = 9,
+  FL_ANY = 10,
+  FL_ENUM = 11,
+  FL_REFERENCE = 12,
+};
+
+typedef enum fl_types fl_types_t;
+
+struct fl_type {
+  fl_types_t of;
+  size_t size; // sizeof
+
+  union {
+    struct fl_type_int {
+      unsigned char bits;
+      bool sign;
+    } in;
+
+    struct fl_type_float {
+      unsigned char size;
+      bool sign;
+    } fp;
+    // bool has nothing
+    // string has nothing
+    struct fl_type_pointer {
+      struct fl_type* to;
+    } ptr;
+
+    struct fl_type_function {
+      string* name; // 0 means anonymous
+      struct fl_type* ret;
+      struct fl_type** args;
+    } fn;
+    // void has nothing
+
+    struct fl_type_struct {
+      string* name;
+      fl_struct_members_t** members;
+    } agg; // aggregate
+
+    struct fl_type_array {
+      struct fl_type* of;
+    } arr;
+
+    // null has nothing
+    // any has nothing
+
+    struct fl_type_enum {
+      string* name;
+      fl_enum_members_t** members;
+    } enu;
+
+    struct fl_type_ref {
+      struct fl_type* to;
+    } ref;
+  };
+};
+
+struct fl_struct_members {
+  string* name;
+  fl_type_t* type;
+};
+
+struct fl_enum_members {
+  string* name;
+  size_t value;
+};
 
 //-
 //- MACROS
@@ -478,9 +577,17 @@ FL_READER_DECL(expr_unary_right);
 typedef fl_ast_t* (*fl_reader_cb_t)(FL_READER_HEADER);
 /* cldoc:end-category() */
 
-/* cldoc:begin-category(ast.c) */
+/* cldoc:begin-category(parser-variable.c) */
 
 FL_READER_DECL(decl_variable);
+FL_READER_DECL(decl_variable_no_type);
+FL_READER_DECL(decl_variable_with_type);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(parser-type.c) */
+
+FL_READER_DECL(type);
 
 /* cldoc:end-category() */
 
@@ -497,7 +604,7 @@ FL_EXTERN void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level);
 
 /* cldoc:end-category() */
 
-/* cldoc:begin-category(ast.c) */
+/* cldoc:begin-category(codegen.c) */
 
 FL_EXTERN int fl_codegen(fl_ast_t* root, char* module_name);
 FL_EXTERN LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER);

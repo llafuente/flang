@@ -7,20 +7,36 @@ make
 
 
 
-## Compile process (done)
+## Compile process
 
 * read file to string
-* tokenize the string
-
-## Compile process (todo)
-
-* parse tokens
-  * generate AST
-  * emit parse errors
+* tokenize the string (tokenizer)
+* from tokens create the AST (parser)
+* Resolve dependencies in the AST (typesystem)
+* generate IR from ast (codegen)
+  * execute jit (exec-jit)
+  * execute bitcode (exec-bit)
+  * dump IR (exec-dump)
+  * execuable (exec-full)
 
 
 ## tokenizer
 
-parse a file with the information found at `tokens.c`.
-Will add a new line at the end to help parser.
-EOF is considered a token, and will be added.
+Split a string with the information found in `tokens.c` and spaces.
+
+Tokenizer will add a new line token before EOF, that is also a token.
+
+Example `var x;`
+
+> VAR ' ' 'x' SEMICOLON NEWLINE EOF
+
+
+## parser
+
+From the tokenizer data, generate a simple AST.
+
+It will report only lexer error mostly: "expected &lt;something&gt;"
+
+## codegen
+
+Get the AST and generate code with `LLVM-C`

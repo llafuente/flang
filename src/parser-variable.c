@@ -26,11 +26,48 @@
 #include "flang.h"
 // TODO declaration - declarator list
 FL_READER_IMPL(decl_variable) {
+  fl_ast_t* ast;
+
+  FL_TRY_READ(decl_variable_with_type);
+  FL_TRY_READ(decl_variable_no_type);
+
+  return 0;
+}
+
+FL_READER_IMPL(decl_variable_no_type) {
   FL_AST_START(FL_AST_DTOR_VAR);
 
   fl_tokens_t tks[] = {FL_TK_VAR, FL_TK_UNVAR, FL_TK_CONST, FL_TK_STATIC,
                        FL_TK_GLOBAL};
   if (!fl_parser_accept_token_list(tokens, state, tks, 5)) {
+    FL_RETURN_NOT_FOUND();
+  }
+
+  fl_parser_skipws(tokens, state);
+
+  ast->var.identifier = FL_READ(lit_identifier);
+  if (!ast->var.identifier) {
+    FL_RETURN_NOT_FOUND();
+  }
+
+  return ast;
+}
+
+FL_READER_IMPL(decl_variable_with_type) {
+  FL_AST_START(FL_AST_DTOR_VAR);
+
+  fl_tokens_t tks[] = {FL_TK_VAR, FL_TK_UNVAR, FL_TK_CONST, FL_TK_STATIC,
+                       FL_TK_GLOBAL};
+  if (!fl_parser_accept_token_list(tokens, state, tks, 5)) {
+    FL_RETURN_NOT_FOUND();
+  }
+
+  fl_parser_skipws(tokens, state);
+
+  ast->var.type = FL_READ(type);
+  printf("read type! %p\n", ast->var.type);
+  printf("read type! %s\n", state->token->string->value);
+  if (!ast->var.type) {
     FL_RETURN_NOT_FOUND();
   }
 

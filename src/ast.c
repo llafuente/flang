@@ -61,6 +61,7 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
     break;
   case FL_AST_DTOR_VAR:
     fl_ast_traverse(ast->var.identifier, cb, ast, level);
+    fl_ast_traverse(ast->var.type, cb, ast, level);
     break;
   default: {}
   }
@@ -120,6 +121,9 @@ void fl_ast_delete(fl_ast_t* ast) {
     if (ast->var.identifier) {
       fl_ast_delete(ast->var.identifier);
     }
+    if (ast->var.type) {
+      fl_ast_delete(ast->var.type);
+    }
     break;
   default: {}
   }
@@ -160,6 +164,9 @@ void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
     break;
   case FL_AST_DTOR_VAR:
     printf("%*s - variable [%p]\n", (int)level, " ", node);
+    break;
+  case FL_AST_TYPE:
+    printf("%*s - type (%d) [%p]\n", (int)level, " ", node->idtype.of, node);
     break;
   default: {}
   }

@@ -24,30 +24,33 @@
 */
 
 #include "flang.h"
-#include "tasks.h"
 
-// TODO review if ";" is required
-TASK_IMPL(parser_variables) {
-  fl_ast_t* root;
-  fl_ast_t* ast;
+/*
+literal
+  []
+  {}
+  text
 
-  root = fl_parse_utf8("var hello;");
-  ast = *(root->program.body);
+format
+  (literal)[]      // array
+  (literal){}      // object
+  *(literal)       // raw pointer
+  ref<(literal)>   // wrapper
+*/
+FL_READER_IMPL(type) {
+  FL_AST_START(FL_AST_TYPE);
 
-  ASSERT(ast != 0, "string literal found!");
+  // primitives
+  fl_tokens_t tks[] = {FL_TK_STRING, FL_TK_F64, FL_TK_F32, FL_TK_U64,
+                       FL_TK_U32,    FL_TK_U16, FL_TK_U8,  FL_TK_I64,
+                       FL_TK_I32,    FL_TK_I16, FL_TK_I8,  FL_TK_BOOL};
+  if (!fl_parser_accept_token_list(tokens, state, tks, 12)) {
+    FL_RETURN_NOT_FOUND();
+  }
 
-  ASSERT(ast->type == FL_AST_DTOR_VAR, "type: FL_AST_DTOR_VAR");
-  fl_ast_delete(root);
+  ast->idtype.of = state->prev_token->type;
 
-  root = fl_parse_utf8("var i8 hello;");
-  ast = *(root->program.body);
+  fl_parser_skipws(tokens, state);
 
-  ASSERT(ast != 0, "string literal found!");
-
-  ASSERT(ast->type == FL_AST_DTOR_VAR, "type: FL_AST_DTOR_VAR");
-  ASSERT(ast->var.type->type == FL_AST_TYPE, "type.type: FL_AST_TYPE");
-  ASSERT(ast->var.type->idtype.of == FL_TK_I8, "type is: FL_TK_I8");
-  fl_ast_delete(root);
-
-  return 0;
+  return ast;
 }

@@ -8,6 +8,7 @@ COMPILER_SOURCES = src/tokenizer.c \
                 src/parser-literal.c \
                 src/parser-expression.c \
                 src/parser-variable.c \
+                src/parser-type.c \
                 src/codegen.c \
                 src/ast.c
 
