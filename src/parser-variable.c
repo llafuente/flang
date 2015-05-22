@@ -45,8 +45,8 @@ FL_READER_IMPL(decl_variable_no_type) {
 
   fl_parser_skipws(tokens, state);
 
-  ast->var.identifier = FL_READ(lit_identifier);
-  if (!ast->var.identifier) {
+  ast->var.id = FL_READ(lit_identifier);
+  if (!ast->var.id) {
     FL_RETURN_NOT_FOUND();
   }
 
@@ -73,8 +73,8 @@ FL_READER_IMPL(decl_variable_with_type) {
 
   fl_parser_skipws(tokens, state);
 
-  ast->var.identifier = FL_READ(lit_identifier);
-  if (!ast->var.identifier) {
+  ast->var.id = FL_READ(lit_identifier);
+  if (!ast->var.id) {
     FL_RETURN_NOT_FOUND();
   }
 

@@ -60,11 +60,18 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
     fl_ast_traverse(ast->runary.element, cb, ast, level);
     break;
   case FL_AST_DTOR_VAR:
-    fl_ast_traverse(ast->var.identifier, cb, ast, level);
+    fl_ast_traverse(ast->var.id, cb, ast, level);
     fl_ast_traverse(ast->var.type, cb, ast, level);
     break;
   default: {}
   }
+}
+void fl_ast_parent_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
+  node->parent = parent;
+}
+
+void fl_ast_parent(fl_ast_t* root) {
+  fl_ast_traverse(root, fl_ast_parent_cb, 0, 0);
 }
 
 void fl_ast_delete(fl_ast_t* ast) {
@@ -118,8 +125,8 @@ void fl_ast_delete(fl_ast_t* ast) {
     st_delete(&ast->identifier.string);
     break;
   case FL_AST_DTOR_VAR:
-    if (ast->var.identifier) {
-      fl_ast_delete(ast->var.identifier);
+    if (ast->var.id) {
+      fl_ast_delete(ast->var.id);
     }
     if (ast->var.type) {
       fl_ast_delete(ast->var.type);
@@ -170,4 +177,23 @@ void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
     break;
   default: {}
   }
+}
+
+fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {
+  while ((node = node->parent) != 0) {
+    if (node->type == FL_AST_PROGRAM) {
+      // search in the list
+      size_t i = 0;
+      fl_ast_t* tmp;
+
+      while ((tmp = node->program.body[i++]) != 0) {
+        if (tmp->type == FL_AST_DTOR_VAR &&
+            st_cmp(name, tmp->var.id->identifier.string) == 0) {
+          return tmp;
+        }
+      }
+    }
+  }
+
+  return 0;
 }

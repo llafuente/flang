@@ -103,6 +103,8 @@ int fl_codegen(fl_ast_t* root, char* module_name) {
 
   LLVMPositionBuilderAtEnd(builder, entry);
 
+  // node must have parent, because we need to search backwards
+  fl_ast_parent(root);
   fl_codegen_ast(root, builder, module, context);
 
   LLVMBuildRet(builder, LLVMConstInt(LLVMInt32Type(), 0, false));
@@ -167,7 +169,15 @@ LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER) {
 LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
   fprintf(stderr, "(codegen) assignament\n");
 
-  LLVMValueRef left = LLVMBuildAlloca(builder, LLVMDoubleType(), "xp");
+  fl_ast_t* left_ast =
+      fl_ast_search_decl_var(node, node->assignament.left->identifier.string);
+
+  if (!left_ast) {
+    fprintf(stderr, "(codegen) lhs cannot be fetch\n");
+    return 0;
+  }
+
+  LLVMValueRef left = (LLVMValueRef)left_ast->codegen;
 
   // LLVMDoubleTypeInContext(context);
   LLVMValueRef right =
@@ -213,10 +223,61 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
   return 0;
 }
 
+LLVMTypeRef fl_codegen_get_type(fl_ast_t* node) {
+  switch (node->idtype.of) {
+  case FL_TK_BOOL:
+    return LLVMIntType(1);
+    break;
+  case FL_TK_I8:
+    return LLVMIntType(8);
+    break;
+  case FL_TK_I16:
+    return LLVMIntType(16);
+    break;
+  case FL_TK_I32:
+    return LLVMIntType(32);
+    break;
+  case FL_TK_I64:
+    return LLVMIntType(64);
+    break;
+  case FL_TK_U8:
+    return LLVMIntType(8);
+    break;
+  case FL_TK_U16:
+    return LLVMIntType(16);
+    break;
+  case FL_TK_U32:
+    return LLVMIntType(32);
+    break;
+  case FL_TK_U64:
+    return LLVMIntType(64);
+    break;
+  // LLVMHalfType
+  case FL_TK_F32:
+    return LLVMFloatType();
+    break;
+  case FL_TK_F64:
+    return LLVMDoubleType();
+    break;
+  case FL_TK_STRING:
+    return LLVMDoubleType();
+    break;
+  }
+
+  fputs("not defined type\n", stderr);
+}
+
 // TODO manage type
 LLVMValueRef fl_codegen_dtor_var(FL_CODEGEN_HEADER) {
-  LLVMValueRef ref = LLVMBuildAlloca(builder, LLVMDoubleType(),
-                                     node->identifier.string->value);
+
+  if (!node->var.type) {
+    fputs("variable has no type cannot be generated\n", stderr);
+    return 0;
+  }
+
+  LLVMValueRef ref =
+      LLVMBuildAlloca(builder, fl_codegen_get_type(node->var.type),
+                      node->var.id->identifier.string->value);
   node->codegen = (void*)ref;
 
   return ref;

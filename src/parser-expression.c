@@ -46,10 +46,15 @@ FL_READER_IMPL(expr_assignment_full) {
   FL_AST_START(FL_AST_EXPR_ASSIGNAMENT);
 
   ast->assignament.left = FL_READ(expr_lhs);
+
   // TODO manage errors
   if (!ast->assignament.left) {
     FL_RETURN_NOT_FOUND();
   }
+
+  printf("(parser) expr_assignment_full left");
+
+  fl_parser_skipws(tokens, state);
 
   // now token must be an assignament operator
 
@@ -75,9 +80,17 @@ FL_READER_IMPL(expr_assignment_full) {
     FL_RETURN_NOT_FOUND();
   }
   FL_NEXT();
+  printf("(parser) expr_assignment_full operator");
+
+  fl_parser_skipws(tokens, state);
 
   ast->assignament.right = FL_READ(expr_assignment);
   // TODO manage errors
+  if (!ast->assignament.right) {
+    FL_RETURN_NOT_FOUND();
+  }
+
+  printf("(parser) expr_assignment_full right");
 
   return ast;
 }

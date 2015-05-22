@@ -246,6 +246,7 @@ struct fl_ast {
   fl_token_t* token_end;
   fl_ast_type_t type; // TODO enum
   void* codegen;      // space for codegen injection "userdata"
+  struct fl_ast* parent;
 
   union {
     struct fl_ast_program {
@@ -286,7 +287,7 @@ struct fl_ast {
     } runary;
     struct fl_ast_dtor_variable {
       // TODO add type
-      struct fl_ast* identifier;
+      struct fl_ast* id;
       struct fl_ast* type;
     } var;
     struct fl_ast_idtype {
@@ -601,6 +602,10 @@ FL_EXTERN void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
 FL_EXTERN void fl_ast_delete(fl_ast_t* ast);
 
 FL_EXTERN void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level);
+
+FL_EXTERN void fl_ast_parent(fl_ast_t* root);
+
+FL_EXTERN fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name);
 
 /* cldoc:end-category() */
 

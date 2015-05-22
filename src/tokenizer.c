@@ -56,7 +56,6 @@ size_t fl_get_escape_count(char* itr, char* start) {
 void fl_tokenize_push(fl_token_list_t* tokens, fl_tokens_t type, char* p,
                       size_t p_s, size_t ltoken_line, size_t ltoken_column,
                       size_t line, size_t column) {
-  printf("fl_tokenize_push size: %d\n", p_s);
   size_t tokens_s = tokens->size;
 
   tokens->tokens[tokens_s].type = type;
@@ -67,16 +66,36 @@ void fl_tokenize_push(fl_token_list_t* tokens, fl_tokens_t type, char* p,
   tokens->tokens[tokens_s].end.line = line;
   tokens->tokens[tokens_s].end.column = column;
   ++tokens->size;
+
+  printf("[%zu:%zu] fl_tokenize_push(%s)\n", line, column,
+         tokens->tokens[tokens_s].string->value);
+}
+
+void fl_tokenize_flush(fl_token_list_t* tokens, fl_tokens_t type,
+                       fl_tk_state_t* lstate, fl_tk_state_t* state) {
+  size_t tokens_s = tokens->size;
+
+  tokens->tokens[tokens_s].type = type;
+  tokens->tokens[tokens_s].string =
+      st_new_subc(lstate->itr, state->itr - lstate->itr, st_enc_utf8);
+  tokens->tokens[tokens_s].start.line = lstate->line;
+  tokens->tokens[tokens_s].start.column = lstate->column;
+
+  tokens->tokens[tokens_s].end.line = state->line;
+  tokens->tokens[tokens_s].end.column = state->column;
+  ++tokens->size;
+
+  printf("[%zu:%zu] fl_tokenize_flush(%s)\n", lstate->line, lstate->column,
+         tokens->tokens[tokens_s].string->value);
+
+  fl_tokenize_cp_state(state, lstate);
 }
 
 void fl_token_process(fl_token_list_t* tokens, fl_tokens_cfg_t* tk,
                       fl_tk_state_t* state, fl_tk_state_t* lstate) {
   size_t size = (state->itr - lstate->itr);
   if (size) {
-    fl_tokenize_push(tokens, FL_TK_UNKOWN, lstate->itr, size, lstate->line,
-                     lstate->column, state->line, state->column);
-
-    fl_tokenize_cp_state(state, lstate);
+    fl_tokenize_flush(tokens, FL_TK_UNKOWN, lstate, state);
   }
 
   if (tk->type != FL_TK_NEWLINE) {
@@ -149,16 +168,19 @@ fl_token_list_t* fl_tokenize(string* file) {
     // printf("[%p] - [%p]\n", state.itr, state.end);
     // printf("[%c]\n", *(state.itr));
 
+    printf("[%zu:%zu] read [%c]\n", state.line, state.column, *state.itr);
     // push spaces as independent tokens
     if (!last_space && *(state.itr) == ' ') {
+      printf("[%zu:%zu] space start\n", state.line, state.column);
+      if (state.itr != lstate.itr) {
+        fl_tokenize_flush(tokens, FL_TK_UNKOWN, &lstate, &state);
+      }
+
       last_space = state.itr;
     }
     if (last_space && *(state.itr) != ' ') {
-      printf("space need to be pushed! [%ld]\n", state.itr - last_space);
-      fl_tokenize_push(tokens, FL_TK_WHITESPACE, last_space,
-                       state.itr - last_space, lstate.line, lstate.column,
-                       state.line, state.column);
-      fl_tokenize_cp_state(&state, &lstate);
+      printf("[%zu:%zu] space end\n", state.line, state.column);
+      fl_tokenize_flush(tokens, FL_TK_WHITESPACE, &lstate, &state);
       last_space = 0;
     }
 

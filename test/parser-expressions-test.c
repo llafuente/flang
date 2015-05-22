@@ -132,5 +132,13 @@ TASK_IMPL(parser_expressions) {
 
   fl_ast_delete(root);
 
+  root = fl_parse_utf8("a =b"); // unary
+
+  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
+
+  ast = *(root->program.body);
+  ASSERT(ast != 0, "ast found!");
+  fl_ast_delete(root);
+
   return 0;
 }
