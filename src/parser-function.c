@@ -32,44 +32,51 @@ FL_READER_IMPL(decl_function) {
     FL_RETURN_NOT_FOUND();
   }
 
-  printf("skip! %p\n", ast);
+  // hard-errors!
 
   fl_parser_skipws(tokens, state);
 
   ast->func.id = FL_READ(lit_identifier);
   if (!ast->func.id) {
-    FL_RETURN_NOT_FOUND();
+    FL_PARSER_ERROR(ast, "cannot parse function identifier");
+    return ast;
   }
-
-  printf("lit + skip! %p\n", ast);
 
   fl_parser_skipws(tokens, state);
 
-  printf("parenthesis! %p\n", ast);
   // params
   if (!FL_ACCEPT_TOKEN(FL_TK_LPARANTHESIS)) {
-    FL_RETURN_NOT_FOUND();
+    FL_PARSER_ERROR(ast, "expected '('");
+    return ast;
   }
-  printf("--> %s\n", state->token->string->value);
 
   if (!FL_ACCEPT_TOKEN(FL_TK_RPARANTHESIS)) {
     fl_ast_t** list = calloc(100, sizeof(fl_ast_t*));
     size_t i = 0;
     do {
-      printf("--> %s\n", state->token->string->value);
       fl_parser_skipws(tokens, state);
-      printf("--> %s\n", state->token->string->value);
+
       list[i] = FL_READ(lit_identifier);
+
       fl_parser_skipws(tokens, state);
-      printf("--> comma! %s\n", state->token->string->value);
+
       ++i;
     } while (FL_ACCEPT_TOKEN(FL_TK_COMMA));
     ast->func.params = list;
 
     if (!FL_ACCEPT_TOKEN(FL_TK_RPARANTHESIS)) {
-      FL_RETURN_NOT_FOUND();
+      fl_ast_delete(ast->func.id);
+      fl_ast_delete_list(list);
+      FL_PARSER_ERROR(ast, "expected ')'");
+      return ast;
     }
   }
+
+  fl_parser_skipws(tokens, state);
+
+  ast->func.body = FL_READ(block);
+
+  fl_parser_skipws(tokens, state);
 
   return ast;
 }

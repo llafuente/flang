@@ -136,7 +136,7 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
   switch (node->type) {
   case FL_AST_PROGRAM:
     return fl_codegen_ast(node->program.body, builder, module, context);
-  case FL_AST_BLOCK:{
+  case FL_AST_BLOCK: {
     size_t i = 0;
     fl_ast_t* tmp;
 

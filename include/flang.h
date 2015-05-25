@@ -313,7 +313,7 @@ struct fl_ast {
       // TODO use fl_type_t*
       struct fl_ast* id;
       struct fl_ast** params;
-      struct fl_ast** body;
+      struct fl_ast* body;
     } func;
   };
 };
@@ -435,25 +435,23 @@ struct fl_enum_members {
 // , printf("%s\n", #name)
 #define FL_READ(name) FL_READER_FN(name)(tokens, stack, state)
 
+#define FL_EXTEND(ast, name) FL_READER_FN(name)(tokens, stack, state, ast)
+
 // printf("%s %p type %d\n", __FUNCTION__, ast, ast->type);
 // TODO handle errors when done :)
 #define FL_TRY_READ(name)                                                      \
   fl_parser_look_ahead(stack, state);                                          \
   ast = FL_READ(name);                                                         \
   if (ast) {                                                                   \
+    /*handle errors*/                                                          \
+    if (ast->type == FL_AST_ERROR) {                                           \
+      fl_parser_rollback(stack, state);                                        \
+      return ast;                                                              \
+    }                                                                          \
     fl_parser_commit(stack, state);                                            \
     return ast;                                                                \
   }                                                                            \
   fl_parser_rollback(stack, state);
-
-#define __FL_TRY_READ(name)                                                    \
-  fl_parser_look_ahead(stack, state);                                          \
-  ast = FL_READ(name);                                                         \
-  if (ast) {                                                                   \
-    fl_parser_commit(stack, state);                                            \
-  } else {                                                                     \
-    fl_parser_rollback(stack, state);                                          \
-  }
 
 // calloc is necessary atm
 #define FL_AST_START(ast_type)                                                 \
@@ -488,9 +486,12 @@ struct fl_enum_members {
 
 #define FL_CODEGEN_HEADER_SEND node, builder, module, context
 
-#define FL_PARSER_ERROR(string) \
-ast->type = FL_AST_ERROR; \
-ast->err.str = string;
+// target_ast allow to reuse current ast
+#define FL_PARSER_ERROR(target_ast, string)                                    \
+  printf("%s\n", string);                                                      \
+  target_ast->type = FL_AST_ERROR;                                             \
+  target_ast->err.str = string;                                                \
+  target_ast->token_end = state->token;
 
 //-
 //- functions, global variables
@@ -570,7 +571,7 @@ FL_EXTERN void fl_parser_skipws(fl_token_list_t* tokens, fl_psrstate_t* state);
 
 FL_READER_DECL(block);
 FL_READER_DECL(program_block);
-FL_LIST_READER_DECL(block_body);
+void FL_READER_FN(block_body)(FL_READER_HEADER, fl_ast_t* extend);
 
 /* cldoc:end-category() */
 
@@ -637,6 +638,8 @@ FL_EXTERN void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
                                size_t level);
 
 FL_EXTERN void fl_ast_delete(fl_ast_t* ast);
+
+FL_EXTERN void fl_ast_delete_list(fl_ast_t** list);
 
 FL_EXTERN void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level);
 

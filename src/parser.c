@@ -45,9 +45,17 @@ fl_ast_t* fl_parser(fl_token_list_t* tokens) {
 
   FL_AST_START(FL_AST_PROGRAM);
 
-  ast->program.body = FL_READ(program_block);
+  fl_ast_t* body;
 
-  FL_AST_END();
+  body = FL_READ(program_block);
+  if (body->type == FL_AST_ERROR) {
+    fl_ast_delete(ast);
+    ast = body;
+  } else {
+    ast->program.body = body;
+    FL_AST_END();
+  }
+
 
   free(stack);
   free(state);

@@ -31,7 +31,7 @@ TASK_IMPL(parser_functions) {
   fl_ast_t* root;
   fl_ast_t* ast;
 
-  root = fl_parse_utf8("fn x()");
+  root = fl_parse_utf8("fn x() {}");
   ast = *(root->program.body->block.body);
 
   ASSERT(ast != 0, "string literal found!");
@@ -41,7 +41,7 @@ TASK_IMPL(parser_functions) {
   ASSERT(ast->func.params == 0, "no args");
   fl_ast_delete(root);
 
-  root = fl_parse_utf8("fn x(yy, zz , mm ,xx)");
+  root = fl_parse_utf8("fn x(yy, zz , mm ,xx) {}");
   ast = *(root->program.body->block.body);
 
   ASSERT(ast != 0, "string literal found!");
@@ -50,6 +50,29 @@ TASK_IMPL(parser_functions) {
   ASSERT(ast->func.id->type == FL_AST_LIT_IDENTIFIER, "FL_AST_LIT_IDENTIFIER");
   ASSERT(ast->func.params != 0, "no args");
   fl_ast_delete(root);
+
+  root = fl_parse_utf8("fn {}");
+
+  ASSERT(root->type == FL_AST_ERROR, "error found");
+  ASSERT(strcmp(root->err.str, "cannot parse function identifier") == 0, "error found");
+
+  fl_ast_delete(root);
+
+
+  root = fl_parse_utf8("fn hell ({}");
+
+  ASSERT(root->type == FL_AST_ERROR, "error found");
+  ASSERT(strcmp(root->err.str, "expected ')'") == 0, "error found");
+
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("fn x() { fn;}");
+
+  ASSERT(root->type == FL_AST_ERROR, "error found");
+  ASSERT(strcmp(root->err.str, "cannot parse function identifier") == 0, "error found");
+
+  fl_ast_delete(root);
+
 
   return 0;
 }

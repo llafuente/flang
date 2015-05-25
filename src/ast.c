@@ -91,21 +91,29 @@ void fl_ast_parent(fl_ast_t* root) {
   fl_ast_traverse(root, fl_ast_parent_cb, 0, 0);
 }
 
+void fl_ast_delete_list(fl_ast_t** list) {
+  size_t i = 0;
+  fl_ast_t* tmp;
+
+  if (list) {
+    while ((tmp = list[i++]) != 0) {
+      fl_ast_delete(tmp);
+    }
+  }
+
+  free(list);
+}
 void fl_ast_delete(fl_ast_t* ast) {
   // fprintf(stderr, "ast [%p]", ast);
 
   switch (ast->type) {
   case FL_AST_PROGRAM:
-  fl_ast_delete(ast->program.body);
-  break;
-  case FL_AST_BLOCK: {
-    size_t i = 0;
-    fl_ast_t* tmp;
-
-    while ((tmp = ast->block.body[i++]) != 0) {
-      fl_ast_delete(tmp);
+    if (ast->program.body) {
+      fl_ast_delete(ast->program.body);
     }
-    free(ast->block.body);
+    break;
+  case FL_AST_BLOCK: {
+    fl_ast_delete_list(ast->block.body);
     ast->block.body = 0;
   } break;
   case FL_AST_EXPR_ASSIGNAMENT:
@@ -168,9 +176,10 @@ void fl_ast_delete(fl_ast_t* ast) {
       ast->func.params = 0;
     }
     if (ast->func.body) {
-      free(ast->func.body);
+      fl_ast_delete(ast->func.body);
       ast->func.body = 0;
     }
+    free(ast->func.body);
     break;
   default: {}
   }
@@ -187,9 +196,9 @@ void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
   case FL_AST_PROGRAM:
     printf("%*s - program [%p]\n", (int)level, " ", node);
     break;
-    case FL_AST_BLOCK:
-      printf("%*s - block [%p]\n", (int)level, " ", node);
-      break;
+  case FL_AST_BLOCK:
+    printf("%*s - block [%p]\n", (int)level, " ", node);
+    break;
   case FL_AST_EXPR_ASSIGNAMENT:
     printf("%*s - assignament [%p]\n", (int)level, " ", node);
     break;
@@ -221,6 +230,9 @@ void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
   case FL_AST_DECL_FUNCTION:
     printf("%*s - function [%p]\n", (int)level, " ", node);
     break;
+    case FL_AST_ERROR:
+      printf("%*s - ERROR %s [%p]\n", (int)level, " ", node->err.str, node);
+      break;
   default: {}
   }
 }
@@ -233,13 +245,13 @@ fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {
       fl_ast_t* tmp;
 
       if (node->block.body) {
-      while ((tmp = node->block.body[i++]) != 0) {
-        if (tmp->type == FL_AST_DTOR_VAR &&
-            st_cmp(name, tmp->var.id->identifier.string) == 0) {
-          return tmp;
+        while ((tmp = node->block.body[i++]) != 0) {
+          if (tmp->type == FL_AST_DTOR_VAR &&
+              st_cmp(name, tmp->var.id->identifier.string) == 0) {
+            return tmp;
+          }
         }
       }
-    }
     }
   }
 
