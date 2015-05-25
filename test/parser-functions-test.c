@@ -32,7 +32,7 @@ TASK_IMPL(parser_functions) {
   fl_ast_t* ast;
 
   root = fl_parse_utf8("fn x()");
-  ast = *(root->program.body);
+  ast = *(root->program.body->block.body);
 
   ASSERT(ast != 0, "string literal found!");
 
@@ -42,7 +42,7 @@ TASK_IMPL(parser_functions) {
   fl_ast_delete(root);
 
   root = fl_parse_utf8("fn x(yy, zz , mm ,xx)");
-  ast = *(root->program.body);
+  ast = *(root->program.body->block.body);
 
   ASSERT(ast != 0, "string literal found!");
 

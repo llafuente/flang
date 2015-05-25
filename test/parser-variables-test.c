@@ -32,7 +32,7 @@ TASK_IMPL(parser_variables) {
   fl_ast_t* ast;
 
   root = fl_parse_utf8("var hello;");
-  ast = *(root->program.body);
+  ast = *(root->program.body->block.body);
 
   ASSERT(ast != 0, "string literal found!");
 
@@ -40,7 +40,7 @@ TASK_IMPL(parser_variables) {
   fl_ast_delete(root);
 
   root = fl_parse_utf8("var i8 hello;");
-  ast = *(root->program.body);
+  ast = *(root->program.body->block.body);
 
   ASSERT(ast != 0, "string literal found!");
 

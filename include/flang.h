@@ -216,6 +216,7 @@ typedef struct fl_parser_state fl_psrstate_t;
 
 enum fl_ast_type {
   FL_AST_PROGRAM = 1,
+  FL_AST_BLOCK = 2,
 
   FL_AST_LIT_ARRAY = 10,
   FL_AST_LIT_OBJECT = 11,
@@ -240,6 +241,8 @@ enum fl_ast_type {
   FL_AST_DECL_FUNCTION = 50,
 
   FL_AST_STMT_LOG = 100,
+
+  FL_AST_ERROR = 255
 };
 
 typedef enum fl_ast_type fl_ast_type_t;
@@ -252,9 +255,18 @@ struct fl_ast {
   struct fl_ast* parent;
 
   union {
+    struct fl_err {
+      char* str;
+    } err;
+
     struct fl_ast_program {
-      struct fl_ast** body;
+      struct fl_ast* body;
     } program;
+
+    struct fl_ast_block {
+      struct fl_ast** body;
+    } block;
+
     struct fl_ast_lit_boolean {
       bool value;
     } boolean;
@@ -476,6 +488,10 @@ struct fl_enum_members {
 
 #define FL_CODEGEN_HEADER_SEND node, builder, module, context
 
+#define FL_PARSER_ERROR(string) \
+ast->type = FL_AST_ERROR; \
+ast->err.str = string;
+
 //-
 //- functions, global variables
 //-
@@ -504,8 +520,6 @@ FL_EXTERN fl_ast_t* fl_parser(fl_token_list_t* tokens);
 
 FL_EXTERN fl_ast_t* fl_parse(string* str);
 FL_EXTERN fl_ast_t* fl_parse_utf8(char* str);
-
-FL_LIST_READER_DECL(body);
 
 /* cldoc:end-category() */
 
@@ -549,6 +563,14 @@ FL_EXTERN fl_parser_result_t* fl_parser_expect(fl_token_list_t* tokens,
                                                char* err_msg, bool final);
 
 FL_EXTERN void fl_parser_skipws(fl_token_list_t* tokens, fl_psrstate_t* state);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(parser-block.c) */
+
+FL_READER_DECL(block);
+FL_READER_DECL(program_block);
+FL_LIST_READER_DECL(block_body);
 
 /* cldoc:end-category() */
 

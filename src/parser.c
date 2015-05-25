@@ -44,7 +44,8 @@ fl_ast_t* fl_parser(fl_token_list_t* tokens) {
   fl_parser_stack_init(stack, tokens, state);
 
   FL_AST_START(FL_AST_PROGRAM);
-  ast->program.body = FL_READ(body);
+
+  ast->program.body = FL_READ(program_block);
 
   FL_AST_END();
 
@@ -52,56 +53,6 @@ fl_ast_t* fl_parser(fl_token_list_t* tokens) {
   free(state);
 
   return ast;
-}
-
-FL_LIST_READER_IMPL(body) {
-  fl_ast_t* ast;
-  fl_ast_t** list = calloc(100, sizeof(fl_ast_t*));
-  size_t i = 0;
-
-  fl_token_t* last_token;
-
-  while (!fl_parser_eof(tokens, state)) {
-    last_token = state->token;
-
-    __FL_TRY_READ(decl_variable);
-    if (ast) {
-      printf("decl_variable [%p]\n", ast);
-      list[i++] = ast;
-      goto body_end_read;
-    }
-
-    __FL_TRY_READ(decl_function);
-
-    if (ast) {
-      printf("decl_function [%p]\n", ast);
-      list[i++] = ast;
-      goto body_end_read;
-    }
-
-    __FL_TRY_READ(expression);
-    if (ast) {
-      printf("expression! [%p]\n", ast);
-      list[i++] = ast;
-      goto body_end_read;
-    }
-
-  body_end_read:
-    // read "semicolon" or NEW-LINE
-    fl_parser_skipws(tokens, state);
-    FL_ACCEPT_TOKEN(FL_TK_SEMICOLON);
-    fl_parser_skipws(tokens, state);
-
-    if (last_token == state->token) {
-      fprintf(stderr, "unkown statement @[%d:%d]\n", state->token->start.line,
-              state->token->start.column);
-      exit(1);
-    }
-  }
-
-  printf("body has %d elements\n", i);
-
-  return list;
 }
 
 fl_ast_t* fl_parse_utf8(char* str) {

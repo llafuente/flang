@@ -5,6 +5,7 @@ COMPILER_SOURCES = src/tokenizer.c \
                 src/parser.c \
                 src/parser-utils.c \
                 src/parser-stack.c \
+                src/parser-block.c \
                 src/parser-literal.c \
                 src/parser-expression.c \
                 src/parser-variable.c \

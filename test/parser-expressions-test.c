@@ -32,7 +32,7 @@ TASK_IMPL(parser_expressions) {
   fl_ast_t* ast;
   root = fl_parse_utf8("1+2");
 
-  ast = *(root->program.body);
+  ast = *(root->program.body->block.body);
   ASSERT(ast != 0, "string literal found!");
   ASSERT(ast->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
   ASSERT(ast->binop.left->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
@@ -41,7 +41,7 @@ TASK_IMPL(parser_expressions) {
 
   root = fl_parse_utf8("1+2+3");
 
-  ast = *(root->program.body);
+  ast = *(root->program.body->block.body);
   ASSERT(ast != 0, "string literal found!");
   ASSERT(ast->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
   ASSERT(ast->binop.left->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
@@ -54,7 +54,7 @@ TASK_IMPL(parser_expressions) {
 
   root = fl_parse_utf8("1*2");
 
-  ast = *(root->program.body);
+  ast = *(root->program.body->block.body);
   ASSERT(ast != 0, "string literal found!");
   ASSERT(ast->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
   ASSERT(ast->binop.left->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
@@ -64,7 +64,7 @@ TASK_IMPL(parser_expressions) {
 
   root = fl_parse_utf8("1*2+3"); // priotity test
 
-  ast = *(root->program.body);
+  ast = *(root->program.body->block.body);
   ASSERT(ast != 0, "string literal found!");
   ASSERT(ast->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
 
@@ -82,7 +82,7 @@ TASK_IMPL(parser_expressions) {
 
   root = fl_parse_utf8("-2"); // unary
 
-  ast = *(root->program.body);
+  ast = *(root->program.body->block.body);
   ASSERT(ast != 0, "ast found!");
   ASSERT(ast->type == FL_AST_EXPR_LUNARY, "ast is FL_AST_EXPR_LUNARY");
 
@@ -93,7 +93,7 @@ TASK_IMPL(parser_expressions) {
 
   root = fl_parse_utf8("xxx++"); // unary
 
-  ast = *(root->program.body);
+  ast = *(root->program.body->block.body);
   ASSERT(ast != 0, "ast found!");
   ASSERT(ast->type == FL_AST_EXPR_RUNARY, "ast is FL_AST_EXPR_RUNARY");
 
@@ -105,7 +105,7 @@ TASK_IMPL(parser_expressions) {
 
   root = fl_parse_utf8("a=b"); // unary
 
-  ast = *(root->program.body);
+  ast = *(root->program.body->block.body);
   ASSERT(ast != 0, "ast found!");
   ASSERT(ast->type == FL_AST_EXPR_ASSIGNAMENT,
          "ast is FL_AST_EXPR_ASSIGNAMENT");
@@ -119,15 +119,15 @@ TASK_IMPL(parser_expressions) {
   fl_ast_delete(root);
 
   root = fl_parse_utf8("a =b"); // ws test
-  ASSERT(*(root->program.body) != 0, "ast found!");
+  ASSERT(*(root->program.body->block.body) != 0, "ast found!");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("a = b"); // ws test
-  ASSERT(*(root->program.body) != 0, "ast found!");
+  ASSERT(*(root->program.body->block.body) != 0, "ast found!");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("a= b"); // ws test
-  ASSERT(*(root->program.body) != 0, "ast found!");
+  ASSERT(*(root->program.body->block.body) != 0, "ast found!");
   fl_ast_delete(root);
 
   return 0;
