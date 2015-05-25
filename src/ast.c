@@ -31,6 +31,7 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
     printf("(null)\n");
     return;
   }
+  printf("- %d\n", ast->type);
 
   cb(ast, parent, level);
   ++level;
@@ -40,19 +41,20 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
     size_t i = 0;
     fl_ast_t* tmp;
 
-    while ((tmp = ast->program.body[i++]) != 0) {
-      fl_ast_traverse(tmp, cb, ast, level);
+    if (ast->program.body) {
+      while ((tmp = ast->program.body[i++]) != 0) {
+        fl_ast_traverse(tmp, cb, ast, level);
+      }
     }
-    return;
-  }
-
+  } break;
   case FL_AST_EXPR_ASSIGNAMENT:
     fl_ast_traverse(ast->assignament.left, cb, ast, level);
-    return fl_ast_traverse(ast->assignament.right, cb, ast, level);
-
+    fl_ast_traverse(ast->assignament.right, cb, ast, level);
+    break;
   case FL_AST_EXPR_BINOP:
     fl_ast_traverse(ast->binop.left, cb, ast, level);
-    return fl_ast_traverse(ast->binop.right, cb, ast, level);
+    fl_ast_traverse(ast->binop.right, cb, ast, level);
+    break;
   case FL_AST_EXPR_LUNARY:
     fl_ast_traverse(ast->lunary.element, cb, ast, level);
     break;
@@ -63,6 +65,19 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
     fl_ast_traverse(ast->var.id, cb, ast, level);
     fl_ast_traverse(ast->var.type, cb, ast, level);
     break;
+  case FL_AST_DECL_FUNCTION: {
+    fl_ast_traverse(ast->func.id, cb, ast, level);
+    // fl_ast_traverse(ast->var.type, cb, ast, level);
+
+    if (ast->func.params) {
+      size_t i = 0;
+      fl_ast_t* tmp;
+
+      while ((tmp = ast->func.params[i++]) != 0) {
+        fl_ast_traverse(tmp, cb, ast, level);
+      }
+    }
+  } break;
   default: {}
   }
 }
@@ -132,6 +147,26 @@ void fl_ast_delete(fl_ast_t* ast) {
       fl_ast_delete(ast->var.type);
     }
     break;
+  case FL_AST_DECL_FUNCTION:
+    if (ast->func.id) {
+      fl_ast_delete(ast->func.id);
+    }
+    if (ast->func.params) {
+      size_t i = 0;
+      fl_ast_t* tmp;
+
+      while ((tmp = ast->func.params[i++]) != 0) {
+        fl_ast_delete(tmp);
+      }
+
+      free(ast->func.params);
+      ast->func.params = 0;
+    }
+    if (ast->func.body) {
+      free(ast->func.body);
+      ast->func.body = 0;
+    }
+    break;
   default: {}
   }
   free(ast);
@@ -174,6 +209,9 @@ void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
     break;
   case FL_AST_TYPE:
     printf("%*s - type (%d) [%p]\n", (int)level, " ", node->idtype.of, node);
+    break;
+  case FL_AST_DECL_FUNCTION:
+    printf("%*s - function [%p]\n", (int)level, " ", node);
     break;
   default: {}
   }

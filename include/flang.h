@@ -90,6 +90,7 @@ enum fl_tokens {
   FL_TK_EXIST,
   FL_TK_COLON,
   FL_TK_SEMICOLON,
+  FL_TK_COMMA,
   FL_TK_EXCLAMATION,
   FL_TK_TILDE,
   FL_TK_SCOMMENT,
@@ -236,6 +237,8 @@ enum fl_ast_type {
 
   FL_AST_TYPE = 40,
 
+  FL_AST_DECL_FUNCTION = 50,
+
   FL_AST_STMT_LOG = 100,
 };
 
@@ -294,6 +297,12 @@ struct fl_ast {
       // TODO use fl_type_t*
       fl_tokens_t of;
     } idtype;
+    struct fl_ast_decl_function {
+      // TODO use fl_type_t*
+      struct fl_ast* id;
+      struct fl_ast** params;
+      struct fl_ast** body;
+    } func;
   };
 };
 
@@ -589,6 +598,12 @@ FL_READER_DECL(decl_variable_with_type);
 /* cldoc:begin-category(parser-type.c) */
 
 FL_READER_DECL(type);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(parser-function.c) */
+
+FL_READER_DECL(decl_function)
 
 /* cldoc:end-category() */
 

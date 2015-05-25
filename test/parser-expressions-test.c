@@ -32,8 +32,6 @@ TASK_IMPL(parser_expressions) {
   fl_ast_t* ast;
   root = fl_parse_utf8("1+2");
 
-  // fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
-
   ast = *(root->program.body);
   ASSERT(ast != 0, "string literal found!");
   ASSERT(ast->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
@@ -42,8 +40,6 @@ TASK_IMPL(parser_expressions) {
   fl_ast_delete(root);
 
   root = fl_parse_utf8("1+2+3");
-
-  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
 
   ast = *(root->program.body);
   ASSERT(ast != 0, "string literal found!");
@@ -58,8 +54,6 @@ TASK_IMPL(parser_expressions) {
 
   root = fl_parse_utf8("1*2");
 
-  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
-
   ast = *(root->program.body);
   ASSERT(ast != 0, "string literal found!");
   ASSERT(ast->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
@@ -69,8 +63,6 @@ TASK_IMPL(parser_expressions) {
   fl_ast_delete(root);
 
   root = fl_parse_utf8("1*2+3"); // priotity test
-
-  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
 
   ast = *(root->program.body);
   ASSERT(ast != 0, "string literal found!");
@@ -90,8 +82,6 @@ TASK_IMPL(parser_expressions) {
 
   root = fl_parse_utf8("-2"); // unary
 
-  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
-
   ast = *(root->program.body);
   ASSERT(ast != 0, "ast found!");
   ASSERT(ast->type == FL_AST_EXPR_LUNARY, "ast is FL_AST_EXPR_LUNARY");
@@ -102,8 +92,6 @@ TASK_IMPL(parser_expressions) {
   fl_ast_delete(root);
 
   root = fl_parse_utf8("xxx++"); // unary
-
-  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
 
   ast = *(root->program.body);
   ASSERT(ast != 0, "ast found!");
@@ -116,8 +104,6 @@ TASK_IMPL(parser_expressions) {
   fl_ast_delete(root);
 
   root = fl_parse_utf8("a=b"); // unary
-
-  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
 
   ast = *(root->program.body);
   ASSERT(ast != 0, "ast found!");
@@ -132,12 +118,16 @@ TASK_IMPL(parser_expressions) {
 
   fl_ast_delete(root);
 
-  root = fl_parse_utf8("a =b"); // unary
+  root = fl_parse_utf8("a =b"); // ws test
+  ASSERT(*(root->program.body) != 0, "ast found!");
+  fl_ast_delete(root);
 
-  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
+  root = fl_parse_utf8("a = b"); // ws test
+  ASSERT(*(root->program.body) != 0, "ast found!");
+  fl_ast_delete(root);
 
-  ast = *(root->program.body);
-  ASSERT(ast != 0, "ast found!");
+  root = fl_parse_utf8("a= b"); // ws test
+  ASSERT(*(root->program.body) != 0, "ast found!");
   fl_ast_delete(root);
 
   return 0;

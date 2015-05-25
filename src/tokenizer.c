@@ -25,6 +25,10 @@
 
 #include "flang.h"
 
+// until i have a better name...
+//#define FL_DBG(...) fprintf(stdout, __VA_ARGS__)
+#define FL_DBG(...)
+
 fl_tokens_cfg_t* fl_get_token(char* itr, size_t len) {
   size_t tidx = 0;
   size_t tk_size;
@@ -67,7 +71,7 @@ void fl_tokenize_push(fl_token_list_t* tokens, fl_tokens_t type, char* p,
   tokens->tokens[tokens_s].end.column = column;
   ++tokens->size;
 
-  printf("[%zu:%zu] fl_tokenize_push(%s)\n", line, column,
+  FL_DBG("[%zu:%zu] fl_tokenize_push(%s)\n", line, column,
          tokens->tokens[tokens_s].string->value);
 }
 
@@ -85,7 +89,7 @@ void fl_tokenize_flush(fl_token_list_t* tokens, fl_tokens_t type,
   tokens->tokens[tokens_s].end.column = state->column;
   ++tokens->size;
 
-  printf("[%zu:%zu] fl_tokenize_flush(%s)\n", lstate->line, lstate->column,
+  FL_DBG("[%zu:%zu] fl_tokenize_flush(%s)\n", lstate->line, lstate->column,
          tokens->tokens[tokens_s].string->value);
 
   fl_tokenize_cp_state(state, lstate);
@@ -111,11 +115,8 @@ void fl_token_process(fl_token_list_t* tokens, fl_tokens_cfg_t* tk,
                      lstate->line, lstate->column, state->line, state->column);
   }
 
-  fl_tokenize_push(tokens, tk->type, lstate->itr, tk->text_s, lstate->line,
-                   lstate->column, state->line, state->column);
-
   state->itr += tk->text_s;
-  fl_tokenize_cp_state(state, lstate);
+  fl_tokenize_flush(tokens, tk->type, lstate, state);
 }
 
 void fl_tokenize_cp_state(fl_tk_state_t* src, fl_tk_state_t* dst) {
@@ -165,13 +166,13 @@ fl_token_list_t* fl_tokenize(string* file) {
   char* last_space = 0;
 
   while (state.itr < state.end) {
-    // printf("[%p] - [%p]\n", state.itr, state.end);
-    // printf("[%c]\n", *(state.itr));
+    // FL_DBG("[%p] - [%p]\n", state.itr, state.end);
+    // FL_DBG("[%c]\n", *(state.itr));
 
-    printf("[%zu:%zu] read [%c]\n", state.line, state.column, *state.itr);
+    FL_DBG("[%zu:%zu] read [%c]\n", state.line, state.column, *state.itr);
     // push spaces as independent tokens
     if (!last_space && *(state.itr) == ' ') {
-      printf("[%zu:%zu] space start\n", state.line, state.column);
+      FL_DBG("[%zu:%zu] space start\n", state.line, state.column);
       if (state.itr != lstate.itr) {
         fl_tokenize_flush(tokens, FL_TK_UNKOWN, &lstate, &state);
       }
@@ -179,7 +180,7 @@ fl_token_list_t* fl_tokenize(string* file) {
       last_space = state.itr;
     }
     if (last_space && *(state.itr) != ' ') {
-      printf("[%zu:%zu] space end\n", state.line, state.column);
+      FL_DBG("[%zu:%zu] space end\n", state.line, state.column);
       fl_tokenize_flush(tokens, FL_TK_WHITESPACE, &lstate, &state);
       last_space = 0;
     }
@@ -227,3 +228,5 @@ void fl_tokens_delete(fl_token_list_t* tokens) {
   }
   free(tokens);
 }
+
+#undef FL_DBG

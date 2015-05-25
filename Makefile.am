@@ -8,6 +8,7 @@ COMPILER_SOURCES = src/tokenizer.c \
                 src/parser-literal.c \
                 src/parser-expression.c \
                 src/parser-variable.c \
+                src/parser-function.c \
                 src/parser-type.c \
                 src/codegen.c \
                 src/ast.c
@@ -37,6 +38,7 @@ SOURCES_TEST = test/tasks.c \
                test/parser-literals.c \
                test/parser-expressions-test.c \
                test/parser-variables-test.c \
+               test/parser-functions-test.c \
                test/codegen-expressions-test.c
 
 TESTS = test/run-tests

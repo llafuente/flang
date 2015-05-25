@@ -24,57 +24,51 @@
 */
 
 #include "flang.h"
-// TODO declaration - declarator list
-FL_READER_IMPL(decl_variable) {
-  fl_ast_t* ast;
 
-  FL_TRY_READ(decl_variable_with_type);
-  FL_TRY_READ(decl_variable_no_type);
+FL_READER_IMPL(decl_function) {
+  FL_AST_START(FL_AST_DECL_FUNCTION);
 
-  return 0;
-}
-
-FL_READER_IMPL(decl_variable_no_type) {
-  FL_AST_START(FL_AST_DTOR_VAR);
-
-  fl_tokens_t tks[] = {FL_TK_VAR, FL_TK_UNVAR, FL_TK_CONST, FL_TK_STATIC,
-                       FL_TK_GLOBAL};
-  if (!fl_parser_accept_token_list(tokens, state, tks, 5)) {
+  if (!FL_ACCEPT_TOKEN(FL_TK_FUNCTION)) {
     FL_RETURN_NOT_FOUND();
   }
+
+  printf("skip! %p\n", ast);
 
   fl_parser_skipws(tokens, state);
 
-  ast->var.id = FL_READ(lit_identifier);
-  if (!ast->var.id) {
+  ast->func.id = FL_READ(lit_identifier);
+  if (!ast->func.id) {
     FL_RETURN_NOT_FOUND();
   }
 
-  return ast;
-}
-
-FL_READER_IMPL(decl_variable_with_type) {
-  FL_AST_START(FL_AST_DTOR_VAR);
-
-  fl_tokens_t tks[] = {FL_TK_VAR, FL_TK_UNVAR, FL_TK_CONST, FL_TK_STATIC,
-                       FL_TK_GLOBAL};
-  if (!fl_parser_accept_token_list(tokens, state, tks, 5)) {
-    FL_RETURN_NOT_FOUND();
-  }
+  printf("lit + skip! %p\n", ast);
 
   fl_parser_skipws(tokens, state);
 
-  ast->var.type = FL_READ(type);
-
-  if (!ast->var.type) {
+  printf("parenthesis! %p\n", ast);
+  // params
+  if (!FL_ACCEPT_TOKEN(FL_TK_LPARANTHESIS)) {
     FL_RETURN_NOT_FOUND();
   }
+  printf("--> %s\n", state->token->string->value);
 
-  fl_parser_skipws(tokens, state);
+  if (!FL_ACCEPT_TOKEN(FL_TK_RPARANTHESIS)) {
+    fl_ast_t** list = calloc(100, sizeof(fl_ast_t*));
+    size_t i = 0;
+    do {
+      printf("--> %s\n", state->token->string->value);
+      fl_parser_skipws(tokens, state);
+      printf("--> %s\n", state->token->string->value);
+      list[i] = FL_READ(lit_identifier);
+      fl_parser_skipws(tokens, state);
+      printf("--> comma! %s\n", state->token->string->value);
+      ++i;
+    } while (FL_ACCEPT_TOKEN(FL_TK_COMMA));
+    ast->func.params = list;
 
-  ast->var.id = FL_READ(lit_identifier);
-  if (!ast->var.id) {
-    FL_RETURN_NOT_FOUND();
+    if (!FL_ACCEPT_TOKEN(FL_TK_RPARANTHESIS)) {
+      FL_RETURN_NOT_FOUND();
+    }
   }
 
   return ast;

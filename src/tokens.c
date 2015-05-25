@@ -28,8 +28,8 @@
 // warning
 // IF COUNT IS OUT OF SYNC, BAD THING HAPPEN!
 
-size_t fl_token_list_count = 94;
-fl_tokens_cfg_t fl_token_list[94] = {
+size_t fl_token_list_count = 95;
+fl_tokens_cfg_t fl_token_list[95] = {
     {FL_TK_EOF, false, "\x00", 1, 0, 0, false},
     {FL_TK_NEWLINE, false, "\n", 1, 0, 0, false},
     {FL_TK_LOG, false, "log", 3, 0, 0, false},
@@ -53,6 +53,7 @@ fl_tokens_cfg_t fl_token_list[94] = {
     {FL_TK_EXIST, false, "?", 1, 0, 0, false},
     {FL_TK_COLON, false, ":", 1, 0, 0, false},
     {FL_TK_SEMICOLON, false, ";", 1, 0, 0, false},
+    {FL_TK_COMMA, false, ",", 1, 0, 0, false},
 
     {FL_TK_SCOMMENT, false, "//", 2, "\n", 1, false},
     {FL_TK_MCOMMENT, false, "/*", 2, "*/", 2, false},

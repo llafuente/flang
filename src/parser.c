@@ -66,14 +66,22 @@ FL_LIST_READER_IMPL(body) {
 
     __FL_TRY_READ(decl_variable);
     if (ast) {
-      printf("decl_variable\n");
+      printf("decl_variable [%p]\n", ast);
+      list[i++] = ast;
+      goto body_end_read;
+    }
+
+    __FL_TRY_READ(decl_function);
+
+    if (ast) {
+      printf("decl_function [%p]\n", ast);
       list[i++] = ast;
       goto body_end_read;
     }
 
     __FL_TRY_READ(expression);
     if (ast) {
-      printf("expression!");
+      printf("expression! [%p]\n", ast);
       list[i++] = ast;
       goto body_end_read;
     }
