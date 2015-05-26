@@ -43,19 +43,14 @@ fl_ast_t* fl_parser(fl_token_list_t* tokens) {
 
   fl_parser_stack_init(stack, tokens, state);
 
-  FL_AST_START(FL_AST_PROGRAM);
+  PSR_AST_START(FL_AST_PROGRAM);
 
   fl_ast_t* body;
 
-  body = FL_READ(program_block);
-  if (body->type == FL_AST_ERROR) {
-    fl_ast_delete(ast);
-    ast = body;
-  } else {
-    ast->program.body = body;
-    FL_AST_END();
-  }
+  ast->program.tokens = tokens;
+  ast->program.body = PSR_READ(program_block);
 
+  PSR_AST_END();
 
   free(stack);
   free(state);
@@ -73,7 +68,6 @@ fl_ast_t* fl_parse_utf8(char* str) {
 
   fl_ast_t* root = fl_parser(tokens);
 
-  fl_tokens_delete(tokens);
   st_delete(&code);
 
   fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);

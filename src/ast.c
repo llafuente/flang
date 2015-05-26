@@ -32,8 +32,8 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
     return;
   }
 
-  cb(ast, parent, level);
   ++level;
+  cb(ast, parent, level);
 
   switch (ast->type) {
   case FL_AST_PROGRAM:
@@ -79,6 +79,9 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
         fl_ast_traverse(tmp, cb, ast, level);
       }
     }
+    if (ast->func.body) {
+      fl_ast_traverse(ast->func.body, cb, ast, level);
+    }
   } break;
   default: {}
   }
@@ -111,6 +114,7 @@ void fl_ast_delete(fl_ast_t* ast) {
     if (ast->program.body) {
       fl_ast_delete(ast->program.body);
     }
+    fl_tokens_delete(ast->program.tokens);
     break;
   case FL_AST_BLOCK: {
     fl_ast_delete_list(ast->block.body);
@@ -191,50 +195,54 @@ void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
     printf("(null)\n");
     return;
   }
-
+  level = level * 2;
   switch (node->type) {
   case FL_AST_PROGRAM:
-    printf("%*s - program [%p]\n", (int)level, " ", node);
+    printf("%*s- program [%p]\n", (int)level, " ", node);
     break;
   case FL_AST_BLOCK:
-    printf("%*s - block [%p]\n", (int)level, " ", node);
+    printf("%*s- block [%p]\n", (int)level, " ", node);
     break;
   case FL_AST_EXPR_ASSIGNAMENT:
-    printf("%*s - assignament [%p]\n", (int)level, " ", node);
+    printf("%*s- assignament [%p]\n", (int)level, " ", node);
     break;
   case FL_AST_EXPR_BINOP:
-    printf("%*s - binop (%d) [%p]\n", (int)level, " ", node->binop.operator,
+    printf("%*s- binop (%d) [%p]\n", (int)level, " ", node->binop.operator,
            node);
     break;
   case FL_AST_LIT_NUMERIC:
-    printf("%*s - number [%p]\n", (int)level, " ", node);
+    printf("%*s- number [%p]\n", (int)level, " ", node);
     break;
   case FL_AST_LIT_IDENTIFIER:
-    printf("%*s - identifier (%s) [%p]\n", (int)level, " ",
+    printf("%*s- identifier (%s) [%p]\n", (int)level, " ",
            node->identifier.string->value, node);
     break;
   case FL_AST_EXPR_LUNARY:
-    printf("%*s - lunary (%d) [%p]\n", (int)level, " ", node->lunary.operator,
+    printf("%*s- lunary (%d) [%p]\n", (int)level, " ", node->lunary.operator,
            node);
     break;
   case FL_AST_EXPR_RUNARY:
-    printf("%*s - runary (%d) [%p]\n", (int)level, " ", node->runary.operator,
+    printf("%*s- runary (%d) [%p]\n", (int)level, " ", node->runary.operator,
            node);
     break;
   case FL_AST_DTOR_VAR:
-    printf("%*s - variable [%p]\n", (int)level, " ", node);
+    printf("%*s- variable [%p]\n", (int)level, " ", node);
     break;
   case FL_AST_TYPE:
-    printf("%*s - type (%d) [%p]\n", (int)level, " ", node->idtype.of, node);
+    printf("%*s- type (%d) [%p]\n", (int)level, " ", node->idtype.of, node);
     break;
   case FL_AST_DECL_FUNCTION:
-    printf("%*s - function [%p]\n", (int)level, " ", node);
+    printf("%*s- function [%p]\n", (int)level, " ", node);
     break;
-    case FL_AST_ERROR:
-      printf("%*s - ERROR %s [%p]\n", (int)level, " ", node->err.str, node);
-      break;
+  case FL_AST_ERROR:
+    printf("%*s- ERROR %s [%p]\n", (int)level, " ", node->err.str, node);
+    break;
   default: {}
   }
+
+  printf("%*s[%3zu:%3zu - %3zu:%3zu]\n", (int)level, " ",
+         node->token_start->start.column, node->token_start->start.line,
+         node->token_end->end.column, node->token_end->end.line);
 }
 
 fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {

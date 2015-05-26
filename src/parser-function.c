@@ -25,18 +25,18 @@
 
 #include "flang.h"
 
-FL_READER_IMPL(decl_function) {
-  FL_AST_START(FL_AST_DECL_FUNCTION);
+PSR_READ_IMPL(decl_function) {
+  PSR_AST_START(FL_AST_DECL_FUNCTION);
 
-  if (!FL_ACCEPT_TOKEN(FL_TK_FUNCTION)) {
-    FL_RETURN_NOT_FOUND();
+  if (!PSR_ACCEPT_TOKEN(FL_TK_FUNCTION)) {
+    PSR_AST_RET_NULL();
   }
 
   // hard-errors!
 
   fl_parser_skipws(tokens, state);
 
-  ast->func.id = FL_READ(lit_identifier);
+  ast->func.id = PSR_READ(lit_identifier);
   if (!ast->func.id) {
     FL_PARSER_ERROR(ast, "cannot parse function identifier");
     return ast;
@@ -45,28 +45,29 @@ FL_READER_IMPL(decl_function) {
   fl_parser_skipws(tokens, state);
 
   // params
-  if (!FL_ACCEPT_TOKEN(FL_TK_LPARANTHESIS)) {
+  if (!PSR_ACCEPT_TOKEN(FL_TK_LPARANTHESIS)) {
     FL_PARSER_ERROR(ast, "expected '('");
     return ast;
   }
 
-  if (!FL_ACCEPT_TOKEN(FL_TK_RPARANTHESIS)) {
+  if (!PSR_ACCEPT_TOKEN(FL_TK_RPARANTHESIS)) {
     fl_ast_t** list = calloc(100, sizeof(fl_ast_t*));
     size_t i = 0;
     do {
       fl_parser_skipws(tokens, state);
 
-      list[i] = FL_READ(lit_identifier);
+      list[i] = PSR_READ(lit_identifier);
 
       fl_parser_skipws(tokens, state);
 
       ++i;
-    } while (FL_ACCEPT_TOKEN(FL_TK_COMMA));
+    } while (PSR_ACCEPT_TOKEN(FL_TK_COMMA));
     ast->func.params = list;
 
-    if (!FL_ACCEPT_TOKEN(FL_TK_RPARANTHESIS)) {
+    if (!PSR_ACCEPT_TOKEN(FL_TK_RPARANTHESIS)) {
       fl_ast_delete(ast->func.id);
       fl_ast_delete_list(list);
+
       FL_PARSER_ERROR(ast, "expected ')'");
       return ast;
     }
@@ -74,9 +75,15 @@ FL_READER_IMPL(decl_function) {
 
   fl_parser_skipws(tokens, state);
 
-  ast->func.body = FL_READ(block);
+  // block always return
+  fl_ast_t* body = PSR_READ(block);
 
-  fl_parser_skipws(tokens, state);
+  if (body->type == FL_AST_ERROR) { // hard error error
+    fl_ast_delete(ast);
+    return body;
+  }
 
-  return ast;
+  ast->func.body = body;
+
+  PSR_AST_RET();
 }

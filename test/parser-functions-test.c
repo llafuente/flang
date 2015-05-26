@@ -52,27 +52,39 @@ TASK_IMPL(parser_functions) {
   fl_ast_delete(root);
 
   root = fl_parse_utf8("fn {}");
+  ast = root->program.body;
 
-  ASSERT(root->type == FL_AST_ERROR, "error found");
-  ASSERT(strcmp(root->err.str, "cannot parse function identifier") == 0, "error found");
+  ASSERT(ast->type == FL_AST_ERROR, "error found");
+  ASSERT(strcmp(ast->err.str, "cannot parse function identifier") == 0,
+         "error found");
+  ASSERTE(ast->token_start->start.column, 1, "%zu != %d", "start column");
+  ASSERTE(ast->token_start->start.line, 1, "%zu != %d", "start line");
+  ASSERTE(ast->token_end->end.column, 5, "%zu != %d", "end column");
+  ASSERTE(ast->token_end->end.line, 1, "%zu != %d", "end line");
 
   fl_ast_delete(root);
-
 
   root = fl_parse_utf8("fn hell ({}");
+  ast = root->program.body;
 
-  ASSERT(root->type == FL_AST_ERROR, "error found");
-  ASSERT(strcmp(root->err.str, "expected ')'") == 0, "error found");
-
-  fl_ast_delete(root);
-
-  root = fl_parse_utf8("fn x() { fn;}");
-
-  ASSERT(root->type == FL_AST_ERROR, "error found");
-  ASSERT(strcmp(root->err.str, "cannot parse function identifier") == 0, "error found");
+  ASSERT(ast->type == FL_AST_ERROR, "error found");
+  ASSERT(strcmp(ast->err.str, "expected ')'") == 0, "error found");
 
   fl_ast_delete(root);
 
+  root = fl_parse_utf8("fn x () { fn (){}; }");
+  ast = root->program.body;
+
+  ASSERT(ast->type == FL_AST_ERROR, "error found");
+  ASSERT(strcmp(ast->err.str, "cannot parse function identifier") == 0,
+         "error found");
+
+  ASSERTE(ast->token_start->start.column, 11, "%zu != %d", "start column");
+  ASSERTE(ast->token_start->start.line, 1, "%zu != %d", "start line");
+  ASSERTE(ast->token_end->end.column, 15, "%zu != %d", "end column");
+  ASSERTE(ast->token_end->end.line, 1, "%zu != %d", "end line");
+
+  fl_ast_delete(root);
 
   return 0;
 }

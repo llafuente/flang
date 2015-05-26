@@ -25,7 +25,7 @@
 
 #include "flang.h"
 
-FL_READER_IMPL(expression) {
+PSR_READ_IMPL(expression) {
   fl_ast_t* ast;
 
   FL_TRY_READ(expr_assignment);
@@ -33,7 +33,7 @@ FL_READER_IMPL(expression) {
   return 0;
 }
 
-FL_READER_IMPL(expr_assignment) {
+PSR_READ_IMPL(expr_assignment) {
   fl_ast_t* ast;
 
   FL_TRY_READ(expr_assignment_full);
@@ -42,14 +42,14 @@ FL_READER_IMPL(expr_assignment) {
   return 0;
 }
 
-FL_READER_IMPL(expr_assignment_full) {
-  FL_AST_START(FL_AST_EXPR_ASSIGNAMENT);
+PSR_READ_IMPL(expr_assignment_full) {
+  PSR_AST_START(FL_AST_EXPR_ASSIGNAMENT);
 
-  ast->assignament.left = FL_READ(expr_lhs);
+  ast->assignament.left = PSR_READ(expr_lhs);
 
   // TODO manage errors
   if (!ast->assignament.left) {
-    FL_RETURN_NOT_FOUND();
+    PSR_AST_RET_NULL();
   }
 
   printf("(parser) expr_assignment_full left");
@@ -77,25 +77,25 @@ FL_READER_IMPL(expr_assignment_full) {
     ast->assignament.operator= state->token->type;
     break;
   default:
-    FL_RETURN_NOT_FOUND();
+    PSR_AST_RET_NULL();
   }
-  FL_NEXT();
+  PSR_NEXT();
   printf("(parser) expr_assignment_full operator");
 
   fl_parser_skipws(tokens, state);
 
-  ast->assignament.right = FL_READ(expr_assignment);
+  ast->assignament.right = PSR_READ(expr_assignment);
   // TODO manage errors
   if (!ast->assignament.right) {
-    FL_RETURN_NOT_FOUND();
+    PSR_AST_RET_NULL();
   }
 
   printf("(parser) expr_assignment_full right");
 
-  return ast;
+  PSR_AST_RET();
 }
 
-FL_READER_IMPL(expr_lhs) {
+PSR_READ_IMPL(expr_lhs) {
   fl_ast_t* ast;
 
   FL_TRY_READ(literal);
@@ -106,21 +106,21 @@ FL_READER_IMPL(expr_lhs) {
   return 0;
 }
 
-FL_READER_IMPL(expr_conditional) {
-  // FL_AST_START(FL_AST_EXPR_CONDITIONAL);
+PSR_READ_IMPL(expr_conditional) {
+  // PSR_AST_START(FL_AST_EXPR_CONDITIONAL);
 
-  fl_ast_t* left = FL_READ(expr_logical_or);
+  fl_ast_t* left = PSR_READ(expr_logical_or);
 
   if (!left) {
-    // FL_RETURN_NOT_FOUND();
+    // PSR_AST_RET_NULL();
     return 0;
   }
 
   return left;
 }
 
-fl_ast_t* fl_read_binop(FL_READER_HEADER, fl_tokens_t operators[], size_t n_ops,
-                        fl_reader_cb_t next) {
+fl_ast_t* PSR_READ_binop(PSR_READ_HEADER, fl_tokens_t operators[], size_t n_ops,
+                         fl_read_cb_t next) {
   // TODO resizable
   fl_ast_t** leafs = malloc(sizeof(fl_ast_t*) * 10);
   size_t leafs_s = 0;
@@ -131,7 +131,7 @@ fl_ast_t* fl_read_binop(FL_READER_HEADER, fl_tokens_t operators[], size_t n_ops,
   size_t ops;
 
   do {
-    FL_AST_START(FL_AST_EXPR_BINOP);
+    PSR_AST_START(FL_AST_EXPR_BINOP);
     // printf("try to read left!\n");
 
     ast->binop.left = 0;
@@ -139,7 +139,7 @@ fl_ast_t* fl_read_binop(FL_READER_HEADER, fl_tokens_t operators[], size_t n_ops,
 
     // printf("state before literal %lu [%p]\n", state->current,
     // ast->binop.left);
-    ast->binop.left = next(FL_READER_HEADER_SEND);
+    ast->binop.left = next(PSR_READ_HEADER_SEND);
     // printf("state after literal %lu [%p]\n", state->current,
     // ast->binop.left);
 
@@ -158,10 +158,11 @@ fl_ast_t* fl_read_binop(FL_READER_HEADER, fl_tokens_t operators[], size_t n_ops,
       op_found = false;
       for (ops = 0; ops < n_ops; ++ops) {
         if (state->token->type == operators[ops]) {
-          FL_NEXT();
+          PSR_NEXT();
           // push
           ast->binop.operator= operators[ops];
           op_found = true;
+          PSR_AST_END();
           break;
         }
       }
@@ -187,6 +188,7 @@ fl_ast_t* fl_read_binop(FL_READER_HEADER, fl_tokens_t operators[], size_t n_ops,
   }
 
   // unroll
+  // TODO handle token_end properly while unrolling!
 
   size_t i = 0;
 
@@ -206,67 +208,67 @@ fl_ast_t* fl_read_binop(FL_READER_HEADER, fl_tokens_t operators[], size_t n_ops,
   return tmp;
 }
 
-FL_READER_IMPL(expr_logical_or) {
+PSR_READ_IMPL(expr_logical_or) {
   fl_tokens_t operators[] = {FL_TK_OR2};
-  return fl_read_binop(FL_READER_HEADER_SEND, operators, 1,
-                       FL_READER_FN(expr_logical_and));
+  return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 1,
+                        PSR_READ_NAME(expr_logical_and));
 }
 
-FL_READER_IMPL(expr_logical_and) {
+PSR_READ_IMPL(expr_logical_and) {
   fl_tokens_t operators[] = {FL_TK_AND2};
-  return fl_read_binop(FL_READER_HEADER_SEND, operators, 1,
-                       FL_READER_FN(expr_bitwise_or));
+  return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 1,
+                        PSR_READ_NAME(expr_bitwise_or));
 }
 
-FL_READER_IMPL(expr_bitwise_or) {
+PSR_READ_IMPL(expr_bitwise_or) {
   fl_tokens_t operators[] = {FL_TK_OR};
-  return fl_read_binop(FL_READER_HEADER_SEND, operators, 1,
-                       FL_READER_FN(expr_bitwise_xor));
+  return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 1,
+                        PSR_READ_NAME(expr_bitwise_xor));
 }
 
-FL_READER_IMPL(expr_bitwise_xor) {
+PSR_READ_IMPL(expr_bitwise_xor) {
   fl_tokens_t operators[] = {FL_TK_CARET};
-  return fl_read_binop(FL_READER_HEADER_SEND, operators, 1,
-                       FL_READER_FN(expr_bitwise_and));
+  return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 1,
+                        PSR_READ_NAME(expr_bitwise_and));
 }
 
-FL_READER_IMPL(expr_bitwise_and) {
+PSR_READ_IMPL(expr_bitwise_and) {
   fl_tokens_t operators[] = {FL_TK_AND};
-  return fl_read_binop(FL_READER_HEADER_SEND, operators, 1,
-                       FL_READER_FN(expr_equality));
+  return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 1,
+                        PSR_READ_NAME(expr_equality));
 }
 
-FL_READER_IMPL(expr_equality) {
+PSR_READ_IMPL(expr_equality) {
   fl_tokens_t operators[] = {FL_TK_EEQUAL, FL_TK_EQUAL2};
-  return fl_read_binop(FL_READER_HEADER_SEND, operators, 2,
-                       FL_READER_FN(expr_relational));
+  return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 2,
+                        PSR_READ_NAME(expr_relational));
 }
 
-FL_READER_IMPL(expr_relational) {
+PSR_READ_IMPL(expr_relational) {
   fl_tokens_t operators[] = {FL_TK_LTE, FL_TK_LT, FL_TK_GTE, FL_TK_GT};
-  return fl_read_binop(FL_READER_HEADER_SEND, operators, 4,
-                       FL_READER_FN(expr_shift));
+  return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 4,
+                        PSR_READ_NAME(expr_shift));
 }
 
-FL_READER_IMPL(expr_shift) {
+PSR_READ_IMPL(expr_shift) {
   fl_tokens_t operators[] = {FL_TK_LT2, FL_TK_GT2};
-  return fl_read_binop(FL_READER_HEADER_SEND, operators, 2,
-                       FL_READER_FN(expr_additive));
+  return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 2,
+                        PSR_READ_NAME(expr_additive));
 }
 
-FL_READER_IMPL(expr_additive) {
+PSR_READ_IMPL(expr_additive) {
   fl_tokens_t operators[] = {FL_TK_PLUS, FL_TK_MINUS};
-  return fl_read_binop(FL_READER_HEADER_SEND, operators, 2,
-                       FL_READER_FN(expr_multiplicative));
+  return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 2,
+                        PSR_READ_NAME(expr_multiplicative));
 }
 
-FL_READER_IMPL(expr_multiplicative) {
+PSR_READ_IMPL(expr_multiplicative) {
   fl_tokens_t operators[] = {FL_TK_ASTERISK, FL_TK_SLASH, FL_TK_MOD};
-  return fl_read_binop(FL_READER_HEADER_SEND, operators, 3,
-                       FL_READER_FN(expr_unary));
+  return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 3,
+                        PSR_READ_NAME(expr_unary));
 }
 
-FL_READER_IMPL(expr_unary) {
+PSR_READ_IMPL(expr_unary) {
   fl_ast_t* ast;
 
   FL_TRY_READ(expr_unary_left);
@@ -279,8 +281,8 @@ FL_READER_IMPL(expr_unary) {
   return 0;
 }
 
-FL_READER_IMPL(expr_unary_left) {
-  FL_AST_START(FL_AST_EXPR_LUNARY);
+PSR_READ_IMPL(expr_unary_left) {
+  PSR_AST_START(FL_AST_EXPR_LUNARY);
 
   // read operator
   switch (state->token->type) {
@@ -295,28 +297,28 @@ FL_READER_IMPL(expr_unary_left) {
     // case FL_TK_TYPEOF:
     // case FL_TK_CLONE:
     ast->lunary.operator= state->token->type;
-    FL_NEXT();
+    PSR_NEXT();
     break;
   default:
-    FL_RETURN_NOT_FOUND();
+    PSR_AST_RET_NULL();
   };
 
-  ast->lunary.element = FL_READ(expr_lhs);
+  ast->lunary.element = PSR_READ(expr_lhs);
   // TODO handle errors
   if (!ast->lunary.element) {
-    FL_RETURN_NOT_FOUND();
+    PSR_AST_RET_NULL();
   }
 
-  return ast;
+  PSR_AST_RET();
 }
-FL_READER_IMPL(expr_unary_right) {
-  FL_AST_START(FL_AST_EXPR_RUNARY);
+PSR_READ_IMPL(expr_unary_right) {
+  PSR_AST_START(FL_AST_EXPR_RUNARY);
 
-  ast->runary.element = FL_READ(expr_lhs);
+  ast->runary.element = PSR_READ(expr_lhs);
 
   // TODO handle errors
   if (!ast->runary.element) {
-    FL_RETURN_NOT_FOUND();
+    PSR_AST_RET_NULL();
   }
 
   // read operator
@@ -325,7 +327,7 @@ FL_READER_IMPL(expr_unary_right) {
   case FL_TK_MINUS2:
   case FL_TK_QMARK:
     ast->runary.operator= state->token->type;
-    FL_NEXT();
+    PSR_NEXT();
     break;
   default: {
     // lhs is valid, send up!
@@ -335,5 +337,5 @@ FL_READER_IMPL(expr_unary_right) {
   }
   };
 
-  return ast;
+  PSR_AST_RET();
 }

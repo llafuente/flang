@@ -37,20 +37,18 @@ format
   *(literal)       // raw pointer
   ref<(literal)>   // wrapper
 */
-FL_READER_IMPL(type) {
-  FL_AST_START(FL_AST_TYPE);
+PSR_READ_IMPL(type) {
+  PSR_AST_START(FL_AST_TYPE);
 
   // primitives
   fl_tokens_t tks[] = {FL_TK_STRING, FL_TK_F64, FL_TK_F32, FL_TK_U64,
                        FL_TK_U32,    FL_TK_U16, FL_TK_U8,  FL_TK_I64,
                        FL_TK_I32,    FL_TK_I16, FL_TK_I8,  FL_TK_BOOL};
   if (!fl_parser_accept_token_list(tokens, state, tks, 12)) {
-    FL_RETURN_NOT_FOUND();
+    PSR_AST_RET_NULL();
   }
 
   ast->idtype.of = state->prev_token->type;
 
-  fl_parser_skipws(tokens, state);
-
-  return ast;
+  PSR_AST_RET();
 }

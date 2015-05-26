@@ -25,44 +25,48 @@
 
 #include "flang.h"
 
-FL_READER_IMPL(block) {
-  FL_AST_START(FL_AST_BLOCK);
+PSR_READ_IMPL(block) {
+  PSR_AST_START(FL_AST_BLOCK);
 
-  if (!FL_ACCEPT_TOKEN(FL_TK_LCBRACKET)) {
+  if (!PSR_ACCEPT_TOKEN(FL_TK_LCBRACKET)) {
     FL_PARSER_ERROR(ast, "expected '{'");
     return ast;
   }
 
-  FL_EXTEND(ast, block_body);
+  fl_parser_look_ahead(stack, state);
+  PSR_AST_EXTEND(ast, block_body);
   if (ast->type == FL_AST_ERROR) {
+    fl_parser_rollback(stack, state);
+
     return ast;
   }
 
-  if (!FL_ACCEPT_TOKEN(FL_TK_RCBRACKET)) {
+  if (!PSR_ACCEPT_TOKEN(FL_TK_RCBRACKET)) {
     FL_PARSER_ERROR(ast, "expected '}'");
+    fl_parser_rollback(stack, state);
     return ast;
   }
 
-  FL_AST_END();
-  return ast;
+  fl_parser_commit(stack, state);
+
+  PSR_AST_RET();
 }
-FL_READER_IMPL(program_block) {
-  FL_AST_START(FL_AST_BLOCK);
+PSR_READ_IMPL(program_block) {
+  PSR_AST_START(FL_AST_BLOCK);
 
-  FL_EXTEND(ast, block_body);
+  PSR_AST_EXTEND(ast, block_body);
 
-  FL_AST_END();
-  return ast;
+  PSR_AST_RET();
 }
 
-fl_reader_cb_t block_stmts[] = {FL_READER_FN(decl_variable),
-                                FL_READER_FN(decl_function),
-                                FL_READER_FN(expression)};
+fl_read_cb_t block_stmts[] = {PSR_READ_NAME(decl_variable),
+                              PSR_READ_NAME(decl_function),
+                              PSR_READ_NAME(expression)};
 
-void FL_READER_FN(block_body)(FL_READER_HEADER, fl_ast_t* extend) {
+void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend) {
   fl_ast_t* ast;
   fl_ast_t** list = calloc(100, sizeof(fl_ast_t*));
-  extend->block.body = list;
+  (*extend)->block.body = list;
   size_t i = 0;
   size_t j = 0;
 
@@ -74,26 +78,25 @@ void FL_READER_FN(block_body)(FL_READER_HEADER, fl_ast_t* extend) {
     for (j = 0; j < 3; ++j) {
       fl_parser_look_ahead(stack, state);
 
-      ast = block_stmts[j](FL_READER_HEADER_SEND);
+      ast = block_stmts[j](PSR_READ_HEADER_SEND);
 
       // soft error
       if (!ast) {
         fl_parser_rollback(stack, state);
         continue;
       }
-      list[i++] = ast;
 
       // hard error
       if (ast->type == FL_AST_ERROR) {
-        extend->type = FL_AST_ERROR;
-        extend->err.str = ast->err.str;
-        extend->token_end = ast->token_end;
-
         // free each list
-        fl_ast_delete_list(list);
+        fl_ast_delete(*extend);
+        *extend = ast;
+
         fl_parser_rollback(stack, state);
         return;
       }
+
+      list[i++] = ast;
 
       fl_parser_commit(stack, state);
       break;
@@ -101,7 +104,7 @@ void FL_READER_FN(block_body)(FL_READER_HEADER, fl_ast_t* extend) {
 
     // read "semicolon" or NEW-LINE
     fl_parser_skipws(tokens, state);
-    FL_ACCEPT_TOKEN(FL_TK_SEMICOLON);
+    PSR_ACCEPT_TOKEN(FL_TK_SEMICOLON);
     fl_parser_skipws(tokens, state);
 
     if (state->token->type == FL_TK_RCBRACKET) {
@@ -109,10 +112,10 @@ void FL_READER_FN(block_body)(FL_READER_HEADER, fl_ast_t* extend) {
     }
 
     if (last_token == state->token) {
-      FL_PARSER_ERROR(extend, "unkown statement");
+      fl_ast_delete_list(list);
+      (*extend)->block.body = 0;
+      FL_PARSER_ERROR((*extend), "unkown statement");
       return;
     }
   }
-
-  printf("block body has %zu elements\n", i);
 }

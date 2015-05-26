@@ -102,7 +102,7 @@ void fl_token_process(fl_token_list_t* tokens, fl_tokens_cfg_t* tk,
     fl_tokenize_flush(tokens, FL_TK_UNKOWN, lstate, state);
   }
 
-  if (tk->type != FL_TK_NEWLINE) {
+  if (tk->type == FL_TK_NEWLINE) {
     ++state->line;
     state->column = 1;
   } else {
@@ -130,9 +130,9 @@ void fl_tokens_debug(fl_token_list_t* tokens) {
   for (; i < tokens->size; ++i) {
     fl_token_t* token = &tokens->tokens[i];
     // print debug tokens
-    printf("[%zu|%6d|%zu:%zu-%zu:%zu] %s\n", i, token->type, token->start.line,
-           token->start.column, token->end.line, token->end.column,
-           token->string->value);
+    printf("%6zu|%3d[%3zu:%3zu - %3zu:%3zu] %s\n", i, token->type,
+           token->start.line, token->start.column, token->end.line,
+           token->end.column, token->string->value);
   }
 }
 

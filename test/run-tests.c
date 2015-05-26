@@ -42,7 +42,7 @@ int main(int argc, const char* argv[]) {
   TASK_RUN(parser_variables);
   TASK_RUN(parser_functions);
 
-  TASK_RUN(codegen_expressions);
+  // TASK_RUN(codegen_expressions);
 
   printf("OK\n");
 

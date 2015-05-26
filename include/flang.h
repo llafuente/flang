@@ -51,6 +51,12 @@ typedef struct fl_enum_members fl_enum_members_t;
 struct fl_type;
 typedef struct fl_type fl_type_t;
 
+struct fl_ast;
+typedef struct fl_ast fl_ast_t;
+
+struct fl_token_list;
+typedef struct fl_token_list fl_token_list_t;
+
 //-
 //- types
 //-
@@ -260,6 +266,7 @@ struct fl_ast {
     } err;
 
     struct fl_ast_program {
+      fl_token_list_t* tokens;
       struct fl_ast* body;
     } program;
 
@@ -317,10 +324,6 @@ struct fl_ast {
     } func;
   };
 };
-
-typedef struct fl_ast fl_ast_t;
-
-typedef struct fl_token_list fl_token_list_t;
 
 // TODO resize support
 struct fl_parser_stack {
@@ -414,34 +417,31 @@ struct fl_enum_members {
 
 #define FL_EXTERN extern
 
-#define FL_READER_FN(name) fl_read_##name
+//- PARSER
 
-#define FL_READER_DECL(name)                                                   \
-  FL_EXTERN fl_ast_t* FL_READER_FN(name)(FL_READER_HEADER);
+#define PSR_READ_NAME(name) PSR_READ_##name
 
-#define FL_LIST_READER_DECL(name)                                              \
-  FL_EXTERN fl_ast_t** FL_READER_FN(name)(FL_READER_HEADER);
+#define PSR_READ_DECL(name)                                                    \
+  FL_EXTERN fl_ast_t* PSR_READ_NAME(name)(PSR_READ_HEADER);
 
-#define FL_READER_HEADER                                                       \
+#define PSR_READ_HEADER                                                        \
   fl_token_list_t* tokens, fl_psrstack_t* stack, fl_psrstate_t* state
 
-#define FL_READER_HEADER_SEND tokens, stack, state
+#define PSR_READ_HEADER_SEND tokens, stack, state
 
-#define FL_READER_IMPL(name) fl_ast_t* FL_READER_FN(name)(FL_READER_HEADER)
-
-#define FL_LIST_READER_IMPL(name)                                              \
-  fl_ast_t** FL_READER_FN(name)(FL_READER_HEADER)
+#define PSR_READ_IMPL(name) fl_ast_t* PSR_READ_NAME(name)(PSR_READ_HEADER)
 
 // , printf("%s\n", #name)
-#define FL_READ(name) FL_READER_FN(name)(tokens, stack, state)
+#define PSR_READ(name) PSR_READ_NAME(name)(tokens, stack, state)
 
-#define FL_EXTEND(ast, name) FL_READER_FN(name)(tokens, stack, state, ast)
+#define PSR_AST_EXTEND(ast, name)                                              \
+  PSR_READ_NAME(name)(tokens, stack, state, &ast)
 
 // printf("%s %p type %d\n", __FUNCTION__, ast, ast->type);
 // TODO handle errors when done :)
 #define FL_TRY_READ(name)                                                      \
   fl_parser_look_ahead(stack, state);                                          \
-  ast = FL_READ(name);                                                         \
+  ast = PSR_READ(name);                                                        \
   if (ast) {                                                                   \
     /*handle errors*/                                                          \
     if (ast->type == FL_AST_ERROR) {                                           \
@@ -454,31 +454,34 @@ struct fl_enum_members {
   fl_parser_rollback(stack, state);
 
 // calloc is necessary atm
-#define FL_AST_START(ast_type)                                                 \
+#define PSR_AST_START(ast_type)                                                \
   fl_ast_t* ast = (fl_ast_t*)calloc(1, sizeof(fl_ast_t));                      \
   ast->token_start = state->token;                                             \
   ast->type = ast_type;
 
-#define FL_AST_END() ast->token_end = state->token
+#define PSR_AST_END()                                                          \
+  if (ast->type != FL_AST_ERROR) {                                             \
+    ast->token_end = state->token;                                             \
+  }
 
-#define FL_RETURN_AST()                                                        \
-  FL_AST_END();                                                                \
+#define PSR_AST_RET()                                                          \
+  PSR_AST_END();                                                               \
   return ast;
 
-#define FL_RETURN_NOT_FOUND()                                                  \
+#define PSR_AST_RET_NULL()                                                     \
   if (ast) {                                                                   \
     fl_ast_delete(ast);                                                        \
     ast = 0;                                                                   \
   }                                                                            \
   return 0;
 
-#define FL_ACCEPT(string) fl_parser_accept(tokens, state, string)
+#define PSR_ACCEPT(string) fl_parser_accept(tokens, state, string)
 
-#define FL_ACCEPT_TOKEN(token_type)                                            \
+#define PSR_ACCEPT_TOKEN(token_type)                                           \
   fl_parser_accept_token(tokens, state, token_type)
 
 // , printf("next!\n")
-#define FL_NEXT() fl_parser_next(tokens, state)
+#define PSR_NEXT() fl_parser_next(tokens, state)
 
 #define FL_CODEGEN_HEADER                                                      \
   fl_ast_t* node, LLVMBuilderRef builder, LLVMModuleRef module,                \
@@ -569,64 +572,64 @@ FL_EXTERN void fl_parser_skipws(fl_token_list_t* tokens, fl_psrstate_t* state);
 
 /* cldoc:begin-category(parser-block.c) */
 
-FL_READER_DECL(block);
-FL_READER_DECL(program_block);
-void FL_READER_FN(block_body)(FL_READER_HEADER, fl_ast_t* extend);
+PSR_READ_DECL(block);
+PSR_READ_DECL(program_block);
+void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend);
 
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(parser-literal.c) */
 
-FL_READER_DECL(literal);
-FL_READER_DECL(lit_null);
-FL_READER_DECL(lit_boolean);
-FL_READER_DECL(lit_string);
-FL_READER_DECL(lit_numeric);
-FL_READER_DECL(lit_identifier);
+PSR_READ_DECL(literal);
+PSR_READ_DECL(lit_null);
+PSR_READ_DECL(lit_boolean);
+PSR_READ_DECL(lit_string);
+PSR_READ_DECL(lit_numeric);
+PSR_READ_DECL(lit_identifier);
 
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(parser-expression.c) */
 
-FL_READER_DECL(expression);
-FL_READER_DECL(expr_assignment);
-FL_READER_DECL(expr_assignment_full);
-FL_READER_DECL(expr_lhs);
-FL_READER_DECL(expr_conditional);
-FL_READER_DECL(expr_logical_or);
-FL_READER_DECL(expr_logical_and);
-FL_READER_DECL(expr_bitwise_or);
-FL_READER_DECL(expr_bitwise_xor);
-FL_READER_DECL(expr_bitwise_and);
-FL_READER_DECL(expr_equality);
-FL_READER_DECL(expr_relational);
-FL_READER_DECL(expr_shift);
-FL_READER_DECL(expr_additive);
-FL_READER_DECL(expr_multiplicative);
-FL_READER_DECL(expr_unary);
-FL_READER_DECL(expr_unary_left);
-FL_READER_DECL(expr_unary_right);
+PSR_READ_DECL(expression);
+PSR_READ_DECL(expr_assignment);
+PSR_READ_DECL(expr_assignment_full);
+PSR_READ_DECL(expr_lhs);
+PSR_READ_DECL(expr_conditional);
+PSR_READ_DECL(expr_logical_or);
+PSR_READ_DECL(expr_logical_and);
+PSR_READ_DECL(expr_bitwise_or);
+PSR_READ_DECL(expr_bitwise_xor);
+PSR_READ_DECL(expr_bitwise_and);
+PSR_READ_DECL(expr_equality);
+PSR_READ_DECL(expr_relational);
+PSR_READ_DECL(expr_shift);
+PSR_READ_DECL(expr_additive);
+PSR_READ_DECL(expr_multiplicative);
+PSR_READ_DECL(expr_unary);
+PSR_READ_DECL(expr_unary_left);
+PSR_READ_DECL(expr_unary_right);
 
-typedef fl_ast_t* (*fl_reader_cb_t)(FL_READER_HEADER);
+typedef fl_ast_t* (*fl_read_cb_t)(PSR_READ_HEADER);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(parser-variable.c) */
 
-FL_READER_DECL(decl_variable);
-FL_READER_DECL(decl_variable_no_type);
-FL_READER_DECL(decl_variable_with_type);
+PSR_READ_DECL(decl_variable);
+PSR_READ_DECL(decl_variable_no_type);
+PSR_READ_DECL(decl_variable_with_type);
 
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(parser-type.c) */
 
-FL_READER_DECL(type);
+PSR_READ_DECL(type);
 
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(parser-function.c) */
 
-FL_READER_DECL(decl_function)
+PSR_READ_DECL(decl_function)
 
 /* cldoc:end-category() */
 

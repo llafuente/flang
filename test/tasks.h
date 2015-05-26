@@ -56,6 +56,15 @@ extern size_t st_assert_count;
     exit(1);                                                                   \
   }
 
+#define ASSERTE(first, second, err, name)                                      \
+  if (first != second) {                                                       \
+    printf(err "\n", first, second);                                           \
+    printf("[%6zu]\x1B[31mFAIL\x1B[39m: %-32s [%s:%d]\n", ++st_assert_count,   \
+           name, __RFILE__, __LINE__);                                         \
+    trace(stderr);                                                             \
+    exit(1);                                                                   \
+  }
+
 #define ASSERT_STR(src, dst, enc)                                              \
   if (enc == st_enc_utf32be || enc == st_enc_utf32le) {                        \
     ASSERT(0 == wcscmp((const wchar_t*)src->value, (const wchar_t*)dst),       \
@@ -77,6 +86,19 @@ extern size_t st_assert_count;
     trace(stderr);                                                             \
     exit(1);                                                                   \
   }
+
+#define ASSERTE(first, second, err, name)                                      \
+  if (first == second) {                                                       \
+    printf("[%6zu]\x1B[32mPASS\x1B[39m: %-32s [%s:%d]\n", ++st_assert_count,   \
+           name, __RFILE__, __LINE__);                                         \
+  } else {                                                                     \
+    printf(err "\n", first, second);                                           \
+    printf("[%6zu]\x1B[31mFAIL\x1B[39m: %-32s [%s:%d]\n", ++st_assert_count,   \
+           name, __RFILE__, __LINE__);                                         \
+    trace(stderr);                                                             \
+    exit(1);                                                                   \
+  }
+
 #define ASSERT_STR(src, dst, enc)                                              \
   if (enc == st_enc_utf32be || enc == st_enc_utf32le) {                        \
     printf("# CHECK %s = utf32 L[%d]U[%d]C[%u]\n", STRINGIFY2(src),            \

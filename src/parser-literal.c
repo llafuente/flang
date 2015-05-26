@@ -25,7 +25,7 @@
 
 #include "flang.h"
 
-FL_READER_IMPL(literal) {
+PSR_READ_IMPL(literal) {
   fl_ast_t* ast;
 
   FL_TRY_READ(lit_null);
@@ -37,72 +37,72 @@ FL_READER_IMPL(literal) {
   return 0;
 }
 
-FL_READER_IMPL(lit_null) {
-  FL_AST_START(FL_AST_LIT_NULL);
+PSR_READ_IMPL(lit_null) {
+  PSR_AST_START(FL_AST_LIT_NULL);
 
-  if (FL_ACCEPT("null") || FL_ACCEPT("nil")) {
-    FL_RETURN_AST();
+  if (PSR_ACCEPT("null") || PSR_ACCEPT("nil")) {
+    PSR_AST_RET();
   }
-  FL_RETURN_NOT_FOUND();
+  PSR_AST_RET_NULL();
 }
 
-FL_READER_IMPL(lit_boolean) {
-  FL_AST_START(FL_AST_LIT_BOOLEAN);
+PSR_READ_IMPL(lit_boolean) {
+  PSR_AST_START(FL_AST_LIT_BOOLEAN);
 
-  if (FL_ACCEPT_TOKEN(FL_TK_TRUE)) {
+  if (PSR_ACCEPT_TOKEN(FL_TK_TRUE)) {
     ast->boolean.value = true;
-    FL_RETURN_AST();
+    PSR_AST_RET();
   }
-  if (FL_ACCEPT_TOKEN(FL_TK_FALSE)) {
+  if (PSR_ACCEPT_TOKEN(FL_TK_FALSE)) {
     ast->boolean.value = false;
-    FL_RETURN_AST();
+    PSR_AST_RET();
   }
 
-  FL_RETURN_NOT_FOUND();
+  PSR_AST_RET_NULL();
 }
 
-FL_READER_IMPL(lit_string_sq) {
-  FL_AST_START(FL_AST_LIT_STRING);
+PSR_READ_IMPL(lit_string_sq) {
+  PSR_AST_START(FL_AST_LIT_STRING);
 
-  if (!FL_ACCEPT_TOKEN(FL_TK_SQUOTE)) {
-    FL_RETURN_NOT_FOUND();
+  if (!PSR_ACCEPT_TOKEN(FL_TK_SQUOTE)) {
+    PSR_AST_RET_NULL();
   }
   ast->string.value = state->token->string;
-  FL_NEXT();
+  PSR_NEXT();
 
-  if (!FL_ACCEPT_TOKEN(FL_TK_SQUOTE)) {
-    FL_RETURN_NOT_FOUND();
+  if (!PSR_ACCEPT_TOKEN(FL_TK_SQUOTE)) {
+    PSR_AST_RET_NULL();
   }
 
-  return ast;
+  PSR_AST_RET();
 }
 
-FL_READER_IMPL(lit_string_dq) {
-  FL_AST_START(FL_AST_LIT_STRING);
+PSR_READ_IMPL(lit_string_dq) {
+  PSR_AST_START(FL_AST_LIT_STRING);
 
-  if (!FL_ACCEPT_TOKEN(FL_TK_DQUOTE)) {
-    FL_RETURN_NOT_FOUND();
+  if (!PSR_ACCEPT_TOKEN(FL_TK_DQUOTE)) {
+    PSR_AST_RET_NULL();
   }
   ast->string.value = state->token->string;
-  FL_NEXT();
+  PSR_NEXT();
 
-  if (!FL_ACCEPT_TOKEN(FL_TK_DQUOTE)) {
-    FL_RETURN_NOT_FOUND();
+  if (!PSR_ACCEPT_TOKEN(FL_TK_DQUOTE)) {
+    PSR_AST_RET_NULL();
   }
 
-  return ast;
+  PSR_AST_RET();
 }
 
-FL_READER_IMPL(lit_string) {
+PSR_READ_IMPL(lit_string) {
   fl_ast_t* ast;
 
-  ast = FL_READ(lit_string_sq);
+  ast = PSR_READ(lit_string_sq);
 
   if (ast) {
     return ast;
   }
 
-  ast = FL_READ(lit_string_dq);
+  ast = PSR_READ(lit_string_dq);
   if (ast) {
     return ast;
   }
@@ -111,12 +111,12 @@ FL_READER_IMPL(lit_string) {
 }
 
 // TODO
-FL_READER_IMPL(lit_array) { return 0; }
+PSR_READ_IMPL(lit_array) { return 0; }
 // TODO
-FL_READER_IMPL(lit_object) { return 0; }
+PSR_READ_IMPL(lit_object) { return 0; }
 
-FL_READER_IMPL(lit_numeric) {
-  FL_AST_START(FL_AST_LIT_NUMERIC);
+PSR_READ_IMPL(lit_numeric) {
+  PSR_AST_START(FL_AST_LIT_NUMERIC);
 
   string* str = state->token->string;
   char* start = str->value;
@@ -132,21 +132,24 @@ FL_READER_IMPL(lit_numeric) {
       }
     }
     ast->numeric.value = result;
-    FL_NEXT();
-    return ast;
+    PSR_NEXT();
+
+    PSR_AST_RET();
   }
 
-  FL_RETURN_NOT_FOUND();
+  PSR_AST_RET_NULL();
 }
 
 // TODO review what should be valid and what not
 // right now we should accept "anything that is not token"
-FL_READER_IMPL(lit_identifier) {
+PSR_READ_IMPL(lit_identifier) {
   if (state->token->type == FL_TK_UNKOWN) {
-    FL_AST_START(FL_AST_LIT_IDENTIFIER);
+    PSR_AST_START(FL_AST_LIT_IDENTIFIER);
+
     ast->identifier.string = st_clone(state->token->string);
-    FL_NEXT();
-    return ast;
+    PSR_NEXT();
+
+    PSR_AST_RET();
   }
 
   return 0;
