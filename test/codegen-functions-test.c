@@ -31,6 +31,7 @@ TASK_IMPL(codegen_functions) {
   fl_ast_t* root;
 
   root = fl_parse_utf8("fn x(arg1, arg2) { return arg1 + arg2;}");
+
   fl_codegen(root, "test");
 
   fl_ast_delete(root);

@@ -61,11 +61,14 @@ int main(int argc, const char* argv[]) {
   printf("read\n%s\n\ntokenize:\n", file->value);
 
   fl_token_list_t* tokens = fl_tokenize(file);
-  fl_tokens_debug(tokens);
 
-  fl_parser(tokens);
+  fl_ast_t* root = fl_parser(tokens);
+  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
 
-  fl_tokens_delete(tokens);
+  fl_codegen(root, "test");
+
+  fl_ast_delete(root);
+
   fclose(f);
   st_delete(&file);
 

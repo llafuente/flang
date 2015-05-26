@@ -62,7 +62,7 @@ fl_ast_t* fl_parse_utf8(char* str) {
   string* code;
   fl_token_list_t* tokens;
   fl_parser_result_t* err;
-  // tets priority <= gt than '<' '='
+
   code = st_newc(str, st_enc_utf8);
   tokens = fl_tokenize(code);
 

@@ -99,13 +99,13 @@ int fl_codegen(fl_ast_t* root, char* module_name) {
   LLVMValueRef main = LLVMAddFunction(
       module, "main", LLVMFunctionType(LLVMInt32Type(), main_args, 2, 0));
   LLVMSetFunctionCallConv(main, LLVMCCallConv);
-  LLVMBasicBlockRef entry = LLVMAppendBasicBlock(main, "main-entry");
+  LLVMBasicBlockRef current_block = LLVMAppendBasicBlock(main, "main-entry");
 
-  LLVMPositionBuilderAtEnd(builder, entry);
+  LLVMPositionBuilderAtEnd(builder, current_block);
 
   // node must have parent, because we need to search backwards
   fl_ast_parent(root);
-  fl_codegen_ast(root, builder, module, context);
+  fl_codegen_ast(root, FL_CODEGEN_PASSTHROUGH);
 
   LLVMBuildRet(builder, LLVMConstInt(LLVMInt32Type(), 0, false));
   // optimize main
@@ -135,13 +135,13 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
 
   switch (node->type) {
   case FL_AST_PROGRAM:
-    return fl_codegen_ast(node->program.body, builder, module, context);
+    return fl_codegen_ast(node->program.body, FL_CODEGEN_PASSTHROUGH);
   case FL_AST_BLOCK: {
     size_t i = 0;
     fl_ast_t* tmp;
 
     while ((tmp = node->block.body[i++])) {
-      fl_codegen_ast(tmp, builder, module, context);
+      fl_codegen_ast(tmp, FL_CODEGEN_PASSTHROUGH);
     }
 
     return 0;
@@ -199,7 +199,7 @@ LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
 
   // LLVMDoubleTypeInContext(context);
   LLVMValueRef right =
-      fl_codegen_ast(node->assignament.right, builder, module, context);
+      fl_codegen_ast(node->assignament.right, FL_CODEGEN_PASSTHROUGH);
 
   return LLVMBuildStore(builder, right, left);
 }
@@ -208,9 +208,8 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
   fprintf(stderr, "(codegen) binop\n");
 
   // retrieve left/right side
-  LLVMValueRef lhs = fl_codegen_ast(node->binop.left, builder, module, context);
-  LLVMValueRef rhs =
-      fl_codegen_ast(node->binop.right, builder, module, context);
+  LLVMValueRef lhs = fl_codegen_ast(node->binop.left, FL_CODEGEN_PASSTHROUGH);
+  LLVMValueRef rhs = fl_codegen_ast(node->binop.right, FL_CODEGEN_PASSTHROUGH);
 
   if (lhs == 0 || rhs == 0) {
     fprintf(stderr, "something it not right!");
@@ -341,12 +340,13 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
   LLVMBasicBlockRef block = LLVMAppendBasicBlock(func, "function-block");
   LLVMPositionBuilderAtEnd(builder, block);
 
-  fl_codegen_ast(node->func.body, builder, module, context);
+  fl_codegen_ast(node->func.body, FL_CODEGEN_PASSTHROUGH);
 
+  LLVMPositionBuilderAtEnd(builder, current_block);
   return func;
 }
 LLVMValueRef fl_codegen_return(FL_CODEGEN_HEADER) {
   LLVMValueRef argument =
-      fl_codegen_ast(node->ret.argument, builder, module, context);
+      fl_codegen_ast(node->ret.argument, FL_CODEGEN_PASSTHROUGH);
   LLVMBuildRet(builder, argument);
 }

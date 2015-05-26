@@ -131,6 +131,8 @@ fl_ast_t* PSR_READ_binop(PSR_READ_HEADER, fl_tokens_t operators[], size_t n_ops,
   size_t ops;
 
   do {
+    fl_parser_skipws(tokens, state);
+
     PSR_AST_START(FL_AST_EXPR_BINOP);
     // printf("try to read left!\n");
 

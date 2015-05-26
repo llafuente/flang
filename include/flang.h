@@ -491,9 +491,10 @@ struct fl_enum_members {
 
 #define FL_CODEGEN_HEADER                                                      \
   fl_ast_t* node, LLVMBuilderRef builder, LLVMModuleRef module,                \
-      LLVMContextRef context
+      LLVMContextRef context, LLVMBasicBlockRef current_block
 
-#define FL_CODEGEN_HEADER_SEND node, builder, module, context
+#define FL_CODEGEN_HEADER_SEND node, builder, module, context, current_block
+#define FL_CODEGEN_PASSTHROUGH builder, module, context, current_block
 
 // target_ast allow to reuse current ast
 #define FL_PARSER_ERROR(target_ast, string)                                    \
