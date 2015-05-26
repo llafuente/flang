@@ -83,6 +83,11 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
       fl_ast_traverse(ast->func.body, cb, ast, level);
     }
   } break;
+  case FL_AST_STMT_RETURN: {
+    if (ast->ret.argument) {
+      fl_ast_traverse(ast->ret.argument, cb, ast, level);
+    }
+  }
   default: {}
   }
 }
@@ -185,6 +190,12 @@ void fl_ast_delete(fl_ast_t* ast) {
     }
     free(ast->func.body);
     break;
+  case FL_AST_STMT_RETURN: {
+    if (ast->ret.argument) {
+      fl_ast_delete(ast->ret.argument);
+      ast->ret.argument = 0;
+    }
+  }
   default: {}
   }
   free(ast);
@@ -232,7 +243,11 @@ void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
     printf("%*s- type (%d) [%p]\n", (int)level, " ", node->idtype.of, node);
     break;
   case FL_AST_DECL_FUNCTION:
-    printf("%*s- function [%p]\n", (int)level, " ", node);
+    printf("%*s- function (params: %zu) [%p]\n", (int)level, " ",
+           node->func.nparams, node);
+    break;
+  case FL_AST_STMT_RETURN:
+    printf("%*s- return [%p]\n", (int)level, " ", node);
     break;
   case FL_AST_ERROR:
     printf("%*s- ERROR %s [%p]\n", (int)level, " ", node->err.str, node);
@@ -247,7 +262,21 @@ void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
 
 fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {
   while ((node = node->parent) != 0) {
-    if (node->type == FL_AST_BLOCK) {
+    switch (node->type) {
+    case FL_AST_DECL_FUNCTION: {
+      size_t i = 0;
+      fl_ast_t* tmp;
+
+      if (node->func.params) {
+        while ((tmp = node->func.params[i++]) != 0) {
+          if (st_cmp(name, tmp->identifier.string) == 0) {
+            printf("param found %d\n", i);
+            return tmp;
+          }
+        }
+      }
+    } break;
+    case FL_AST_BLOCK: {
       // search in the list
       size_t i = 0;
       fl_ast_t* tmp;
@@ -256,10 +285,12 @@ fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {
         while ((tmp = node->block.body[i++]) != 0) {
           if (tmp->type == FL_AST_DTOR_VAR &&
               st_cmp(name, tmp->var.id->identifier.string) == 0) {
+            printf("dtor found %d\n", i);
             return tmp;
           }
         }
       }
+    }
     }
   }
 

@@ -152,11 +152,27 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
     return fl_codegen_binop(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_NUMERIC:
     return fl_codegen_lit_number(FL_CODEGEN_HEADER_SEND);
-  case FL_AST_LIT_IDENTIFIER:
-    break;
+  case FL_AST_LIT_IDENTIFIER: {
+    fl_ast_t* id = fl_ast_search_decl_var(node, node->identifier.string);
+
+    if (!id) {
+      fprintf(stderr, "(codegen) identifier not found: %s\n",
+              node->identifier.string->value);
+      exit(1);
+    }
+
+    return (LLVMValueRef)id->codegen;
+  } break;
   case FL_AST_DTOR_VAR:
     return fl_codegen_dtor_var(FL_CODEGEN_HEADER_SEND);
     break;
+  case FL_AST_DECL_FUNCTION:
+    return fl_codegen_function(FL_CODEGEN_HEADER_SEND);
+    break;
+  case FL_AST_STMT_RETURN:
+    return fl_codegen_return(FL_CODEGEN_HEADER_SEND);
+    break;
+
   default:
     fprintf(stderr, "(codegen) ast->type not handled %d\n", node->type);
   }
@@ -283,4 +299,54 @@ LLVMValueRef fl_codegen_dtor_var(FL_CODEGEN_HEADER) {
   node->codegen = (void*)ref;
 
   return ref;
+}
+
+LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
+
+  LLVMTypeRef param_types[node->func.nparams];
+
+  // TODO manage type
+  size_t i = 0;
+  fl_ast_t* tmp;
+
+  if (node->func.params) {
+    while ((tmp = node->func.params[i]) != 0) {
+      printf("GOGOGO %d\n", i);
+      param_types[i++] = LLVMDoubleType();
+    }
+  }
+  // TODO manage return type
+  LLVMTypeRef ret_type =
+      LLVMFunctionType(LLVMDoubleType(), param_types, node->func.nparams, 0);
+
+  LLVMValueRef func = LLVMAddFunction(
+      module, node->func.id->identifier.string->value, ret_type);
+  LLVMSetLinkage(func, LLVMExternalLinkage);
+
+  i = 0;
+  if (node->func.params) {
+    while ((tmp = node->func.params[i]) != 0) {
+      if (tmp->type != FL_AST_LIT_IDENTIFIER) {
+        printf("parameter must be literal!%d\n", i);
+        exit(1);
+      }
+      printf("GOGOGO %d\n", i);
+      LLVMValueRef param = LLVMGetParam(func, i);
+      LLVMSetValueName(param, tmp->identifier.string->value);
+      tmp->codegen = (void*)param;
+      ++i;
+    }
+  }
+
+  LLVMBasicBlockRef block = LLVMAppendBasicBlock(func, "function-block");
+  LLVMPositionBuilderAtEnd(builder, block);
+
+  fl_codegen_ast(node->func.body, builder, module, context);
+
+  return func;
+}
+LLVMValueRef fl_codegen_return(FL_CODEGEN_HEADER) {
+  LLVMValueRef argument =
+      fl_codegen_ast(node->ret.argument, builder, module, context);
+  LLVMBuildRet(builder, argument);
 }

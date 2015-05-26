@@ -86,5 +86,9 @@ TASK_IMPL(parser_functions) {
 
   fl_ast_delete(root);
 
+  root = fl_parse_utf8("fn x(arg1, arg2) { return arg1 + arg2;}");
+  ast = *(root->program.body->block.body);
+  fl_ast_delete(root);
+
   return 0;
 }

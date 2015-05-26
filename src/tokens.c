@@ -28,14 +28,15 @@
 // warning
 // IF COUNT IS OUT OF SYNC, BAD THING HAPPEN!
 
-size_t fl_token_list_count = 95;
-fl_tokens_cfg_t fl_token_list[95] = {
+size_t fl_token_list_count = 96;
+fl_tokens_cfg_t fl_token_list[96] = {
     {FL_TK_EOF, false, "\x00", 1, 0, 0, false},
     {FL_TK_NEWLINE, false, "\n", 1, 0, 0, false},
     {FL_TK_LOG, false, "log", 3, 0, 0, false},
     {FL_TK_LOG, false, "echo", 4, 0, 0, false},
     {FL_TK_FUNCTION, false, "function", 8, 0, 0, false},
     {FL_TK_FUNCTION, false, "fn", 2, 0, 0, false},
+    {FL_TK_RETURN, false, "return", 6, 0, 0, false},
     {FL_TK_VAR, false, "var", 3, 0, 0, false},
     {FL_TK_UNVAR, false, "unvar", 4, 0, 0, false},
     {FL_TK_CONST, false, "const", 4, 0, 0, false},

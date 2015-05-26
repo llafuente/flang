@@ -40,7 +40,8 @@ SOURCES_TEST = test/tasks.c \
                test/parser-expressions-test.c \
                test/parser-variables-test.c \
                test/parser-functions-test.c \
-               test/codegen-expressions-test.c
+               test/codegen-expressions-test.c \
+               test/codegen-functions-test.c
 
 TESTS = test/run-tests
 check_PROGRAMS = test/run-tests

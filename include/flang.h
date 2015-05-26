@@ -77,6 +77,7 @@ enum fl_tokens {
   FL_TK_NEWLINE,
   FL_TK_LOG,
   FL_TK_FUNCTION,
+  FL_TK_RETURN,
   FL_TK_VAR,
   FL_TK_UNVAR,
   FL_TK_CONST,
@@ -245,6 +246,7 @@ enum fl_ast_type {
   FL_AST_TYPE = 40,
 
   FL_AST_DECL_FUNCTION = 50,
+  FL_AST_STMT_RETURN = 51,
 
   FL_AST_STMT_LOG = 100,
 
@@ -320,8 +322,12 @@ struct fl_ast {
       // TODO use fl_type_t*
       struct fl_ast* id;
       struct fl_ast** params;
+      size_t nparams;
       struct fl_ast* body;
     } func;
+    struct fl_ast_stmt_return {
+      struct fl_ast* argument;
+    } ret;
   };
 };
 
@@ -422,7 +428,7 @@ struct fl_enum_members {
 #define PSR_READ_NAME(name) PSR_READ_##name
 
 #define PSR_READ_DECL(name)                                                    \
-  FL_EXTERN fl_ast_t* PSR_READ_NAME(name)(PSR_READ_HEADER);
+  FL_EXTERN fl_ast_t* PSR_READ_NAME(name)(PSR_READ_HEADER)
 
 #define PSR_READ_HEADER                                                        \
   fl_token_list_t* tokens, fl_psrstack_t* stack, fl_psrstate_t* state
@@ -629,7 +635,8 @@ PSR_READ_DECL(type);
 
 /* cldoc:begin-category(parser-function.c) */
 
-PSR_READ_DECL(decl_function)
+PSR_READ_DECL(decl_function);
+PSR_READ_DECL(stmt_return);
 
 /* cldoc:end-category() */
 
@@ -660,4 +667,6 @@ FL_EXTERN LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_dtor_var(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef fl_codegen_return(FL_CODEGEN_HEADER);
 /* cldoc:end-category() */

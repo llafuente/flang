@@ -63,6 +63,7 @@ PSR_READ_IMPL(decl_function) {
       ++i;
     } while (PSR_ACCEPT_TOKEN(FL_TK_COMMA));
     ast->func.params = list;
+    ast->func.nparams = i;
 
     if (!PSR_ACCEPT_TOKEN(FL_TK_RPARANTHESIS)) {
       fl_ast_delete(ast->func.id);
@@ -84,6 +85,37 @@ PSR_READ_IMPL(decl_function) {
   }
 
   ast->func.body = body;
+
+  PSR_AST_RET();
+}
+
+PSR_READ_IMPL(stmt_return) {
+  PSR_AST_START(FL_AST_STMT_RETURN);
+
+  printf("**RETURN 0: %s\n", state->token->string->value);
+
+  if (!PSR_ACCEPT_TOKEN(FL_TK_RETURN)) {
+    PSR_AST_RET_NULL();
+  }
+
+  printf("**RETURN 1: %s\n", state->token->string->value);
+
+  fl_parser_skipws(tokens, state);
+
+  printf("**RETURN 2: %s\n", state->token->string->value);
+
+  fl_ast_t* argument = PSR_READ(expression);
+
+  printf("**RETURN 3: %s\n", state->token->string->value);
+
+  if (argument->type == FL_AST_ERROR) { // hard error error
+    fl_ast_delete(ast);
+    return argument;
+  }
+
+  ast->ret.argument = argument;
+
+  printf("**RETURN 4: %s\n", state->token->string->value);
 
   PSR_AST_RET();
 }

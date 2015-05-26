@@ -151,6 +151,7 @@ fl_ast_t* PSR_READ_binop(PSR_READ_HEADER, fl_tokens_t operators[], size_t n_ops,
       // printf("push and try to read operator!\n");
 
       leafs[leafs_s++] = ast;
+      fl_parser_skipws(tokens, state);
 
       // printf("token: %u == %u\n", state->token->type, token);
       // printf("token: %lu\n", state->current);
