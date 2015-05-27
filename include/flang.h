@@ -246,7 +246,8 @@ enum fl_ast_type {
   FL_AST_TYPE = 40,
 
   FL_AST_DECL_FUNCTION = 50,
-  FL_AST_STMT_RETURN = 51,
+  FL_AST_PARAMETER = 51,
+  FL_AST_STMT_RETURN = 52,
 
   FL_AST_STMT_LOG = 100,
 
@@ -274,6 +275,7 @@ struct fl_ast {
 
     struct fl_ast_block {
       struct fl_ast** body;
+      size_t nbody;
     } block;
 
     struct fl_ast_lit_boolean {
@@ -325,6 +327,13 @@ struct fl_ast {
       size_t nparams;
       struct fl_ast* body;
     } func;
+    struct fl_ast_parameter {
+      struct fl_ast* id;
+      struct fl_ast* type;
+      struct fl_ast* def;
+      struct fl_ast** assertions;
+      size_t nassertions;
+    } param;
     struct fl_ast_stmt_return {
       struct fl_ast* argument;
     } ret;
@@ -638,6 +647,9 @@ PSR_READ_DECL(type);
 
 PSR_READ_DECL(decl_function);
 PSR_READ_DECL(stmt_return);
+PSR_READ_DECL(parameter_typed);
+PSR_READ_DECL(parameter_notyped);
+PSR_READ_DECL(parameter);
 
 /* cldoc:end-category() */
 

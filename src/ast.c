@@ -83,6 +83,16 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
       fl_ast_traverse(ast->func.body, cb, ast, level);
     }
   } break;
+  case FL_AST_PARAMETER:
+    if (ast->param.id) {
+      fl_ast_traverse(ast->param.id, cb, ast, level);
+    }
+
+    if (ast->param.type) {
+      fl_ast_traverse(ast->param.type, cb, ast, level);
+    }
+    break;
+
   case FL_AST_STMT_RETURN: {
     if (ast->ret.argument) {
       fl_ast_traverse(ast->ret.argument, cb, ast, level);
@@ -190,6 +200,17 @@ void fl_ast_delete(fl_ast_t* ast) {
     }
     free(ast->func.body);
     break;
+  case FL_AST_PARAMETER:
+    if (ast->param.id) {
+      fl_ast_delete(ast->param.id);
+      ast->param.id = 0;
+    }
+
+    if (ast->param.type) {
+      fl_ast_delete(ast->param.type);
+      ast->param.type = 0;
+    }
+    break;
   case FL_AST_STMT_RETURN: {
     if (ast->ret.argument) {
       fl_ast_delete(ast->ret.argument);
@@ -269,7 +290,7 @@ fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {
 
       if (node->func.params) {
         while ((tmp = node->func.params[i++]) != 0) {
-          if (st_cmp(name, tmp->identifier.string) == 0) {
+          if (st_cmp(name, tmp->param.id->identifier.string) == 0) {
             printf("param found %d\n", i);
             return tmp;
           }

@@ -310,8 +310,13 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
 
   if (node->func.params) {
     while ((tmp = node->func.params[i]) != 0) {
+      if (!tmp->param.type) {
+        fprintf(stderr, "Parameter %d don't have type.\n", i);
+        exit(1);
+      }
+
       printf("GOGOGO %d\n", i);
-      param_types[i++] = LLVMDoubleType();
+      param_types[i++] = fl_codegen_get_type(tmp->param.type);
     }
   }
   // TODO manage return type
@@ -325,13 +330,9 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
   i = 0;
   if (node->func.params) {
     while ((tmp = node->func.params[i]) != 0) {
-      if (tmp->type != FL_AST_LIT_IDENTIFIER) {
-        printf("parameter must be literal!%d\n", i);
-        exit(1);
-      }
-      printf("GOGOGO %d\n", i);
+      printf("set name %d\n", i);
       LLVMValueRef param = LLVMGetParam(func, i);
-      LLVMSetValueName(param, tmp->identifier.string->value);
+      LLVMSetValueName(param, tmp->param.id->identifier.string->value);
       tmp->codegen = (void*)param;
       ++i;
     }

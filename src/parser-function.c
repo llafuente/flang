@@ -56,7 +56,7 @@ PSR_READ_IMPL(decl_function) {
     do {
       fl_parser_skipws(tokens, state);
 
-      list[i] = PSR_READ(lit_identifier);
+      list[i] = PSR_READ(parameter);
 
       fl_parser_skipws(tokens, state);
 
@@ -118,4 +118,51 @@ PSR_READ_IMPL(stmt_return) {
   printf("**RETURN 4: %s\n", state->token->string->value);
 
   PSR_AST_RET();
+}
+
+PSR_READ_IMPL(parameter_typed) {
+  PSR_AST_START(FL_AST_PARAMETER);
+
+  ast->param.type = PSR_READ(type);
+
+  // soft error
+  if (!ast->param.type) {
+    PSR_AST_RET_NULL();
+  }
+
+  fl_parser_skipws(tokens, state);
+
+  // hard error
+  ast->param.id = PSR_READ(lit_identifier);
+  if (!ast->param.id) {
+    FL_PARSER_ERROR(ast, "expected identifier");
+  }
+
+  PSR_AST_RET();
+}
+
+PSR_READ_IMPL(parameter_notyped) {
+  PSR_AST_START(FL_AST_PARAMETER);
+
+  ast->param.type = 0;
+
+  // hard error
+  ast->param.id = PSR_READ(lit_identifier);
+  if (!ast->param.id) {
+    FL_PARSER_ERROR(ast, "expected identifier");
+  }
+
+  PSR_AST_RET();
+}
+
+PSR_READ_IMPL(parameter) {
+  fl_ast_t* ast;
+
+  FL_TRY_READ(parameter_typed);
+  FL_TRY_READ(parameter_notyped);
+
+  // TODO read default
+  // TODO read assertions!
+
+  return 0;
 }

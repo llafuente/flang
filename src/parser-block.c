@@ -118,4 +118,6 @@ void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend) {
       return;
     }
   }
+
+  (*extend)->block.nbody = i;
 }
