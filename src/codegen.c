@@ -131,7 +131,7 @@ int fl_codegen(fl_ast_t* root, char* module_name) {
 }
 
 LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
-  printf("node [%p] %d\n", node, node->type);
+  //printf("node [%p] %d\n", node, node->type);
 
   switch (node->type) {
   case FL_AST_PROGRAM:
@@ -180,7 +180,6 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
 }
 
 LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER) {
-  fprintf(stderr, "(codegen) number: %f\n", node->numeric.value);
   return LLVMConstReal(LLVMDoubleType(), node->numeric.value);
 }
 

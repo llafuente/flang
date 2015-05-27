@@ -52,7 +52,7 @@ PSR_READ_IMPL(expr_assignment_full) {
     PSR_AST_RET_NULL();
   }
 
-  printf("(parser) expr_assignment_full left");
+  //printf("(parser) expr_assignment_full left\n");
 
   fl_parser_skipws(tokens, state);
 
@@ -80,7 +80,7 @@ PSR_READ_IMPL(expr_assignment_full) {
     PSR_AST_RET_NULL();
   }
   PSR_NEXT();
-  printf("(parser) expr_assignment_full operator");
+  //printf("(parser) expr_assignment_full operator\n");
 
   fl_parser_skipws(tokens, state);
 
@@ -90,7 +90,7 @@ PSR_READ_IMPL(expr_assignment_full) {
     PSR_AST_RET_NULL();
   }
 
-  printf("(parser) expr_assignment_full right");
+  //printf("(parser) expr_assignment_full right\n");
 
   PSR_AST_RET();
 }

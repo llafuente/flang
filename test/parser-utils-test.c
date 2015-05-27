@@ -29,7 +29,6 @@
 TASK_IMPL(parser_utils) {
   string* code;
   fl_token_list_t* tokens;
-  fl_parser_result_t* err;
   // tets priority <= gt than '<' '='
   code = st_newc("log \"hello:\\\"world\";", st_enc_utf8);
   tokens = fl_tokenize(code);
@@ -101,18 +100,6 @@ TASK_IMPL(parser_utils) {
   ASSERT(fl_parser_accept(tokens, &state, "hello:\\\"world") == false,
          "no accept text");
   ASSERT(state.current == 4, "5th token id");
-
-  err = fl_parser_expect(tokens, &state, "nothing", "got - error", false);
-  ASSERT(state.current == 4, "5th token id");
-
-  ASSERT(err != 0, "error raised");
-  ASSERT(strcmp(err->text, "got - error") == 0, "error message");
-
-  free(err);
-
-  err = fl_parser_expect(tokens, &state, "\"", "got - error", false);
-  ASSERT(err == 0, "error not raised");
-  ASSERT(state.current == 5, "6th token id");
 
   fl_parser_stack_init(&stack, tokens, &state);
 

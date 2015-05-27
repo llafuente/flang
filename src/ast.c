@@ -130,6 +130,7 @@ void fl_ast_delete(fl_ast_t* ast) {
       fl_ast_delete(ast->program.body);
     }
     fl_tokens_delete(ast->program.tokens);
+    st_delete(&ast->program.code);
     break;
   case FL_AST_BLOCK: {
     fl_ast_delete_list(ast->block.body);

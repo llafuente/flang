@@ -61,14 +61,13 @@ fl_ast_t* fl_parser(fl_token_list_t* tokens) {
 fl_ast_t* fl_parse_utf8(char* str) {
   string* code;
   fl_token_list_t* tokens;
-  fl_parser_result_t* err;
 
   code = st_newc(str, st_enc_utf8);
   tokens = fl_tokenize(code);
 
   fl_ast_t* root = fl_parser(tokens);
 
-  st_delete(&code);
+  root->program.code = code;
 
   fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
 #ifdef FL_VERBOSE

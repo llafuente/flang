@@ -38,7 +38,7 @@ PSR_READ_IMPL(decl_function) {
 
   ast->func.id = PSR_READ(lit_identifier);
   if (!ast->func.id) {
-    FL_PARSER_ERROR(ast, "cannot parse function identifier");
+    PSR_SYNTAX_ERROR(ast, "cannot parse function identifier");
     return ast;
   }
 
@@ -46,7 +46,7 @@ PSR_READ_IMPL(decl_function) {
 
   // params
   if (!PSR_ACCEPT_TOKEN(FL_TK_LPARANTHESIS)) {
-    FL_PARSER_ERROR(ast, "expected '('");
+    PSR_SYNTAX_ERROR(ast, "expected '('");
     return ast;
   }
 
@@ -69,7 +69,7 @@ PSR_READ_IMPL(decl_function) {
       fl_ast_delete(ast->func.id);
       fl_ast_delete_list(list);
 
-      FL_PARSER_ERROR(ast, "expected ')'");
+      PSR_SYNTAX_ERROR(ast, "expected ')'");
       return ast;
     }
   }
@@ -92,21 +92,13 @@ PSR_READ_IMPL(decl_function) {
 PSR_READ_IMPL(stmt_return) {
   PSR_AST_START(FL_AST_STMT_RETURN);
 
-  printf("**RETURN 0: %s\n", state->token->string->value);
-
   if (!PSR_ACCEPT_TOKEN(FL_TK_RETURN)) {
     PSR_AST_RET_NULL();
   }
 
-  printf("**RETURN 1: %s\n", state->token->string->value);
-
   fl_parser_skipws(tokens, state);
 
-  printf("**RETURN 2: %s\n", state->token->string->value);
-
   fl_ast_t* argument = PSR_READ(expression);
-
-  printf("**RETURN 3: %s\n", state->token->string->value);
 
   if (argument->type == FL_AST_ERROR) { // hard error error
     fl_ast_delete(ast);
@@ -114,8 +106,6 @@ PSR_READ_IMPL(stmt_return) {
   }
 
   ast->ret.argument = argument;
-
-  printf("**RETURN 4: %s\n", state->token->string->value);
 
   PSR_AST_RET();
 }
@@ -135,7 +125,7 @@ PSR_READ_IMPL(parameter_typed) {
   // hard error
   ast->param.id = PSR_READ(lit_identifier);
   if (!ast->param.id) {
-    FL_PARSER_ERROR(ast, "expected identifier");
+    PSR_SYNTAX_ERROR(ast, "expected identifier");
   }
 
   PSR_AST_RET();
@@ -149,7 +139,7 @@ PSR_READ_IMPL(parameter_notyped) {
   // hard error
   ast->param.id = PSR_READ(lit_identifier);
   if (!ast->param.id) {
-    FL_PARSER_ERROR(ast, "expected identifier");
+    PSR_SYNTAX_ERROR(ast, "expected identifier");
   }
 
   PSR_AST_RET();

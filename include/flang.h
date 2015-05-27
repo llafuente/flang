@@ -197,20 +197,6 @@ struct fl_token_list {
   fl_token_t tokens[];
 };
 
-enum fl_parser_result_level {
-  FL_PR_ERROR_FINAL,
-  FL_PR_WARNING,
-  FL_PR_NOTICE,
-  FL_PR_ERROR,
-};
-
-struct fl_parser_result {
-  fl_token_t* token;
-  char* text;
-  enum fl_parser_result_level level;
-};
-typedef struct fl_parser_result fl_parser_result_t;
-
 struct fl_parser_state {
   size_t current;
   fl_token_t* token;
@@ -221,6 +207,11 @@ struct fl_parser_state {
 
 typedef struct fl_parser_state fl_psrstate_t;
 
+enum fl_error_zone {
+  FL_ERROR_SYNTAX = 1,
+};
+
+typedef enum fl_error_zone fl_error_zone_t;
 enum fl_ast_type {
   FL_AST_PROGRAM = 1,
   FL_AST_BLOCK = 2,
@@ -264,12 +255,14 @@ struct fl_ast {
   struct fl_ast* parent;
 
   union {
-    struct fl_err {
+    struct fl_ast_error {
       char* str;
+      fl_error_zone_t zone;
     } err;
 
     struct fl_ast_program {
       fl_token_list_t* tokens;
+      string* code;
       struct fl_ast* body;
     } program;
 
@@ -506,11 +499,12 @@ struct fl_enum_members {
 #define FL_CODEGEN_PASSTHROUGH builder, module, context, current_block
 
 // target_ast allow to reuse current ast
-#define FL_PARSER_ERROR(target_ast, string)                                    \
+#define PSR_SYNTAX_ERROR(target_ast, string)                                   \
   printf("%s\n", string);                                                      \
   target_ast->type = FL_AST_ERROR;                                             \
+  target_ast->token_end = state->token;                                        \
   target_ast->err.str = string;                                                \
-  target_ast->token_end = state->token;
+  target_ast->err.zone = FL_ERROR_SYNTAX;
 
 //-
 //- functions, global variables
@@ -577,10 +571,6 @@ FL_EXTERN void fl_parser_look_ahead(fl_psrstack_t* stack, fl_psrstate_t* state);
 FL_EXTERN void fl_parser_commit(fl_psrstack_t* stack, fl_psrstate_t* state);
 
 FL_EXTERN void fl_parser_rollback(fl_psrstack_t* stack, fl_psrstate_t* state);
-
-FL_EXTERN fl_parser_result_t* fl_parser_expect(fl_token_list_t* tokens,
-                                               fl_psrstate_t* state, char* text,
-                                               char* err_msg, bool final);
 
 FL_EXTERN void fl_parser_skipws(fl_token_list_t* tokens, fl_psrstate_t* state);
 

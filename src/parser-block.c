@@ -29,7 +29,7 @@ PSR_READ_IMPL(block) {
   PSR_AST_START(FL_AST_BLOCK);
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_LCBRACKET)) {
-    FL_PARSER_ERROR(ast, "expected '{'");
+    PSR_SYNTAX_ERROR(ast, "expected '{'");
     return ast;
   }
 
@@ -42,7 +42,7 @@ PSR_READ_IMPL(block) {
   }
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_RCBRACKET)) {
-    FL_PARSER_ERROR(ast, "expected '}'");
+    PSR_SYNTAX_ERROR(ast, "expected '}'");
     fl_parser_rollback(stack, state);
     return ast;
   }
@@ -114,7 +114,7 @@ void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend) {
     if (last_token == state->token) {
       fl_ast_delete_list(list);
       (*extend)->block.body = 0;
-      FL_PARSER_ERROR((*extend), "unkown statement");
+      PSR_SYNTAX_ERROR((*extend), "unkown statement");
       return;
     }
   }

@@ -100,24 +100,6 @@ bool fl_parser_accept_token_list(fl_token_list_t* tokens, fl_psrstate_t* state,
   return false;
 }
 
-fl_parser_result_t* fl_parser_expect(fl_token_list_t* tokens,
-                                     fl_psrstate_t* state, char* text,
-                                     char* err_msg, bool final) {
-  if (fl_parser_accept(tokens, state, text)) {
-    return 0;
-  }
-
-  fl_parser_result_t* err = malloc(sizeof(fl_parser_result_t));
-  err->text = err_msg;
-
-  if (final) {
-    err->level = FL_PR_ERROR_FINAL;
-  } else {
-    err->level = FL_PR_ERROR;
-  }
-
-  return err;
-}
 // maybe: 00A0 FEFF
 void fl_parser_skipws(fl_token_list_t* tokens, fl_psrstate_t* state) {
   char* itr;
