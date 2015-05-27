@@ -63,13 +63,25 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
   case FL_AST_EXPR_RUNARY:
     fl_ast_traverse(ast->runary.element, cb, ast, level);
     break;
+  case FL_AST_EXPR_CALL: {
+    fl_ast_traverse(ast->call.callee, cb, ast, level);
+
+    size_t i = 0;
+    fl_ast_t* tmp;
+
+    if (ast->call.arguments) {
+      while ((tmp = ast->call.arguments[i++]) != 0) {
+        fl_ast_traverse(tmp, cb, ast, level);
+      }
+    }
+  } break;
   case FL_AST_DTOR_VAR:
     fl_ast_traverse(ast->var.id, cb, ast, level);
     fl_ast_traverse(ast->var.type, cb, ast, level);
     break;
   case FL_AST_DECL_FUNCTION: {
     fl_ast_traverse(ast->func.id, cb, ast, level);
-    // fl_ast_traverse(ast->var.type, cb, ast, level);
+    fl_ast_traverse(ast->func.ret_type, cb, ast, level);
 
     if (ast->func.params) {
       size_t i = 0;
@@ -92,7 +104,6 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
       fl_ast_traverse(ast->param.type, cb, ast, level);
     }
     break;
-
   case FL_AST_STMT_RETURN: {
     if (ast->ret.argument) {
       fl_ast_traverse(ast->ret.argument, cb, ast, level);
@@ -169,6 +180,17 @@ void fl_ast_delete(fl_ast_t* ast) {
       ast->runary.element = 0;
     }
     break;
+  case FL_AST_EXPR_CALL: {
+    if (ast->call.callee) {
+      fl_ast_delete(ast->call.callee);
+    }
+
+    if (ast->call.arguments) {
+      fl_ast_delete_list(ast->call.arguments);
+      ast->call.arguments = 0;
+    }
+
+  } break;
   case FL_AST_LIT_IDENTIFIER:
     st_delete(&ast->identifier.string);
     break;
@@ -184,6 +206,11 @@ void fl_ast_delete(fl_ast_t* ast) {
     if (ast->func.id) {
       fl_ast_delete(ast->func.id);
     }
+
+    if (ast->func.ret_type) {
+      fl_ast_delete(ast->func.ret_type);
+    }
+
     if (ast->func.params) {
       size_t i = 0;
       fl_ast_t* tmp;
@@ -231,6 +258,7 @@ void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
   level = level * 2;
   switch (node->type) {
   case FL_AST_PROGRAM:
+    printf("%s\n\n", node->program.code->value);
     printf("%*s- program [%p]\n", (int)level, " ", node);
     break;
   case FL_AST_BLOCK:
@@ -256,6 +284,10 @@ void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
     break;
   case FL_AST_EXPR_RUNARY:
     printf("%*s- runary (%d) [%p]\n", (int)level, " ", node->runary.operator,
+           node);
+    break;
+  case FL_AST_EXPR_CALL:
+    printf("%*s- call (%zu) [%p]\n", (int)level, " ", node->call.narguments,
            node);
     break;
   case FL_AST_DTOR_VAR:
@@ -292,7 +324,7 @@ fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {
       if (node->func.params) {
         while ((tmp = node->func.params[i++]) != 0) {
           if (st_cmp(name, tmp->param.id->identifier.string) == 0) {
-            printf("param found %d\n", i);
+            printf("param found %zu\n", i);
             return tmp;
           }
         }
@@ -307,12 +339,13 @@ fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {
         while ((tmp = node->block.body[i++]) != 0) {
           if (tmp->type == FL_AST_DTOR_VAR &&
               st_cmp(name, tmp->var.id->identifier.string) == 0) {
-            printf("dtor found %d\n", i);
+            printf("dtor found %zu\n", i);
             return tmp;
           }
         }
       }
     }
+    default: {} // remove warn
     }
   }
 

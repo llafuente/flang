@@ -51,7 +51,7 @@ PSR_READ_IMPL(decl_function) {
   }
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_RPARANTHESIS)) {
-    fl_ast_t** list = calloc(100, sizeof(fl_ast_t*));
+    fl_ast_t** list = calloc(100, sizeof(fl_ast_t*)); // TODO resize support
     size_t i = 0;
     do {
       fl_parser_skipws(tokens, state);
@@ -75,6 +75,21 @@ PSR_READ_IMPL(decl_function) {
   }
 
   fl_parser_skipws(tokens, state);
+
+  // try to read return type
+
+  if (PSR_ACCEPT_TOKEN(FL_TK_COLON)) {
+    fl_parser_skipws(tokens, state);
+
+    fl_ast_t* rtype = PSR_READ(type);
+    if (rtype->type == FL_AST_ERROR) { // hard error error
+      fl_ast_delete(ast);
+      return rtype;
+    }
+    ast->func.ret_type = rtype;
+
+    fl_parser_skipws(tokens, state);
+  }
 
   // block always return
   fl_ast_t* body = PSR_READ(block);

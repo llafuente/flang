@@ -52,7 +52,7 @@ PSR_READ_IMPL(expr_assignment_full) {
     PSR_AST_RET_NULL();
   }
 
-  //printf("(parser) expr_assignment_full left\n");
+  // printf("(parser) expr_assignment_full left\n");
 
   fl_parser_skipws(tokens, state);
 
@@ -80,7 +80,7 @@ PSR_READ_IMPL(expr_assignment_full) {
     PSR_AST_RET_NULL();
   }
   PSR_NEXT();
-  //printf("(parser) expr_assignment_full operator\n");
+  // printf("(parser) expr_assignment_full operator\n");
 
   fl_parser_skipws(tokens, state);
 
@@ -90,7 +90,7 @@ PSR_READ_IMPL(expr_assignment_full) {
     PSR_AST_RET_NULL();
   }
 
-  //printf("(parser) expr_assignment_full right\n");
+  // printf("(parser) expr_assignment_full right\n");
 
   PSR_AST_RET();
 }
@@ -98,9 +98,11 @@ PSR_READ_IMPL(expr_assignment_full) {
 PSR_READ_IMPL(expr_lhs) {
   fl_ast_t* ast;
 
+  printf("**expr_lhs %s\n", state->token->string->value);
+
+  FL_TRY_READ(expr_call);
   FL_TRY_READ(literal);
   // TODO
-  // expr_call,
   // expr_new
 
   return 0;
@@ -339,6 +341,49 @@ PSR_READ_IMPL(expr_unary_right) {
     return tmp;
   }
   };
+
+  PSR_AST_RET();
+}
+
+PSR_READ_IMPL(expr_argument) { return PSR_READ(expression); }
+
+PSR_READ_IMPL(expr_call) {
+  PSR_AST_START(FL_AST_EXPR_CALL);
+
+  fl_ast_t* callee = PSR_READ(lit_identifier); // TODO member expr
+  if (!callee) {
+    PSR_AST_RET_NULL(); // soft
+  }
+
+  fl_parser_skipws(tokens, state);
+
+  if (!PSR_ACCEPT_TOKEN(FL_TK_LPARANTHESIS)) {
+    fl_ast_delete(callee);
+    PSR_AST_RET_NULL(); // soft
+  }
+  // from now on, hard!
+  ast->call.callee = callee;
+
+  fl_parser_skipws(tokens, state);
+
+  fl_ast_t** list = calloc(100, sizeof(fl_ast_t*)); // TODO resize support
+  size_t i = 0;
+  do {
+    fl_parser_skipws(tokens, state);
+
+    list[i++] = PSR_READ(expr_argument);
+
+    fl_parser_skipws(tokens, state);
+  } while (PSR_ACCEPT_TOKEN(FL_TK_COMMA));
+  ast->call.arguments = list;
+  ast->call.narguments = i;
+
+  if (!PSR_ACCEPT_TOKEN(FL_TK_RPARANTHESIS)) {
+    fl_ast_delete_list(list);
+    fl_ast_delete(callee);
+    PSR_SYNTAX_ERROR(ast, "expected ')'");
+    return ast;
+  }
 
   PSR_AST_RET();
 }

@@ -230,6 +230,7 @@ enum fl_ast_type {
   FL_AST_EXPR_BINOP = 23,
   FL_AST_EXPR_LUNARY = 24,
   FL_AST_EXPR_RUNARY = 25,
+  FL_AST_EXPR_CALL = 26,
 
   // TODO FL_AST_DECL_VAR = 30
   FL_AST_DTOR_VAR = 31,
@@ -319,6 +320,7 @@ struct fl_ast {
       struct fl_ast** params;
       size_t nparams;
       struct fl_ast* body;
+      struct fl_ast* ret_type;
     } func;
     struct fl_ast_parameter {
       struct fl_ast* id;
@@ -330,6 +332,11 @@ struct fl_ast {
     struct fl_ast_stmt_return {
       struct fl_ast* argument;
     } ret;
+    struct fl_ast_expr_call {
+      fl_ast_t* callee;
+      struct fl_ast** arguments;
+      size_t narguments;
+    } call;
   };
 };
 
@@ -615,6 +622,8 @@ PSR_READ_DECL(expr_multiplicative);
 PSR_READ_DECL(expr_unary);
 PSR_READ_DECL(expr_unary_left);
 PSR_READ_DECL(expr_unary_right);
+PSR_READ_DECL(expr_call);
+PSR_READ_DECL(expr_argument);
 
 typedef fl_ast_t* (*fl_read_cb_t)(PSR_READ_HEADER);
 /* cldoc:end-category() */
@@ -668,8 +677,10 @@ FL_EXTERN int fl_codegen(fl_ast_t* root, char* module_name);
 FL_EXTERN LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef fl_codegen_lit_string(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_dtor_var(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_return(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER);
 /* cldoc:end-category() */

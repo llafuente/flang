@@ -142,5 +142,12 @@ TASK_IMPL(parser_expressions) {
   ASSERT(ast->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
   fl_ast_delete(root);
 
+  // function call
+  root = fl_parse_utf8("printf ( 'xxx' )"); // ws test
+  ast = *(root->program.body->block.body);
+  ASSERT(ast != 0, "string literal found!");
+  ASSERT(ast->type == FL_AST_EXPR_CALL, "FL_AST_EXPR_CALL");
+  fl_ast_delete(root);
+
   return 0;
 }
