@@ -37,6 +37,7 @@
 #include <llvm-c/ExecutionEngine.h>
 #include <llvm-c/Target.h>
 #include <llvm-c/Transforms/Scalar.h>
+#include <llvm-c/BitWriter.h>
 
 //-
 //- type declaration
@@ -672,8 +673,9 @@ FL_EXTERN fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(codegen.c) */
-
-FL_EXTERN int fl_codegen(fl_ast_t* root, char* module_name);
+FL_EXTERN void fl_interpreter(LLVMModuleRef module);
+FL_EXTERN bool fl_bitcode(LLVMModuleRef module, char* file);
+FL_EXTERN LLVMModuleRef fl_codegen(fl_ast_t* root, char* module_name);
 FL_EXTERN LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER);

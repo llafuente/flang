@@ -43,9 +43,12 @@ TASK_IMPL(codegen_functions) {
 
   fl_ast_delete(root);
 
-  root = fl_parse_utf8("printf('hello');");
+  root = fl_parse_utf8("printf('%s\n', 'hello');");
 
-  fl_codegen(root, "test");
+  LLVMModuleRef module = fl_codegen(root, "test");
+
+  //fl_interpreter(module);
+  fl_bitcode(module, "hello-world.bc");
 
   fl_ast_delete(root);
 

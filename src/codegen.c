@@ -62,13 +62,49 @@ LLVMExecutionEngineRef fl_codegen_jit(LLVMModuleRef M) {
   return MCJIT;
 }
 
-int fl_codegen(fl_ast_t* root, char* module_name) {
+void fl_interpreter(LLVMModuleRef module) {
+  char* err;
+
+  LLVMExecutionEngineRef interp;
+  LLVMInitializeNativeTarget();
+  LLVMLinkInInterpreter(); // "Interpreter has not been linked"
+
+  if (LLVMCreateInterpreterForModule(&interp, module, &err) != 0) {
+    fputs("LLVMCreateInterpreterForModule\n", stderr);
+    fputs(err, stderr);
+  }
+
+  LLVMDisposeMessage(err);
+
+
+/*
+  LLVMGenericValueRef main_args[] = {
+      LLVMCreateGenericValueOfPointer(0),
+      LLVMCreateGenericValueOfInt(LLVMInt32Type(), 0, false)};
+*/
+  LLVMGenericValueRef res =
+  LLVMRunFunction(interp, LLVMGetNamedFunction(module, "main"), 0, 0);
+
+  LLVMDisposeExecutionEngine(interp);
+  LLVMDisposeModule(module);
+}
+
+bool fl_bitcode(LLVMModuleRef module, char* file) {
+  // Write out bitcode to file
+  if (LLVMWriteBitcodeToFile(module, file) != 0) {
+      fprintf(stderr, "error writing bitcode to file '%s'\n", file);
+      return false;
+  }
+  return true;
+}
+
+LLVMModuleRef fl_codegen(fl_ast_t* root, char* module_name) {
   char* err;
   LLVMContextRef context = LLVMGetGlobalContext();
   LLVMModuleRef module =
       // LLVMModuleCreateWithNameInContext(!module_name ? "main" : module_name,
       // context);
-      LLVMModuleCreateWithName(!module_name ? "main" : module_name);
+      LLVMModuleCreateWithName(!module_name ? "module" : module_name);
   // LLVMBuilderRef builder = LLVMCreateBuilderInContext(context);
   LLVMBuilderRef builder = LLVMCreateBuilder();
 
@@ -91,13 +127,11 @@ int fl_codegen(fl_ast_t* root, char* module_name) {
       LLVMAddFunction(module, "printf",
                       LLVMFunctionType(LLVMInt32Type(), printf_args, 1, true));
   LLVMSetFunctionCallConv(printf, LLVMCCallConv);
+  LLVMSetLinkage(printf, LLVMExternalLinkage);
 
   // create main
-  LLVMTypeRef main_args[] = {LLVMPointerType(LLVMInt8Type(), 0),
-                             LLVMInt32Type()};
-
   LLVMValueRef main = LLVMAddFunction(
-      module, "main", LLVMFunctionType(LLVMInt32Type(), main_args, 2, 0));
+      module, "main", LLVMFunctionType(LLVMInt32Type(), 0, 0, 0));
   LLVMSetFunctionCallConv(main, LLVMCCallConv);
   LLVMBasicBlockRef current_block = LLVMAppendBasicBlock(main, "main-entry");
 
@@ -125,9 +159,8 @@ int fl_codegen(fl_ast_t* root, char* module_name) {
   // LLVMDumpModule(module);
   // LLVMDisposePassManager(pass_manager);
   LLVMDisposeBuilder(builder);
-  LLVMDisposeModule(module);
 
-  return 0;
+  return module;
 }
 
 LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
