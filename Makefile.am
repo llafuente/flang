@@ -12,6 +12,7 @@ COMPILER_SOURCES = src/tokenizer.c \
                 src/parser-function.c \
                 src/parser-type.c \
                 src/codegen.c \
+                src/codegen-type.c \
                 src/ast.c
 
 AM_CPPFLAGS = -I$(top_srcdir)/include \
@@ -40,6 +41,7 @@ SOURCES_TEST = test/tasks.c \
                test/parser-expressions-test.c \
                test/parser-variables-test.c \
                test/parser-functions-test.c \
+               test/parser-types-test.c \
                test/codegen-expressions-test.c \
                test/codegen-functions-test.c
 

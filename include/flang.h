@@ -142,6 +142,7 @@ enum fl_tokens {
   FL_TK_OREQUAL,
   FL_TK_OR,
   FL_TK_OR2,
+  FL_TK_VOID,
   FL_TK_BOOL,
   FL_TK_TRUE,
   FL_TK_FALSE,
@@ -266,6 +267,8 @@ struct fl_ast {
       fl_token_list_t* tokens;
       string* code;
       struct fl_ast* body;
+      fl_type_t* types;
+      size_t ntypes;
     } program;
 
     struct fl_ast_block {
@@ -309,12 +312,11 @@ struct fl_ast {
     struct fl_ast_dtor_variable {
       // TODO add type
       struct fl_ast* id;
-      struct fl_ast* type;
+      fl_ast_t* type;
     } var;
     struct fl_ast_idtype {
-      // TODO use fl_type_t*
-      fl_tokens_t of;
-    } idtype;
+      size_t id; // id on fl_type_table
+    } ty;
     struct fl_ast_decl_function {
       // TODO use fl_type_t*
       struct fl_ast* id;
@@ -350,70 +352,59 @@ struct fl_parser_stack {
 typedef struct fl_parser_stack fl_psrstack_t;
 
 enum fl_types {
-  FL_INT = 0,
-  FL_FLOAT = 1,
-  FL_BOOL = 2,
-  FL_STRING = 3,
-  FL_POINTER = 4,
+  FL_VOID = 1,
+  FL_NUMBER = 2,
+  FL_POINTER = 3,
+  FL_VECTOR = 4,
   FL_FUNCTION = 5,
-  FL_VOID = 6,
-  FL_STRUCT = 7,
-  FL_ARRAY = 8,
-  FL_NULL = 9,
-  FL_ANY = 10,
-  FL_ENUM = 11,
-  FL_REFERENCE = 12,
+  FL_STRUCT = 6,
+  FL_ENUM = 7,
+  // FL_REFERENCE = 12,
 };
 
 typedef enum fl_types fl_types_t;
 
+// type must be unique
 struct fl_type {
   fl_types_t of;
-  size_t size; // sizeof
+  void* codegen; // cache for codegen.
 
+  // string, array, any are implemented inside the language
+  // ref must be studied where should be, it's a very special pointer...
   union {
-    struct fl_type_int {
-      unsigned char bits;
-      bool sign;
-    } in;
+    // void is void :)
 
-    struct fl_type_float {
-      unsigned char size;
+    // bool, iX, uX, fX
+    struct fl_type_number {
+      unsigned char bits;
+      bool fp;
       bool sign;
-    } fp;
-    // bool has nothing
-    // string has nothing
+    } number;
+
     struct fl_type_pointer {
       struct fl_type* to;
     } ptr;
 
+    struct fl_type_vector {
+      size_t size;
+      struct fl_type* child;
+    } vector;
+
     struct fl_type_function {
       string* name; // 0 means anonymous
       struct fl_type* ret;
-      struct fl_type** args;
+      struct fl_type** params;
     } fn;
-    // void has nothing
 
     struct fl_type_struct {
       string* name;
       fl_struct_members_t** members;
     } agg; // aggregate
 
-    struct fl_type_array {
-      struct fl_type* of;
-    } arr;
-
-    // null has nothing
-    // any has nothing
-
     struct fl_type_enum {
       string* name;
       fl_enum_members_t** members;
     } enu;
-
-    struct fl_type_ref {
-      struct fl_type* to;
-    } ref;
   };
 };
 
@@ -640,6 +631,8 @@ PSR_READ_DECL(decl_variable_with_type);
 /* cldoc:begin-category(parser-type.c) */
 
 PSR_READ_DECL(type);
+extern fl_type_t* fl_type_table;
+void fl_parser_init_types();
 
 /* cldoc:end-category() */
 
@@ -685,4 +678,10 @@ FL_EXTERN LLVMValueRef fl_codegen_dtor_var(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_return(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER);
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(codegen-type.c) */
+
+FL_EXTERN LLVMTypeRef fl_codegen_get_type(fl_ast_t* node);
+
 /* cldoc:end-category() */

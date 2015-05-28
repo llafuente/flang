@@ -47,7 +47,7 @@ TASK_IMPL(codegen_functions) {
 
   LLVMModuleRef module = fl_codegen(root, "test");
 
-  //fl_interpreter(module);
+  // fl_interpreter(module);
   fl_bitcode(module, "hello-world.bc");
 
   fl_ast_delete(root);

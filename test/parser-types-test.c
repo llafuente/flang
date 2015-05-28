@@ -26,27 +26,52 @@
 #include "flang.h"
 #include "tasks.h"
 
+void test_parser_type(fl_ast_t* root, size_t typeid) {
+  fl_ast_t* fbody;
+  fl_ast_t* var_type;
+
+  ASSERT(root != 0, "string literal found!");
+
+  fbody = *(root->program.body->block.body);
+  ASSERT(fbody->type == FL_AST_DTOR_VAR, "first in body: FL_AST_DTOR_VAR");
+
+  var_type = fbody->var.type;
+  ASSERT(var_type != 0, "dtor has a type");
+  ASSERTE(var_type->type, FL_AST_TYPE, "%d != %d", "dtor type is FL_AST_TYPE");
+  ASSERTE(var_type->ty.id, typeid, "%zu != %zu", "typeid ?");
+}
+
 // TODO review if ";" is required
-TASK_IMPL(parser_variables) {
+TASK_IMPL(parser_types) {
   fl_ast_t* root;
   fl_ast_t* ast;
 
-  root = fl_parse_utf8("var hello;");
-  ast = *(root->program.body->block.body);
-
-  ASSERT(ast != 0, "string literal found!");
-
-  ASSERT(ast->type == FL_AST_DTOR_VAR, "type: FL_AST_DTOR_VAR");
+  root = fl_parse_utf8("var bool hello;");
+  test_parser_type(root, 0);
   fl_ast_delete(root);
 
   root = fl_parse_utf8("var i8 hello;");
-  ast = *(root->program.body->block.body);
+  test_parser_type(root, 1);
+  fl_ast_delete(root);
 
-  ASSERT(ast != 0, "string literal found!");
+  root = fl_parse_utf8("var u8 hello;");
+  test_parser_type(root, 2);
+  fl_ast_delete(root);
 
-  ASSERT(ast->type == FL_AST_DTOR_VAR, "type: FL_AST_DTOR_VAR");
-  ASSERT(ast->var.type->type == FL_AST_TYPE, "type.type: FL_AST_TYPE");
-  ASSERT(ast->var.type->ty.id == 1, "typeid i8 is 1");
+  root = fl_parse_utf8("var i16 hello;");
+  test_parser_type(root, 3);
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("var i32 hello;");
+  test_parser_type(root, 5);
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("var i64 hello;");
+  test_parser_type(root, 7);
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("var f32 hello;");
+  test_parser_type(root, 9);
   fl_ast_delete(root);
 
   return 0;

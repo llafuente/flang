@@ -115,8 +115,17 @@ PSR_READ_IMPL(lit_array) { return 0; }
 // TODO
 PSR_READ_IMPL(lit_object) { return 0; }
 
+// TODO manage overflow/underflow errors
 PSR_READ_IMPL(lit_numeric) {
   PSR_AST_START(FL_AST_LIT_NUMERIC);
+
+  // null is and alias of 0
+
+  if (PSR_ACCEPT_TOKEN(FL_TK_NULL)) {
+    ast->numeric.value = 0;
+    PSR_NEXT();
+    PSR_AST_RET();
+  }
 
   string* str = state->token->string;
   char* start = str->value;
@@ -131,9 +140,9 @@ PSR_READ_IMPL(lit_numeric) {
         fprintf(stderr, "ERROR! underflow\n");
       }
     }
-    ast->numeric.value = result;
     PSR_NEXT();
 
+    ast->numeric.value = result;
     PSR_AST_RET();
   }
 

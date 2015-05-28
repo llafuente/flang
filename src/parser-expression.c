@@ -98,7 +98,7 @@ PSR_READ_IMPL(expr_assignment_full) {
 PSR_READ_IMPL(expr_lhs) {
   fl_ast_t* ast;
 
-  printf("**expr_lhs %s\n", state->token->string->value);
+  // printf("**expr_lhs %s\n", state->token->string->value);
 
   FL_TRY_READ(expr_call);
   FL_TRY_READ(literal);

@@ -24,30 +24,46 @@
 */
 
 #include "flang.h"
-#include "tasks.h"
 
-// TODO review if ";" is required
-TASK_IMPL(parser_variables) {
-  fl_ast_t* root;
-  fl_ast_t* ast;
+// priv debug
+void print_type(fl_type_t t) {
+  switch (t.of) {
+  case FL_NUMBER:
+    printf("number (%dbits) fp%d signed%d\n", t.number.bits, t.number.fp,
+           t.number.sign);
+    break;
+  }
+}
+// TODO codegen is cached?
+LLVMTypeRef fl_codegen_get_type(fl_ast_t* node) {
+  fl_type_t t = fl_type_table[node->ty.id];
+  if (t.codegen) {
+    return (LLVMTypeRef)t.codegen;
+  }
 
-  root = fl_parse_utf8("var hello;");
-  ast = *(root->program.body->block.body);
+  printf("(codegen) typeid %zu\n", node->ty.id);
 
-  ASSERT(ast != 0, "string literal found!");
+  switch (t.of) {
+  case FL_NUMBER:
+    if (t.number.fp) {
+      switch (t.number.bits) {
+      case 32:
+        t.codegen = (void*)LLVMFloatType();
+        break;
+      case 64:
+        t.codegen = (void*)LLVMDoubleType();
+        break;
+      }
+    } else {
+      t.codegen = (void*)LLVMIntType(t.number.bits);
+    }
+  default:
+    printf("not handled type yet.");
+  }
 
-  ASSERT(ast->type == FL_AST_DTOR_VAR, "type: FL_AST_DTOR_VAR");
-  fl_ast_delete(root);
+  if (!t.codegen) {
+    printf("cannot find LLVM-type");
+  }
 
-  root = fl_parse_utf8("var i8 hello;");
-  ast = *(root->program.body->block.body);
-
-  ASSERT(ast != 0, "string literal found!");
-
-  ASSERT(ast->type == FL_AST_DTOR_VAR, "type: FL_AST_DTOR_VAR");
-  ASSERT(ast->var.type->type == FL_AST_TYPE, "type.type: FL_AST_TYPE");
-  ASSERT(ast->var.type->ty.id == 1, "typeid i8 is 1");
-  fl_ast_delete(root);
-
-  return 0;
+  return (LLVMTypeRef)t.codegen;
 }

@@ -36,19 +36,76 @@ format
   (literal){}      // object
   *(literal)       // raw pointer
   ref<(literal)>   // wrapper
+
+  void - LLVMVoidTypeInContext(state.context)
+
 */
 PSR_READ_IMPL(type) {
   PSR_AST_START(FL_AST_TYPE);
 
   // primitives
-  fl_tokens_t tks[] = {FL_TK_STRING, FL_TK_F64, FL_TK_F32, FL_TK_U64,
-                       FL_TK_U32,    FL_TK_U16, FL_TK_U8,  FL_TK_I64,
-                       FL_TK_I32,    FL_TK_I16, FL_TK_I8,  FL_TK_BOOL};
-  if (!fl_parser_accept_token_list(tokens, state, tks, 12)) {
-    PSR_AST_RET_NULL();
+  fl_tokens_t tk = state->token->type;
+  fl_tokens_t tks[] = {FL_TK_BOOL,
+
+                       FL_TK_I8,     FL_TK_U8,  FL_TK_I16, FL_TK_U16,
+                       FL_TK_I32,    FL_TK_U32, FL_TK_I64, FL_TK_U64,
+
+                       FL_TK_F32,    FL_TK_F64,
+
+                       FL_TK_STRING, FL_TK_VOID};
+
+  size_t i;
+  for (i = 0; i < 13; ++i) {
+    if (tk == tks[i]) {
+      ast->ty.id = i;
+      PSR_NEXT();
+
+      PSR_AST_RET();
+    }
   }
 
-  ast->idtype.of = state->prev_token->type;
+  PSR_AST_RET_NULL();
+}
 
-  PSR_AST_RET();
+fl_type_t* fl_type_table = 0;
+
+void fl_parser_init_types() {
+  if (!fl_type_table) {
+    printf("\n\n\n*****INIT TABLE****\n\n\n");
+    fl_type_table = calloc(sizeof(fl_type_t), 100);
+    // [0] bool
+    fl_type_table[0].of = FL_NUMBER;
+    fl_type_table[0].number.bits = 1;
+    fl_type_table[0].number.fp = false;
+    fl_type_table[0].number.sign = false;
+    // [1-8] i8,u8,i16,u16,i32,u32,i64,u64
+    size_t i = 1;
+    size_t id = 1;
+    for (; i < 5; i++) {
+      fl_type_table[id].of = FL_NUMBER;
+      fl_type_table[id].number.bits = i * 8;
+      fl_type_table[id].number.fp = false;
+      fl_type_table[id].number.sign = false;
+      ++id;
+      fl_type_table[id].of = FL_NUMBER;
+      fl_type_table[id].number.bits = i * 8;
+      fl_type_table[id].number.fp = false;
+      fl_type_table[id].number.sign = true;
+      ++id;
+    }
+
+    // [9] f32
+    fl_type_table[id].of = FL_NUMBER;
+    fl_type_table[id].number.bits = 32;
+    fl_type_table[id].number.fp = true;
+    fl_type_table[id].number.sign = true;
+    ++id;
+
+    // [10] f64
+    fl_type_table[id].of = FL_NUMBER;
+    fl_type_table[id].number.bits = 64;
+    fl_type_table[id].number.fp = true;
+    fl_type_table[id].number.sign = true;
+    ++id;
+  }
 }

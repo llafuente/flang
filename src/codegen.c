@@ -76,14 +76,13 @@ void fl_interpreter(LLVMModuleRef module) {
 
   LLVMDisposeMessage(err);
 
-
-/*
-  LLVMGenericValueRef main_args[] = {
-      LLVMCreateGenericValueOfPointer(0),
-      LLVMCreateGenericValueOfInt(LLVMInt32Type(), 0, false)};
-*/
+  /*
+    LLVMGenericValueRef main_args[] = {
+        LLVMCreateGenericValueOfPointer(0),
+        LLVMCreateGenericValueOfInt(LLVMInt32Type(), 0, false)};
+  */
   LLVMGenericValueRef res =
-  LLVMRunFunction(interp, LLVMGetNamedFunction(module, "main"), 0, 0);
+      LLVMRunFunction(interp, LLVMGetNamedFunction(module, "main"), 0, 0);
 
   LLVMDisposeExecutionEngine(interp);
   LLVMDisposeModule(module);
@@ -92,8 +91,8 @@ void fl_interpreter(LLVMModuleRef module) {
 bool fl_bitcode(LLVMModuleRef module, char* file) {
   // Write out bitcode to file
   if (LLVMWriteBitcodeToFile(module, file) != 0) {
-      fprintf(stderr, "error writing bitcode to file '%s'\n", file);
-      return false;
+    fprintf(stderr, "error writing bitcode to file '%s'\n", file);
+    return false;
   }
   return true;
 }
@@ -277,53 +276,6 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
   default:
     fprintf(stderr, "(codegen) binop not supported: %d\n",
             node->binop.operator);
-  }
-
-  return 0;
-}
-
-LLVMTypeRef fl_codegen_get_type(fl_ast_t* node) {
-  switch (node->idtype.of) {
-  case FL_TK_BOOL:
-    return LLVMIntType(1);
-    break;
-  case FL_TK_I8:
-    return LLVMIntType(8);
-    break;
-  case FL_TK_I16:
-    return LLVMIntType(16);
-    break;
-  case FL_TK_I32:
-    return LLVMIntType(32);
-    break;
-  case FL_TK_I64:
-    return LLVMIntType(64);
-    break;
-  case FL_TK_U8:
-    return LLVMIntType(8);
-    break;
-  case FL_TK_U16:
-    return LLVMIntType(16);
-    break;
-  case FL_TK_U32:
-    return LLVMIntType(32);
-    break;
-  case FL_TK_U64:
-    return LLVMIntType(64);
-    break;
-  // LLVMHalfType
-  case FL_TK_F32:
-    return LLVMFloatType();
-    break;
-  case FL_TK_F64:
-    return LLVMDoubleType();
-    break;
-  case FL_TK_STRING:
-    return LLVMDoubleType();
-    break;
-  default:
-    fputs("undefined type\n", stderr);
-    exit(1);
   }
 
   return 0;
