@@ -74,5 +74,14 @@ TASK_IMPL(parser_types) {
   test_parser_type(root, 9);
   fl_ast_delete(root);
 
+  root = fl_parse_utf8("var ptr<f32> hello;");
+  test_parser_type(root, 12);
+  fl_ast_delete(root);
+
+  // unique echeck!
+  root = fl_parse_utf8("var ptr<f32> hello;");
+  test_parser_type(root, 12);
+  fl_ast_delete(root);
+
   return 0;
 }

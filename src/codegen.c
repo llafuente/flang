@@ -242,7 +242,15 @@ LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
   LLVMValueRef right =
       fl_codegen_ast(node->assignament.right, FL_CODEGEN_PASSTHROUGH);
 
-  return LLVMBuildStore(builder, right, left);
+  LLVMValueRef assign = LLVMBuildStore(builder, right, left);
+
+  // TODO this is a nice hack but need to be refactored
+  // TODO mark variable as dirty
+  if (fl_ast_is_pointer(left_ast)) {
+    left_ast->codegen = LLVMBuildLoad( builder, left_ast->codegen, "load" );
+  }
+  //maybe return the load!?
+  return assign;
 }
 
 LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {

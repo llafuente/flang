@@ -29,6 +29,7 @@
 // TODO review if ";" is required
 TASK_IMPL(codegen_functions) {
   fl_ast_t* root;
+  LLVMModuleRef module;
 
   root = fl_parse_utf8("fn x(f64 arg1, f64 arg2) : f64 { return arg1 + arg2;}");
 
@@ -45,10 +46,19 @@ TASK_IMPL(codegen_functions) {
 
   root = fl_parse_utf8("printf('%s\n', 'hello');");
 
-  LLVMModuleRef module = fl_codegen(root, "test");
+  module = fl_codegen(root, "test");
 
   // fl_interpreter(module);
   fl_bitcode(module, "hello-world.bc");
+
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("var ptr<i8> str; str = 'hello'; printf('%s\n', str);");
+
+  module = fl_codegen(root, "test");
+
+  // fl_interpreter(module);
+  fl_bitcode(module, "hello-world-ptr.bc");
 
   fl_ast_delete(root);
 

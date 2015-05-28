@@ -34,16 +34,25 @@ void print_type(fl_type_t t) {
     break;
   }
 }
-// TODO codegen is cached?
+
 LLVMTypeRef fl_codegen_get_type(fl_ast_t* node) {
-  fl_type_t t = fl_type_table[node->ty.id];
+  return fl_codegen_get_typeid(node->ty.id);
+}
+
+LLVMTypeRef fl_codegen_get_typeid(size_t id) {
+  // TODO codegen is cached?
+  fl_type_t t = fl_type_table[id];
+
   if (t.codegen) {
     return (LLVMTypeRef)t.codegen;
   }
 
-  printf("(codegen) typeid %zu\n", node->ty.id);
+  printf("(codegen) typeid %zu\n", id);
 
   switch (t.of) {
+  case FL_VOID:
+    t.codegen = (void*)LLVMVoidType();
+  break;
   case FL_NUMBER:
     if (t.number.fp) {
       switch (t.number.bits) {
@@ -57,6 +66,10 @@ LLVMTypeRef fl_codegen_get_type(fl_ast_t* node) {
     } else {
       t.codegen = (void*)LLVMIntType(t.number.bits);
     }
+  break;
+  case FL_POINTER:
+    t.codegen = (void*)LLVMPointerType(fl_codegen_get_typeid(t.ptr.to), 0);
+    break;
   default:
     printf("not handled type yet.");
   }

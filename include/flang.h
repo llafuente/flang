@@ -382,12 +382,12 @@ struct fl_type {
     } number;
 
     struct fl_type_pointer {
-      struct fl_type* to;
+      size_t to;
     } ptr;
 
     struct fl_type_vector {
       size_t size;
-      struct fl_type* child;
+      size_t to;
     } vector;
 
     struct fl_type_function {
@@ -632,6 +632,8 @@ PSR_READ_DECL(decl_variable_with_type);
 
 PSR_READ_DECL(type);
 extern fl_type_t* fl_type_table;
+extern size_t fl_type_size;
+size_t fl_parser_get_typeid(fl_types_t wrapper, size_t child);
 void fl_parser_init_types();
 
 /* cldoc:end-category() */
@@ -663,6 +665,8 @@ FL_EXTERN void fl_ast_parent(fl_ast_t* root);
 
 FL_EXTERN fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name);
 
+FL_EXTERN bool fl_ast_is_pointer(fl_ast_t* node);
+
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(codegen.c) */
@@ -683,5 +687,5 @@ FL_EXTERN LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER);
 /* cldoc:begin-category(codegen-type.c) */
 
 FL_EXTERN LLVMTypeRef fl_codegen_get_type(fl_ast_t* node);
-
+FL_EXTERN LLVMTypeRef fl_codegen_get_typeid(size_t id);
 /* cldoc:end-category() */

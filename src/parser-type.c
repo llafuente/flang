@@ -52,10 +52,10 @@ PSR_READ_IMPL(type) {
 
                        FL_TK_F32,    FL_TK_F64,
 
-                       FL_TK_STRING, FL_TK_VOID};
+                       FL_TK_VOID};
 
   size_t i;
-  for (i = 0; i < 13; ++i) {
+  for (i = 0; i < 12; ++i) {
     if (tk == tks[i]) {
       ast->ty.id = i;
       PSR_NEXT();
@@ -64,10 +64,63 @@ PSR_READ_IMPL(type) {
     }
   }
 
+  // primitive fail, try wrapper
+  fl_ast_t* id = PSR_READ(lit_identifier);
+  if (!id) {
+    PSR_AST_RET_NULL();
+  }
+
+  fl_parser_skipws(tokens, state);
+
+  if (PSR_ACCEPT_TOKEN(FL_TK_LT)) {
+    fl_parser_skipws(tokens, state);
+
+    fl_ast_t* child = PSR_READ(type);
+    if (child->type == FL_AST_ERROR) {
+      fl_ast_delete(id);
+      return child;
+    }
+
+    fl_parser_skipws(tokens, state);
+
+    if (!PSR_ACCEPT_TOKEN(FL_TK_GT)) {
+      //hard
+      fl_ast_delete(id);
+      fl_ast_delete(child);
+      PSR_SYNTAX_ERROR(ast, "expected '>'");
+    }
+
+    // unroll recursion, creating new types
+    // handle "primitive" defined wrappers
+    if (strcmp(id->identifier.string->value, "ptr") == 0) {
+      ast->ty.id = fl_parser_get_typeid(FL_POINTER, child->ty.id);
+    }
+
+    if (strcmp(id->identifier.string->value, "vector") == 0) {
+      ast->ty.id = fl_parser_get_typeid(FL_VECTOR, child->ty.id);
+    }
+
+    // TODO handle user defined wrappers
+    // TODO handle builtin defined wrappers
+
+    // void is a primitive will never reach here, it's safe to check != 0
+    fl_ast_delete(child);
+
+    if (ast->ty.id) {
+      fl_ast_delete(id);
+      PSR_AST_RET();
+    }
+    // do something?!
+  }
+
+  fl_ast_delete(id);
+  //TODO handle this could be user defined type
+
   PSR_AST_RET_NULL();
 }
 
 fl_type_t* fl_type_table = 0;
+size_t fl_type_size = 0;
 
 void fl_parser_init_types() {
   if (!fl_type_table) {
@@ -107,5 +160,35 @@ void fl_parser_init_types() {
     fl_type_table[id].number.fp = true;
     fl_type_table[id].number.sign = true;
     ++id;
+
+    fl_type_table[id].of = FL_VOID;
+    fl_type_size = ++id;
   }
+}
+
+
+size_t fl_parser_get_typeid(fl_types_t wrapper, size_t child) {
+  size_t i;
+
+  for (i = 0; i < fl_type_size; ++i)  {
+    if (fl_type_table[i].of == wrapper && fl_type_table[i].ptr.to == child) {
+      return i;
+    }
+  }
+  // add it!
+  i = fl_type_size++;
+  switch (wrapper) {
+    case FL_POINTER:
+      fl_type_table[i].of = wrapper;
+      fl_type_table[i].ptr.to = child;
+    break;
+    case FL_VECTOR:
+    fl_type_table[i].of = wrapper;
+    fl_type_table[i].vector.size = 0;
+    fl_type_table[i].vector.to = child;
+    break;
+    break;
+  }
+
+  return i;
 }

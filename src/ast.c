@@ -351,3 +351,14 @@ fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {
 
   return 0;
 }
+
+bool fl_ast_is_pointer(fl_ast_t* node) {
+  // check AST is somewhat "type-related"
+  switch (node->type) {
+    case FL_AST_DTOR_VAR: {
+      size_t id = node->var.type->ty.id;
+      return fl_type_table[id].of == FL_POINTER;
+    }
+  }
+  printf(stderr, "ast is not type related!");
+}
