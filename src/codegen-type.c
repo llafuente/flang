@@ -52,7 +52,7 @@ LLVMTypeRef fl_codegen_get_typeid(size_t id) {
   switch (t.of) {
   case FL_VOID:
     t.codegen = (void*)LLVMVoidType();
-  break;
+    break;
   case FL_NUMBER:
     if (t.number.fp) {
       switch (t.number.bits) {
@@ -66,7 +66,7 @@ LLVMTypeRef fl_codegen_get_typeid(size_t id) {
     } else {
       t.codegen = (void*)LLVMIntType(t.number.bits);
     }
-  break;
+    break;
   case FL_POINTER:
     t.codegen = (void*)LLVMPointerType(fl_codegen_get_typeid(t.ptr.to), 0);
     break;

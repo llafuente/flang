@@ -34,8 +34,6 @@ int main(int argc, const char* argv[]) {
   printf("    ## unit test ##\n");
   printf("    ###############\n");
 
-  TASK_RUN(parser_types);
-
   TASK_RUN(tokenizer);
 
   TASK_RUN(parser_utils);
@@ -43,9 +41,12 @@ int main(int argc, const char* argv[]) {
   TASK_RUN(parser_expressions);
   TASK_RUN(parser_variables);
   TASK_RUN(parser_functions);
+  TASK_RUN(parser_types);
 
   TASK_RUN(codegen_expressions);
   TASK_RUN(codegen_functions);
+
+  TASK_RUN(flang_files);
 
   printf("OK\n");
 

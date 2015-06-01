@@ -149,5 +149,11 @@ TASK_IMPL(parser_expressions) {
   ASSERT(ast->type == FL_AST_EXPR_CALL, "FL_AST_EXPR_CALL");
   fl_ast_delete(root);
 
+  // double assignament
+  root = fl_parse_utf8("var x; var y; x = y = 1;"); // ws test
+  ast = *(root->program.body->block.body);
+  ASSERT(ast != 0, "parsed");
+  fl_ast_delete(root);
+
   return 0;
 }

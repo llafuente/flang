@@ -60,11 +60,9 @@ fl_ast_t* fl_parser(fl_token_list_t* tokens) {
   return ast;
 }
 
-fl_ast_t* fl_parse_utf8(char* str) {
-  string* code;
+fl_ast_t* fl_parse(string* code) {
   fl_token_list_t* tokens;
 
-  code = st_newc(str, st_enc_utf8);
   tokens = fl_tokenize(code);
 
   fl_ast_t* root = fl_parser(tokens);
@@ -76,4 +74,12 @@ fl_ast_t* fl_parse_utf8(char* str) {
 #endif
 
   return root;
+}
+
+fl_ast_t* fl_parse_utf8(char* str) {
+  string* code;
+
+  code = st_newc(str, st_enc_utf8);
+
+  return fl_parse(code);
 }

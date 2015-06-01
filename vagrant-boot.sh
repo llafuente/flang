@@ -7,6 +7,7 @@ echo "hello world!"
 sh /vagrant/llvm.sh
 
 cd /tmp
+rm -rf string.c
 git clone https://github.com/llafuente/string.c.git
 cd string.c
 sh autogen.sh

@@ -88,12 +88,23 @@ void fl_interpreter(LLVMModuleRef module) {
   LLVMDisposeModule(module);
 }
 
-bool fl_bitcode(LLVMModuleRef module, char* file) {
+bool fl_to_bitcode(LLVMModuleRef module, char* filename) {
   // Write out bitcode to file
-  if (LLVMWriteBitcodeToFile(module, file) != 0) {
-    fprintf(stderr, "error writing bitcode to file '%s'\n", file);
+  if (LLVMWriteBitcodeToFile(module, filename) != 0) {
+    fprintf(stderr, "error writing bitcode to file '%s'\n", filename);
     return false;
   }
+  return true;
+}
+
+// TODO check file, return false!
+bool fl_to_ir(LLVMModuleRef module, char* filename) {
+  char* irstr = LLVMPrintModuleToString(module);
+  FILE* f = fopen(filename, "w");
+  fputs(irstr, f);
+  fclose(f);
+  LLVMDisposeMessage(irstr);
+
   return true;
 }
 
@@ -246,10 +257,11 @@ LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
 
   // TODO this is a nice hack but need to be refactored
   // TODO mark variable as dirty
-  if (fl_ast_is_pointer(left_ast)) {
-    left_ast->codegen = LLVMBuildLoad( builder, left_ast->codegen, "load" );
-  }
-  //maybe return the load!?
+  // TODO review, seams to be always necessary
+  // if (fl_ast_is_pointer(left_ast)) {
+  //}
+  left_ast->codegen = LLVMBuildLoad(builder, left_ast->codegen, "load");
+  // maybe return the load!?
   return assign;
 }
 

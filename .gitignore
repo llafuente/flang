@@ -9,6 +9,11 @@
 /string_test_mem
 /string_test_c
 /build
+/test/fl/*.bc
+#llvm-ir test created
+/test/fl/*.ir
+#llvm-ir clang created
+/test/fl/*.ll
 
 #documentation
 /docs

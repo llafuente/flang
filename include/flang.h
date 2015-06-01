@@ -531,7 +531,8 @@ FL_EXTERN fl_token_list_t* fl_tokenize(string* file);
 
 FL_EXTERN fl_ast_t* fl_parser(fl_token_list_t* tokens);
 
-FL_EXTERN fl_ast_t* fl_parse(string* str);
+FL_EXTERN fl_ast_t* fl_parse(string* code);
+
 FL_EXTERN fl_ast_t* fl_parse_utf8(char* str);
 
 /* cldoc:end-category() */
@@ -671,7 +672,9 @@ FL_EXTERN bool fl_ast_is_pointer(fl_ast_t* node);
 
 /* cldoc:begin-category(codegen.c) */
 FL_EXTERN void fl_interpreter(LLVMModuleRef module);
-FL_EXTERN bool fl_bitcode(LLVMModuleRef module, char* file);
+FL_EXTERN bool fl_to_bitcode(LLVMModuleRef module, char* filename);
+FL_EXTERN bool fl_to_ir(LLVMModuleRef module, char* filename);
+
 FL_EXTERN LLVMModuleRef fl_codegen(fl_ast_t* root, char* module_name);
 FL_EXTERN LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER);

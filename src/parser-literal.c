@@ -67,7 +67,8 @@ PSR_READ_IMPL(lit_string_sq) {
   if (!PSR_ACCEPT_TOKEN(FL_TK_SQUOTE)) {
     PSR_AST_RET_NULL();
   }
-  ast->string.value = state->token->string;
+
+  ast->string.value = st_unescape(state->token->string);
   PSR_NEXT();
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_SQUOTE)) {
@@ -83,7 +84,7 @@ PSR_READ_IMPL(lit_string_dq) {
   if (!PSR_ACCEPT_TOKEN(FL_TK_DQUOTE)) {
     PSR_AST_RET_NULL();
   }
-  ast->string.value = state->token->string;
+  ast->string.value = st_unescape(state->token->string);
   PSR_NEXT();
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_DQUOTE)) {

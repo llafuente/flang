@@ -49,7 +49,7 @@ TASK_IMPL(codegen_functions) {
   module = fl_codegen(root, "test");
 
   // fl_interpreter(module);
-  fl_bitcode(module, "hello-world.bc");
+  fl_to_bitcode(module, "hello-world.bc");
 
   fl_ast_delete(root);
 
@@ -58,7 +58,7 @@ TASK_IMPL(codegen_functions) {
   module = fl_codegen(root, "test");
 
   // fl_interpreter(module);
-  fl_bitcode(module, "hello-world-ptr.bc");
+  fl_to_bitcode(module, "hello-world-ptr.bc");
 
   fl_ast_delete(root);
 

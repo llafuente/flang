@@ -47,10 +47,10 @@ PSR_READ_IMPL(type) {
   fl_tokens_t tk = state->token->type;
   fl_tokens_t tks[] = {FL_TK_BOOL,
 
-                       FL_TK_I8,     FL_TK_U8,  FL_TK_I16, FL_TK_U16,
-                       FL_TK_I32,    FL_TK_U32, FL_TK_I64, FL_TK_U64,
+                       FL_TK_I8,   FL_TK_U8,  FL_TK_I16, FL_TK_U16,
+                       FL_TK_I32,  FL_TK_U32, FL_TK_I64, FL_TK_U64,
 
-                       FL_TK_F32,    FL_TK_F64,
+                       FL_TK_F32,  FL_TK_F64,
 
                        FL_TK_VOID};
 
@@ -84,7 +84,7 @@ PSR_READ_IMPL(type) {
     fl_parser_skipws(tokens, state);
 
     if (!PSR_ACCEPT_TOKEN(FL_TK_GT)) {
-      //hard
+      // hard
       fl_ast_delete(id);
       fl_ast_delete(child);
       PSR_SYNTAX_ERROR(ast, "expected '>'");
@@ -114,7 +114,7 @@ PSR_READ_IMPL(type) {
   }
 
   fl_ast_delete(id);
-  //TODO handle this could be user defined type
+  // TODO handle this could be user defined type
 
   PSR_AST_RET_NULL();
 }
@@ -166,11 +166,10 @@ void fl_parser_init_types() {
   }
 }
 
-
 size_t fl_parser_get_typeid(fl_types_t wrapper, size_t child) {
   size_t i;
 
-  for (i = 0; i < fl_type_size; ++i)  {
+  for (i = 0; i < fl_type_size; ++i) {
     if (fl_type_table[i].of == wrapper && fl_type_table[i].ptr.to == child) {
       return i;
     }
@@ -178,11 +177,11 @@ size_t fl_parser_get_typeid(fl_types_t wrapper, size_t child) {
   // add it!
   i = fl_type_size++;
   switch (wrapper) {
-    case FL_POINTER:
-      fl_type_table[i].of = wrapper;
-      fl_type_table[i].ptr.to = child;
+  case FL_POINTER:
+    fl_type_table[i].of = wrapper;
+    fl_type_table[i].ptr.to = child;
     break;
-    case FL_VECTOR:
+  case FL_VECTOR:
     fl_type_table[i].of = wrapper;
     fl_type_table[i].vector.size = 0;
     fl_type_table[i].vector.to = child;
