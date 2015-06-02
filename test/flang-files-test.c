@@ -126,11 +126,11 @@ TASK_IMPL(flang_files) {
     string* output = execute(cmd);
     string* output_cmp = file_to_string(txt_file);
 
-    // printf("output \n--\n%s\n--\n", output->value);
     // printf("output-cmd \n--\n%s\n--\n", output_cmp->value);
 
     if (strcmp(output->value, output_cmp->value) != 0) {
       // save output to diff!
+      printf("output \n--\n%s\n--\n", output->value);
 
       ASSERT(false, files[i]);
       assert(false);

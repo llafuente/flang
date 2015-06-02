@@ -243,7 +243,8 @@ enum fl_ast_type {
   FL_AST_PARAMETER = 51,
   FL_AST_STMT_RETURN = 52,
 
-  FL_AST_STMT_LOG = 100,
+  FL_AST_STMT_COMMENT = 100,
+  FL_AST_STMT_LOG = 101,
 
   FL_AST_ERROR = 255
 };
@@ -340,6 +341,10 @@ struct fl_ast {
       struct fl_ast** arguments;
       size_t narguments;
     } call;
+
+    struct fl_ast_stmt_comment {
+      string* text;
+    } comment;
   };
 };
 
@@ -649,6 +654,13 @@ PSR_READ_DECL(parameter);
 
 /* cldoc:end-category() */
 
+/* cldoc:begin-category(parser-comment.c) */
+
+PSR_READ_DECL(comment);
+
+/* cldoc:end-category() */
+
+
 /* cldoc:begin-category(ast.c) */
 
 typedef void (*fl_ast_cb_t)(fl_ast_t* node, fl_ast_t* parent, size_t level);
@@ -666,14 +678,15 @@ FL_EXTERN void fl_ast_parent(fl_ast_t* root);
 
 FL_EXTERN fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name);
 
+FL_EXTERN bool fl_ast_get_typeid(fl_ast_t* node);
 FL_EXTERN bool fl_ast_is_pointer(fl_ast_t* node);
 
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(codegen.c) */
 FL_EXTERN void fl_interpreter(LLVMModuleRef module);
-FL_EXTERN bool fl_to_bitcode(LLVMModuleRef module, char* filename);
-FL_EXTERN bool fl_to_ir(LLVMModuleRef module, char* filename);
+FL_EXTERN bool fl_to_bitcode(LLVMModuleRef module, const char* filename);
+FL_EXTERN bool fl_to_ir(LLVMModuleRef module, const char* filename);
 
 FL_EXTERN LLVMModuleRef fl_codegen(fl_ast_t* root, char* module_name);
 FL_EXTERN LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER);
@@ -691,4 +704,6 @@ FL_EXTERN LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER);
 
 FL_EXTERN LLVMTypeRef fl_codegen_get_type(fl_ast_t* node);
 FL_EXTERN LLVMTypeRef fl_codegen_get_typeid(size_t id);
+FL_EXTERN LLVMValueRef fl_codegen_cast(LLVMBuilderRef builder, size_t current, size_t expected, LLVMValueRef value);
+
 /* cldoc:end-category() */

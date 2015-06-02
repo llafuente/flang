@@ -214,8 +214,8 @@ fl_token_list_t* fl_tokenize(string* file) {
     }
   }
 
-#ifdef FL_VERBOSE
   fl_tokens_debug(tokens);
+#ifdef FL_VERBOSE
 #endif
 
   return tokens;

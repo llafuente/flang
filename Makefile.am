@@ -11,6 +11,7 @@ COMPILER_SOURCES = src/tokenizer.c \
                 src/parser-variable.c \
                 src/parser-function.c \
                 src/parser-type.c \
+                src/parser-comment.c \
                 src/codegen.c \
                 src/codegen-type.c \
                 src/ast.c

@@ -309,6 +309,9 @@ void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
   case FL_AST_ERROR:
     printf("%*s- ERROR %s [%p]\n", (int)level, " ", node->err.str, node);
     break;
+    case FL_AST_STMT_COMMENT:
+      printf("%*s- comment %s [%p]\n", (int)level, " ", node->comment.text->value, node);
+      break;
   default: {}
   }
 
@@ -355,13 +358,18 @@ fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {
   return 0;
 }
 
-bool fl_ast_is_pointer(fl_ast_t* node) {
+bool fl_ast_get_typeid(fl_ast_t* node) {
   // check AST is somewhat "type-related"
   switch (node->type) {
-  case FL_AST_DTOR_VAR: {
-    size_t id = node->var.type->ty.id;
-    return fl_type_table[id].of == FL_POINTER;
+  case FL_AST_DTOR_VAR:
+    return node->var.type->ty.id;
+  default:
+    fprintf(stderr, "ast is not type related!");
+    exit(1);
   }
-  }
-  fprintf(stderr, "ast is not type related!");
+}
+
+bool fl_ast_is_pointer(fl_ast_t* node) {
+  size_t id = fl_ast_get_typeid(node);
+  return fl_type_table[id].of == FL_POINTER;
 }

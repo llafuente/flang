@@ -88,7 +88,7 @@ void fl_interpreter(LLVMModuleRef module) {
   LLVMDisposeModule(module);
 }
 
-bool fl_to_bitcode(LLVMModuleRef module, char* filename) {
+bool fl_to_bitcode(LLVMModuleRef module, const char* filename) {
   // Write out bitcode to file
   if (LLVMWriteBitcodeToFile(module, filename) != 0) {
     fprintf(stderr, "error writing bitcode to file '%s'\n", filename);
@@ -98,7 +98,7 @@ bool fl_to_bitcode(LLVMModuleRef module, char* filename) {
 }
 
 // TODO check file, return false!
-bool fl_to_ir(LLVMModuleRef module, char* filename) {
+bool fl_to_ir(LLVMModuleRef module, const char* filename) {
   char* irstr = LLVMPrintModuleToString(module);
   FILE* f = fopen(filename, "w");
   fputs(irstr, f);
@@ -253,6 +253,11 @@ LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
   LLVMValueRef right =
       fl_codegen_ast(node->assignament.right, FL_CODEGEN_PASSTHROUGH);
 
+  // TODO binop casting!
+  //size_t ltype = fl_ast_get_typeid(left);
+  //size_t rtype = fl_ast_get_typeid(right);
+  //size_t rtype = fl_ast_get_typeid(right);
+
   LLVMValueRef assign = LLVMBuildStore(builder, right, left);
 
   // TODO this is a nice hack but need to be refactored
@@ -281,18 +286,30 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
   // Create different IR code depending on the operator.
   switch (node->binop.operator) {
   case FL_TK_PLUS: {
-    printf("addtmp\n");
-    return LLVMBuildFAdd(builder, lhs, rhs, "addtmp");
+    return LLVMBuildFAdd(builder, lhs, rhs, "add");
   }
   case FL_TK_MINUS: {
-    return LLVMBuildFSub(builder, lhs, rhs, "subtmp");
+    return LLVMBuildFSub(builder, lhs, rhs, "sub");
   }
   case FL_TK_ASTERISK: {
-    return LLVMBuildFMul(builder, lhs, rhs, "multmp");
+    return LLVMBuildFMul(builder, lhs, rhs, "mul");
   }
   case FL_TK_SLASH: {
-    return LLVMBuildFDiv(builder, lhs, rhs, "divtmp");
+    return LLVMBuildFDiv(builder, lhs, rhs, "div");
   }
+  case FL_TK_MOD: {
+    return LLVMBuildFRem(builder, lhs, rhs, "mod");
+  }
+  case FL_TK_AND: {
+    return LLVMBuildAnd(builder, lhs, rhs, "and");
+  }
+  case FL_TK_OR: {
+    return LLVMBuildOr(builder, lhs, rhs, "or");
+  }
+  case FL_TK_CARET: {
+    return LLVMBuildXor(builder, lhs, rhs, "xor");
+  }
+
   default:
     fprintf(stderr, "(codegen) binop not supported: %d\n",
             node->binop.operator);

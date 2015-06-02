@@ -29,7 +29,7 @@
 void print_type(fl_type_t t) {
   switch (t.of) {
   case FL_NUMBER:
-    printf("number (%dbits) fp%d signed%d\n", t.number.bits, t.number.fp,
+    printf("number (%dbits) fp%d sign%d\n", t.number.bits, t.number.fp,
            t.number.sign);
     break;
   }
@@ -79,4 +79,71 @@ LLVMTypeRef fl_codegen_get_typeid(size_t id) {
   }
 
   return (LLVMTypeRef)t.codegen;
+}
+
+
+LLVMValueRef fl_codegen_cast(LLVMBuilderRef builder, size_t current, size_t expected, LLVMValueRef value) {
+  if (expected == current) {
+    return value;
+  }
+
+  fl_type_t ex_type = fl_type_table[current];
+  fl_type_t cu_type = fl_type_table[expected];
+
+  if (ex_type.of == cu_type.of) {
+    switch(ex_type.of) {
+      case FL_NUMBER:
+        // fptosi
+        if (cu_type.number.fp && !ex_type.number.fp) {
+          if (ex_type.number.sign) {
+            return  LLVMBuildFPToSI(builder, value, fl_codegen_get_typeid(expected), "cast");
+          }
+
+          return  LLVMBuildFPToUI(builder, value, fl_codegen_get_typeid(expected), "cast");
+        }
+
+        // sitofp
+        if (!cu_type.number.fp && ex_type.number.fp) {
+          if (ex_type.number.sign) {
+            return  LLVMBuildSIToFP(builder, value, fl_codegen_get_typeid(expected), "cast");
+          }
+
+          return  LLVMBuildUIToFP(builder, value, fl_codegen_get_typeid(expected), "cast");
+        }
+
+        // LLVMBuildFPTrunc
+
+        bool fp = cu_type.number.fp;
+
+        // upcast
+        if (cu_type.number.bits < ex_type.number.bits) {
+          if (fp) {
+            return  LLVMBuildFPExt(builder, value, fl_codegen_get_typeid(expected), "cast");
+          }
+
+          // sign -> sign
+          if (
+            (cu_type.number.sign && ex_type.number.sign) ||
+            (!cu_type.number.sign && ex_type.number.sign)
+          ) {
+            return  LLVMBuildSExt(builder, value, fl_codegen_get_typeid(expected), "cast");
+          }
+
+          return  LLVMBuildZExt(builder, value, fl_codegen_get_typeid(expected), "cast");
+        }
+
+        // downcast / truncate
+        if (cu_type.number.bits > ex_type.number.bits) {
+          if (fp) {
+            return LLVMBuildFPTrunc(builder, value, fl_codegen_get_typeid(expected), "cast");
+          }
+          return LLVMBuildTrunc(builder, value, fl_codegen_get_typeid(expected), "cast");
+        }
+      break;
+    }
+  }
+
+  fprintf(stderr, "invalid casting");
+  exit(1);
+  //LLVMBuildSIToFP(LLVMBuilderRef B, LLVMValueRef Val, LLVMTypeRef DestTy, const char *Name)
 }
