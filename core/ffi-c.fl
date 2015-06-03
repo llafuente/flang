@@ -1,0 +1,1 @@
+ffi fn printf(ptr<i8> format, ...) : i32;

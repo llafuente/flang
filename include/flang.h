@@ -559,6 +559,10 @@ FL_EXTERN fl_ast_t* fl_parse(string* code);
 
 FL_EXTERN fl_ast_t* fl_parse_utf8(char* str);
 
+FL_EXTERN fl_ast_t* fl_parse_file(char* filename, bool core);
+
+FL_EXTERN void fl_parse_core(fl_ast_t* ast);
+
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(parser-utils.c) */

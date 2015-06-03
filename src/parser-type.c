@@ -174,15 +174,15 @@ void fl_parser_init_types() {
     fl_type_table[id].number.fp = false;
     fl_type_table[id].number.sign = false;
     // [1-8] i8,u8,i16,u16,i32,u32,i64,u64
-    size_t i = 1;
-    for (; i < 5; i++) {
+    size_t i = 3;
+    for (; i < 7; i++) {
       fl_type_table[++id].of = FL_NUMBER;
-      fl_type_table[id].number.bits = i * 8;
+      fl_type_table[id].number.bits = pow(2, i);
       fl_type_table[id].number.fp = false;
       fl_type_table[id].number.sign = false;
 
       fl_type_table[++id].of = FL_NUMBER;
-      fl_type_table[id].number.bits = i * 8;
+      fl_type_table[id].number.bits = pow(2, i);
       fl_type_table[id].number.fp = false;
       fl_type_table[id].number.sign = true;
     }

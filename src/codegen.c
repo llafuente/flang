@@ -132,12 +132,6 @@ LLVMModuleRef fl_codegen(fl_ast_t* root, char* module_name) {
     LLVMAddCFGSimplificationPass(pass_manager);
     LLVMInitializeFunctionPassManager(pass_manager);
   */
-  LLVMTypeRef printf_args[] = {LLVMPointerType(LLVMInt8Type(), 0)};
-  LLVMValueRef printf =
-      LLVMAddFunction(module, "printf",
-                      LLVMFunctionType(LLVMInt32Type(), printf_args, 1, true));
-  LLVMSetFunctionCallConv(printf, LLVMCCallConv);
-  LLVMSetLinkage(printf, LLVMExternalLinkage);
 
   // create main
   LLVMValueRef main = LLVMAddFunction(
@@ -178,6 +172,11 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
 
   switch (node->type) {
   case FL_AST_PROGRAM:
+    if (node->program.core) {
+      printf("WTF! THE CORE IS HERE***\n***\n***\n");
+      fl_codegen_ast(node->program.core, FL_CODEGEN_PASSTHROUGH);
+    }
+
     return fl_codegen_ast(node->program.body, FL_CODEGEN_PASSTHROUGH);
   case FL_AST_BLOCK: {
     size_t i = 0;
@@ -378,6 +377,7 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
 
   LLVMValueRef func = LLVMAddFunction(
       module, node->func.id->identifier.string->value, ret_type);
+  LLVMSetFunctionCallConv(func, LLVMCCallConv);
   LLVMSetLinkage(func, LLVMExternalLinkage);
 
   i = 0;
@@ -428,12 +428,17 @@ LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER) {
       arguments[i++] = value;
     }
   }
+  LLVMValueRef fn = LLVMGetNamedFunction(module, node->call.callee->identifier.string->value);
+  if (!fn) {
+    fprintf(stderr, "function %s not found\n", node->call.callee->identifier.string->value);
+    exit(1);
+  }
 
   return LLVMBuildCall(
       builder,
-      LLVMGetNamedFunction(module, node->call.callee->identifier.string->value),
+      fn,
       arguments, node->call.narguments,
-      node->call.callee->identifier.string->value);
+      "call");
 
   /*
   LLVMValueRef argument =

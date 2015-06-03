@@ -30,6 +30,7 @@ PSR_READ_IMPL(decl_function) {
 
   if (PSR_ACCEPT_TOKEN(FL_TK_FFI_C)) {
     ast->func.ffi = true;
+    fl_parser_skipws(tokens, state);
   }
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_FUNCTION)) {

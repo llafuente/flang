@@ -45,6 +45,7 @@ TASK_IMPL(codegen_functions) {
   fl_ast_delete(root);
 
   root = fl_parse_utf8("printf('%s\n', 'hello');");
+  fl_parse_core(root);
 
   module = fl_codegen(root, "test");
 
@@ -54,6 +55,7 @@ TASK_IMPL(codegen_functions) {
   fl_ast_delete(root);
 
   root = fl_parse_utf8("var ptr<i8> str; str = 'hello'; printf('%s\n', str);");
+  fl_parse_core(root);
 
   module = fl_codegen(root, "test");
 

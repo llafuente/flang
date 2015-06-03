@@ -202,6 +202,9 @@ void fl_ast_delete(fl_ast_t* ast) {
     if (ast->program.body) {
       fl_ast_delete(ast->program.body);
     }
+    if (ast->program.core) {
+      fl_ast_delete(ast->program.core);
+    }
     fl_tokens_delete(ast->program.tokens);
     st_delete(&ast->program.code);
     break;
@@ -333,7 +336,8 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
   switch (node->type) {
   case FL_AST_PROGRAM:
     printf("%s\n\n", node->program.code->value);
-    printf("%*s- program [%p]\n", (int)level, " ", node);
+    printf("%*s- program [%p] core [%p]\n", (int)level, " ", node,
+           node->program.core);
     break;
   case FL_AST_BLOCK:
     printf("%*s- block [%p]\n", (int)level, " ", node);

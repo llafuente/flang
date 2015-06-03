@@ -64,6 +64,8 @@ LLVMTypeRef fl_codegen_get_typeid(size_t id) {
         break;
       }
     } else {
+      printf("t.number.bits %d\n", t.number.bits);
+
       t.codegen = (void*)LLVMIntType(t.number.bits);
     }
     break;

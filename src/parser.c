@@ -60,9 +60,9 @@ fl_ast_t* fl_parser(fl_token_list_t* tokens) {
   return ast;
 }
 
-// fl_ast_t* fl_parse_core(fl_ast_t* ast) {
-//  ast->program.core = fl_parse_utf8("./../core/ffi-c.fl");
-//}
+void fl_parse_core(fl_ast_t* ast) {
+  ast->program.core = fl_parse_file("./../core/ffi-c.fl", true);
+}
 
 fl_ast_t* fl_parse(string* code) {
   fl_token_list_t* tokens;
@@ -70,7 +70,6 @@ fl_ast_t* fl_parse(string* code) {
   tokens = fl_tokenize(code);
 
   fl_ast_t* root = fl_parser(tokens);
-  // fl_parse_core(root);
 
   root->program.code = code;
 
@@ -87,4 +86,37 @@ fl_ast_t* fl_parse_utf8(char* str) {
   code = st_newc(str, st_enc_utf8);
 
   return fl_parse(code);
+}
+
+fl_ast_t* fl_parse_file(char* filename, bool core) {
+  FILE* f = fopen(filename, "r");
+  if (!f) {
+    fprintf(stderr, "file cannot be opened: %s\n", filename);
+    exit(3);
+  }
+
+  fseek(f, 0, SEEK_END);
+  size_t lSize = ftell(f);
+  rewind(f);
+
+  string* code = st_new(lSize, st_enc_utf8);
+  // copy the file into the buffer:
+  size_t result = fread(code->value, 1, lSize, f);
+  if (result != lSize) {
+    fprintf(stderr, "Reading error\n");
+    exit(3);
+  }
+
+  code->used = result;
+  code->length = st_utf8_length(code->value, 0);
+  st__zeronull(code->value, result, st_enc_utf8);
+
+  fl_ast_t* r = fl_parse(code);
+
+  if (!core) {
+    // parse core
+    fl_parse_core(r);
+  }
+
+  return r;
 }

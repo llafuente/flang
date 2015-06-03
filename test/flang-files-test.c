@@ -110,9 +110,7 @@ TASK_IMPL(flang_files) {
     strcat(ir_file, files[i]);
     strcat(ir_file, ".ir");
 
-    code = file_to_string(fl_file);
-
-    root = fl_parse(code);
+    root = fl_parse_file(fl_file, false);
 
     module = fl_codegen(root, "test");
 
