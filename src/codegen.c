@@ -219,15 +219,28 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
   case FL_AST_STMT_RETURN:
     return fl_codegen_return(FL_CODEGEN_HEADER_SEND);
     break;
-
+  case FL_AST_CAST:
+  return fl_codegen_cast(FL_CODEGEN_HEADER_SEND);
+  break;
   default:
     fprintf(stderr, "(codegen) ast->type not handled %d\n", node->type);
   }
   return 0;
 }
 
+LLVMValueRef fl_codegen_cast(FL_CODEGEN_HEADER) {
+  LLVMValueRef right = fl_codegen_ast(node->cast.right, FL_CODEGEN_PASSTHROUGH);
+
+  printf("** fl_codegen_cast\n");
+  return fl_codegen_cast_op(builder, fl_ast_get_typeid(node->cast.right),
+    fl_ast_get_typeid(node->cast.to), right);
+}
+
 LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER) {
-  return LLVMConstReal(LLVMDoubleType(), node->numeric.value);
+  // get parent type, to know what type should i be.
+  size_t ty = fl_ast_get_typeid(node->parent);
+
+  return LLVMConstReal(fl_codegen_get_typeid(ty), node->numeric.value);
 }
 
 LLVMValueRef fl_codegen_lit_string(FL_CODEGEN_HEADER) {
@@ -254,9 +267,9 @@ LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
       fl_codegen_ast(node->assignament.right, FL_CODEGEN_PASSTHROUGH);
 
   // TODO binop casting!
-  //size_t ltype = fl_ast_get_typeid(left);
-  //size_t rtype = fl_ast_get_typeid(right);
-  //size_t rtype = fl_ast_get_typeid(right);
+  // size_t ltype = fl_ast_get_typeid(left);
+  // size_t rtype = fl_ast_get_typeid(right);
+  // size_t rtype = fl_ast_get_typeid(right);
 
   LLVMValueRef assign = LLVMBuildStore(builder, right, left);
 

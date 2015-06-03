@@ -27,93 +27,87 @@
 
 void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
                      size_t level) {
+#define TRAVERSE(node)                                                         \
+  if (node) {                                                                  \
+    fl_ast_traverse(node, cb, ast, level);                                     \
+  }
+
+#define TRAVERSE_LIST(node)                                                    \
+  {                                                                            \
+    size_t i = 0;                                                              \
+    fl_ast_t* tmp;                                                             \
+                                                                               \
+    if (node) {                                                                \
+      while ((tmp = node[i++]) != 0) {                                         \
+        TRAVERSE(tmp);                                                         \
+      }                                                                        \
+    }                                                                          \
+  }
+
   if (!ast) {
     printf("(null)\n");
     return;
   }
 
   ++level;
-  cb(ast, parent, level);
+  // stop if callback is false
+  if (!cb(ast, parent, level)) {
+    return;
+  }
 
   switch (ast->type) {
   case FL_AST_PROGRAM:
-    fl_ast_traverse(ast->program.body, cb, ast, level);
+    TRAVERSE(ast->program.body);
     break;
   case FL_AST_BLOCK: {
-    size_t i = 0;
-    fl_ast_t* tmp;
-
-    if (ast->block.body) {
-      while ((tmp = ast->block.body[i++]) != 0) {
-        fl_ast_traverse(tmp, cb, ast, level);
-      }
-    }
+    TRAVERSE_LIST(ast->block.body);
   } break;
   case FL_AST_EXPR_ASSIGNAMENT:
-    fl_ast_traverse(ast->assignament.left, cb, ast, level);
-    fl_ast_traverse(ast->assignament.right, cb, ast, level);
+    TRAVERSE(ast->assignament.left);
+    TRAVERSE(ast->assignament.right);
     break;
   case FL_AST_EXPR_BINOP:
-    fl_ast_traverse(ast->binop.left, cb, ast, level);
-    fl_ast_traverse(ast->binop.right, cb, ast, level);
+    TRAVERSE(ast->binop.left);
+    TRAVERSE(ast->binop.right);
     break;
   case FL_AST_EXPR_LUNARY:
-    fl_ast_traverse(ast->lunary.element, cb, ast, level);
+    TRAVERSE(ast->lunary.element);
     break;
   case FL_AST_EXPR_RUNARY:
-    fl_ast_traverse(ast->runary.element, cb, ast, level);
+    TRAVERSE(ast->runary.element);
     break;
   case FL_AST_EXPR_CALL: {
-    fl_ast_traverse(ast->call.callee, cb, ast, level);
-
-    size_t i = 0;
-    fl_ast_t* tmp;
-
-    if (ast->call.arguments) {
-      while ((tmp = ast->call.arguments[i++]) != 0) {
-        fl_ast_traverse(tmp, cb, ast, level);
-      }
-    }
+    TRAVERSE(ast->call.callee);
+    TRAVERSE_LIST(ast->call.arguments);
   } break;
   case FL_AST_DTOR_VAR:
-    fl_ast_traverse(ast->var.id, cb, ast, level);
-    fl_ast_traverse(ast->var.type, cb, ast, level);
+    TRAVERSE(ast->var.id);
+    TRAVERSE(ast->var.type);
     break;
   case FL_AST_DECL_FUNCTION: {
-    fl_ast_traverse(ast->func.id, cb, ast, level);
-    fl_ast_traverse(ast->func.ret_type, cb, ast, level);
-
-    if (ast->func.params) {
-      size_t i = 0;
-      fl_ast_t* tmp;
-
-      while ((tmp = ast->func.params[i++]) != 0) {
-        fl_ast_traverse(tmp, cb, ast, level);
-      }
-    }
-    if (ast->func.body) {
-      fl_ast_traverse(ast->func.body, cb, ast, level);
-    }
+    TRAVERSE(ast->func.id);
+    TRAVERSE(ast->func.ret_type);
+    TRAVERSE_LIST(ast->func.params);
+    TRAVERSE(ast->func.body);
   } break;
   case FL_AST_PARAMETER:
-    if (ast->param.id) {
-      fl_ast_traverse(ast->param.id, cb, ast, level);
-    }
-
-    if (ast->param.type) {
-      fl_ast_traverse(ast->param.type, cb, ast, level);
-    }
+    TRAVERSE(ast->param.id);
+    TRAVERSE(ast->param.type);
     break;
   case FL_AST_STMT_RETURN: {
-    if (ast->ret.argument) {
-      fl_ast_traverse(ast->ret.argument, cb, ast, level);
-    }
+    TRAVERSE(ast->ret.argument);
+  }
+  case FL_AST_CAST: {
+    TRAVERSE(ast->cast.to);
+    TRAVERSE(ast->cast.right);
   }
   default: {}
   }
 }
-void fl_ast_parent_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
+bool fl_ast_parent_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
   node->parent = parent;
+
+  return true;
 }
 
 void fl_ast_parent(fl_ast_t* root) {
@@ -247,16 +241,25 @@ void fl_ast_delete(fl_ast_t* ast) {
       fl_ast_delete(ast->ret.argument);
       ast->ret.argument = 0;
     }
-  }
+  } break;
+  case FL_AST_CAST: {
+    if (ast->cast.to) {
+      fl_ast_delete(ast->cast.to);
+    }
+
+    if (ast->cast.right) {
+      fl_ast_delete(ast->cast.right);
+    }
+  } break;
   default: {}
   }
   free(ast);
 }
 
-void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
+bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
   if (!node) {
     printf("(null)\n");
-    return;
+    return true;
   }
   level = level * 2;
   switch (node->type) {
@@ -309,15 +312,21 @@ void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
   case FL_AST_ERROR:
     printf("%*s- ERROR %s [%p]\n", (int)level, " ", node->err.str, node);
     break;
-    case FL_AST_STMT_COMMENT:
-      printf("%*s- comment %s [%p]\n", (int)level, " ", node->comment.text->value, node);
-      break;
+  case FL_AST_STMT_COMMENT:
+    printf("%*s- comment %s [%p]\n", (int)level, " ", node->comment.text->value,
+           node);
+    break;
+  case FL_AST_CAST:
+    printf("%*s- cast [%p]\n", (int)level, " ", node);
+    break;
   default: {}
   }
 
   printf("%*s[%3zu:%3zu - %3zu:%3zu]\n", (int)level, " ",
          node->token_start->start.column, node->token_start->start.line,
          node->token_end->end.column, node->token_end->end.line);
+
+  return true;
 }
 
 fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {
@@ -345,7 +354,7 @@ fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {
         while ((tmp = node->block.body[i++]) != 0) {
           if (tmp->type == FL_AST_DTOR_VAR &&
               st_cmp(name, tmp->var.id->identifier.string) == 0) {
-            printf("dtor found %zu\n", i);
+            printf("dtor found  @ %zu index\n", i);
             return tmp;
           }
         }
@@ -358,15 +367,37 @@ fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {
   return 0;
 }
 
-bool fl_ast_get_typeid(fl_ast_t* node) {
+size_t fl_ast_get_typeid(fl_ast_t* node) {
   // check AST is somewhat "type-related"
   switch (node->type) {
-  case FL_AST_DTOR_VAR:
-    return node->var.type->ty.id;
-  default:
-    fprintf(stderr, "ast is not type related!");
-    exit(1);
+
+  case FL_AST_EXPR_CALL: {
+    // search function
   }
+  case FL_AST_EXPR_BINOP: {
+    return fl_ast_get_typeid(node->parent); // TODO REVIEW!!
+  }
+  case FL_AST_EXPR_ASSIGNAMENT: {
+    return fl_ast_get_typeid(node->assignament.left);
+  }
+  case FL_AST_LIT_IDENTIFIER: {
+    printf("identifier: %s\n", node->identifier.string->value);
+    // search var-dtor and return it
+    fl_ast_t* dtor = fl_ast_search_decl_var(node, node->identifier.string);
+    if (dtor) {
+      return fl_ast_get_typeid(dtor);
+    }
+  } break;
+  case FL_AST_TYPE:
+    printf("type: %d\n", node->ty.id);
+    return node->ty.id;
+  case FL_AST_DTOR_VAR:
+    printf("dtor: %d\n", node->var.type->ty.id);
+    return node->var.type->ty.id;
+  default: {}
+  }
+  fprintf(stderr, "ast is not type related! %d", node->type);
+  exit(1);
 }
 
 bool fl_ast_is_pointer(fl_ast_t* node) {

@@ -83,7 +83,8 @@ string* execute(char* cmd) {
 
 TASK_IMPL(flang_files) {
 
-  char* files[] = {"../test/fl/expressions"};
+  char* files[] = {"../test/fl/expressions", "../test/fl/casting"};
+  size_t nfiles = 2;
   char* fl_file = malloc(sizeof(char) * 100);
   char* txt_file = malloc(sizeof(char) * 100);
   char* bc_file = malloc(sizeof(char) * 100);
@@ -95,7 +96,7 @@ TASK_IMPL(flang_files) {
   string* code;
   size_t i;
 
-  for (i = 0; i < 2; i += 2) {
+  for (i = 0; i < nfiles; ++i) {
     fl_file[0] = '\0';
     strcat(fl_file, files[i]);
     strcat(fl_file, ".fl");

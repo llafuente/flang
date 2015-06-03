@@ -119,6 +119,45 @@ PSR_READ_IMPL(type) {
   PSR_AST_RET_NULL();
 }
 
+PSR_READ_IMPL(cast) {
+  PSR_AST_START(FL_AST_CAST);
+
+  if (!PSR_ACCEPT_TOKEN(FL_TK_CAST)) {
+    fl_ast_delete(ast);
+    ast = 0;
+
+    FL_TRY_READ(expr_conditional);
+
+    return 0;
+  }
+
+  // hard
+  fl_parser_skipws(tokens, state);
+
+  if (!PSR_ACCEPT_TOKEN(FL_TK_LPARANTHESIS)) {
+    PSR_SYNTAX_ERROR(ast, "expected '('");
+  }
+
+  fl_ast_t* ty = PSR_READ(type);
+  if (ty->type == FL_AST_ERROR) {
+    fl_ast_delete(ast);
+    return ty;
+  }
+
+  fl_parser_skipws(tokens, state);
+  if (!PSR_ACCEPT_TOKEN(FL_TK_RPARANTHESIS)) {
+    fl_ast_delete(ty);
+    PSR_SYNTAX_ERROR(ast, "expected ')'");
+  }
+
+  fl_ast_t* right = PSR_READ(expr_conditional);
+
+  ast->cast.to = ty;
+  ast->cast.right = right;
+
+  PSR_AST_RET();
+}
+
 fl_type_t* fl_type_table = 0;
 size_t fl_type_size = 0;
 

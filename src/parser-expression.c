@@ -37,7 +37,7 @@ PSR_READ_IMPL(expr_assignment) {
   fl_ast_t* ast;
 
   FL_TRY_READ(expr_assignment_full);
-  FL_TRY_READ(expr_conditional);
+  FL_TRY_READ(cast);
 
   return 0;
 }

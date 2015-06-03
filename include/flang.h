@@ -234,6 +234,8 @@ enum fl_ast_type {
   FL_AST_EXPR_RUNARY = 25,
   FL_AST_EXPR_CALL = 26,
 
+  FL_AST_CAST = 27,
+
   // TODO FL_AST_DECL_VAR = 30
   FL_AST_DTOR_VAR = 31,
 
@@ -310,6 +312,10 @@ struct fl_ast {
       fl_tokens_t operator;
       struct fl_ast* element;
     } runary;
+    struct fl_ast_cast {
+      fl_ast_t* to;
+      fl_ast_t* right;
+    } cast;
     struct fl_ast_dtor_variable {
       // TODO add type
       struct fl_ast* id;
@@ -637,6 +643,7 @@ PSR_READ_DECL(decl_variable_with_type);
 /* cldoc:begin-category(parser-type.c) */
 
 PSR_READ_DECL(type);
+PSR_READ_DECL(cast);
 extern fl_type_t* fl_type_table;
 extern size_t fl_type_size;
 size_t fl_parser_get_typeid(fl_types_t wrapper, size_t child);
@@ -660,10 +667,9 @@ PSR_READ_DECL(comment);
 
 /* cldoc:end-category() */
 
-
 /* cldoc:begin-category(ast.c) */
 
-typedef void (*fl_ast_cb_t)(fl_ast_t* node, fl_ast_t* parent, size_t level);
+typedef bool (*fl_ast_cb_t)(fl_ast_t* node, fl_ast_t* parent, size_t level);
 
 FL_EXTERN void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
                                size_t level);
@@ -672,13 +678,13 @@ FL_EXTERN void fl_ast_delete(fl_ast_t* ast);
 
 FL_EXTERN void fl_ast_delete_list(fl_ast_t** list);
 
-FL_EXTERN void fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level);
+FL_EXTERN bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level);
 
 FL_EXTERN void fl_ast_parent(fl_ast_t* root);
 
 FL_EXTERN fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name);
 
-FL_EXTERN bool fl_ast_get_typeid(fl_ast_t* node);
+FL_EXTERN size_t fl_ast_get_typeid(fl_ast_t* node);
 FL_EXTERN bool fl_ast_is_pointer(fl_ast_t* node);
 
 /* cldoc:end-category() */
@@ -690,6 +696,7 @@ FL_EXTERN bool fl_to_ir(LLVMModuleRef module, const char* filename);
 
 FL_EXTERN LLVMModuleRef fl_codegen(fl_ast_t* root, char* module_name);
 FL_EXTERN LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef fl_codegen_cast(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_lit_string(FL_CODEGEN_HEADER);
@@ -704,6 +711,7 @@ FL_EXTERN LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER);
 
 FL_EXTERN LLVMTypeRef fl_codegen_get_type(fl_ast_t* node);
 FL_EXTERN LLVMTypeRef fl_codegen_get_typeid(size_t id);
-FL_EXTERN LLVMValueRef fl_codegen_cast(LLVMBuilderRef builder, size_t current, size_t expected, LLVMValueRef value);
+FL_EXTERN LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
+                                       size_t expected, LLVMValueRef value);
 
 /* cldoc:end-category() */
