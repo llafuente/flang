@@ -87,7 +87,16 @@ TASK_IMPL(parser_functions) {
   fl_ast_delete(root);
 
   root = fl_parse_utf8("fn x(arg1, arg2) { return arg1 + arg2;}");
-  ast = *(root->program.body->block.body);
+  ast = root->program.body;
+  ASSERT(ast->type != FL_AST_ERROR, "no error");
+  fl_ast_delete(root);
+
+  // declaration only
+  root = fl_parse_utf8(
+      "fn x( i8 arg1 , i8 arg2 ) : i8 ; fn printf2( ptr<i8> format, ... ) ;");
+  ast = root->program.body;
+  ASSERT(ast->type != FL_AST_ERROR, "no error");
+  fl_codegen(root, "test");
   fl_ast_delete(root);
 
   return 0;

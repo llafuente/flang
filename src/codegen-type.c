@@ -71,18 +71,18 @@ LLVMTypeRef fl_codegen_get_typeid(size_t id) {
     t.codegen = (void*)LLVMPointerType(fl_codegen_get_typeid(t.ptr.to), 0);
     break;
   default:
-    printf("not handled type yet.");
+    printf("not handled type yet.\n");
   }
 
   if (!t.codegen) {
-    printf("cannot find LLVM-type");
+    printf("cannot find LLVM-type.\n");
   }
 
   return (LLVMTypeRef)t.codegen;
 }
 
 LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
-                             size_t expected, LLVMValueRef value) {
+                                size_t expected, LLVMValueRef value) {
   printf("*** casting ***\n");
   printf("%zu == %zu\n", expected, current);
 

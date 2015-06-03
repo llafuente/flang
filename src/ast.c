@@ -45,7 +45,7 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
   }
 
   if (!ast) {
-    printf("(null)\n");
+    printf("(fl_ast_traverse) : null\n");
     return;
   }
 
@@ -104,6 +104,74 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
   default: {}
   }
 }
+
+void fl_ast_reverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
+                    size_t level) {
+#define REVERSE(node)                                                          \
+  if (node) {                                                                  \
+    fl_ast_reverse(node, cb, ast, level);                                      \
+  }
+
+#define REVERSE_LIST(node)                                                     \
+  {                                                                            \
+    size_t i = 0;                                                              \
+    fl_ast_t* tmp;                                                             \
+                                                                               \
+    if (node) {                                                                \
+      while ((tmp = node[i++]) != 0) {                                         \
+        /* do not reverse list, just call cb*/                                 \
+        if (!cb(ast, parent, level)) {                                         \
+          return;                                                              \
+        }                                                                      \
+      }                                                                        \
+    }                                                                          \
+  }
+
+  if (!ast) {
+    printf("(fl_ast_reverse) : null\n");
+    return;
+  }
+
+  ++level;
+  // stop if callback is false
+  if (!cb(ast, parent, level)) {
+    return;
+  }
+
+  switch (ast->type) {
+  case FL_AST_PROGRAM:
+    break;
+  case FL_AST_BLOCK: {
+    REVERSE_LIST(ast->block.body);
+  } break;
+  case FL_AST_EXPR_ASSIGNAMENT:
+    break;
+  case FL_AST_EXPR_BINOP:
+    break;
+  case FL_AST_EXPR_LUNARY:
+    break;
+  case FL_AST_EXPR_RUNARY:
+    break;
+  case FL_AST_EXPR_CALL: {
+    REVERSE_LIST(ast->call.arguments);
+  } break;
+  case FL_AST_DTOR_VAR:
+    break;
+  case FL_AST_DECL_FUNCTION: {
+    REVERSE_LIST(ast->func.params);
+  } break;
+  case FL_AST_PARAMETER:
+    break;
+  case FL_AST_STMT_RETURN: {
+  }
+  case FL_AST_CAST: {
+  }
+  default: {}
+  }
+
+  REVERSE(ast->parent);
+}
+
 bool fl_ast_parent_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
   node->parent = parent;
 

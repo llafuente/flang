@@ -78,6 +78,7 @@ enum fl_tokens {
   FL_TK_NEWLINE,
   FL_TK_LOG,
   FL_TK_FUNCTION,
+  FL_TK_FFI_C,
   FL_TK_RETURN,
   FL_TK_VAR,
   FL_TK_UNVAR,
@@ -86,6 +87,7 @@ enum fl_tokens {
   FL_TK_GLOBAL,
   FL_TK_LPARANTHESIS,
   FL_TK_RPARANTHESIS,
+  FL_TK_3DOT,
   FL_TK_DOT,
   FL_TK_LBRACKET,
   FL_TK_RBRACKET,
@@ -272,6 +274,7 @@ struct fl_ast {
       struct fl_ast* body;
       fl_type_t* types;
       size_t ntypes;
+      struct fl_ast* core;
     } program;
 
     struct fl_ast_block {
@@ -331,6 +334,8 @@ struct fl_ast {
       size_t nparams;
       struct fl_ast* body;
       struct fl_ast* ret_type;
+      bool varargs;
+      bool ffi; // TODO maybe ffi_type, 0 means flang, 1 means c...
     } func;
     struct fl_ast_parameter {
       struct fl_ast* id;
@@ -477,6 +482,12 @@ struct fl_enum_members {
   ast->token_start = state->token;                                             \
   ast->type = ast_type;
 
+#define PSR_AST_DUMMY(name, ast_type)                                          \
+  fl_ast_t* name = (fl_ast_t*)calloc(1, sizeof(fl_ast_t));                     \
+  name->token_start = state->token;                                            \
+  name->token_end = state->token;                                              \
+  name->type = ast_type;
+
 #define PSR_AST_END()                                                          \
   if (ast->type != FL_AST_ERROR) {                                             \
     ast->token_end = state->token;                                             \
@@ -497,6 +508,8 @@ struct fl_enum_members {
 
 #define PSR_ACCEPT_TOKEN(token_type)                                           \
   fl_parser_accept_token(tokens, state, token_type)
+
+#define PSR_TEST_TOKEN(token_type) state->token->type == token_type
 
 // , printf("next!\n")
 #define PSR_NEXT() fl_parser_next(tokens, state)
@@ -674,6 +687,9 @@ typedef bool (*fl_ast_cb_t)(fl_ast_t* node, fl_ast_t* parent, size_t level);
 FL_EXTERN void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
                                size_t level);
 
+FL_EXTERN void fl_ast_reverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
+                              size_t level);
+
 FL_EXTERN void fl_ast_delete(fl_ast_t* ast);
 
 FL_EXTERN void fl_ast_delete_list(fl_ast_t** list);
@@ -711,7 +727,8 @@ FL_EXTERN LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER);
 
 FL_EXTERN LLVMTypeRef fl_codegen_get_type(fl_ast_t* node);
 FL_EXTERN LLVMTypeRef fl_codegen_get_typeid(size_t id);
-FL_EXTERN LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
-                                       size_t expected, LLVMValueRef value);
+FL_EXTERN LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder,
+                                          size_t current, size_t expected,
+                                          LLVMValueRef value);
 
 /* cldoc:end-category() */

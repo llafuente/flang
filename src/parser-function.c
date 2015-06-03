@@ -28,6 +28,10 @@
 PSR_READ_IMPL(decl_function) {
   PSR_AST_START(FL_AST_DECL_FUNCTION);
 
+  if (PSR_ACCEPT_TOKEN(FL_TK_FFI_C)) {
+    ast->func.ffi = true;
+  }
+
   if (!PSR_ACCEPT_TOKEN(FL_TK_FUNCTION)) {
     PSR_AST_RET_NULL();
   }
@@ -55,6 +59,14 @@ PSR_READ_IMPL(decl_function) {
     size_t i = 0;
     do {
       fl_parser_skipws(tokens, state);
+
+      // varargs must be the latest argument
+      if (PSR_ACCEPT_TOKEN(FL_TK_3DOT)) {
+        ast->func.varargs = true;
+        fl_parser_skipws(tokens, state);
+
+        break;
+      }
 
       list[i] = PSR_READ(parameter);
 
@@ -89,6 +101,17 @@ PSR_READ_IMPL(decl_function) {
     ast->func.ret_type = rtype;
 
     fl_parser_skipws(tokens, state);
+  } else {
+    PSR_AST_DUMMY(ty, FL_AST_TYPE);
+    ty->ty.id = 1;
+    ast->func.ret_type = ty; // void
+  }
+
+  fl_parser_skipws(tokens, state);
+
+  // check if it's only a declaration without body
+  if (PSR_TEST_TOKEN(FL_TK_SEMICOLON)) {
+    PSR_AST_RET();
   }
 
   // block always return

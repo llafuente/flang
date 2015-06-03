@@ -185,7 +185,18 @@ fl_token_list_t* fl_tokenize(string* file) {
       last_space = 0;
     }
 
+    // TODO optimize, split tokens + strings
     tk = fl_get_token(state.itr, state.end - state.itr + 1);
+
+    if (tk) {
+      // check that token position valid
+      if (isalpha(*state.itr)) {
+        // if current is alpha, previous must not be.
+        if (isalpha(*(state.itr - 1))) {
+          tk = 0; // like a not found token
+        }
+      }
+    }
 
     if (tk) {
       fl_token_process(tokens, tk, &state, &lstate);

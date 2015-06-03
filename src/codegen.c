@@ -220,8 +220,8 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
     return fl_codegen_return(FL_CODEGEN_HEADER_SEND);
     break;
   case FL_AST_CAST:
-  return fl_codegen_cast(FL_CODEGEN_HEADER_SEND);
-  break;
+    return fl_codegen_cast(FL_CODEGEN_HEADER_SEND);
+    break;
   default:
     fprintf(stderr, "(codegen) ast->type not handled %d\n", node->type);
   }
@@ -233,7 +233,7 @@ LLVMValueRef fl_codegen_cast(FL_CODEGEN_HEADER) {
 
   printf("** fl_codegen_cast\n");
   return fl_codegen_cast_op(builder, fl_ast_get_typeid(node->cast.right),
-    fl_ast_get_typeid(node->cast.to), right);
+                            fl_ast_get_typeid(node->cast.to), right);
 }
 
 LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER) {
@@ -374,7 +374,7 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
   // TODO manage return type
   LLVMTypeRef ret_type =
       LLVMFunctionType(fl_codegen_get_type(node->func.ret_type), param_types,
-                       node->func.nparams, 0);
+                       node->func.nparams, node->func.varargs);
 
   LLVMValueRef func = LLVMAddFunction(
       module, node->func.id->identifier.string->value, ret_type);
@@ -391,12 +391,15 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
     }
   }
 
-  LLVMBasicBlockRef block = LLVMAppendBasicBlock(func, "function-block");
-  LLVMPositionBuilderAtEnd(builder, block);
+  if (node->func.body) {
+    LLVMBasicBlockRef block = LLVMAppendBasicBlock(func, "function-block");
+    LLVMPositionBuilderAtEnd(builder, block);
 
-  fl_codegen_ast(node->func.body, FL_CODEGEN_PASSTHROUGH);
+    fl_codegen_ast(node->func.body, FL_CODEGEN_PASSTHROUGH);
 
-  LLVMPositionBuilderAtEnd(builder, current_block);
+    LLVMPositionBuilderAtEnd(builder, current_block);
+  }
+
   return func;
 }
 LLVMValueRef fl_codegen_return(FL_CODEGEN_HEADER) {

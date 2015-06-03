@@ -47,40 +47,40 @@ TASK_IMPL(parser_types) {
   fl_ast_t* ast;
 
   root = fl_parse_utf8("var bool hello;");
-  test_parser_type(root, 0);
-  fl_ast_delete(root);
-
-  root = fl_parse_utf8("var i8 hello;");
-  test_parser_type(root, 1);
-  fl_ast_delete(root);
-
-  root = fl_parse_utf8("var u8 hello;");
   test_parser_type(root, 2);
   fl_ast_delete(root);
 
-  root = fl_parse_utf8("var i16 hello;");
+  root = fl_parse_utf8("var i8 hello;");
   test_parser_type(root, 3);
   fl_ast_delete(root);
 
-  root = fl_parse_utf8("var i32 hello;");
+  root = fl_parse_utf8("var u8 hello;");
+  test_parser_type(root, 4);
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("var i16 hello;");
   test_parser_type(root, 5);
   fl_ast_delete(root);
 
-  root = fl_parse_utf8("var i64 hello;");
+  root = fl_parse_utf8("var i32 hello;");
   test_parser_type(root, 7);
   fl_ast_delete(root);
 
-  root = fl_parse_utf8("var f32 hello;");
+  root = fl_parse_utf8("var i64 hello;");
   test_parser_type(root, 9);
   fl_ast_delete(root);
 
+  root = fl_parse_utf8("var f32 hello;");
+  test_parser_type(root, 11);
+  fl_ast_delete(root);
+
   root = fl_parse_utf8("var ptr<f32> hello;");
-  test_parser_type(root, 12);
+  test_parser_type(root, 13);
   fl_ast_delete(root);
 
   // unique echeck!
   root = fl_parse_utf8("var ptr<f32> hello;");
-  test_parser_type(root, 12);
+  test_parser_type(root, 13);
   fl_ast_delete(root);
 
   return 0;

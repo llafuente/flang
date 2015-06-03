@@ -60,12 +60,17 @@ fl_ast_t* fl_parser(fl_token_list_t* tokens) {
   return ast;
 }
 
+// fl_ast_t* fl_parse_core(fl_ast_t* ast) {
+//  ast->program.core = fl_parse_utf8("./../core/ffi-c.fl");
+//}
+
 fl_ast_t* fl_parse(string* code) {
   fl_token_list_t* tokens;
 
   tokens = fl_tokenize(code);
 
   fl_ast_t* root = fl_parser(tokens);
+  // fl_parse_core(root);
 
   root->program.code = code;
 
