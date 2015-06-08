@@ -40,7 +40,6 @@ TASK_IMPL(parser_functions) {
   ASSERT(ast->func.id->type == FL_AST_LIT_IDENTIFIER, "FL_AST_LIT_IDENTIFIER");
   ASSERT(ast->func.params == 0, "no args");
   fl_ast_delete(root);
-
   root = fl_parse_utf8("fn x(yy, zz , mm ,xx) {}");
   ast = *(root->program.body->block.body);
 
@@ -68,7 +67,7 @@ TASK_IMPL(parser_functions) {
   ast = root->program.body;
 
   ASSERT(ast->type == FL_AST_ERROR, "error found");
-  ASSERT(strcmp(ast->err.str, "expected ')'") == 0, "error found");
+  ASSERT(strcmp(ast->err.str, "expected identifier") == 0, "error found");
 
   fl_ast_delete(root);
 

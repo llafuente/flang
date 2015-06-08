@@ -50,6 +50,11 @@ PSR_READ_IMPL(decl_variable_no_type) {
     PSR_AST_RET_NULL();
   }
 
+  // this variable need to be inferred
+  PSR_AST_DUMMY(type, FL_AST_TYPE);
+  type->ty.id = 10;
+  ast->var.type = type;
+
   PSR_AST_RET();
 }
 

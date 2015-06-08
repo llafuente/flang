@@ -57,6 +57,8 @@ PSR_READ_IMPL(decl_function) {
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_RPARANTHESIS)) {
     fl_ast_t** list = calloc(100, sizeof(fl_ast_t*)); // TODO resize support
+    ast->func.params = list;
+
     size_t i = 0;
     do {
       fl_parser_skipws(tokens, state);
@@ -69,18 +71,23 @@ PSR_READ_IMPL(decl_function) {
         break;
       }
 
-      list[i] = PSR_READ(parameter);
+      fl_ast_t* param = PSR_READ(parameter);
+
+      if (param->type == FL_AST_ERROR) { // hard error error
+        fl_ast_delete(ast);
+        return param;
+      }
+
+      list[i++] = param;
 
       fl_parser_skipws(tokens, state);
-
-      ++i;
     } while (PSR_ACCEPT_TOKEN(FL_TK_COMMA));
-    ast->func.params = list;
     ast->func.nparams = i;
 
     if (!PSR_ACCEPT_TOKEN(FL_TK_RPARANTHESIS)) {
       fl_ast_delete(ast->func.id);
       fl_ast_delete_list(list);
+
 
       PSR_SYNTAX_ERROR(ast, "expected ')'");
       return ast;
@@ -173,13 +180,16 @@ PSR_READ_IMPL(parameter_typed) {
 PSR_READ_IMPL(parameter_notyped) {
   PSR_AST_START(FL_AST_PARAMETER);
 
-  ast->param.type = 0;
-
   // hard error
   ast->param.id = PSR_READ(lit_identifier);
   if (!ast->param.id) {
     PSR_SYNTAX_ERROR(ast, "expected identifier");
+    return ast;
   }
+
+  PSR_AST_DUMMY(type, FL_AST_TYPE);
+  type->ty.id = 10;
+  ast->param.type = type;
 
   PSR_AST_RET();
 }
