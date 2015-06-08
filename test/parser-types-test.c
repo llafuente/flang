@@ -74,14 +74,25 @@ TASK_IMPL(parser_types) {
   test_parser_type(root, 11);
   fl_ast_delete(root);
 
+  root = fl_parse_utf8("var f64 hello;");
+  test_parser_type(root, 12);
+
+  fl_type_t ty = fl_type_table[12];
+  ASSERTE(ty.number.fp, true, "%d == %d", "type if fp");
+  ASSERTE(ty.number.bits, 64, "%d == %d", "type is 64 bits");
+
+  fl_ast_delete(root);
+
   root = fl_parse_utf8("var ptr<f32> hello;");
-  test_parser_type(root, 13);
+  test_parser_type(root, 14);
   fl_ast_delete(root);
 
   // unique echeck!
   root = fl_parse_utf8("var ptr<f32> hello;");
-  test_parser_type(root, 13);
+  test_parser_type(root, 14);
   fl_ast_delete(root);
+
+  // fl_print_type_table();
 
   return 0;
 }

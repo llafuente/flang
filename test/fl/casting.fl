@@ -1,7 +1,7 @@
 var i64 a;
 var i32 b;
 
-a = 256;
+a = cast(i64) 256;
 
 b = cast(i32) a;
 

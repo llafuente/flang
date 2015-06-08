@@ -736,3 +736,8 @@ FL_EXTERN LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder,
                                           LLVMValueRef value);
 
 /* cldoc:end-category() */
+
+/* cldoc:begin-category(debug.c) */
+FL_EXTERN void fl_print_type(size_t ty_id);
+FL_EXTERN void fl_print_type_table();
+/* cldoc:end-category() */

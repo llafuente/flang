@@ -428,17 +428,15 @@ LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER) {
       arguments[i++] = value;
     }
   }
-  LLVMValueRef fn = LLVMGetNamedFunction(module, node->call.callee->identifier.string->value);
+  LLVMValueRef fn =
+      LLVMGetNamedFunction(module, node->call.callee->identifier.string->value);
   if (!fn) {
-    fprintf(stderr, "function %s not found\n", node->call.callee->identifier.string->value);
+    fprintf(stderr, "function %s not found\n",
+            node->call.callee->identifier.string->value);
     exit(1);
   }
 
-  return LLVMBuildCall(
-      builder,
-      fn,
-      arguments, node->call.narguments,
-      "call");
+  return LLVMBuildCall(builder, fn, arguments, node->call.narguments, "call");
 
   /*
   LLVMValueRef argument =

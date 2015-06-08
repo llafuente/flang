@@ -327,80 +327,6 @@ void fl_ast_delete(fl_ast_t* ast) {
   free(ast);
 }
 
-bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
-  if (!node) {
-    printf("(null)\n");
-    return true;
-  }
-  level = level * 2;
-  switch (node->type) {
-  case FL_AST_PROGRAM:
-    printf("%s\n\n", node->program.code->value);
-    printf("%*s- program [%p] core [%p]\n", (int)level, " ", node,
-           node->program.core);
-    break;
-  case FL_AST_BLOCK:
-    printf("%*s- block [%p]\n", (int)level, " ", node);
-    break;
-  case FL_AST_EXPR_ASSIGNAMENT:
-    printf("%*s- assignament [%p]\n", (int)level, " ", node);
-    break;
-  case FL_AST_EXPR_BINOP:
-    printf("%*s- binop (%d) [%p]\n", (int)level, " ", node->binop.operator,
-           node);
-    break;
-  case FL_AST_LIT_NUMERIC:
-    printf("%*s- number [%p]\n", (int)level, " ", node);
-    break;
-  case FL_AST_LIT_IDENTIFIER:
-    printf("%*s- identifier (%s) [%p]\n", (int)level, " ",
-           node->identifier.string->value, node);
-    break;
-  case FL_AST_EXPR_LUNARY:
-    printf("%*s- lunary (%d) [%p]\n", (int)level, " ", node->lunary.operator,
-           node);
-    break;
-  case FL_AST_EXPR_RUNARY:
-    printf("%*s- runary (%d) [%p]\n", (int)level, " ", node->runary.operator,
-           node);
-    break;
-  case FL_AST_EXPR_CALL:
-    printf("%*s- call (%zu) [%p]\n", (int)level, " ", node->call.narguments,
-           node);
-    break;
-  case FL_AST_DTOR_VAR:
-    printf("%*s- variable [%p]\n", (int)level, " ", node);
-    break;
-  case FL_AST_TYPE:
-    printf("%*s- type (%zu) [%p]\n", (int)level, " ", node->ty.id, node);
-    break;
-  case FL_AST_DECL_FUNCTION:
-    printf("%*s- function (params: %zu) [%p]\n", (int)level, " ",
-           node->func.nparams, node);
-    break;
-  case FL_AST_STMT_RETURN:
-    printf("%*s- return [%p]\n", (int)level, " ", node);
-    break;
-  case FL_AST_ERROR:
-    printf("%*s- ERROR %s [%p]\n", (int)level, " ", node->err.str, node);
-    break;
-  case FL_AST_STMT_COMMENT:
-    printf("%*s- comment %s [%p]\n", (int)level, " ", node->comment.text->value,
-           node);
-    break;
-  case FL_AST_CAST:
-    printf("%*s- cast [%p]\n", (int)level, " ", node);
-    break;
-  default: {}
-  }
-
-  printf("%*s[%3zu:%3zu - %3zu:%3zu]\n", (int)level, " ",
-         node->token_start->start.column, node->token_start->start.line,
-         node->token_end->end.column, node->token_end->end.line);
-
-  return true;
-}
-
 fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {
   while ((node = node->parent) != 0) {
     switch (node->type) {
@@ -461,10 +387,10 @@ size_t fl_ast_get_typeid(fl_ast_t* node) {
     }
   } break;
   case FL_AST_TYPE:
-    printf("type: %d\n", node->ty.id);
+    printf("type: %zu\n", node->ty.id);
     return node->ty.id;
   case FL_AST_DTOR_VAR:
-    printf("dtor: %d\n", node->var.type->ty.id);
+    printf("dtor: %zu\n", node->var.type->ty.id);
     return node->var.type->ty.id;
   default: {}
   }

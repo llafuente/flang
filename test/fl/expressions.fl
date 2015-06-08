@@ -5,6 +5,7 @@ x = 10;
 y = 5;
 
 printf('x + y = %f\n', x + y);
+
 printf('x - y = %f\n', x - y);
 printf('x * y = %f\n', x * y);
 printf('x / y = %f\n', x / y);

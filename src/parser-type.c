@@ -199,7 +199,7 @@ void fl_parser_init_types() {
     fl_type_table[id].number.fp = true;
     fl_type_table[id].number.sign = true;
 
-    fl_type_size = id;
+    fl_type_size = ++id;
   }
 }
 
@@ -222,7 +222,6 @@ size_t fl_parser_get_typeid(fl_types_t wrapper, size_t child) {
     fl_type_table[i].of = wrapper;
     fl_type_table[i].vector.size = 0;
     fl_type_table[i].vector.to = child;
-    break;
     break;
   }
 

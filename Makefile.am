@@ -14,7 +14,8 @@ COMPILER_SOURCES = src/tokenizer.c \
                 src/parser-comment.c \
                 src/codegen.c \
                 src/codegen-type.c \
-                src/ast.c
+                src/ast.c \
+                src/debug.c
 
 AM_CPPFLAGS = -I$(top_srcdir)/include \
               -I$(top_srcdir)/src
