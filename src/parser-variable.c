@@ -52,7 +52,7 @@ PSR_READ_IMPL(decl_variable_no_type) {
 
   // this variable need to be inferred
   PSR_AST_DUMMY(type, FL_AST_TYPE);
-  type->ty.id = 10;
+  type->ty.id = 0;
   ast->var.type = type;
 
   PSR_AST_RET();

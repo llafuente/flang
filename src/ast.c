@@ -26,10 +26,10 @@
 #include "flang.h"
 
 void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
-                     size_t level) {
+                     size_t level, void* userdata) {
 #define TRAVERSE(node)                                                         \
   if (node) {                                                                  \
-    fl_ast_traverse(node, cb, ast, level);                                     \
+    fl_ast_traverse(node, cb, ast, level, userdata);                           \
   }
 
 #define TRAVERSE_LIST(node)                                                    \
@@ -51,7 +51,7 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
 
   ++level;
   // stop if callback is false
-  if (!cb(ast, parent, level)) {
+  if (!cb(ast, parent, level, userdata)) {
     return;
   }
 
@@ -106,10 +106,10 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
 }
 
 void fl_ast_reverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
-                    size_t level) {
+                    size_t level, void* userdata) {
 #define REVERSE(node)                                                          \
   if (node) {                                                                  \
-    fl_ast_reverse(node, cb, ast, level);                                      \
+    fl_ast_reverse(node, cb, ast, level, userdata);                            \
   }
 
 #define REVERSE_LIST(node)                                                     \
@@ -120,7 +120,7 @@ void fl_ast_reverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
     if (node) {                                                                \
       while ((tmp = node[i++]) != 0) {                                         \
         /* do not reverse list, just call cb*/                                 \
-        if (!cb(ast, parent, level)) {                                         \
+        if (!cb(ast, parent, level, userdata)) {                               \
           return;                                                              \
         }                                                                      \
       }                                                                        \
@@ -134,7 +134,7 @@ void fl_ast_reverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
 
   ++level;
   // stop if callback is false
-  if (!cb(ast, parent, level)) {
+  if (!cb(ast, parent, level, userdata)) {
     return;
   }
 
@@ -172,14 +172,15 @@ void fl_ast_reverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
   REVERSE(ast->parent);
 }
 
-bool fl_ast_parent_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
+bool fl_ast_parent_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
+                      void* userdata) {
   node->parent = parent;
 
   return true;
 }
 
 void fl_ast_parent(fl_ast_t* root) {
-  fl_ast_traverse(root, fl_ast_parent_cb, 0, 0);
+  fl_ast_traverse(root, fl_ast_parent_cb, 0, 0, 0);
 }
 
 void fl_ast_delete_list(fl_ast_t** list) {
@@ -401,4 +402,19 @@ size_t fl_ast_get_typeid(fl_ast_t* node) {
 bool fl_ast_is_pointer(fl_ast_t* node) {
   size_t id = fl_ast_get_typeid(node);
   return fl_type_table[id].of == FL_POINTER;
+}
+
+size_t fl_ast_ret_type(fl_ast_t* node) {
+  switch (node->type) {
+  case FL_AST_EXPR_ASSIGNAMENT:
+    return fl_ast_ret_type(node->assignament.right);
+  case FL_AST_LIT_NUMERIC:
+    return node->numeric.ty_id;
+  default: {
+    printf("cannot find type!");
+    exit(1);
+  }
+  }
+
+  return 0;
 }

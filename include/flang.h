@@ -293,6 +293,7 @@ struct fl_ast {
     } string;
     struct fl_ast_lit_numeric {
       double value;
+      size_t ty_id;
     } numeric;
     struct fl_ast_lit_identifier {
       string* string;
@@ -699,26 +700,34 @@ PSR_READ_DECL(comment);
 
 /* cldoc:begin-category(ast.c) */
 
-typedef bool (*fl_ast_cb_t)(fl_ast_t* node, fl_ast_t* parent, size_t level);
+typedef bool (*fl_ast_cb_t)(fl_ast_t* node, fl_ast_t* parent, size_t level,
+                            void* userdata);
 
 FL_EXTERN void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
-                               size_t level);
+                               size_t level, void* userdata);
 
 FL_EXTERN void fl_ast_reverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
-                              size_t level);
+                              size_t level, void* userdata);
 
 FL_EXTERN void fl_ast_delete(fl_ast_t* ast);
 
 FL_EXTERN void fl_ast_delete_list(fl_ast_t** list);
-
-FL_EXTERN bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level);
 
 FL_EXTERN void fl_ast_parent(fl_ast_t* root);
 
 FL_EXTERN fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name);
 
 FL_EXTERN size_t fl_ast_get_typeid(fl_ast_t* node);
+
 FL_EXTERN bool fl_ast_is_pointer(fl_ast_t* node);
+
+FL_EXTERN size_t fl_ast_ret_type(fl_ast_t* node);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(pass-inference.c) */
+
+FL_EXTERN fl_ast_t* fl_pass_inference(fl_ast_t* node);
 
 /* cldoc:end-category() */
 
@@ -753,4 +762,6 @@ FL_EXTERN LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder,
 /* cldoc:begin-category(debug.c) */
 FL_EXTERN void fl_print_type(size_t ty_id);
 FL_EXTERN void fl_print_type_table();
+FL_EXTERN bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
+                               void* userdata);
 /* cldoc:end-category() */

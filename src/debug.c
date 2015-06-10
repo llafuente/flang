@@ -57,7 +57,8 @@ void fl_print_type_table() {
   }
 }
 
-bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
+bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
+                     void* userdata) {
   if (!node) {
     printf("(null)\n");
     return true;
@@ -69,7 +70,7 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
 
   switch (node->type) {
   case FL_AST_PROGRAM:
-    printf("program [core? @%p]\n", node->program.core);
+    printf("program [core=@%p]\n", node->program.core);
     printf("%s\n", node->program.code->value);
     break;
   case FL_AST_BLOCK:
@@ -79,43 +80,44 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level) {
     printf("assignament");
     break;
   case FL_AST_EXPR_BINOP:
-    printf("binop (%d)", node->binop.operator);
+    printf("binop [operator=%d]", node->binop.operator);
     break;
   case FL_AST_LIT_NUMERIC:
-    printf("number");
+    printf("number [ty_id=%zu value=%f]", node->numeric.ty_id,
+           node->numeric.value);
     break;
   case FL_AST_LIT_IDENTIFIER:
-    printf("identifier (%s)", node->identifier.string->value);
+    printf("identifier [string=%s]", node->identifier.string->value);
     break;
   case FL_AST_EXPR_LUNARY:
-    printf("lunary (%d)", node->lunary.operator);
+    printf("lunary [operator=%d]", node->lunary.operator);
     break;
   case FL_AST_EXPR_RUNARY:
-    printf("runary (%d)", node->runary.operator);
+    printf("runary [operator=%d]", node->runary.operator);
     break;
   case FL_AST_EXPR_CALL:
-    printf("call (%zu)", node->call.narguments);
+    printf("call [arguments=%zu]", node->call.narguments);
     break;
   case FL_AST_DTOR_VAR:
     printf("variable");
     break;
   case FL_AST_TYPE:
-    printf("type (%zu)", node->ty.id);
+    printf("type [ty_id=%zu]", node->ty.id);
     break;
   case FL_AST_DECL_FUNCTION:
-    printf("function (params: %zu)", node->func.nparams);
+    printf("function [params=%zu]", node->func.nparams);
     break;
   case FL_AST_PARAMETER:
     printf("parameter");
-  break;
+    break;
   case FL_AST_STMT_RETURN:
     printf("return");
     break;
   case FL_AST_ERROR:
-    printf("ERROR %s", node->err.str);
+    printf("ERROR [string=%s]", node->err.str);
     break;
   case FL_AST_STMT_COMMENT:
-    printf("comment %s", node->comment.text->value);
+    printf("comment [comment=%s]", node->comment.text->value);
     break;
   case FL_AST_CAST:
     printf("cast");

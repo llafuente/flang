@@ -164,7 +164,9 @@ void fl_parser_init_types() {
     printf("\n\n\n*****INIT TABLE****\n\n\n");
     fl_type_table = calloc(sizeof(fl_type_t), 100);
 
-    // 0 is nothing! every type starts with 1
+    // 0 means infer!
+    fl_type_table[0].of = FL_INFER;
+    // type starts with 1
     fl_type_table[1].of = FL_VOID;
 
     size_t id = 2;

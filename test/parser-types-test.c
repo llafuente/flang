@@ -94,5 +94,10 @@ TASK_IMPL(parser_types) {
 
   // fl_print_type_table();
 
+  root = fl_parse_utf8("var x; x = 10;");
+  test_parser_type(root, 9); // inferred!
+
+  fl_ast_delete(root);
+
   return 0;
 }

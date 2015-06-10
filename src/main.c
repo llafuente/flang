@@ -63,7 +63,7 @@ int main(int argc, const char* argv[]) {
   fl_token_list_t* tokens = fl_tokenize(file);
 
   fl_ast_t* root = fl_parser(tokens);
-  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
+  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0, 0);
 
   LLVMModuleRef module = fl_codegen(root, "test");
 

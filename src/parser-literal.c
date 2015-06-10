@@ -124,6 +124,7 @@ PSR_READ_IMPL(lit_numeric) {
 
   if (PSR_ACCEPT_TOKEN(FL_TK_NULL)) {
     ast->numeric.value = 0;
+    ast->numeric.ty_id = 10; // u64
     PSR_NEXT();
     PSR_AST_RET();
   }
@@ -144,6 +145,12 @@ PSR_READ_IMPL(lit_numeric) {
     PSR_NEXT();
 
     ast->numeric.value = result;
+
+    if ((double)((long int)result) == result) {
+      ast->numeric.ty_id = 9; // bigger possible i64
+    } else {
+      ast->numeric.ty_id = 12; // bigger possible f64
+    }
     PSR_AST_RET();
   }
 

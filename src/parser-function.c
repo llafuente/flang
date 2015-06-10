@@ -88,7 +88,6 @@ PSR_READ_IMPL(decl_function) {
       fl_ast_delete(ast->func.id);
       fl_ast_delete_list(list);
 
-
       PSR_SYNTAX_ERROR(ast, "expected ')'");
       return ast;
     }
@@ -188,7 +187,7 @@ PSR_READ_IMPL(parameter_notyped) {
   }
 
   PSR_AST_DUMMY(type, FL_AST_TYPE);
-  type->ty.id = 10;
+  type->ty.id = 0;
   ast->param.type = type;
 
   PSR_AST_RET();

@@ -71,9 +71,12 @@ fl_ast_t* fl_parse(string* code) {
 
   fl_ast_t* root = fl_parser(tokens);
 
+  // do inference
+  fl_pass_inference(root);
+
   root->program.code = code;
 
-  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
+  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0, 0);
 #ifdef FL_VERBOSE
 #endif
 

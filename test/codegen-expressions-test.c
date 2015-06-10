@@ -50,7 +50,7 @@ TASK_IMPL(codegen_expressions) {
 
   root = fl_parse_utf8("var f64 c; var f64 d; d=1+2; c = 1;");
 
-  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0);
+  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0, 0);
 
   ast = *(root->program.body->block.body);
   ASSERT(ast != 0, "ast parsed ok");
