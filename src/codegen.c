@@ -203,6 +203,8 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
   case FL_AST_LIT_NUMERIC:
     cg_print("(codegen) number\n");
     return fl_codegen_lit_number(FL_CODEGEN_HEADER_SEND);
+  case FL_AST_LIT_BOOLEAN:
+    return fl_codegen_lit_boolean(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_STRING:
     cg_print("(codegen) string\n");
     return fl_codegen_lit_string(FL_CODEGEN_HEADER_SEND);
@@ -278,6 +280,12 @@ LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER) {
 
   return LLVMConstInt(fl_codegen_get_typeid(ty), node->numeric.value,
                       t.number.sign);
+}
+
+LLVMValueRef fl_codegen_lit_boolean(FL_CODEGEN_HEADER) {
+  fl_type_t t = fl_type_table[2];
+
+  return LLVMConstInt(fl_codegen_get_typeid(2), node->boolean.value, false);
 }
 
 LLVMValueRef fl_codegen_lit_string(FL_CODEGEN_HEADER) {

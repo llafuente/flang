@@ -762,6 +762,7 @@ FL_EXTERN LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_cast(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef fl_codegen_lit_boolean(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_lit_string(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_dtor_var(FL_CODEGEN_HEADER);

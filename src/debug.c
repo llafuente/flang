@@ -89,6 +89,9 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
   case FL_AST_LIT_IDENTIFIER:
     printf("identifier [string=%s]", node->identifier.string->value);
     break;
+  case FL_AST_LIT_BOOLEAN:
+    printf("boolean [value=%d]", node->boolean.value);
+    break;
   case FL_AST_EXPR_LUNARY:
     printf("lunary [operator=%d]", node->lunary.operator);
     break;
