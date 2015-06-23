@@ -324,6 +324,10 @@ struct fl_ast {
       // TODO add type
       struct fl_ast* id;
       fl_ast_t* type;
+
+      // codegen
+      bool dirty;
+      void* current;
     } var;
     struct fl_ast_idtype {
       size_t id; // id on fl_type_table
@@ -447,6 +451,23 @@ struct fl_enum_members {
   string* name;
   size_t value;
 };
+
+//-
+//- DEBUG MACROS
+//-
+
+#define cg_print(...)                                                          \
+  do {                                                                         \
+    fprintf(stderr, __VA_ARGS__);                                              \
+  } while (false)
+//#define cg_print(...) do{ } while ( false )
+
+#define cg_error(...)                                                          \
+  do {                                                                         \
+    fprintf(stderr, __VA_ARGS__);                                              \
+    fprintf(stderr, "@%s - %d\n", __FILE__, __LINE__);                         \
+    exit(1);                                                                   \
+  } while (false)
 
 //-
 //- MACROS
@@ -747,6 +768,7 @@ FL_EXTERN LLVMValueRef fl_codegen_dtor_var(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_return(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef fl_codegen_lunary(FL_CODEGEN_HEADER);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(codegen-type.c) */
@@ -756,7 +778,8 @@ FL_EXTERN LLVMTypeRef fl_codegen_get_typeid(size_t id);
 FL_EXTERN LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder,
                                           size_t current, size_t expected,
                                           LLVMValueRef value);
-
+FL_EXTERN bool fl_type_is_real(size_t id);
+FL_EXTERN bool fl_type_is_integer(size_t id);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(debug.c) */

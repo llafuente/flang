@@ -168,69 +168,100 @@ LLVMModuleRef fl_codegen(fl_ast_t* root, char* module_name) {
 }
 
 LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
-  // printf("node [%p] %d\n", node, node->type);
 
   switch (node->type) {
   case FL_AST_PROGRAM:
+    cg_print("(codegen) program\n");
+
     if (node->program.core) {
-      printf("WTF! THE CORE IS HERE***\n***\n***\n");
+      cg_print("(codegen) generating core\n");
       fl_codegen_ast(node->program.core, FL_CODEGEN_PASSTHROUGH);
     }
 
     return fl_codegen_ast(node->program.body, FL_CODEGEN_PASSTHROUGH);
   case FL_AST_BLOCK: {
+    cg_print("(codegen) block\n");
     size_t i = 0;
     fl_ast_t* tmp;
 
     while ((tmp = node->block.body[i++])) {
+      cg_print("(codegen) block %zu\n", i);
       fl_codegen_ast(tmp, FL_CODEGEN_PASSTHROUGH);
     }
 
     return 0;
   }
   case FL_AST_EXPR_ASSIGNAMENT:
+    cg_print("(codegen) assignament\n");
     return fl_codegen_assignament(FL_CODEGEN_HEADER_SEND);
   case FL_AST_EXPR_BINOP:
+    cg_print("(codegen) binary operator\n");
     return fl_codegen_binop(FL_CODEGEN_HEADER_SEND);
   case FL_AST_EXPR_CALL:
+    cg_print("(codegen) expression call\n");
     return fl_codegen_expr_call(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_NUMERIC:
+    cg_print("(codegen) number\n");
     return fl_codegen_lit_number(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_STRING:
+    cg_print("(codegen) string\n");
     return fl_codegen_lit_string(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_IDENTIFIER: {
+    cg_print("(codegen) identifier\n");
     fl_ast_t* id = fl_ast_search_decl_var(node, node->identifier.string);
 
     if (!id) {
-      fprintf(stderr, "(codegen) identifier not found: %s\n",
-              node->identifier.string->value);
-      exit(1);
+      cg_error("(codegen) identifier not found: %s\n",
+               node->identifier.string->value);
     }
 
-    return (LLVMValueRef)id->codegen;
-  } break;
+    if (id->var.dirty) {
+      // load it!
+      // TODO this is a nice hack but need to be refactored
+      // TODO mark variable as dirty
+      // TODO review, seams to be always necessary
+      // if (fl_ast_is_pointer(left_ast)) {
+      //}
+
+      // TODO this is the cause of some nasty bug!
+      id->var.current = (void*)LLVMBuildLoad(builder, id->codegen, "load");
+    }
+
+    return (LLVMValueRef)id->var.current;
+  }
   case FL_AST_DTOR_VAR:
+    cg_print("(codegen) dtor\n");
     return fl_codegen_dtor_var(FL_CODEGEN_HEADER_SEND);
-    break;
   case FL_AST_DECL_FUNCTION:
+    cg_print("(codegen) function\n");
     return fl_codegen_function(FL_CODEGEN_HEADER_SEND);
-    break;
   case FL_AST_STMT_RETURN:
+    cg_print("(codegen) return\n");
     return fl_codegen_return(FL_CODEGEN_HEADER_SEND);
-    break;
   case FL_AST_CAST:
+    cg_print("(codegen) cast\n");
     return fl_codegen_cast(FL_CODEGEN_HEADER_SEND);
-    break;
-  default:
-    fprintf(stderr, "(codegen) ast->type not handled %d\n", node->type);
+  case FL_AST_EXPR_LUNARY:
+    cg_print("(codegen) lunary\n");
+    return fl_codegen_lunary(FL_CODEGEN_HEADER_SEND);
+  default: {}
+    // cg_error("(codegen) ast->type not handled %d\n", node->type);
   }
   return 0;
 }
 
 LLVMValueRef fl_codegen_cast(FL_CODEGEN_HEADER) {
+  // check if rigt side is a constant
+  if (node->cast.right->type == FL_AST_LIT_NUMERIC) {
+    printf("(codegen) cast override to %zu\n", node->cast.to->ty.id);
+    node->cast.right->numeric.ty_id = node->cast.to->ty.id;
+
+    return fl_codegen_ast(node->cast.right, FL_CODEGEN_PASSTHROUGH);
+  }
+
   LLVMValueRef right = fl_codegen_ast(node->cast.right, FL_CODEGEN_PASSTHROUGH);
 
-  printf("** fl_codegen_cast\n");
+  printf("(codegen) do cast [%p]\n", right);
   return fl_codegen_cast_op(builder, fl_ast_get_typeid(node->cast.right),
                             fl_ast_get_typeid(node->cast.to), right);
 }
@@ -238,8 +269,15 @@ LLVMValueRef fl_codegen_cast(FL_CODEGEN_HEADER) {
 LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER) {
   // get parent type, to know what type should i be.
   size_t ty = fl_ast_get_typeid(node->parent);
+  // size_t ty = node->numeric.ty_id;
+  fl_type_t t = fl_type_table[ty];
 
-  return LLVMConstReal(fl_codegen_get_typeid(ty), node->numeric.value);
+  if (t.number.fp) {
+    return LLVMConstReal(fl_codegen_get_typeid(ty), node->numeric.value);
+  }
+
+  return LLVMConstInt(fl_codegen_get_typeid(ty), node->numeric.value,
+                      t.number.sign);
 }
 
 LLVMValueRef fl_codegen_lit_string(FL_CODEGEN_HEADER) {
@@ -251,19 +289,20 @@ LLVMValueRef fl_codegen_lit_string(FL_CODEGEN_HEADER) {
 LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
   fprintf(stderr, "(codegen) assignament\n");
 
-  fl_ast_t* left_ast =
+  fl_ast_t* left_decl =
       fl_ast_search_decl_var(node, node->assignament.left->identifier.string);
 
-  if (!left_ast) {
-    fprintf(stderr, "(codegen) lhs cannot be fetch\n");
-    return 0;
+  if (!left_decl) {
+    cg_error("(codegen) lhs cannot be fetch\n");
   }
 
-  LLVMValueRef left = (LLVMValueRef)left_ast->codegen;
+  LLVMValueRef left = (LLVMValueRef)left_decl->codegen;
 
   // LLVMDoubleTypeInContext(context);
   LLVMValueRef right =
       fl_codegen_ast(node->assignament.right, FL_CODEGEN_PASSTHROUGH);
+
+  cg_print("(codegen) %p = %p\n", left, right);
 
   // TODO binop casting!
   // size_t ltype = fl_ast_get_typeid(left);
@@ -271,14 +310,10 @@ LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
   // size_t rtype = fl_ast_get_typeid(right);
 
   LLVMValueRef assign = LLVMBuildStore(builder, right, left);
+  left_decl->var.dirty = true;
 
-  // TODO this is a nice hack but need to be refactored
-  // TODO mark variable as dirty
-  // TODO review, seams to be always necessary
-  // if (fl_ast_is_pointer(left_ast)) {
-  //}
-  left_ast->codegen = LLVMBuildLoad(builder, left_ast->codegen, "load");
-  // maybe return the load!?
+  // maybe return the lhs load!?
+
   return assign;
 }
 
@@ -362,11 +397,10 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
   if (node->func.params) {
     while ((tmp = node->func.params[i]) != 0) {
       if (!tmp->param.type) {
-        fprintf(stderr, "Parameter %zu don't have type.\n", i);
-        exit(1);
+        cg_error("(codegen) Parameter %zu don't have type.\n", i);
       }
 
-      printf("parameter %zu\n", i);
+      cg_print("(codegen) parameter %zu of type %d\n", i, tmp->param.type);
       param_types[i++] = fl_codegen_get_type(tmp->param.type);
     }
   }
@@ -457,4 +491,10 @@ LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER) {
     return ret;
   }
   */
+}
+LLVMValueRef fl_codegen_lunary(FL_CODEGEN_HEADER) {
+  cg_print("(codegen) negate\n");
+  return LLVMBuildNeg(
+      builder, fl_codegen_ast(node->lunary.element, FL_CODEGEN_PASSTHROUGH),
+      "negate");
 }

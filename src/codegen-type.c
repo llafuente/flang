@@ -38,6 +38,16 @@ void print_type(fl_type_t t) {
 LLVMTypeRef fl_codegen_get_type(fl_ast_t* node) {
   return fl_codegen_get_typeid(node->ty.id);
 }
+// TODO safe
+bool fl_type_is_real(size_t id) {
+  fl_type_t t = fl_type_table[id];
+  return t.number.fp;
+}
+// TODO safe
+bool fl_type_is_integer(size_t id) {
+  fl_type_t t = fl_type_table[id];
+  return t.number.fp;
+}
 
 LLVMTypeRef fl_codegen_get_typeid(size_t id) {
   // TODO codegen is cached?
@@ -47,7 +57,7 @@ LLVMTypeRef fl_codegen_get_typeid(size_t id) {
     return (LLVMTypeRef)t.codegen;
   }
 
-  printf("(codegen) typeid %zu\n", id);
+  cg_print("(codegen) llvm for typeid = %zu\n", id);
 
   switch (t.of) {
   case FL_VOID:
@@ -64,7 +74,7 @@ LLVMTypeRef fl_codegen_get_typeid(size_t id) {
         break;
       }
     } else {
-      printf("t.number.bits %d\n", t.number.bits);
+      cg_print("(codegen) t.number.bits %d\n", t.number.bits);
 
       t.codegen = (void*)LLVMIntType(t.number.bits);
     }
@@ -73,11 +83,11 @@ LLVMTypeRef fl_codegen_get_typeid(size_t id) {
     t.codegen = (void*)LLVMPointerType(fl_codegen_get_typeid(t.ptr.to), 0);
     break;
   default:
-    printf("not handled type yet.\n");
+    cg_error("(codegen) type not handled yet.\n");
   }
 
   if (!t.codegen) {
-    printf("cannot find LLVM-type.\n");
+    cg_error("(codegen) cannot find LLVM-type.\n");
   }
 
   return (LLVMTypeRef)t.codegen;
@@ -85,21 +95,23 @@ LLVMTypeRef fl_codegen_get_typeid(size_t id) {
 
 LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
                                 size_t expected, LLVMValueRef value) {
-  printf("*** casting ***\n");
-  printf("%zu == %zu\n", expected, current);
+  cg_print("(codegen) *casting types [%zu == %zu] [%p]\n", expected, current,
+           value);
 
   if (expected == current) {
     return value;
   }
 
-  fl_type_t ex_type = fl_type_table[current];
-  fl_type_t cu_type = fl_type_table[expected];
+  fl_type_t cu_type = fl_type_table[current];
+  fl_type_t ex_type = fl_type_table[expected];
 
   if (ex_type.of == cu_type.of) {
     switch (ex_type.of) {
     case FL_NUMBER:
       // fptosi
       if (cu_type.number.fp && !ex_type.number.fp) {
+        cg_print("(codegen) fptosi");
+
         if (ex_type.number.sign) {
           return LLVMBuildFPToSI(builder, value,
                                  fl_codegen_get_typeid(expected), "cast");
@@ -108,9 +120,10 @@ LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
         return LLVMBuildFPToUI(builder, value, fl_codegen_get_typeid(expected),
                                "cast");
       }
-
       // sitofp
       if (!cu_type.number.fp && ex_type.number.fp) {
+        cg_print("(codegen) sitofp");
+
         if (ex_type.number.sign) {
           return LLVMBuildSIToFP(builder, value,
                                  fl_codegen_get_typeid(expected), "cast");
@@ -126,6 +139,7 @@ LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
 
       // upcast
       if (cu_type.number.bits < ex_type.number.bits) {
+        cg_print("(codegen) upcast\n");
         if (fp) {
           return LLVMBuildFPExt(builder, value, fl_codegen_get_typeid(expected),
                                 "cast");
@@ -144,6 +158,7 @@ LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
 
       // downcast / truncate
       if (cu_type.number.bits > ex_type.number.bits) {
+        cg_print("(codegen) downcast");
         if (fp) {
           return LLVMBuildFPTrunc(builder, value,
                                   fl_codegen_get_typeid(expected), "cast");
@@ -155,8 +170,7 @@ LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
     }
   }
 
-  fprintf(stderr, "invalid casting");
-  exit(1);
+  cg_error("(codegen) invalid casting");
   // LLVMBuildSIToFP(LLVMBuilderRef B, LLVMValueRef Val, LLVMTypeRef DestTy,
   // const char *Name)
 }

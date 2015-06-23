@@ -2,7 +2,35 @@ var i64 a;
 var i32 b;
 
 a = cast(i64) 256;
-
 b = cast(i32) a;
+printf("%d\n", b);
 
-printf("%d", b);
+
+a = cast(i64) -256;
+b = cast(i32) a;
+printf("%d\n", b);
+
+a = cast(i64) 9999;
+b = cast(i32) a;
+printf("%d\n", b);
+
+a = cast(i64) -9999;
+b = cast(i32) a;
+printf("%d\n", b);
+
+a = cast(i64) 2147483647;
+b = cast(i32) a;
+printf("%d\n", b);
+
+a = cast(i64) -2147483647;
+b = cast(i32) a;
+printf("%d\n", b);
+
+a = cast(i64) -2147483648;
+b = cast(i32) a;
+printf("%d\n", b);
+
+/* overflow: 2147483647*/
+a = cast(i64) 2147483648;
+b = cast(i32) a;
+printf("%d\n", b);

@@ -393,6 +393,13 @@ size_t fl_ast_get_typeid(fl_ast_t* node) {
   case FL_AST_DTOR_VAR:
     printf("dtor: %zu\n", node->var.type->ty.id);
     return node->var.type->ty.id;
+  case FL_AST_CAST:
+    return fl_ast_get_typeid(node->cast.to);
+  case FL_AST_LIT_NUMERIC:
+    return node->numeric.ty_id;
+  // dont give information, continue up
+  case FL_AST_EXPR_LUNARY:
+    return fl_ast_get_typeid(node->parent);
   default: {}
   }
   fprintf(stderr, "ast is not type related! %d", node->type);
