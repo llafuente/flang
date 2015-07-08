@@ -272,52 +272,66 @@ struct fl_ast {
     } err;
 
     struct fl_ast_program {
-      fl_token_list_t* tokens;
+      // code as string
       string* code;
-      struct fl_ast* body;
+      // tokenizer result
+      fl_token_list_t* tokens;
+      // all types found in the code
       fl_type_t* types;
       size_t ntypes;
+      // parsed core
       struct fl_ast* core;
+      // actual code parsed
+      struct fl_ast* body;
     } program;
 
     struct fl_ast_block {
+      // list of statements
       struct fl_ast** body;
+      // count
       size_t nbody;
     } block;
 
     struct fl_ast_lit_boolean {
       bool value;
     } boolean;
+
     struct fl_ast_lit_string {
       // single true, doubles false
       // TODO if support <<<XXX ... XXX; this should be changed to enum
       bool quoted;
       string* value;
     } string;
+
     struct fl_ast_lit_numeric {
       double value;
       size_t ty_id;
     } numeric;
+
     struct fl_ast_lit_identifier {
       string* string;
     } identifier;
+
     struct fl_ast_expr_assignament {
       struct fl_ast* left;
       fl_tokens_t operator;
       struct fl_ast* right;
     } assignament;
+
     struct fl_ast_expr_binop {
       struct fl_ast* left;
       fl_tokens_t operator;
       struct fl_ast* right;
     } binop;
+
     struct fl_ast_expr_lunary {
+      struct fl_ast* right;
       fl_tokens_t operator;
-      struct fl_ast* element;
     } lunary;
+
     struct fl_ast_expr_runary {
-      fl_tokens_t operator;
       struct fl_ast* element;
+      fl_tokens_t operator;
     } runary;
     struct fl_ast_cast {
       fl_ast_t* to;
@@ -436,6 +450,7 @@ struct fl_type {
       string* name; // 0 means anonymous
       struct fl_type* ret;
       struct fl_type** params;
+      size_t nparams;
     } fn;
 
     struct fl_type_struct {

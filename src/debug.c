@@ -34,9 +34,7 @@ void fl_print_type(size_t ty_id) {
     break;
   case FL_NUMBER:
     printf("[%zu] Number (fp %d, bits %d, sign %d)\n", ty_id, ty.number.fp,
-           ty.number.bits, ty.number.sign
-
-           );
+           ty.number.bits, ty.number.sign);
     break;
   case FL_POINTER:
     printf("[%zu] Pointer -> ", ty_id);
@@ -46,6 +44,13 @@ void fl_print_type(size_t ty_id) {
     printf("[%zu] Vector -> ", ty_id);
     fl_print_type(ty.vector.to);
     break;
+  case FL_FUNCTION:
+    printf("[%zu] Function -> ", ty.fn.name ? ty.fn.name : "Anonymous");
+    size_t i;
+    fl_print_type(ty.fn.ret);
+    for (i = 0; i < ty.fn.nparams; ++i) {
+      fl_print_type(ty.fn.params[i]);
+    }
   }
 }
 

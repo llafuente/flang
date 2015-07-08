@@ -349,6 +349,7 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
     return LLVMBuildOr(builder, lhs, rhs, "or");
   case FL_TK_CARET:
     return LLVMBuildXor(builder, lhs, rhs, "xor");
+  default: {}
   }
 
   // operation that need casting or fp/int
@@ -438,7 +439,7 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
         cg_error("(codegen) Parameter %zu don't have type.\n", i);
       }
 
-      cg_print("(codegen) parameter %zu of type %d\n", i, tmp->param.type);
+      cg_print("(codegen) parameter %zu of type %zu\n", i, tmp->param.type);
       param_types[i++] = fl_codegen_get_type(tmp->param.type);
     }
   }
@@ -533,6 +534,6 @@ LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER) {
 LLVMValueRef fl_codegen_lunary(FL_CODEGEN_HEADER) {
   cg_print("(codegen) negate\n");
   return LLVMBuildNeg(
-      builder, fl_codegen_ast(node->lunary.element, FL_CODEGEN_PASSTHROUGH),
+      builder, fl_codegen_ast(node->lunary.right, FL_CODEGEN_PASSTHROUGH),
       "negate");
 }

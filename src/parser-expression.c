@@ -308,9 +308,9 @@ PSR_READ_IMPL(expr_unary_left) {
     PSR_AST_RET_NULL();
   };
 
-  ast->lunary.element = PSR_READ(expr_lhs);
+  ast->lunary.right = PSR_READ(expr_lhs);
   // TODO handle errors
-  if (!ast->lunary.element) {
+  if (!ast->lunary.right) {
     PSR_AST_RET_NULL();
   }
 

@@ -26,6 +26,7 @@
 #include "flang.h"
 
 // priv debug
+// TODO continue working on it
 void print_type(fl_type_t t) {
   switch (t.of) {
   case FL_NUMBER:
@@ -169,6 +170,10 @@ LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
                               "cast");
       }
       break;
+      default: {
+        // TODO more friendly
+        cg_error("(codegen) invalid cast of type %zu to %zu", current, expected);
+      }
     }
   }
 

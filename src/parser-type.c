@@ -225,6 +225,9 @@ size_t fl_parser_get_typeid(fl_types_t wrapper, size_t child) {
     fl_type_table[i].vector.size = 0;
     fl_type_table[i].vector.to = child;
     break;
+  default: {
+    cg_error("(parser) fl_parser_get_typeid fail\n");
+  }
   }
 
   return i;

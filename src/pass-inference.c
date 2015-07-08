@@ -45,8 +45,7 @@ bool fl_ast_find_identifier(fl_ast_t* node, fl_ast_t* parent, size_t level,
 
 bool dtors_var_infer(fl_ast_t* node, fl_ast_t* parent, size_t level,
                      void* userdata) {
-  switch (node->type) {
-  case FL_AST_DTOR_VAR:
+  if (node->type == FL_AST_DTOR_VAR) {
     if (node->var.type->ty.id == 0) {
       // search all ocurrences of this identifier
       id_search_t data;
@@ -78,7 +77,6 @@ bool dtors_var_infer(fl_ast_t* node, fl_ast_t* parent, size_t level,
 
       free(data.list);
     }
-    break;
   }
 
   return true;
