@@ -38,15 +38,17 @@ void print_type(fl_type_t t) {
 LLVMTypeRef fl_codegen_get_type(fl_ast_t* node) {
   return fl_codegen_get_typeid(node->ty.id);
 }
-// TODO safe
-bool fl_type_is_real(size_t id) {
+
+bool fl_type_is_fp(size_t id) {
   fl_type_t t = fl_type_table[id];
-  return t.number.fp;
+
+  return t.of == FL_NUMBER ? t.number.fp : false;
 }
-// TODO safe
-bool fl_type_is_integer(size_t id) {
+
+bool fl_type_is_int(size_t id) {
   fl_type_t t = fl_type_table[id];
-  return t.number.fp;
+
+  return t.of == FL_NUMBER ? !t.number.fp : false;
 }
 
 LLVMTypeRef fl_codegen_get_typeid(size_t id) {

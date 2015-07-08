@@ -158,6 +158,7 @@ enum fl_tokens {
   FL_TK_U64,
   FL_TK_F32,
   FL_TK_F64,
+  FL_TK_IF,
   FL_TK_CAST,
   FL_TK_STRING,
   FL_TK_NULL,
@@ -246,6 +247,8 @@ enum fl_ast_type {
   FL_AST_DECL_FUNCTION = 50,
   FL_AST_PARAMETER = 51,
   FL_AST_STMT_RETURN = 52,
+
+  FL_AST_STMT_IF = 60,
 
   FL_AST_STMT_COMMENT = 100,
   FL_AST_STMT_LOG = 101,
@@ -352,6 +355,11 @@ struct fl_ast {
     struct fl_ast_stmt_return {
       struct fl_ast* argument;
     } ret;
+    struct fl_ast_stmt_if {
+      struct fl_ast* test;
+      struct fl_ast* block; // consequent
+      struct fl_ast* alternate;
+    } if_stmt;
     struct fl_ast_expr_call {
       fl_ast_t* callee;
       struct fl_ast** arguments;
@@ -713,6 +721,12 @@ PSR_READ_DECL(parameter);
 
 /* cldoc:end-category() */
 
+/* cldoc:begin-category(parser-if.c) */
+
+PSR_READ_DECL(stmt_if);
+
+/* cldoc:end-category() */
+
 /* cldoc:begin-category(parser-comment.c) */
 
 PSR_READ_DECL(comment);
@@ -779,8 +793,8 @@ FL_EXTERN LLVMTypeRef fl_codegen_get_typeid(size_t id);
 FL_EXTERN LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder,
                                           size_t current, size_t expected,
                                           LLVMValueRef value);
-FL_EXTERN bool fl_type_is_real(size_t id);
-FL_EXTERN bool fl_type_is_integer(size_t id);
+FL_EXTERN bool fl_type_is_fp(size_t id);
+FL_EXTERN bool fl_type_is_int(size_t id);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(debug.c) */

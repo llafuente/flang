@@ -1,2 +1,6 @@
 var bool b;
 b = true;
+
+if (b) {
+  printf("ok");
+}

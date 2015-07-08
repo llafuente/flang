@@ -1,26 +1,28 @@
 var f64 x;
 var f64 y;
+var f32 z;
 
 x = 10;
 y = 5;
+z = 3;
 
-printf('x + y = %f\n', x + y);
-
-printf('x - y = %f\n', x - y);
-printf('x * y = %f\n', x * y);
-printf('x / y = %f\n', x / y);
-printf('x / y = %f\n', x / y);
-printf('y / x = %f\n', y / x);
-printf('y / x = %f\n', y / x);
-printf('x % y = %f\n', x % y);
-printf('y % z = %f\n', y % x);
-/*
 var i32 left;
 var i32 right;
 
 left = 65;
 right = 129;
 
-printf('x % y = %d\n', x % y);
-printf('y % x = %d\n', y % x);
-*/
+printf("1. x + y = %f\n", x + y);
+printf("2. x - y = %f\n", x - y);
+printf("3. x * y = %f\n", x * y);
+printf("4. x / y = %f\n", x / y);
+printf("5. x / y = %f\n", x / y);
+printf("6. y / x = %f\n", y / x);
+printf("7. y / x = %f\n", y / x);
+printf("8. x %% y = %f\n", x % y);
+printf("9. y %% x = %f\n", y % x);
+
+printf("10. left %% right = %d\n", left % right);
+printf("11. right %% left = %d\n", right % left);
+
+/* printf("12. y / z = %f\n", y / z); */

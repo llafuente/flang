@@ -145,6 +145,8 @@ fl_tokens_cfg_t fl_token_list[100] = {
     {FL_TK_NULL, false, "null", 4, 0, 0, false},
     {FL_TK_NULL, false, "nil", 3, 0, 0, false},
 
+    {FL_TK_IF, false, "if", 2, 0, 0, false},
+
     {FL_TK_CAST, false, "cast", 4, 0, 0, false},
     // special chars
     {FL_TK_AT, false, "@", 1, 0, 0, false},

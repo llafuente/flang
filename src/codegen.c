@@ -328,9 +328,12 @@ LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
 LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
   fprintf(stderr, "(codegen) binop\n");
 
+  fl_ast_t* l = node->binop.left;
+  fl_ast_t* r = node->binop.right;
+
   // retrieve left/right side
-  LLVMValueRef lhs = fl_codegen_ast(node->binop.left, FL_CODEGEN_PASSTHROUGH);
-  LLVMValueRef rhs = fl_codegen_ast(node->binop.right, FL_CODEGEN_PASSTHROUGH);
+  LLVMValueRef lhs = fl_codegen_ast(l, FL_CODEGEN_PASSTHROUGH);
+  LLVMValueRef rhs = fl_codegen_ast(r, FL_CODEGEN_PASSTHROUGH);
 
   if (lhs == 0 || rhs == 0) {
     fprintf(stderr, "something it not right!");
@@ -338,31 +341,58 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
   }
   printf("usgin binop %d\n", node->binop.operator);
 
+  // common operations that works with any type
+  switch (node->binop.operator) {
+  case FL_TK_AND:
+    return LLVMBuildAnd(builder, lhs, rhs, "and");
+  case FL_TK_OR:
+    return LLVMBuildOr(builder, lhs, rhs, "or");
+  case FL_TK_CARET:
+    return LLVMBuildXor(builder, lhs, rhs, "xor");
+  }
+
+  // operation that need casting or fp/int
+  bool use_fp;
+  size_t l_type = fl_ast_get_typeid(l);
+  bool l_fp = fl_type_is_fp(l_type);
+  size_t r_type = fl_ast_get_typeid(r);
+  bool r_fp = fl_type_is_fp(r_type);
+  // TODO check fp-vs-int -> cast
+
+  if (!l_fp && !r_fp) {
+    //TODO handle sign
+    use_fp = false;
+  } else if (l_fp && r_fp) {
+    use_fp = true;
+  } else if (l_fp && !r_fp) {
+    // upcast right
+    rhs = fl_codegen_cast_op(builder, r_type, l_type, rhs);
+  } else {
+    lhs = fl_codegen_cast_op(builder, l_type, r_type, lhs);
+  }
+
   // Create different IR code depending on the operator.
   switch (node->binop.operator) {
   case FL_TK_PLUS: {
-    return LLVMBuildFAdd(builder, lhs, rhs, "add");
+    return use_fp ? LLVMBuildFAdd(builder, lhs, rhs, "add")
+                  : LLVMBuildAdd(builder, lhs, rhs, "addi");
   }
   case FL_TK_MINUS: {
-    return LLVMBuildFSub(builder, lhs, rhs, "sub");
+    return use_fp ? LLVMBuildFSub(builder, lhs, rhs, "sub")
+                  : LLVMBuildSub(builder, lhs, rhs, "sub");
   }
   case FL_TK_ASTERISK: {
-    return LLVMBuildFMul(builder, lhs, rhs, "mul");
+    return use_fp ? LLVMBuildFMul(builder, lhs, rhs, "mul")
+                  : LLVMBuildMul(builder, lhs, rhs, "mul");
   }
   case FL_TK_SLASH: {
-    return LLVMBuildFDiv(builder, lhs, rhs, "div");
+    // signed vs unsigned
+    return use_fp ? LLVMBuildFDiv(builder, lhs, rhs, "div")
+                  : LLVMBuildSDiv(builder, lhs, rhs, "div");
   }
   case FL_TK_MOD: {
-    return LLVMBuildFRem(builder, lhs, rhs, "mod");
-  }
-  case FL_TK_AND: {
-    return LLVMBuildAnd(builder, lhs, rhs, "and");
-  }
-  case FL_TK_OR: {
-    return LLVMBuildOr(builder, lhs, rhs, "or");
-  }
-  case FL_TK_CARET: {
-    return LLVMBuildXor(builder, lhs, rhs, "xor");
+    return use_fp ? LLVMBuildFRem(builder, lhs, rhs, "mod")
+                  : LLVMBuildSRem(builder, lhs, rhs, "mod");
   }
 
   default:
