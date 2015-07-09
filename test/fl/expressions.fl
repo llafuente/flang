@@ -25,4 +25,14 @@ printf("9. y %% x = %f\n", y % x);
 printf("10. left %% right = %d\n", left % right);
 printf("11. right %% left = %d\n", right % left);
 
+printf("12. x * left = %f\n", x * left);
+printf("13. left * x = %f\n", left * x);
+
 /* printf("12. y / z = %f\n", y / z); */
+
+/*
+var i32 a = -3;
+var u32 b = 5;
+printf("13. a / b = %d\n", a / b); // 0
+printf("13. a %% b = %d\n", a % b); // -3
+*/

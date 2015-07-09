@@ -265,6 +265,8 @@ struct fl_ast {
   void* codegen;      // space for codegen injection "userdata"
   struct fl_ast* parent;
 
+  size_t real_ty_id;
+
   union {
     struct fl_ast_error {
       char* str;
@@ -609,6 +611,15 @@ FL_EXTERN fl_token_list_t* fl_tokenize(string* file);
 
 /* cldoc:end-category() */
 
+/* cldoc:begin-category(typesystem.c) */
+
+FL_EXTERN bool ts_is_number(size_t id);
+FL_EXTERN bool ts_is_fp(size_t id);
+FL_EXTERN bool ts_is_int(size_t id);
+FL_EXTERN size_t ts_get_bigger_typeid(size_t a, size_t b);
+
+/* cldoc:end-category() */
+
 /* cldoc:begin-category(parser.c) */
 
 FL_EXTERN fl_ast_t* fl_parser(fl_token_list_t* tokens);
@@ -808,8 +819,6 @@ FL_EXTERN LLVMTypeRef fl_codegen_get_typeid(size_t id);
 FL_EXTERN LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder,
                                           size_t current, size_t expected,
                                           LLVMValueRef value);
-FL_EXTERN bool fl_type_is_fp(size_t id);
-FL_EXTERN bool fl_type_is_int(size_t id);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(debug.c) */

@@ -325,6 +325,7 @@ LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
   return assign;
 }
 
+// https://msdn.microsoft.com/en-us/library/09ka8bxx.aspx
 LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
   fprintf(stderr, "(codegen) binop\n");
 
@@ -355,21 +356,24 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
   // operation that need casting or fp/int
   bool use_fp;
   size_t l_type = fl_ast_get_typeid(l);
-  bool l_fp = fl_type_is_fp(l_type);
+  bool l_fp = ts_is_fp(l_type);
   size_t r_type = fl_ast_get_typeid(r);
-  bool r_fp = fl_type_is_fp(r_type);
+  bool r_fp = ts_is_fp(r_type);
   // TODO check fp-vs-int -> cast
+  node->real_ty_id = ts_get_bigger_typeid(l_type, r_type);
 
   if (!l_fp && !r_fp) {
-    //TODO handle sign
+    // TODO handle sign
     use_fp = false;
   } else if (l_fp && r_fp) {
     use_fp = true;
   } else if (l_fp && !r_fp) {
     // upcast right
     rhs = fl_codegen_cast_op(builder, r_type, l_type, rhs);
+    use_fp = true;
   } else {
     lhs = fl_codegen_cast_op(builder, l_type, r_type, lhs);
+    use_fp = true;
   }
 
   // Create different IR code depending on the operator.
@@ -380,20 +384,20 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
   }
   case FL_TK_MINUS: {
     return use_fp ? LLVMBuildFSub(builder, lhs, rhs, "sub")
-                  : LLVMBuildSub(builder, lhs, rhs, "sub");
+                  : LLVMBuildSub(builder, lhs, rhs, "subi");
   }
   case FL_TK_ASTERISK: {
     return use_fp ? LLVMBuildFMul(builder, lhs, rhs, "mul")
-                  : LLVMBuildMul(builder, lhs, rhs, "mul");
+                  : LLVMBuildMul(builder, lhs, rhs, "muli");
   }
   case FL_TK_SLASH: {
     // signed vs unsigned
     return use_fp ? LLVMBuildFDiv(builder, lhs, rhs, "div")
-                  : LLVMBuildSDiv(builder, lhs, rhs, "div");
+                  : LLVMBuildSDiv(builder, lhs, rhs, "divi");
   }
   case FL_TK_MOD: {
     return use_fp ? LLVMBuildFRem(builder, lhs, rhs, "mod")
-                  : LLVMBuildSRem(builder, lhs, rhs, "mod");
+                  : LLVMBuildSRem(builder, lhs, rhs, "modi");
   }
 
   default:

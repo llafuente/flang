@@ -2,6 +2,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 COMPILER_SOURCES = src/tokenizer.c \
                 src/tokens.c \
+                src/typesystem.c \
                 src/parser.c \
                 src/parser-utils.c \
                 src/parser-stack.c \

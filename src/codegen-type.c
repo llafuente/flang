@@ -25,31 +25,8 @@
 
 #include "flang.h"
 
-// priv debug
-// TODO continue working on it
-void print_type(fl_type_t t) {
-  switch (t.of) {
-  case FL_NUMBER:
-    printf("number (%dbits) fp%d sign%d\n", t.number.bits, t.number.fp,
-           t.number.sign);
-    break;
-  }
-}
-
 LLVMTypeRef fl_codegen_get_type(fl_ast_t* node) {
   return fl_codegen_get_typeid(node->ty.id);
-}
-
-bool fl_type_is_fp(size_t id) {
-  fl_type_t t = fl_type_table[id];
-
-  return t.of == FL_NUMBER ? t.number.fp : false;
-}
-
-bool fl_type_is_int(size_t id) {
-  fl_type_t t = fl_type_table[id];
-
-  return t.of == FL_NUMBER ? !t.number.fp : false;
 }
 
 LLVMTypeRef fl_codegen_get_typeid(size_t id) {
@@ -170,10 +147,10 @@ LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
                               "cast");
       }
       break;
-      default: {
-        // TODO more friendly
-        cg_error("(codegen) invalid cast of type %zu to %zu", current, expected);
-      }
+    default: {
+      // TODO more friendly
+      cg_error("(codegen) invalid cast of type %zu to %zu", current, expected);
+    }
     }
   }
 
