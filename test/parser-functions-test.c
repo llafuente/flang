@@ -25,76 +25,49 @@
 
 #include "flang.h"
 #include "tasks.h"
+#include "test.h"
 
 // TODO review if ";" is required
 TASK_IMPL(parser_functions) {
   fl_ast_t* root;
-  fl_ast_t* ast;
+  fl_ast_t* body;
 
   root = fl_parse_utf8("fn x() {}");
-  ast = *(root->program.body->block.body);
-
-  ASSERT(ast != 0, "string literal found!");
-
-  ASSERT(ast->type == FL_AST_DECL_FUNCTION, "FL_AST_DECL_FUNCTION");
-  ASSERT(ast->func.id->type == FL_AST_LIT_IDENTIFIER, "FL_AST_LIT_IDENTIFIER");
-  ASSERT(ast->func.params == 0, "no args");
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_DECL_FUNCTION, "FL_AST_DECL_FUNCTION");
+  ASSERT(body->func.id->type == FL_AST_LIT_IDENTIFIER, "FL_AST_LIT_IDENTIFIER");
+  ASSERT(body->func.params == 0, "no args");
   fl_ast_delete(root);
+
   root = fl_parse_utf8("fn x(yy, zz , mm ,xx) {}");
-  ast = *(root->program.body->block.body);
-
-  ASSERT(ast != 0, "string literal found!");
-
-  ASSERT(ast->type == FL_AST_DECL_FUNCTION, "FL_AST_DECL_FUNCTION");
-  ASSERT(ast->func.id->type == FL_AST_LIT_IDENTIFIER, "FL_AST_LIT_IDENTIFIER");
-  ASSERT(ast->func.params != 0, "no args");
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_DECL_FUNCTION, "FL_AST_DECL_FUNCTION");
+  ASSERT(body->func.id->type == FL_AST_LIT_IDENTIFIER, "FL_AST_LIT_IDENTIFIER");
+  ASSERT(body->func.params != 0, "no args");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("fn {}");
-  ast = root->program.body;
-
-  ASSERT(ast->type == FL_AST_ERROR, "error found");
-  ASSERT(strcmp(ast->err.str, "cannot parse function identifier") == 0,
-         "error found");
-  ASSERTE(ast->token_start->start.column, 1, "%zu != %d", "start column");
-  ASSERTE(ast->token_start->start.line, 1, "%zu != %d", "start line");
-  ASSERTE(ast->token_end->end.column, 5, "%zu != %d", "end column");
-  ASSERTE(ast->token_end->end.line, 1, "%zu != %d", "end line");
-
+  CHK_ERROR(root, body, "cannot parse function identifier");
+  CHK_ERROR_RANGE(body, 1, 1, 5, 1);
   fl_ast_delete(root);
 
   root = fl_parse_utf8("fn hell ({}");
-  ast = root->program.body;
-
-  ASSERT(ast->type == FL_AST_ERROR, "error found");
-  ASSERT(strcmp(ast->err.str, "expected identifier") == 0, "error found");
-
+  CHK_ERROR(root, body, "expected identifier");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("fn x () { fn (){}; }");
-  ast = root->program.body;
-
-  ASSERT(ast->type == FL_AST_ERROR, "error found");
-  ASSERT(strcmp(ast->err.str, "cannot parse function identifier") == 0,
-         "error found");
-
-  ASSERTE(ast->token_start->start.column, 11, "%zu != %d", "start column");
-  ASSERTE(ast->token_start->start.line, 1, "%zu != %d", "start line");
-  ASSERTE(ast->token_end->end.column, 15, "%zu != %d", "end column");
-  ASSERTE(ast->token_end->end.line, 1, "%zu != %d", "end line");
-
+  CHK_ERROR(root, body, "cannot parse function identifier");
+  CHK_ERROR_RANGE(body, 11, 1, 15, 1);
   fl_ast_delete(root);
 
   root = fl_parse_utf8("fn x(arg1, arg2) { return arg1 + arg2;}");
-  ast = root->program.body;
-  ASSERT(ast->type != FL_AST_ERROR, "no error");
+  CHK_BODY(root, body);
   fl_ast_delete(root);
 
   // declaration only
   root = fl_parse_utf8(
       "fn x( i8 arg1 , i8 arg2 ) : i8 ; fn printf2( ptr<i8> format, ... ) ;");
-  ast = root->program.body;
-  ASSERT(ast->type != FL_AST_ERROR, "no error");
+  CHK_BODY(root, body);
   fl_codegen(root, "test");
   fl_ast_delete(root);
 

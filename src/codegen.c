@@ -350,6 +350,11 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
     return LLVMBuildOr(builder, lhs, rhs, "or");
   case FL_TK_CARET:
     return LLVMBuildXor(builder, lhs, rhs, "xor");
+  case FL_TK_LT2:
+    return LLVMBuildShl(builder, lhs, rhs, "shl");
+  case FL_TK_GT2:
+    return LLVMBuildLShr(builder, lhs, rhs, "lshr");
+    return LLVMBuildAShr(builder, lhs, rhs, "ashr");
   default: {}
   }
 
@@ -400,10 +405,10 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
                   : LLVMBuildSRem(builder, lhs, rhs, "modi");
   }
 
-  default:
-    fprintf(stderr, "(codegen) binop not supported: %d\n",
-            node->binop.operator);
+  default: {}
   }
+
+  cg_error("(codegen) binop not supported: %d\n", node->binop.operator);
 
   return 0;
 }

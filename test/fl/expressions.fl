@@ -28,6 +28,15 @@ printf("11. right %% left = %d\n", right % left);
 printf("12. x * left = %f\n", x * left);
 printf("13. left * x = %f\n", left * x);
 
+
+var i32 i5;
+i5 = 5;
+var i32 i3;
+i3 = 3;
+printf("14. i5 << i3 = %d\n", i5 << i3);
+printf("15. (i5 << i3) >> i3 = %d\n", (i5 << i3) >> i3);
+printf("16. (i5 << i3) >> i3 = %d\n", i5 >> i3);
+
 /* printf("12. y / z = %f\n", y / z); */
 
 /*

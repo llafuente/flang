@@ -50,12 +50,12 @@ PSR_READ_IMPL(decl_function) {
   fl_parser_skipws(tokens, state);
 
   // params
-  if (!PSR_ACCEPT_TOKEN(FL_TK_LPARANTHESIS)) {
+  if (!PSR_ACCEPT_TOKEN(FL_TK_LPARENTHESIS)) {
     PSR_SYNTAX_ERROR(ast, "expected '('");
     return ast;
   }
 
-  if (!PSR_ACCEPT_TOKEN(FL_TK_RPARANTHESIS)) {
+  if (!PSR_ACCEPT_TOKEN(FL_TK_RPARENTHESIS)) {
     fl_ast_t** list = calloc(100, sizeof(fl_ast_t*)); // TODO resize support
     ast->func.params = list;
 
@@ -84,7 +84,7 @@ PSR_READ_IMPL(decl_function) {
     } while (PSR_ACCEPT_TOKEN(FL_TK_COMMA));
     ast->func.nparams = i;
 
-    if (!PSR_ACCEPT_TOKEN(FL_TK_RPARANTHESIS)) {
+    if (!PSR_ACCEPT_TOKEN(FL_TK_RPARENTHESIS)) {
       fl_ast_delete(ast->func.id);
       fl_ast_delete_list(list);
 

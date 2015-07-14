@@ -101,11 +101,35 @@ PSR_READ_IMPL(expr_lhs) {
   // printf("**expr_lhs %s\n", state->token->string->value);
 
   FL_TRY_READ(expr_call);
-  FL_TRY_READ(literal);
+  FL_TRY_READ(expr_primary);
   // TODO
   // expr_new
 
   return 0;
+}
+
+PSR_READ_IMPL(expr_primary) {
+  fl_ast_t* ast;
+
+  PSR_SOFT_READ(ast, literal);
+
+  if (!PSR_ACCEPT_TOKEN(FL_TK_LPARENTHESIS)) {
+    PSR_AST_RET_NULL(); // soft
+  }
+  cg_print("(parse) parenthesis\n");
+
+  fl_ast_t* inside = PSR_READ(expr_logical_or);
+  PSR_RET_IF_ERROR(inside);
+
+  if (!PSR_ACCEPT_TOKEN(FL_TK_RPARENTHESIS)) {
+    fl_ast_delete_list(ast);
+    PSR_SYNTAX_ERROR(ast, "expected ')'");
+    return ast;
+  }
+
+  cg_print("(parse) ok!\n");
+
+  PSR_RET(inside);
 }
 
 PSR_READ_IMPL(expr_conditional) {
@@ -136,7 +160,7 @@ fl_ast_t* PSR_READ_binop(PSR_READ_HEADER, fl_tokens_t operators[], size_t n_ops,
     fl_parser_skipws(tokens, state);
 
     PSR_AST_START(FL_AST_EXPR_BINOP);
-    // printf("try to read left!\n");
+    cg_print("(parser-binop) read left\n");
 
     ast->binop.left = 0;
     ast->binop.right = 0;
@@ -152,13 +176,10 @@ fl_ast_t* PSR_READ_binop(PSR_READ_HEADER, fl_tokens_t operators[], size_t n_ops,
       fl_ast_delete(ast);
     } else {
       // try to read the operator
-      // printf("push and try to read operator!\n");
+      cg_print("(parser-binop) read operator\n");
 
       leafs[leafs_s++] = ast;
       fl_parser_skipws(tokens, state);
-
-      // printf("token: %u == %u\n", state->token->type, token);
-      // printf("token: %lu\n", state->current);
 
       op_found = false;
       for (ops = 0; ops < n_ops; ++ops) {
@@ -357,7 +378,7 @@ PSR_READ_IMPL(expr_call) {
 
   fl_parser_skipws(tokens, state);
 
-  if (!PSR_ACCEPT_TOKEN(FL_TK_LPARANTHESIS)) {
+  if (!PSR_ACCEPT_TOKEN(FL_TK_LPARENTHESIS)) {
     fl_ast_delete(callee);
     PSR_AST_RET_NULL(); // soft
   }
@@ -378,7 +399,7 @@ PSR_READ_IMPL(expr_call) {
   ast->call.arguments = list;
   ast->call.narguments = i;
 
-  if (!PSR_ACCEPT_TOKEN(FL_TK_RPARANTHESIS)) {
+  if (!PSR_ACCEPT_TOKEN(FL_TK_RPARENTHESIS)) {
     fl_ast_delete_list(list);
     fl_ast_delete(callee);
     PSR_SYNTAX_ERROR(ast, "expected ')'");

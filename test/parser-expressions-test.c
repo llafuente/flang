@@ -25,134 +25,152 @@
 
 #include "flang.h"
 #include "tasks.h"
+#include "test.h"
 
 // TODO review if ";" is required
 TASK_IMPL(parser_expressions) {
   fl_ast_t* root;
-  fl_ast_t* ast;
-  root = fl_parse_utf8("1+2");
+  fl_ast_t* body;
 
-  ast = *(root->program.body->block.body);
-  ASSERT(ast != 0, "string literal found!");
-  ASSERT(ast->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
-  ASSERT(ast->binop.left->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
-  ASSERT(ast->binop.right->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  root = fl_parse_utf8("1+2");
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+  ASSERT(body->binop.left->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  ASSERT(body->binop.right->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("1+2+3");
-
-  ast = *(root->program.body->block.body);
-  ASSERT(ast != 0, "string literal found!");
-  ASSERT(ast->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
-  ASSERT(ast->binop.left->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
-  ASSERT(ast->binop.right->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
-  ASSERT(ast->binop.right->binop.left->type == FL_AST_LIT_NUMERIC,
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+  ASSERT(body->binop.left->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  ASSERT(body->binop.right->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+  ASSERT(body->binop.right->binop.left->type == FL_AST_LIT_NUMERIC,
          "FL_AST_LIT_NUMERIC");
-  ASSERT(ast->binop.right->binop.right->type == FL_AST_LIT_NUMERIC,
+  ASSERT(body->binop.right->binop.right->type == FL_AST_LIT_NUMERIC,
          "FL_AST_LIT_NUMERIC");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("1*2");
-
-  ast = *(root->program.body->block.body);
-  ASSERT(ast != 0, "string literal found!");
-  ASSERT(ast->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
-  ASSERT(ast->binop.left->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
-  ASSERT(ast->binop.operator== FL_TK_ASTERISK, "FL_TK_ASTERISK");
-  ASSERT(ast->binop.right->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+  ASSERT(body->binop.left->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  ASSERT(body->binop.operator== FL_TK_ASTERISK, "FL_TK_ASTERISK");
+  ASSERT(body->binop.right->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("1*2+3"); // priotity test
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
 
-  ast = *(root->program.body->block.body);
-  ASSERT(ast != 0, "string literal found!");
-  ASSERT(ast->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
-
-  ASSERT(ast->binop.left->binop.left->type == FL_AST_LIT_NUMERIC,
+  ASSERT(body->binop.left->binop.left->type == FL_AST_LIT_NUMERIC,
          "FL_AST_LIT_NUMERIC");
-  ASSERT(ast->binop.left->binop.operator== FL_TK_ASTERISK,
+  ASSERT(body->binop.left->binop.operator== FL_TK_ASTERISK,
          "left FL_TK_ASTERISK");
-  ASSERT(ast->binop.left->binop.right->type == FL_AST_LIT_NUMERIC,
+  ASSERT(body->binop.left->binop.right->type == FL_AST_LIT_NUMERIC,
          "FL_AST_LIT_NUMERIC");
 
-  ASSERT(ast->binop.operator== FL_TK_PLUS, "FL_TK_PLUS");
-  ASSERT(ast->binop.right->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  ASSERT(body->binop.operator== FL_TK_PLUS, "FL_TK_PLUS");
+  ASSERT(body->binop.right->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
 
   fl_ast_delete(root);
 
   root = fl_parse_utf8("-2"); // unary
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_EXPR_LUNARY, "ast is FL_AST_EXPR_LUNARY");
 
-  ast = *(root->program.body->block.body);
-  ASSERT(ast != 0, "ast found!");
-  ASSERT(ast->type == FL_AST_EXPR_LUNARY, "ast is FL_AST_EXPR_LUNARY");
-
-  ASSERT(ast->lunary.right->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
-  ASSERT(ast->lunary.operator== FL_TK_MINUS, "operator FL_TK_MINUS");
+  ASSERT(body->lunary.right->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  ASSERT(body->lunary.operator== FL_TK_MINUS, "operator FL_TK_MINUS");
 
   fl_ast_delete(root);
 
   root = fl_parse_utf8("xxx++"); // unary
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_EXPR_RUNARY, "ast is FL_AST_EXPR_RUNARY");
 
-  ast = *(root->program.body->block.body);
-  ASSERT(ast != 0, "ast found!");
-  ASSERT(ast->type == FL_AST_EXPR_RUNARY, "ast is FL_AST_EXPR_RUNARY");
-
-  ASSERT(ast->lunary.right->type == FL_AST_LIT_IDENTIFIER,
+  ASSERT(body->lunary.right->type == FL_AST_LIT_IDENTIFIER,
          "FL_AST_LIT_IDENTIFIER");
-  ASSERT(ast->lunary.operator== FL_TK_PLUS2, "operator FL_TK_PLUS2");
+  ASSERT(body->lunary.operator== FL_TK_PLUS2, "operator FL_TK_PLUS2");
 
   fl_ast_delete(root);
 
   root = fl_parse_utf8("a=b"); // unary
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
+  ASSERT(body->assignament.operator== FL_TK_EQUAL, "operator: FL_TK_EQUAL");
 
-  ast = *(root->program.body->block.body);
-  ASSERT(ast != 0, "ast found!");
-  ASSERT(ast->type == FL_AST_EXPR_ASSIGNAMENT,
-         "ast is FL_AST_EXPR_ASSIGNAMENT");
-  ASSERT(ast->assignament.operator== FL_TK_EQUAL, "operator: FL_TK_EQUAL");
-
-  ASSERT(ast->assignament.left->type == FL_AST_LIT_IDENTIFIER,
+  ASSERT(body->assignament.left->type == FL_AST_LIT_IDENTIFIER,
          "left: FL_AST_LIT_IDENTIFIER");
-  ASSERT(ast->assignament.right->type == FL_AST_LIT_IDENTIFIER,
+  ASSERT(body->assignament.right->type == FL_AST_LIT_IDENTIFIER,
          "right: FL_AST_LIT_IDENTIFIER");
 
   fl_ast_delete(root);
 
   root = fl_parse_utf8("a =b"); // ws test
-  ASSERT(*(root->program.body->block.body) != 0, "ast found!");
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("a = b"); // ws test
-  ASSERT(*(root->program.body->block.body) != 0, "ast found!");
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("a= b"); // ws test
-  ASSERT(*(root->program.body->block.body) != 0, "ast found!");
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("1 +2"); // ws test
-  ast = *(root->program.body->block.body);
-  ASSERT(ast != 0, "string literal found!");
-  ASSERT(ast->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("1 + 2"); // ws test
-  ast = *(root->program.body->block.body);
-  ASSERT(ast != 0, "string literal found!");
-  ASSERT(ast->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
   fl_ast_delete(root);
 
   // function call
   root = fl_parse_utf8("printf ( 'xxx' )"); // ws test
-  ast = *(root->program.body->block.body);
-  ASSERT(ast != 0, "string literal found!");
-  ASSERT(ast->type == FL_AST_EXPR_CALL, "FL_AST_EXPR_CALL");
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_EXPR_CALL, "FL_AST_EXPR_CALL");
   fl_ast_delete(root);
 
   // double assignament
   root = fl_parse_utf8("var x; var y; x = y = 1;"); // ws test
-  ast = *(root->program.body->block.body);
-  ASSERT(ast != 0, "parsed");
+  CHK_BODY(root, body);
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("5 << 6"); // left shift
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_EXPR_BINOP, "parsed");
+  ASSERT(body->binop.left->type == FL_AST_LIT_NUMERIC, "left numeric");
+  ASSERT(body->binop.right->type == FL_AST_LIT_NUMERIC, "right numeric");
+  fl_ast_delete(root);
+
+  // parethesis test!
+
+  root = fl_parse_utf8("((5) << (6))"); // left shift
+  CHK_BODY(root, body);
+
+  ASSERT(body->type == FL_AST_EXPR_BINOP, "parsed");
+  ASSERT(body->binop.left->type == FL_AST_LIT_NUMERIC, "left numeric");
+  ASSERT(body->binop.right->type == FL_AST_LIT_NUMERIC, "right numeric");
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("1*(2+3)"); // priotity test
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+
+  ASSERT(body->binop.left->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  ASSERT(body->binop.operator== FL_TK_ASTERISK, "operator *");
+
+  ASSERT(body->binop.right->binop.left->type == FL_AST_LIT_NUMERIC,
+         "FL_AST_LIT_NUMERIC");
+  ASSERT(body->binop.right->binop.operator== FL_TK_PLUS, "right operator +");
+  ASSERT(body->binop.right->binop.right->type == FL_AST_LIT_NUMERIC,
+         "FL_AST_LIT_NUMERIC");
+
   fl_ast_delete(root);
 
   return 0;

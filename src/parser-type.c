@@ -132,7 +132,7 @@ PSR_READ_IMPL(cast) {
   // hard
   fl_parser_skipws(tokens, state);
 
-  if (!PSR_ACCEPT_TOKEN(FL_TK_LPARANTHESIS)) {
+  if (!PSR_ACCEPT_TOKEN(FL_TK_LPARENTHESIS)) {
     PSR_SYNTAX_ERROR(ast, "expected '('");
   }
 
@@ -143,7 +143,7 @@ PSR_READ_IMPL(cast) {
   }
 
   fl_parser_skipws(tokens, state);
-  if (!PSR_ACCEPT_TOKEN(FL_TK_RPARANTHESIS)) {
+  if (!PSR_ACCEPT_TOKEN(FL_TK_RPARENTHESIS)) {
     fl_ast_delete(ty);
     PSR_SYNTAX_ERROR(ast, "expected ')'");
   }

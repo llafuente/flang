@@ -85,8 +85,8 @@ enum fl_tokens {
   FL_TK_CONST,
   FL_TK_STATIC,
   FL_TK_GLOBAL,
-  FL_TK_LPARANTHESIS,
-  FL_TK_RPARANTHESIS,
+  FL_TK_LPARENTHESIS,
+  FL_TK_RPARENTHESIS,
   FL_TK_3DOT,
   FL_TK_DOT,
   FL_TK_LBRACKET,
@@ -574,6 +574,38 @@ struct fl_enum_members {
 // , printf("next!\n")
 #define PSR_NEXT() fl_parser_next(tokens, state)
 
+/*
+* new parser MACRO API
+*/
+
+// read that can raise errors but 'dont throw'
+#define PSR_SOFT_READ(target, name)                                            \
+  fl_parser_look_ahead(stack, state);                                          \
+  target = PSR_READ(name);                                                     \
+  if (target) {                                                                \
+    /*has errors?*/                                                            \
+    if (target->type != FL_AST_ERROR) {                                        \
+      fl_parser_commit(stack, state);                                          \
+      return target;                                                           \
+    }                                                                          \
+    target = 0;                                                                \
+  }                                                                            \
+  fl_parser_rollback(stack, state);
+
+#define PSR_RET_IF_ERROR(target)                                               \
+  if (target->type == FL_AST_ERROR) {                                          \
+    return target;                                                             \
+  }
+
+#define PSR_RET(target)                                                        \
+  PSR_END(target);                                                             \
+  return target;
+
+#define PSR_END(target)                                                        \
+  if (target->type != FL_AST_ERROR) {                                          \
+    target->token_end = state->token;                                          \
+  }
+
 #define FL_CODEGEN_HEADER                                                      \
   fl_ast_t* node, LLVMBuilderRef builder, LLVMModuleRef module,                \
       LLVMContextRef context, LLVMBasicBlockRef current_block
@@ -583,7 +615,7 @@ struct fl_enum_members {
 
 // target_ast allow to reuse current ast
 #define PSR_SYNTAX_ERROR(target_ast, string)                                   \
-  printf("%s\n", string);                                                      \
+  cg_print("(psr-err) %s\n", string);                                          \
   target_ast->type = FL_AST_ERROR;                                             \
   target_ast->token_end = state->token;                                        \
   target_ast->err.str = string;                                                \
@@ -698,6 +730,7 @@ PSR_READ_DECL(expression);
 PSR_READ_DECL(expr_assignment);
 PSR_READ_DECL(expr_assignment_full);
 PSR_READ_DECL(expr_lhs);
+PSR_READ_DECL(expr_primary);
 PSR_READ_DECL(expr_conditional);
 PSR_READ_DECL(expr_logical_or);
 PSR_READ_DECL(expr_logical_and);
