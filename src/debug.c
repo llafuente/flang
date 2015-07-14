@@ -127,6 +127,9 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
   case FL_AST_STMT_COMMENT:
     printf("comment [comment=%s]", node->comment.text->value);
     break;
+  case FL_AST_STMT_IF:
+    printf("if");
+  break;
   case FL_AST_CAST:
     printf("cast");
     break;
@@ -138,4 +141,8 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
          node->token_end->end.column, node->token_end->end.line);
 
   return true;
+}
+
+void fl_ast_debug(fl_ast_t* node) {
+  fl_ast_traverse(node, fl_ast_debug_cb, 0, 0, 0);
 }

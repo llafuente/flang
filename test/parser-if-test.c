@@ -23,33 +23,18 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/// @file
-
+#include "flang.h"
 #include "tasks.h"
-#include "fixtures.h"
+#include "test.h"
 
-int main(int argc, const char* argv[]) {
+TASK_IMPL(parser_if) {
+  fl_ast_t* root;
+  fl_ast_t* body;
 
-  printf("    ###############\n");
-  printf("    ## unit test ##\n");
-  printf("    ###############\n");
-
-  TASK_RUN(tokenizer);
-
-  TASK_RUN(parser_utils);
-  TASK_RUN(parser_literals);
-  TASK_RUN(parser_expressions);
-  TASK_RUN(parser_variables);
-  TASK_RUN(parser_functions);
-  TASK_RUN(parser_types);
-  TASK_RUN(parser_if);
-
-  TASK_RUN(codegen_expressions);
-  TASK_RUN(codegen_functions);
-
-  TASK_RUN(flang_files);
-
-  printf("OK\n");
+  root = fl_parse_utf8("var bool b; b = 1; if (b == true) { printf('ok'); }");
+  CHK_BODY(root, body);
+  fl_codegen(root, "test");
+  fl_ast_delete(root);
 
   return 0;
 }

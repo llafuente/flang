@@ -97,6 +97,11 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
   case FL_AST_STMT_RETURN: {
     TRAVERSE(ast->ret.argument);
   }
+  case FL_AST_STMT_IF: {
+    TRAVERSE(ast->if_stmt.test);
+    TRAVERSE(ast->if_stmt.block);
+    TRAVERSE(ast->if_stmt.alternate);
+  }
   case FL_AST_CAST: {
     TRAVERSE(ast->cast.to);
     TRAVERSE(ast->cast.right);
@@ -197,6 +202,11 @@ void fl_ast_delete_list(fl_ast_t** list) {
 }
 void fl_ast_delete(fl_ast_t* ast) {
   // fprintf(stderr, "ast [%p]", ast);
+#define SAFE_DEL(test) \
+  if (test) { \
+    fl_ast_delete(test); \
+    test = 0; \
+  }
 
   switch (ast->type) {
   case FL_AST_PROGRAM:
@@ -314,6 +324,11 @@ void fl_ast_delete(fl_ast_t* ast) {
       ast->ret.argument = 0;
     }
   } break;
+  case FL_AST_STMT_IF: {
+    SAFE_DEL(ast->if_stmt.test);
+    SAFE_DEL(ast->if_stmt.block);
+    SAFE_DEL(ast->if_stmt.alternate);
+  }
   case FL_AST_CAST: {
     if (ast->cast.to) {
       fl_ast_delete(ast->cast.to);

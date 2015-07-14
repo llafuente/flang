@@ -481,6 +481,8 @@ struct fl_enum_members {
 //- DEBUG MACROS
 //-
 
+#define cg_verbose(...)
+
 #define cg_print(...)                                                          \
   do {                                                                         \
     fprintf(stderr, __VA_ARGS__);                                              \
@@ -577,6 +579,10 @@ struct fl_enum_members {
 /*
 * new parser MACRO API
 */
+#define PSR_START(target, ast_type) \
+fl_ast_t* target = (fl_ast_t*)calloc(1, sizeof(fl_ast_t));                      \
+target->token_start = state->token;                                             \
+target->type = ast_type;
 
 // read that can raise errors but 'dont throw'
 #define PSR_SOFT_READ(target, name)                                            \
@@ -592,12 +598,12 @@ struct fl_enum_members {
   }                                                                            \
   fl_parser_rollback(stack, state);
 
-#define PSR_RET_IF_ERROR(target)                                               \
+#define PSR_RET_IF_ERROR(target, block)                                        \
   if (target->type == FL_AST_ERROR) {                                          \
-    return target;                                                             \
+    block return target;                                                       \
   }
 
-#define PSR_RET(target)                                                        \
+#define PSR_RET_OK(target)                                                     \
   PSR_END(target);                                                             \
   return target;
 
@@ -859,4 +865,5 @@ FL_EXTERN void fl_print_type(size_t ty_id);
 FL_EXTERN void fl_print_type_table();
 FL_EXTERN bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
                                void* userdata);
+FL_EXTERN void fl_ast_debug(fl_ast_t* node);
 /* cldoc:end-category() */

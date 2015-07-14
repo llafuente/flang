@@ -351,10 +351,16 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
   case FL_TK_CARET:
     return LLVMBuildXor(builder, lhs, rhs, "xor");
   case FL_TK_LT2:
+    // returns the first operand shifted to the left a specified number of bits.
     return LLVMBuildShl(builder, lhs, rhs, "shl");
   case FL_TK_GT2:
-    return LLVMBuildLShr(builder, lhs, rhs, "lshr");
+    // returns the first operand shifted to the right a specified number of bits with sign extension
     return LLVMBuildAShr(builder, lhs, rhs, "ashr");
+
+    //TODO
+    // logical shift right - lshr
+    // return LLVMBuildLShr(builder, lhs, rhs, "lshr");
+    //signed
   default: {}
   }
 

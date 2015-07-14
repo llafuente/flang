@@ -90,7 +90,8 @@ TASK_IMPL(parser_literals) {
   root = fl_parse_utf8("wtf");
   CHK_BODY(root, body);
   ASSERT(body->type == FL_AST_LIT_IDENTIFIER, "FL_AST_LIT_IDENTIFIER");
-  ASSERT(strcmp(body->identifier.string->value, "wtf") == 0, "identifier = wtf");
+  ASSERT(strcmp(body->identifier.string->value, "wtf") == 0,
+         "identifier = wtf");
   st_delete(&body->identifier.string);
   fl_ast_delete(root);
 

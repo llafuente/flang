@@ -78,14 +78,18 @@ void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend) {
 
     for (j = 0; j < 6; ++j) {
       fl_parser_look_ahead(stack, state);
-
+      cg_print("read attempt %zu-%zu\n", i, j);
       ast = block_stmts[j](PSR_READ_HEADER_SEND);
+
+      cg_print("read attempt [%p]\n", ast);
 
       // soft error
       if (!ast) {
         fl_parser_rollback(stack, state);
         continue;
       }
+
+      fl_ast_debug(ast);
 
       // hard error
       if (ast->type == FL_AST_ERROR) {

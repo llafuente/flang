@@ -37,8 +37,8 @@
   ASSERT(target->type == FL_AST_ERROR, "body is an error");                    \
   ASSERT(strcmp(target->err.str, msg) == 0, "error message match");
 
-#define CHK_ERROR_RANGE(target, sc, sl, ec, el)                                           \
+#define CHK_ERROR_RANGE(target, sc, sl, ec, el)                                \
   ASSERTE(target->token_start->start.column, sc, "%zu != %d", "start column"); \
-  ASSERTE(target->token_start->start.line, sl, "%zu != %d", "start line");\
-  ASSERTE(target->token_end->end.column, ec, "%zu != %d", "end column");\
-  ASSERTE(target->token_end->end.line, el, "%zu != %d", "end line");\
+  ASSERTE(target->token_start->start.line, sl, "%zu != %d", "start line");     \
+  ASSERTE(target->token_end->end.column, ec, "%zu != %d", "end column");       \
+  ASSERTE(target->token_end->end.line, el, "%zu != %d", "end line");
