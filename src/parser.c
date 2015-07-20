@@ -61,7 +61,10 @@ fl_ast_t* fl_parser(fl_token_list_t* tokens) {
 }
 
 void fl_parse_core(fl_ast_t* ast) {
+  int odbg_debug_level = dbg_debug_level;
+  dbg_debug_level = 0;
   ast->program.core = fl_parse_file("./../core/ffi-c.fl", true);
+  dbg_debug_level = odbg_debug_level;
 }
 
 fl_ast_t* fl_parse(string* code) {
@@ -72,7 +75,9 @@ fl_ast_t* fl_parse(string* code) {
   fl_ast_t* root = fl_parser(tokens);
 
   // do inference
+  cg_print("(parser) finish -> passes\n");
   fl_pass_inference(root);
+  ts_pass(root);
 
   root->program.code = code;
 

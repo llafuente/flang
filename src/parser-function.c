@@ -158,20 +158,25 @@ PSR_READ_IMPL(stmt_return) {
 PSR_READ_IMPL(parameter_typed) {
   PSR_AST_START(FL_AST_PARAMETER);
 
-  ast->param.type = PSR_READ(type);
-
-  // soft error
-  if (!ast->param.type) {
+  fl_ast_t* type = PSR_READ(type);
+  if (!type) {
+    // soft error
     PSR_AST_RET_NULL();
   }
 
   fl_parser_skipws(tokens, state);
 
-  // hard error
-  ast->param.id = PSR_READ(lit_identifier);
-  if (!ast->param.id) {
+  fl_ast_t* id = PSR_READ(lit_identifier);
+  if (!id) {
+    // hard error
     PSR_SYNTAX_ERROR(ast, "expected identifier");
   }
+  PSR_RET_IF_ERROR(id, { fl_ast_delete(ast); });
+
+  // set type of the identifier
+  ast->param.type = type;
+  ast->param.id = id;
+  id->ty_id = type->ty.id;
 
   PSR_AST_RET();
 }

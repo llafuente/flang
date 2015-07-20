@@ -116,7 +116,7 @@ PSR_READ_IMPL(expr_primary) {
   if (!PSR_ACCEPT_TOKEN(FL_TK_LPARENTHESIS)) {
     PSR_AST_RET_NULL(); // soft
   }
-  cg_verbose("(expr-primary) parenthesis\n");
+  dbg_silly("(expr-primary) parenthesis\n");
 
   fl_ast_t* inside = PSR_READ(expr_logical_or);
   PSR_RET_IF_ERROR(inside, {});
@@ -127,7 +127,7 @@ PSR_READ_IMPL(expr_primary) {
     return ast;
   }
 
-  cg_verbose("(expr-primary) ok!\n");
+  dbg_silly("(expr-primary) ok!\n");
 
   PSR_RET_OK(inside);
 }
@@ -160,7 +160,7 @@ fl_ast_t* PSR_READ_binop(PSR_READ_HEADER, fl_tokens_t operators[], size_t n_ops,
     fl_parser_skipws(tokens, state);
 
     PSR_AST_START(FL_AST_EXPR_BINOP);
-    cg_verbose("(parser-binop) read left\n");
+    dbg_silly("(parser-binop) read left\n");
 
     ast->binop.left = 0;
     ast->binop.right = 0;
@@ -176,7 +176,7 @@ fl_ast_t* PSR_READ_binop(PSR_READ_HEADER, fl_tokens_t operators[], size_t n_ops,
       fl_ast_delete(ast);
     } else {
       // try to read the operator
-      cg_verbose("(parser-binop) read operator\n");
+      dbg_silly("(parser-binop) read operator\n");
 
       leafs[leafs_s++] = ast;
       fl_parser_skipws(tokens, state);

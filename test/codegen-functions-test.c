@@ -31,14 +31,19 @@ TASK_IMPL(codegen_functions) {
   fl_ast_t* root;
   LLVMModuleRef module;
 
-  root = fl_parse_utf8("fn x(f64 arg1, f64 arg2) : f64 { return arg1 + arg2;}");
+  root = fl_parse_utf8("fn x(f64 arg1, f64 arg2) : f64 {"
+                       "  return arg1 + arg2;"
+                       "}");
 
   fl_codegen(root, "test");
 
   fl_ast_delete(root);
 
-  root = fl_parse_utf8("fn x(f64 arg1, f64 arg2) : f64 { return arg1 + "
-                       "arg2;}\n var f64 sum; sum = x(1, 2);");
+  root = fl_parse_utf8("fn x(f64 arg1, f64 arg2) : f64 {"
+                       "  return arg1 + arg2;"
+                       "}"
+                       "var f64 sum; "
+                       "sum = x(1, 2);");
 
   fl_codegen(root, "test");
 

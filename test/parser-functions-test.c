@@ -60,7 +60,8 @@ TASK_IMPL(parser_functions) {
   CHK_ERROR_RANGE(body, 11, 1, 15, 1);
   fl_ast_delete(root);
 
-  root = fl_parse_utf8("fn x(arg1, arg2) { return arg1 + arg2;}");
+  // TODO 'template'
+  root = fl_parse_utf8("fn x(i8 arg1, i8 arg2) { return arg1 + arg2;}");
   CHK_BODY(root, body);
   fl_ast_delete(root);
 

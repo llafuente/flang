@@ -25,6 +25,8 @@
 
 #include "flang.h"
 
+int dbg_debug_level = 4;
+
 void fl_print_type(size_t ty_id) {
   fl_type_t ty = fl_type_table[ty_id];
 
@@ -45,7 +47,7 @@ void fl_print_type(size_t ty_id) {
     fl_print_type(ty.vector.to);
     break;
   case FL_FUNCTION:
-    printf("[%zu] Function -> ", ty.fn.name ? ty.fn.name : "Anonymous");
+    printf("[%zu] Function -> ", ty.fn.name ? ty.fn.name->value : "Anonymous");
     size_t i;
     fl_print_type(ty.fn.ret);
     for (i = 0; i < ty.fn.nparams; ++i) {
@@ -85,35 +87,35 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     printf("assignament");
     break;
   case FL_AST_EXPR_BINOP:
-    printf("binop [operator=%d]", node->binop.operator);
+    printf("binop T(%zu) [operator=%d]", node->ty_id, node->binop.operator);
     break;
   case FL_AST_LIT_NUMERIC:
-    printf("number [ty_id=%zu value=%f]", node->numeric.ty_id,
-           node->numeric.value);
+    printf("number T(%zu) [value=%f]", node->ty_id, node->numeric.value);
     break;
   case FL_AST_LIT_IDENTIFIER:
-    printf("identifier [string=%s]", node->identifier.string->value);
+    printf("identifier T(%zu) [string=%s]", node->ty_id,
+           node->identifier.string->value);
     break;
   case FL_AST_LIT_BOOLEAN:
-    printf("boolean [value=%d]", node->boolean.value);
+    printf("boolean T(%zu) [value=%d]", node->ty_id, node->boolean.value);
     break;
   case FL_AST_EXPR_LUNARY:
-    printf("lunary [operator=%d]", node->lunary.operator);
+    printf("lunary T(%zu) [operator=%d]", node->ty_id, node->lunary.operator);
     break;
   case FL_AST_EXPR_RUNARY:
-    printf("runary [operator=%d]", node->runary.operator);
+    printf("runary T(%zu) [operator=%d]", node->ty_id, node->runary.operator);
     break;
   case FL_AST_EXPR_CALL:
-    printf("call [arguments=%zu]", node->call.narguments);
+    printf("call T(%zu) [arguments=%zu]", node->ty_id, node->call.narguments);
     break;
   case FL_AST_DTOR_VAR:
     printf("variable");
     break;
   case FL_AST_TYPE:
-    printf("type [ty_id=%zu]", node->ty.id);
+    printf("type T(%zu)", node->ty.id);
     break;
   case FL_AST_DECL_FUNCTION:
-    printf("function [params=%zu]", node->func.nparams);
+    printf("function T(%zu) [params=%zu]", node->ty_id, node->func.nparams);
     break;
   case FL_AST_PARAMETER:
     printf("parameter");
@@ -125,20 +127,25 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     printf("ERROR [string=%s]", node->err.str);
     break;
   case FL_AST_STMT_COMMENT:
-    printf("comment [comment=%s]", node->comment.text->value);
+    //printf("comment\n**\n%s\n**\n", node->comment.text->value);
+    printf("comment");
     break;
   case FL_AST_STMT_IF:
     printf("if");
-  break;
+    break;
   case FL_AST_CAST:
-    printf("cast");
+    printf("cast T(%zu)", node->ty_id);
     break;
   default: {}
   }
 
-  printf("\x1B[36m(%d)[@%p][%3zu:%3zu - %3zu:%3zu]\x1B[39m\n", node->type, node,
-         node->token_start->start.column, node->token_start->start.line,
-         node->token_end->end.column, node->token_end->end.line);
+  if (node->token_start) {
+    printf("\x1B[36m(%d)[@%p][%3zu:%3zu - %3zu:%3zu]\x1B[39m\n", node->type,
+           node, node->token_start->start.column, node->token_start->start.line,
+           node->token_end->end.column, node->token_end->end.line);
+  } else {
+    printf("\x1B[36m(%d)[@%p]\x1B[39m\n", node->type, node);
+  }
 
   return true;
 }

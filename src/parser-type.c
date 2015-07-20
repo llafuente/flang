@@ -74,10 +74,10 @@ PSR_READ_IMPL(type) {
     fl_parser_skipws(tokens, state);
 
     fl_ast_t* child = PSR_READ(type);
-    if (child->type == FL_AST_ERROR) {
+    PSR_RET_IF_ERROR(child, {
       fl_ast_delete(id);
-      return child;
-    }
+      fl_ast_delete(ast);
+    });
 
     fl_parser_skipws(tokens, state);
 
@@ -148,10 +148,10 @@ PSR_READ_IMPL(cast) {
     PSR_SYNTAX_ERROR(ast, "expected ')'");
   }
 
-  fl_ast_t* right = PSR_READ(expr_conditional);
+  fl_ast_t* element = PSR_READ(expr_conditional);
 
-  ast->cast.to = ty;
-  ast->cast.right = right;
+  ast->ty_id = ty->ty.id;
+  ast->cast.element = element;
 
   PSR_AST_RET();
 }
@@ -166,16 +166,16 @@ void fl_parser_init_types() {
 
     // 0 means infer!
     fl_type_table[0].of = FL_INFER;
-    // type starts with 1
+    // [1] void
     fl_type_table[1].of = FL_VOID;
 
     size_t id = 2;
-    // [1] bool
+    // [2] bool
     fl_type_table[id].of = FL_NUMBER;
     fl_type_table[id].number.bits = 1;
     fl_type_table[id].number.fp = false;
     fl_type_table[id].number.sign = false;
-    // [1-8] i8,u8,i16,u16,i32,u32,i64,u64
+    // [3-10] i8,u8,i16,u16,i32,u32,i64,u64
     size_t i = 3;
     for (; i < 7; i++) {
       fl_type_table[++id].of = FL_NUMBER;
@@ -189,18 +189,19 @@ void fl_parser_init_types() {
       fl_type_table[id].number.sign = true;
     }
 
-    // [9] f32
+    // [11] f32
     fl_type_table[++id].of = FL_NUMBER;
     fl_type_table[id].number.bits = 32;
     fl_type_table[id].number.fp = true;
     fl_type_table[id].number.sign = true;
 
-    // [10] f64
+    // [12] f64
     fl_type_table[++id].of = FL_NUMBER;
     fl_type_table[id].number.bits = 64;
     fl_type_table[id].number.fp = true;
     fl_type_table[id].number.sign = true;
 
+    // [13+] user defined atm
     fl_type_size = ++id;
   }
 }

@@ -32,6 +32,8 @@
 
 #include "stringc.h"
 
+#include <execinfo.h>
+
 #include <llvm-c/Core.h>
 #include <llvm-c/Analysis.h>
 #include <llvm-c/ExecutionEngine.h>
@@ -72,7 +74,7 @@ struct fl_tk_state {
 typedef struct fl_tk_state fl_tk_state_t;
 
 enum fl_tokens {
-  FL_TK_UNKOWN,
+  FL_TK_UNKOWN = 0,
   FL_TK_EOF,
   FL_TK_WHITESPACE,
   FL_TK_NEWLINE,
@@ -82,7 +84,7 @@ enum fl_tokens {
   FL_TK_RETURN,
   FL_TK_VAR,
   FL_TK_UNVAR,
-  FL_TK_CONST,
+  FL_TK_CONST = 10,
   FL_TK_STATIC,
   FL_TK_GLOBAL,
   FL_TK_LPARENTHESIS,
@@ -92,11 +94,7 @@ enum fl_tokens {
   FL_TK_LBRACKET,
   FL_TK_RBRACKET,
   FL_TK_LCBRACKET,
-  FL_TK_RCBRACKET,
-  FL_TK_NEW,
-  FL_TK_DELETE,
-  FL_TK_RESIZE,
-  FL_TK_TYPEOF,
+  FL_TK_RCBRACKET = 20,
   FL_TK_EXIST,
   FL_TK_COLON,
   FL_TK_SEMICOLON,
@@ -106,7 +104,7 @@ enum fl_tokens {
   FL_TK_SCOMMENT,
   FL_TK_MCOMMENT,
   FL_TK_ASTERISKEQUAL,
-  FL_TK_ASTERISK,
+  FL_TK_ASTERISK = 30,
   FL_TK_SLASHEQUAL,
   FL_TK_SLASH,
   FL_TK_MINUSQUAL,
@@ -116,7 +114,7 @@ enum fl_tokens {
   FL_TK_PLUS,
   FL_TK_PLUS2,
   FL_TK_MODEQUAL,
-  FL_TK_MOD,
+  FL_TK_MOD = 40,
   FL_TK_GT3EQUAL,
   FL_TK_GT2EQUAL,
   FL_TK_GT,
@@ -126,7 +124,7 @@ enum fl_tokens {
   FL_TK_LT2EQUAL,
   FL_TK_LT2,
   FL_TK_LTE,
-  FL_TK_EQUAL,
+  FL_TK_EQUAL = 50,
   FL_TK_QMARKEQUAL,
   FL_TK_EQUAL2,
   FL_TK_TEQUAL,
@@ -136,7 +134,7 @@ enum fl_tokens {
   FL_TK_QMARK,
   FL_TK_SQUOTE,
   FL_TK_DQUOTE,
-  FL_TK_ANDEQUAL,
+  FL_TK_ANDEQUAL = 60,
   FL_TK_AND,
   FL_TK_AND2,
   FL_TK_CEQUAL,
@@ -144,7 +142,8 @@ enum fl_tokens {
   FL_TK_OREQUAL,
   FL_TK_OR,
   FL_TK_OR2,
-  FL_TK_VOID,
+  // types
+  FL_TK_VOID = 100,
   FL_TK_BOOL,
   FL_TK_TRUE,
   FL_TK_FALSE,
@@ -154,14 +153,19 @@ enum fl_tokens {
   FL_TK_I64,
   FL_TK_U8,
   FL_TK_U16,
-  FL_TK_U32,
+  FL_TK_U32 = 110,
   FL_TK_U64,
   FL_TK_F32,
   FL_TK_F64,
-  FL_TK_IF,
+  FL_TK_NULL,
+
+  FL_TK_IF = 120,
+  FL_TK_NEW,
+  FL_TK_DELETE,
+  FL_TK_RESIZE,
+  FL_TK_TYPEOF,
   FL_TK_CAST,
   FL_TK_STRING,
-  FL_TK_NULL,
   FL_TK_BACKTICK,
   FL_TK_DOLLAR,
   FL_TK_HASH
@@ -262,10 +266,14 @@ struct fl_ast {
   fl_token_t* token_start;
   fl_token_t* token_end;
   fl_ast_type_t type; // TODO enum
-  void* codegen;      // space for codegen injection "userdata"
   struct fl_ast* parent;
 
-  size_t real_ty_id;
+  size_t ty_id;
+
+  // codegen
+  bool dirty;
+  void* codegen;      // space for codegen injection "userdata"
+  void* last_codegen; // space for codegen injection "userdata-last"
 
   union {
     struct fl_ast_error {
@@ -307,7 +315,6 @@ struct fl_ast {
 
     struct fl_ast_lit_numeric {
       double value;
-      size_t ty_id;
     } numeric;
 
     struct fl_ast_lit_identifier {
@@ -336,19 +343,16 @@ struct fl_ast {
       fl_tokens_t operator;
     } runary;
     struct fl_ast_cast {
-      fl_ast_t* to;
-      fl_ast_t* right;
+      fl_ast_t* element;
+      // use ty_id as type
     } cast;
     struct fl_ast_dtor_variable {
       // TODO add type
       struct fl_ast* id;
       fl_ast_t* type;
-
-      // codegen
-      bool dirty;
-      void* current;
     } var;
     struct fl_ast_idtype {
+      // TODO this should be <root>.ty_id
       size_t id; // id on fl_type_table
     } ty;
     struct fl_ast_decl_function {
@@ -481,18 +485,48 @@ struct fl_enum_members {
 //- DEBUG MACROS
 //-
 
-#define cg_verbose(...)
-
-#define cg_print(...)                                                          \
-  do {                                                                         \
+extern int dbg_debug_level;
+// 0 - error
+// 1 - warning
+// 2 - info
+// 3 - debug
+// 4 - verbose
+// 5 - silly
+#define dbg(level, ...)                                                        \
+  if (dbg_debug_level >= level) {                                              \
     fprintf(stderr, __VA_ARGS__);                                              \
-  } while (false)
-//#define cg_print(...) do{ } while ( false )
+  }
+
+#define dbg_error(...) dbg(0, __VA_ARGS__)
+#define dbg_warning(...) dbg(1, __VA_ARGS__)
+#define dbg_info(...) dbg(2, __VA_ARGS__)
+#define dbg_debug(...) dbg(3, __VA_ARGS__)
+#define dbg_verbose(...) dbg(4, __VA_ARGS__)
+#define dbg_silly(...) dbg(5, __VA_ARGS__)
+
+#define cg_print(...) dbg_debug(__VA_ARGS__);
 
 #define cg_error(...)                                                          \
   do {                                                                         \
-    fprintf(stderr, __VA_ARGS__);                                              \
-    fprintf(stderr, "@%s - %d\n", __FILE__, __LINE__);                         \
+    dbg_error(__VA_ARGS__);                                                    \
+    dbg_error("@%s - %d\n", __FILE__, __LINE__);                               \
+                                                                               \
+    void* array[10];                                                           \
+    size_t size;                                                               \
+    char** strings;                                                            \
+    size_t i;                                                                  \
+                                                                               \
+    size = backtrace(array, 10);                                               \
+    strings = backtrace_symbols(array, size);                                  \
+                                                                               \
+    fprintf(stderr, "Obtained %zd stack frames.\n", size);                     \
+                                                                               \
+    for (i = 0; i < size; i++) {                                               \
+      fprintf(stderr, "%s\n", strings[i]);                                     \
+    }                                                                          \
+                                                                               \
+    free(strings);                                                             \
+                                                                               \
     exit(1);                                                                   \
   } while (false)
 
@@ -579,10 +613,10 @@ struct fl_enum_members {
 /*
 * new parser MACRO API
 */
-#define PSR_START(target, ast_type) \
-fl_ast_t* target = (fl_ast_t*)calloc(1, sizeof(fl_ast_t));                      \
-target->token_start = state->token;                                             \
-target->type = ast_type;
+#define PSR_START(target, ast_type)                                            \
+  fl_ast_t* target = (fl_ast_t*)calloc(1, sizeof(fl_ast_t));                   \
+  target->token_start = state->token;                                          \
+  target->type = ast_type;
 
 // read that can raise errors but 'dont throw'
 #define PSR_SOFT_READ(target, name)                                            \
@@ -594,6 +628,7 @@ target->type = ast_type;
       fl_parser_commit(stack, state);                                          \
       return target;                                                           \
     }                                                                          \
+    fl_ast_delete(target);                                                     \
     target = 0;                                                                \
   }                                                                            \
   fl_parser_rollback(stack, state);
@@ -655,7 +690,7 @@ FL_EXTERN bool ts_is_number(size_t id);
 FL_EXTERN bool ts_is_fp(size_t id);
 FL_EXTERN bool ts_is_int(size_t id);
 FL_EXTERN size_t ts_get_bigger_typeid(size_t a, size_t b);
-
+FL_EXTERN fl_ast_t* ts_pass(fl_ast_t* node);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(parser.c) */
@@ -803,11 +838,14 @@ PSR_READ_DECL(comment);
 typedef bool (*fl_ast_cb_t)(fl_ast_t* node, fl_ast_t* parent, size_t level,
                             void* userdata);
 
+typedef bool (*fl_ast_ret_cb_t)(fl_ast_t* node, fl_ast_t* parent, size_t level,
+                                void* userdata, void** ret);
+
 FL_EXTERN void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
                                size_t level, void* userdata);
 
-FL_EXTERN void fl_ast_reverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
-                              size_t level, void* userdata);
+FL_EXTERN void* fl_ast_reverse(fl_ast_t* ast, fl_ast_ret_cb_t cb,
+                               fl_ast_t* parent, size_t level, void* userdata);
 
 FL_EXTERN void fl_ast_delete(fl_ast_t* ast);
 
@@ -822,6 +860,8 @@ FL_EXTERN size_t fl_ast_get_typeid(fl_ast_t* node);
 FL_EXTERN bool fl_ast_is_pointer(fl_ast_t* node);
 
 FL_EXTERN size_t fl_ast_ret_type(fl_ast_t* node);
+
+FL_EXTERN fl_ast_t* fl_ast_find_fn_decl(fl_ast_t* identifier);
 
 /* cldoc:end-category() */
 
@@ -838,6 +878,7 @@ FL_EXTERN bool fl_to_ir(LLVMModuleRef module, const char* filename);
 
 FL_EXTERN LLVMModuleRef fl_codegen(fl_ast_t* root, char* module_name);
 FL_EXTERN LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef fl_codegen_cast(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_cast(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER);

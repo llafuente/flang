@@ -68,3 +68,127 @@ size_t ts_get_bigger_typeid(size_t a, size_t b) {
 
   return a;
 }
+
+bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
+                void* userdata) {
+#define CREATE_CAST(cast, node)                                                \
+  fl_ast_t* cast = (fl_ast_t*)calloc(1, sizeof(fl_ast_t));                     \
+  cast->token_start = 0;                                                       \
+  cast->token_end = 0;                                                         \
+  cast->type = FL_AST_CAST;                                                    \
+  cast->parent = node->parent;                                                 \
+  node->parent = cast;                                                         \
+  cast->cast.element = node;
+
+  switch (node->type) {
+  case FL_AST_EXPR_CALL: {
+    fl_ast_t* fdecl = fl_ast_find_fn_decl(node->call.callee);
+    // if (!fdecl) {
+    //  cg_error("(ts) cannot find function %s\n",
+    //  node->call.callee->identifier.string->value);
+    //}
+    cg_print("(typesystem) ret [%p]\n", fdecl);
+    if (fdecl) {
+      fl_ast_debug(fdecl);
+
+      node->ty_id = fl_ast_get_typeid(fdecl->func.ret_type);
+    }
+
+  } break;
+  case FL_AST_EXPR_ASSIGNAMENT: {
+    fl_ast_debug(node);
+
+    size_t l_type = fl_ast_get_typeid(node->assignament.left);
+
+    fl_ast_t* r = node->assignament.right;
+    size_t r_type = fl_ast_get_typeid(r);
+    if (!r_type) {
+      ts_pass(r);
+      r_type = r->ty_id;
+    }
+
+    if (l_type != r_type) {
+      dbg_debug("cast needed [%zu - %zu]\n", l_type, r_type);
+      // TODO check cast if valid!
+
+      CREATE_CAST(cast, r);
+
+      cast->ty_id = l_type;
+      node->assignament.right = cast;
+      node->ty_id = l_type;
+    }
+  } break;
+  case FL_AST_EXPR_BINOP: {
+    cg_print("(ts) binop found %d\n", node->binop.operator);
+    fl_ast_debug(node);
+    // cast if necessary
+    fl_ast_t* l = node->binop.left;
+    fl_ast_t* r = node->binop.right;
+
+    // operation that need casting or fp/int
+    size_t l_type = fl_ast_get_typeid(l);
+    if (!l_type) {
+      ts_pass(l);
+      l_type = l->ty_id;
+    }
+
+    size_t r_type = fl_ast_get_typeid(r);
+    if (!r_type) {
+      ts_pass(r);
+      r_type = r->ty_id;
+    }
+
+    bool l_fp = ts_is_fp(l_type);
+    bool r_fp = ts_is_fp(r_type);
+
+    // binop
+    switch (node->binop.operator) {
+    case FL_TK_AND:
+    case FL_TK_OR:
+    case FL_TK_CARET:
+    case FL_TK_LT2:
+    case FL_TK_GT2:
+      // left and right must be Integers!
+      if (l_fp || r_fp) {
+        cg_error("invalid operants\n");
+      }
+      break;
+    default: {
+      // TODO check fp-vs-int -> cast
+      node->ty_id = ts_get_bigger_typeid(l_type, r_type);
+
+      if (!l_fp && !r_fp) {
+        // TODO handle sign
+      } else if (l_fp && r_fp) {
+      } else if (l_fp && !r_fp) {
+        // upcast right
+        fl_ast_t* cast = (fl_ast_t*)calloc(1, sizeof(fl_ast_t));
+        cast->token_start = 0;
+        cast->token_end = 0;
+        cast->type = FL_AST_CAST;
+        cast->ty_id = l_type;
+        cast->cast.element = node->binop.right;
+        node->binop.right = cast;
+        node->ty_id = l_type;
+      } else {
+        fl_ast_t* cast = (fl_ast_t*)calloc(1, sizeof(fl_ast_t));
+        cast->token_start = 0;
+        cast->token_end = 0;
+        cast->type = FL_AST_CAST;
+        cast->ty_id = r_type;
+        cast->cast.element = node->binop.left;
+        node->binop.left = cast;
+        node->ty_id = r_type;
+      }
+    }
+    }
+  }
+  }
+  return true;
+}
+
+fl_ast_t* ts_pass(fl_ast_t* node) {
+  cg_print("(ts) pass start!\n");
+
+  fl_ast_traverse(node, ts_pass_cb, 0, 0, 0);
+}

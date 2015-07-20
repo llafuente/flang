@@ -25,11 +25,14 @@
 
 #include "flang.h"
 #include "tasks.h"
+#include "test.h"
 
 // TODO review if ";" is required
 TASK_IMPL(codegen_expressions) {
   fl_ast_t* root;
   fl_ast_t* ast;
+  fl_ast_t* body;
+
   root = fl_parse_utf8("var i64 c; c = 1 + 2;");
 
   ast = *(root->program.body->block.body);
@@ -48,7 +51,7 @@ TASK_IMPL(codegen_expressions) {
 
   fl_ast_delete(root);
 
-  root = fl_parse_utf8("var f64 c; var f64 d; d=1+2; c = 1;");
+  root = fl_parse_utf8("var i64 c; var i64 d; d=1+2; c = 1;");
 
   fl_ast_traverse(root, fl_ast_debug_cb, 0, 0, 0);
 
@@ -57,6 +60,12 @@ TASK_IMPL(codegen_expressions) {
 
   fl_codegen(root, "test");
 
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("printf(\"%f\", 1 + 2);");
+  fl_parse_core(root);
+  CHK_BODY(root, body)
+  fl_codegen(root, "test");
   fl_ast_delete(root);
 
   return 0;

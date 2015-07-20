@@ -88,7 +88,7 @@ LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
   if (ex_type.of == cu_type.of) {
     switch (ex_type.of) {
     case FL_NUMBER:
-      // fptosi
+      // fpto*i
       if (cu_type.number.fp && !ex_type.number.fp) {
         cg_print("(codegen) fptosi");
 
@@ -100,9 +100,9 @@ LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
         return LLVMBuildFPToUI(builder, value, fl_codegen_get_typeid(expected),
                                "cast");
       }
-      // sitofp
+      // *itofp
       if (!cu_type.number.fp && ex_type.number.fp) {
-        cg_print("(codegen) sitofp");
+        cg_print("(codegen) sitofp\n");
 
         if (ex_type.number.sign) {
           return LLVMBuildSIToFP(builder, value,

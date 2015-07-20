@@ -27,8 +27,9 @@
 // TODO declaration - declarator list
 PSR_READ_IMPL(decl_variable) {
   fl_ast_t* ast;
-
+  cg_print("(parser) decl_variable typed");
   FL_TRY_READ(decl_variable_with_type);
+  cg_print("(parser) decl_variable w/t");
   FL_TRY_READ(decl_variable_no_type);
 
   return 0;
@@ -81,6 +82,10 @@ PSR_READ_IMPL(decl_variable_with_type) {
   if (!ast->var.id) {
     PSR_AST_RET_NULL();
   }
+
+  cg_print("*** TYPED! [%zu]\n", ast->var.type->ty.id);
+
+  ast->var.id->ty_id = ast->var.type->ty.id;
 
   PSR_AST_RET();
 }

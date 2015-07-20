@@ -130,7 +130,7 @@ void fl_tokens_debug(fl_token_list_t* tokens) {
   for (; i < tokens->size; ++i) {
     fl_token_t* token = &tokens->tokens[i];
     // print debug tokens
-    printf("%6zu|%3d[%3zu:%3zu - %3zu:%3zu] %s\n", i, token->type,
+    dbg_verbose("%6zu|%3d[%3zu:%3zu - %3zu:%3zu] %s\n", i, token->type,
            token->start.line, token->start.column, token->end.line,
            token->end.column, token->string->value);
   }

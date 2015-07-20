@@ -93,7 +93,8 @@ TASK_IMPL(parser_expressions) {
 
   fl_ast_delete(root);
 
-  root = fl_parse_utf8("a=b"); // unary
+  // TODO nice hack for testing, but declaration first!
+  root = fl_parse_utf8("a=b; var i8 a; var i8 b;"); // assignament
   CHK_BODY(root, body);
   ASSERT(body->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
   ASSERT(body->assignament.operator== FL_TK_EQUAL, "operator: FL_TK_EQUAL");
@@ -105,17 +106,17 @@ TASK_IMPL(parser_expressions) {
 
   fl_ast_delete(root);
 
-  root = fl_parse_utf8("a =b"); // ws test
+  root = fl_parse_utf8("a =b; var i8 a; var i8 b;"); // ws test
   CHK_BODY(root, body);
   ASSERT(body->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
   fl_ast_delete(root);
 
-  root = fl_parse_utf8("a = b"); // ws test
+  root = fl_parse_utf8("a = b; var i8 a; var i8 b;"); // ws test
   CHK_BODY(root, body);
   ASSERT(body->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
   fl_ast_delete(root);
 
-  root = fl_parse_utf8("a= b"); // ws test
+  root = fl_parse_utf8("a= b; var i8 a; var i8 b;"); // ws test
   CHK_BODY(root, body);
   ASSERT(body->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
   fl_ast_delete(root);

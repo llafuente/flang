@@ -175,7 +175,10 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
 
     if (node->program.core) {
       cg_print("(codegen) generating core\n");
+      int odbg_debug_level = dbg_debug_level;
+      dbg_debug_level = 0;
       fl_codegen_ast(node->program.core, FL_CODEGEN_PASSTHROUGH);
+      dbg_debug_level = odbg_debug_level;
     }
 
     return fl_codegen_ast(node->program.body, FL_CODEGEN_PASSTHROUGH);
@@ -192,16 +195,14 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
     return 0;
   }
   case FL_AST_EXPR_ASSIGNAMENT:
-    cg_print("(codegen) assignament\n");
     return fl_codegen_assignament(FL_CODEGEN_HEADER_SEND);
+  case FL_AST_CAST:
+    return fl_codegen_cast(FL_CODEGEN_HEADER_SEND);
   case FL_AST_EXPR_BINOP:
-    cg_print("(codegen) binary operator\n");
     return fl_codegen_binop(FL_CODEGEN_HEADER_SEND);
   case FL_AST_EXPR_CALL:
-    cg_print("(codegen) expression call\n");
     return fl_codegen_expr_call(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_NUMERIC:
-    cg_print("(codegen) number\n");
     return fl_codegen_lit_number(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_BOOLEAN:
     return fl_codegen_lit_boolean(FL_CODEGEN_HEADER_SEND);
@@ -210,14 +211,21 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
     return fl_codegen_lit_string(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_IDENTIFIER: {
     cg_print("(codegen) identifier\n");
+    fl_ast_debug(node);
     fl_ast_t* id = fl_ast_search_decl_var(node, node->identifier.string);
+    fl_ast_debug(id);
 
     if (!id) {
       cg_error("(codegen) identifier not found: %s\n",
                node->identifier.string->value);
     }
 
-    if (id->var.dirty) {
+    cg_print("(codegen) dirty? %d\n", id->dirty);
+    fl_ast_debug(id);
+
+    if (id->dirty) {
+      cg_print("(codegen) load needed [%p]\n", id->codegen);
+
       // load it!
       // TODO this is a nice hack but need to be refactored
       // TODO mark variable as dirty
@@ -225,11 +233,17 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
       // if (fl_ast_is_pointer(left_ast)) {
       //}
 
-      // TODO this is the cause of some nasty bug!
-      id->var.current = (void*)LLVMBuildLoad(builder, id->codegen, "load");
-    }
+      if (!id->codegen) {
+        cg_error("invalid identifier codegen");
+        fl_ast_debug(id);
+      }
 
-    return (LLVMValueRef)id->var.current;
+      // TODO this is the cause of some nasty bug!
+      id->last_codegen = (void*)LLVMBuildLoad(builder, id->codegen, "load");
+    }
+    cg_print("(codegen) identifier @%p\n", id->last_codegen);
+
+    return (LLVMValueRef)id->last_codegen;
   }
   case FL_AST_DTOR_VAR:
     cg_print("(codegen) dtor\n");
@@ -240,9 +254,6 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
   case FL_AST_STMT_RETURN:
     cg_print("(codegen) return\n");
     return fl_codegen_return(FL_CODEGEN_HEADER_SEND);
-  case FL_AST_CAST:
-    cg_print("(codegen) cast\n");
-    return fl_codegen_cast(FL_CODEGEN_HEADER_SEND);
   case FL_AST_EXPR_LUNARY:
     cg_print("(codegen) lunary\n");
     return fl_codegen_lunary(FL_CODEGEN_HEADER_SEND);
@@ -254,23 +265,29 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
 
 LLVMValueRef fl_codegen_cast(FL_CODEGEN_HEADER) {
   // check if rigt side is a constant
-  if (node->cast.right->type == FL_AST_LIT_NUMERIC) {
-    printf("(codegen) cast override to %zu\n", node->cast.to->ty.id);
-    node->cast.right->numeric.ty_id = node->cast.to->ty.id;
+  fl_ast_t* el = node->cast.element;
 
-    return fl_codegen_ast(node->cast.right, FL_CODEGEN_PASSTHROUGH);
+  fl_ast_debug(node);
+  cg_print("%d - %d\n", el->type, FL_AST_LIT_NUMERIC);
+
+  if (el->type == FL_AST_LIT_NUMERIC) {
+    cg_print("(codegen) cast override to %zu\n", node->ty_id);
+    node->cast.element->ty_id = node->ty_id;
+
+    return fl_codegen_ast(el, FL_CODEGEN_PASSTHROUGH);
   }
 
-  LLVMValueRef right = fl_codegen_ast(node->cast.right, FL_CODEGEN_PASSTHROUGH);
+  LLVMValueRef element = fl_codegen_ast(el, FL_CODEGEN_PASSTHROUGH);
 
-  printf("(codegen) do cast [%p]\n", right);
-  return fl_codegen_cast_op(builder, fl_ast_get_typeid(node->cast.right),
-                            fl_ast_get_typeid(node->cast.to), right);
+  cg_print("(codegen) do cast [%p][%p]\n", el, element);
+  return fl_codegen_cast_op(builder, fl_ast_get_typeid(el), node->ty_id, element);
 }
 
 LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER) {
+  cg_print("(codegen) number [%zu]\n", node->ty_id);
+
   // get parent type, to know what type should i be.
-  size_t ty = fl_ast_get_typeid(node->parent);
+  size_t ty = node->ty_id;
   // size_t ty = node->numeric.ty_id;
   fl_type_t t = fl_type_table[ty];
 
@@ -318,7 +335,7 @@ LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
   // size_t rtype = fl_ast_get_typeid(right);
 
   LLVMValueRef assign = LLVMBuildStore(builder, right, left);
-  left_decl->var.dirty = true;
+  left_decl->dirty = true;
 
   // maybe return the lhs load!?
 
@@ -327,19 +344,24 @@ LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
 
 // https://msdn.microsoft.com/en-us/library/09ka8bxx.aspx
 LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
-  fprintf(stderr, "(codegen) binop\n");
+  cg_print("(codegen) binary operation\n");
 
   fl_ast_t* l = node->binop.left;
   fl_ast_t* r = node->binop.right;
 
   // retrieve left/right side
+  fl_ast_debug(l);
   LLVMValueRef lhs = fl_codegen_ast(l, FL_CODEGEN_PASSTHROUGH);
-  LLVMValueRef rhs = fl_codegen_ast(r, FL_CODEGEN_PASSTHROUGH);
-
-  if (lhs == 0 || rhs == 0) {
-    fprintf(stderr, "something it not right!");
-    return 0;
+  if (!lhs) {
+    cg_error("invalid lhs");
   }
+
+  fl_ast_debug(r);
+  LLVMValueRef rhs = fl_codegen_ast(r, FL_CODEGEN_PASSTHROUGH);
+  if (!rhs) {
+    cg_error("invalid rhs");
+  }
+
   printf("usgin binop %d\n", node->binop.operator);
 
   // common operations that works with any type
@@ -354,13 +376,14 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
     // returns the first operand shifted to the left a specified number of bits.
     return LLVMBuildShl(builder, lhs, rhs, "shl");
   case FL_TK_GT2:
-    // returns the first operand shifted to the right a specified number of bits with sign extension
+    // returns the first operand shifted to the right a specified number of bits
+    // with sign extension
     return LLVMBuildAShr(builder, lhs, rhs, "ashr");
 
-    //TODO
-    // logical shift right - lshr
-    // return LLVMBuildLShr(builder, lhs, rhs, "lshr");
-    //signed
+  // TODO
+  // logical shift right - lshr
+  // return LLVMBuildLShr(builder, lhs, rhs, "lshr");
+  // signed
   default: {}
   }
 
@@ -371,7 +394,7 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
   size_t r_type = fl_ast_get_typeid(r);
   bool r_fp = ts_is_fp(r_type);
   // TODO check fp-vs-int -> cast
-  node->real_ty_id = ts_get_bigger_typeid(l_type, r_type);
+  node->ty_id = ts_get_bigger_typeid(l_type, r_type);
 
   if (!l_fp && !r_fp) {
     // TODO handle sign
@@ -389,6 +412,55 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
 
   // Create different IR code depending on the operator.
   switch (node->binop.operator) {
+  case FL_TK_EQUAL2: { // ==
+    return use_fp ? LLVMBuildFCmp(builder, LLVMRealOEQ, lhs, rhs, "andand")
+                  : LLVMBuildICmp(builder, LLVMIntEQ, lhs, rhs, "andand");
+  }
+  case FL_TK_EEQUAL: { // !=
+    return use_fp ? LLVMBuildFCmp(builder, LLVMRealONE, lhs, rhs, "andand")
+                  : LLVMBuildICmp(builder, LLVMIntNE, lhs, rhs, "andand");
+  }
+  case FL_TK_GT: { // >
+    // TODO LLVMIntUGT
+    // TODO LLVMRealUGT
+
+    return use_fp ? LLVMBuildFCmp(builder, LLVMRealOGT, lhs, rhs, "andand")
+                  : LLVMBuildICmp(builder, LLVMIntSGT, lhs, rhs, "andand");
+  }
+  case FL_TK_GTE: { // >=
+    // TODO LLVMIntUGE
+    // TODO LLVMRealUGE
+
+    return use_fp ? LLVMBuildFCmp(builder, LLVMRealOGE, lhs, rhs, "andand")
+                  : LLVMBuildICmp(builder, LLVMIntSGE, lhs, rhs, "andand");
+  }
+  case FL_TK_LT: { // <
+    // TODO LLVMIntULT
+    // TODO LLVMRealULT
+
+    return use_fp ? LLVMBuildFCmp(builder, LLVMRealOLT, lhs, rhs, "andand")
+                  : LLVMBuildICmp(builder, LLVMIntSLT, lhs, rhs, "andand");
+  }
+  case FL_TK_LTE: { // <=
+    // TODO LLVMIntULE
+    // TODO LLVMRealULE
+
+    return use_fp ? LLVMBuildFCmp(builder, LLVMRealOLE, lhs, rhs, "andand")
+                  : LLVMBuildICmp(builder, LLVMIntSLE, lhs, rhs, "andand");
+  }
+  /*
+    https://github.com/VoltLang/Volta/blob/8ba031a16f742262c8eeb1ba2eed8670100c576c/src/volt/llvm/expression.d#L275
+    http://llvm.org/docs/doxygen/html/Core_8h.html
+    ugt: unsigned greater than
+    uge: unsigned greater or equal
+    ult: unsigned less than
+    ule: unsigned less or equal
+    sgt: signed greater than
+    sge: signed greater or equal
+    slt: signed less than
+    sle: signed less or equal
+  */
+
   case FL_TK_PLUS: {
     return use_fp ? LLVMBuildFAdd(builder, lhs, rhs, "add")
                   : LLVMBuildAdd(builder, lhs, rhs, "addi");
@@ -438,8 +510,7 @@ LLVMValueRef fl_codegen_dtor_var(FL_CODEGEN_HEADER) {
 LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
 
   if (!node->func.ret_type) {
-    fprintf(stderr, "No return type?");
-    exit(1);
+    cg_error("(codegen) function has no return type");
   }
 
   LLVMTypeRef param_types[node->func.nparams];
@@ -450,12 +521,12 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
 
   if (node->func.params) {
     while ((tmp = node->func.params[i]) != 0) {
-      if (!tmp->param.type) {
+      if (!tmp->param.id->ty_id) {
         cg_error("(codegen) Parameter %zu don't have type.\n", i);
       }
 
-      cg_print("(codegen) parameter %zu of type %zu\n", i, tmp->param.type);
-      param_types[i++] = fl_codegen_get_type(tmp->param.type);
+      cg_print("(codegen) parameter %zu of type %d\n", i, tmp->param.id->ty_id);
+      param_types[i++] = fl_codegen_get_typeid(tmp->param.id->ty_id);
     }
   }
   // TODO manage return type
@@ -471,10 +542,14 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
   i = 0;
   if (node->func.params) {
     while ((tmp = node->func.params[i]) != 0) {
-      printf("set name %zu\n", i);
+      printf("(codegen) set name [%zu]%s\n", i,
+             tmp->param.id->identifier.string->value);
       LLVMValueRef param = LLVMGetParam(func, i);
       LLVMSetValueName(param, tmp->param.id->identifier.string->value);
-      tmp->codegen = (void*)param;
+
+      tmp->param.id->codegen = (void*)param;
+      tmp->param.id->last_codegen = (void*)param;
+      tmp->param.id->dirty = false;
       ++i;
     }
   }
@@ -499,6 +574,8 @@ LLVMValueRef fl_codegen_return(FL_CODEGEN_HEADER) {
 }
 
 LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER) {
+  cg_print("(codegen) expression call\n");
+
   LLVMValueRef arguments[node->call.narguments];
   LLVMValueRef value;
 
@@ -507,10 +584,10 @@ LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER) {
 
   if (node->call.arguments) {
     while ((tmp = node->call.arguments[i]) != 0) {
-      printf("argument! %zu\n", i);
+      printf("(codegen) argument! %zu\n", i);
       value = fl_codegen_ast(tmp, FL_CODEGEN_PASSTHROUGH);
       if (!value) {
-        fprintf(stderr, "argument fail! %zu\n", i);
+        fprintf(stderr, "(codegen) argument fail! %zu\n", i);
         exit(1);
       }
       arguments[i++] = value;
@@ -519,9 +596,8 @@ LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER) {
   LLVMValueRef fn =
       LLVMGetNamedFunction(module, node->call.callee->identifier.string->value);
   if (!fn) {
-    fprintf(stderr, "function %s not found\n",
-            node->call.callee->identifier.string->value);
-    exit(1);
+    cg_error("function %s not found\n",
+             node->call.callee->identifier.string->value);
   }
 
   return LLVMBuildCall(builder, fn, arguments, node->call.narguments, "call");

@@ -12,6 +12,7 @@ var i32 right;
 left = 65;
 right = 129;
 
+
 printf("1. x + y = %f\n", x + y);
 printf("2. x - y = %f\n", x - y);
 printf("3. x * y = %f\n", x * y);
@@ -21,13 +22,12 @@ printf("6. y / x = %f\n", y / x);
 printf("7. y / x = %f\n", y / x);
 printf("8. x %% y = %f\n", x % y);
 printf("9. y %% x = %f\n", y % x);
-
 printf("10. left %% right = %d\n", left % right);
 printf("11. right %% left = %d\n", right % left);
 
+
 printf("12. x * left = %f\n", x * left);
 printf("13. left * x = %f\n", left * x);
-
 
 var i32 i5;
 i5 = 5;
@@ -44,4 +44,23 @@ var i32 a = -3;
 var u32 b = 5;
 printf("13. a / b = %d\n", a / b); // 0
 printf("13. a %% b = %d\n", a % b); // -3
+
+var f32 fa = -3;
+var f32 fb = 5;
+printf("13. a / b = %f\n", fa / fb); // -6.000000e-01
+// invalid operands to binary expression
+printf("13. a %% b = %f\n", fa % fb); // -3
+
+*/
+
+/*
+printf("17. x & y = %d\n", i5 & i3);
+printf("18. x | y = %d\n", i5 | i3);
+
+printf("19. 10 > 5 = %d\n", 10 > 5);
+printf("19. 5 > 10 = %d\n", 5 > 10);
+printf("19. 5 < 10 = %d\n", 5 < 10);
+printf("19. 10 < 5 = %d\n", 10 < 5);
+printf("19. 5 <= 5 = %d\n", 10 <= 5);
+printf("19. 5 >= 5 = %d\n", 10 >= 5);
 */
