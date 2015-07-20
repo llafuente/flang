@@ -90,6 +90,8 @@ PSR_READ_IMPL(expr_assignment_full) {
     PSR_AST_RET_NULL();
   }
 
+  fl_ast_debug(ast);
+
   // printf("(parser) expr_assignment_full right\n");
 
   PSR_AST_RET();

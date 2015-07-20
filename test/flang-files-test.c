@@ -98,6 +98,8 @@ TASK_IMPL(flang_files) {
   size_t i;
 
   for (i = 0; i < nfiles; ++i) {
+    printf("\033[2J");
+
     fl_file[0] = '\0';
     strcat(fl_file, files[i]);
     strcat(fl_file, ".fl");

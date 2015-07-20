@@ -38,7 +38,7 @@ void test_parser_type(fl_ast_t* root, size_t typeid) {
   var_type = fbody->var.type;
   ASSERT(var_type != 0, "dtor has a type");
   ASSERTE(var_type->type, FL_AST_TYPE, "%d != %d", "dtor type is FL_AST_TYPE");
-  ASSERTE(var_type->ty.id, typeid, "%zu != %zu", "typeid ?");
+  ASSERTE(var_type->ty_id, typeid, "%zu != %zu", "typeid ?");
 }
 
 // TODO review if ";" is required

@@ -46,7 +46,7 @@ TASK_IMPL(parser_variables) {
 
   ASSERT(ast->type == FL_AST_DTOR_VAR, "type: FL_AST_DTOR_VAR");
   ASSERT(ast->var.type->type == FL_AST_TYPE, "type.type: FL_AST_TYPE");
-  ASSERTE(ast->var.type->ty.id, 3, "%zu == %d", "typeid i8 is 3");
+  ASSERTE(ast->var.type->ty_id, 3, "%zu == %d", "typeid i8 is 3");
   fl_ast_delete(root);
 
   return 0;

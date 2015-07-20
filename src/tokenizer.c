@@ -131,8 +131,8 @@ void fl_tokens_debug(fl_token_list_t* tokens) {
     fl_token_t* token = &tokens->tokens[i];
     // print debug tokens
     dbg_verbose("%6zu|%3d[%3zu:%3zu - %3zu:%3zu] %s\n", i, token->type,
-           token->start.line, token->start.column, token->end.line,
-           token->end.column, token->string->value);
+                token->start.line, token->start.column, token->end.line,
+                token->end.column, token->string->value);
   }
 }
 

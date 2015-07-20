@@ -41,7 +41,7 @@ format
 
 */
 PSR_READ_IMPL(type) {
-  PSR_AST_START(FL_AST_TYPE);
+  PSR_START(type, FL_AST_TYPE);
 
   // primitives
   fl_tokens_t tk = state->token->type;
@@ -55,47 +55,50 @@ PSR_READ_IMPL(type) {
   size_t i;
   for (i = 0; i < 12; ++i) {
     if (tk == tks[i]) {
-      ast->ty.id = i + 1;
+      type->ty_id = i + 1;
       PSR_NEXT();
 
-      PSR_AST_RET();
+      PSR_RET_OK(type);
     }
   }
 
   // primitive fail, try wrapper
   fl_ast_t* id = PSR_READ(lit_identifier);
-  if (!id) {
-    PSR_AST_RET_NULL();
-  }
+  PSR_RET_IF_ERROR_OR_NULL(id, { fl_ast_delete(type); });
 
-  fl_parser_skipws(tokens, state);
+  PSR_SKIPWS();
 
   if (PSR_ACCEPT_TOKEN(FL_TK_LT)) {
-    fl_parser_skipws(tokens, state);
+    PSR_SKIPWS();
 
     fl_ast_t* child = PSR_READ(type);
+    if (!child) {
+      fl_ast_delete(id);
+      PSR_RET_SYNTAX_ERROR(type, "type expected");
+    }
+
     PSR_RET_IF_ERROR(child, {
       fl_ast_delete(id);
-      fl_ast_delete(ast);
+      fl_ast_delete(type);
     });
 
-    fl_parser_skipws(tokens, state);
+    PSR_SKIPWS();
 
     if (!PSR_ACCEPT_TOKEN(FL_TK_GT)) {
       // hard
       fl_ast_delete(id);
       fl_ast_delete(child);
-      PSR_SYNTAX_ERROR(ast, "expected '>'");
+      PSR_RET_SYNTAX_ERROR(type, "expected '>'");
     }
 
     // unroll recursion, creating new types
     // handle "primitive" defined wrappers
     if (strcmp(id->identifier.string->value, "ptr") == 0) {
-      ast->ty.id = fl_parser_get_typeid(FL_POINTER, child->ty.id);
+      type->ty_id = fl_parser_get_typeid(FL_POINTER, child->ty_id);
     }
 
     if (strcmp(id->identifier.string->value, "vector") == 0) {
-      ast->ty.id = fl_parser_get_typeid(FL_VECTOR, child->ty.id);
+      type->ty_id = fl_parser_get_typeid(FL_VECTOR, child->ty_id);
     }
 
     // TODO handle user defined wrappers
@@ -104,9 +107,9 @@ PSR_READ_IMPL(type) {
     // void is a primitive will never reach here, it's safe to check != 0
     fl_ast_delete(child);
 
-    if (ast->ty.id) {
+    if (type->ty_id) {
       fl_ast_delete(id);
-      PSR_AST_RET();
+      PSR_RET_OK(type);
     }
     // do something?!
   }
@@ -114,46 +117,49 @@ PSR_READ_IMPL(type) {
   fl_ast_delete(id);
   // TODO handle this could be user defined type
 
-  PSR_AST_RET_NULL();
+  fl_ast_delete(type);
+  return 0;
 }
 
 PSR_READ_IMPL(cast) {
-  PSR_AST_START(FL_AST_CAST);
+  PSR_START(cast, FL_AST_CAST);
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_CAST)) {
-    fl_ast_delete(ast);
-    ast = 0;
+    fl_ast_delete(cast);
+    cast = 0;
 
-    FL_TRY_READ(expr_conditional);
+    PSR_RET_READED(cast, expr_conditional);
 
     return 0;
   }
 
   // hard
-  fl_parser_skipws(tokens, state);
+  PSR_SKIPWS();
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_LPARENTHESIS)) {
-    PSR_SYNTAX_ERROR(ast, "expected '('");
+    PSR_SYNTAX_ERROR(cast, "expected '('");
   }
 
   fl_ast_t* ty = PSR_READ(type);
-  if (ty->type == FL_AST_ERROR) {
-    fl_ast_delete(ast);
-    return ty;
-  }
+  PSR_RET_IF_ERROR_OR_NULL(ty, { fl_ast_delete(cast); });
 
-  fl_parser_skipws(tokens, state);
+  PSR_SKIPWS();
   if (!PSR_ACCEPT_TOKEN(FL_TK_RPARENTHESIS)) {
     fl_ast_delete(ty);
-    PSR_SYNTAX_ERROR(ast, "expected ')'");
+    PSR_SYNTAX_ERROR(cast, "expected ')'");
   }
 
   fl_ast_t* element = PSR_READ(expr_conditional);
 
-  ast->ty_id = ty->ty.id;
-  ast->cast.element = element;
+  PSR_RET_IF_ERROR_OR_NULL(element, {
+    fl_ast_delete(cast);
+    fl_ast_delete(ty);
+  });
 
-  PSR_AST_RET();
+  cast->ty_id = ty->ty_id;
+  cast->cast.element = element;
+
+  PSR_RET_OK(cast);
 }
 
 fl_type_t* fl_type_table = 0;

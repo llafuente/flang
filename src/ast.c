@@ -377,8 +377,8 @@ size_t fl_ast_get_typeid(fl_ast_t* node) {
   // check AST is somewhat "type-related"
   switch (node->type) {
   case FL_AST_DTOR_VAR:
-    printf("(ast) dtor: %zu\n", node->var.type->ty.id);
-    return node->var.type->ty.id;
+    printf("(ast) dtor: %zu\n", node->var.type->ty_id);
+    return node->var.type->ty_id;
   case FL_AST_PARAMETER:
     printf("(ast) parameter: %zu\n", node->param.id->ty_id);
     return node->param.id->ty_id;
@@ -405,8 +405,8 @@ size_t fl_ast_get_typeid(fl_ast_t* node) {
     }
   } break;
   case FL_AST_TYPE:
-    printf("(ast) type: %zu\n", node->ty.id);
-    return node->ty.id;
+    printf("(ast) type: %zu\n", node->ty_id);
+    return node->ty_id;
   case FL_AST_CAST:
     return node->ty_id;
   case FL_AST_LIT_BOOLEAN:
@@ -450,7 +450,7 @@ bool fl_ast_find_fn_decl_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     string* id = (string*)userdata;
 
     dbg_silly("chk %s - %s\n", id->value,
-             node->func.id->identifier.string->value);
+              node->func.id->identifier.string->value);
 
     if (st_cmp(id, node->func.id->identifier.string) == 0) {
       *ret = node;

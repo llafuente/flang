@@ -26,7 +26,7 @@
 #include "flang.h"
 
 LLVMTypeRef fl_codegen_get_type(fl_ast_t* node) {
-  return fl_codegen_get_typeid(node->ty.id);
+  return fl_codegen_get_typeid(node->ty_id);
 }
 
 LLVMTypeRef fl_codegen_get_typeid(size_t id) {

@@ -280,7 +280,8 @@ LLVMValueRef fl_codegen_cast(FL_CODEGEN_HEADER) {
   LLVMValueRef element = fl_codegen_ast(el, FL_CODEGEN_PASSTHROUGH);
 
   cg_print("(codegen) do cast [%p][%p]\n", el, element);
-  return fl_codegen_cast_op(builder, fl_ast_get_typeid(el), node->ty_id, element);
+  return fl_codegen_cast_op(builder, fl_ast_get_typeid(el), node->ty_id,
+                            element);
 }
 
 LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER) {
@@ -313,6 +314,8 @@ LLVMValueRef fl_codegen_lit_string(FL_CODEGEN_HEADER) {
 
 LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
   fprintf(stderr, "(codegen) assignament\n");
+
+  fl_ast_debug(node);
 
   fl_ast_t* left_decl =
       fl_ast_search_decl_var(node, node->assignament.left->identifier.string);

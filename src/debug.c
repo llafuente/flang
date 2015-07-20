@@ -112,7 +112,7 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     printf("variable");
     break;
   case FL_AST_TYPE:
-    printf("type T(%zu)", node->ty.id);
+    printf("type T(%zu)", node->ty_id);
     break;
   case FL_AST_DECL_FUNCTION:
     printf("function T(%zu) [params=%zu]", node->ty_id, node->func.nparams);
@@ -127,7 +127,7 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     printf("ERROR [string=%s]", node->err.str);
     break;
   case FL_AST_STMT_COMMENT:
-    //printf("comment\n**\n%s\n**\n", node->comment.text->value);
+    // printf("comment\n**\n%s\n**\n", node->comment.text->value);
     printf("comment");
     break;
   case FL_AST_STMT_IF:
@@ -139,7 +139,7 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
   default: {}
   }
 
-  if (node->token_start) {
+  if (node->token_start && node->token_end) {
     printf("\x1B[36m(%d)[@%p][%3zu:%3zu - %3zu:%3zu]\x1B[39m\n", node->type,
            node, node->token_start->start.column, node->token_start->start.line,
            node->token_end->end.column, node->token_end->end.line);

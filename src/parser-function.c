@@ -110,7 +110,7 @@ PSR_READ_IMPL(decl_function) {
     fl_parser_skipws(tokens, state);
   } else {
     PSR_AST_DUMMY(ty, FL_AST_TYPE);
-    ty->ty.id = 1;
+    ty->ty_id = 1;
     ast->func.ret_type = ty; // void
   }
 
@@ -176,7 +176,7 @@ PSR_READ_IMPL(parameter_typed) {
   // set type of the identifier
   ast->param.type = type;
   ast->param.id = id;
-  id->ty_id = type->ty.id;
+  id->ty_id = type->ty_id;
 
   PSR_AST_RET();
 }
@@ -192,7 +192,7 @@ PSR_READ_IMPL(parameter_notyped) {
   }
 
   PSR_AST_DUMMY(type, FL_AST_TYPE);
-  type->ty.id = 0;
+  type->ty_id = 0;
   ast->param.type = type;
 
   PSR_AST_RET();

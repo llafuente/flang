@@ -27,9 +27,9 @@
 // TODO declaration - declarator list
 PSR_READ_IMPL(decl_variable) {
   fl_ast_t* ast;
-  cg_print("(parser) decl_variable typed");
+  cg_print("(parser) decl_variable typed\n");
   FL_TRY_READ(decl_variable_with_type);
-  cg_print("(parser) decl_variable w/t");
+  cg_print("(parser) decl_variable w/t\n");
   FL_TRY_READ(decl_variable_no_type);
 
   return 0;
@@ -53,7 +53,7 @@ PSR_READ_IMPL(decl_variable_no_type) {
 
   // this variable need to be inferred
   PSR_AST_DUMMY(type, FL_AST_TYPE);
-  type->ty.id = 0;
+  type->ty_id = 0;
   ast->var.type = type;
 
   PSR_AST_RET();
@@ -83,9 +83,9 @@ PSR_READ_IMPL(decl_variable_with_type) {
     PSR_AST_RET_NULL();
   }
 
-  cg_print("*** TYPED! [%zu]\n", ast->var.type->ty.id);
+  cg_print("*** TYPED! [%zu]\n", ast->var.type->ty_id);
 
-  ast->var.id->ty_id = ast->var.type->ty.id;
+  ast->var.id->ty_id = ast->var.type->ty_id;
 
   PSR_AST_RET();
 }

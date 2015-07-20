@@ -46,7 +46,7 @@ bool fl_ast_find_identifier(fl_ast_t* node, fl_ast_t* parent, size_t level,
 bool dtors_var_infer(fl_ast_t* node, fl_ast_t* parent, size_t level,
                      void* userdata) {
   if (node->type == FL_AST_DTOR_VAR) {
-    if (node->var.type->ty.id == 0) {
+    if (node->var.type->ty_id == 0) {
       // search all ocurrences of this identifier
       id_search_t data;
       data.list = calloc(sizeof(fl_ast_t*), 100); // TODO resizable
@@ -68,7 +68,7 @@ bool dtors_var_infer(fl_ast_t* node, fl_ast_t* parent, size_t level,
             // type is the right one
             size_t t = fl_ast_ret_type(fnod->parent->assignament.right);
             if (t) {
-              node->var.type->ty.id = t;
+              node->var.type->ty_id = t;
               break;
             }
           }
