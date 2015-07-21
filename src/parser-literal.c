@@ -38,60 +38,60 @@ PSR_READ_IMPL(literal) {
 }
 
 PSR_READ_IMPL(lit_null) {
-  PSR_AST_START(FL_AST_LIT_NULL);
+  PSR_START(ast, FL_AST_LIT_NULL);
 
   if (PSR_ACCEPT("null") || PSR_ACCEPT("nil")) {
-    PSR_AST_RET();
+    PSR_RET_OK(ast);
   }
-  PSR_AST_RET_NULL();
+  PSR_RET_KO(ast);
 }
 
 PSR_READ_IMPL(lit_boolean) {
-  PSR_AST_START(FL_AST_LIT_BOOLEAN);
+  PSR_START(ast, FL_AST_LIT_BOOLEAN);
 
   if (PSR_ACCEPT_TOKEN(FL_TK_TRUE)) {
     ast->boolean.value = true;
-    PSR_AST_RET();
+    PSR_RET_OK(ast);
   }
   if (PSR_ACCEPT_TOKEN(FL_TK_FALSE)) {
     ast->boolean.value = false;
-    PSR_AST_RET();
+    PSR_RET_OK(ast);
   }
 
-  PSR_AST_RET_NULL();
+  PSR_RET_KO(ast);
 }
 
 PSR_READ_IMPL(lit_string_sq) {
-  PSR_AST_START(FL_AST_LIT_STRING);
+  PSR_START(ast, FL_AST_LIT_STRING);
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_SQUOTE)) {
-    PSR_AST_RET_NULL();
+    PSR_RET_KO(ast);
   }
 
   ast->string.value = st_unescape(state->token->string);
   PSR_NEXT();
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_SQUOTE)) {
-    PSR_AST_RET_NULL();
+    PSR_RET_KO(ast);
   }
 
-  PSR_AST_RET();
+  PSR_RET_OK(ast);
 }
 
 PSR_READ_IMPL(lit_string_dq) {
-  PSR_AST_START(FL_AST_LIT_STRING);
+  PSR_START(ast, FL_AST_LIT_STRING);
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_DQUOTE)) {
-    PSR_AST_RET_NULL();
+    PSR_RET_KO(ast);
   }
   ast->string.value = st_unescape(state->token->string);
   PSR_NEXT();
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_DQUOTE)) {
-    PSR_AST_RET_NULL();
+    PSR_RET_KO(ast);
   }
 
-  PSR_AST_RET();
+  PSR_RET_OK(ast);
 }
 
 PSR_READ_IMPL(lit_string) {
@@ -118,7 +118,7 @@ PSR_READ_IMPL(lit_object) { return 0; }
 
 // TODO manage overflow/underflow errors
 PSR_READ_IMPL(lit_numeric) {
-  PSR_AST_START(FL_AST_LIT_NUMERIC);
+  PSR_START(ast, FL_AST_LIT_NUMERIC);
 
   // null is and alias of 0
 
@@ -126,7 +126,7 @@ PSR_READ_IMPL(lit_numeric) {
     ast->numeric.value = 0;
     ast->ty_id = 10; // u64
     PSR_NEXT();
-    PSR_AST_RET();
+    PSR_RET_OK(ast);
   }
 
   string* str = state->token->string;
@@ -151,22 +151,22 @@ PSR_READ_IMPL(lit_numeric) {
     } else {
       ast->ty_id = 12; // bigger possible f64
     }
-    PSR_AST_RET();
+    PSR_RET_OK(ast);
   }
 
-  PSR_AST_RET_NULL();
+  PSR_RET_KO(ast);
 }
 
 // TODO review what should be valid and what not
 // right now we should accept "anything that is not token"
 PSR_READ_IMPL(lit_identifier) {
   if (state->token->type == FL_TK_UNKOWN) {
-    PSR_AST_START(FL_AST_LIT_IDENTIFIER);
+    PSR_START(ast, FL_AST_LIT_IDENTIFIER);
 
     ast->identifier.string = st_clone(state->token->string);
     PSR_NEXT();
 
-    PSR_AST_RET();
+    PSR_RET_OK(ast);
   }
 
   return 0;

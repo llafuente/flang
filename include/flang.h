@@ -23,6 +23,8 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "flang-parser.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
@@ -493,7 +495,7 @@ extern int dbg_debug_level;
 // 5 - silly
 #define dbg(level, ...)                                                        \
   if (dbg_debug_level >= level) {                                              \
-    fprintf(stderr, "%s:%d ", __FILE__, __LINE__);                                              \
+    fprintf(stderr, "%s:%d ", __FILE__, __LINE__);                             \
     fprintf(stderr, __VA_ARGS__);                                              \
   }
 
@@ -536,26 +538,6 @@ extern int dbg_debug_level;
 
 #define FL_EXTERN extern
 
-//- PARSER
-
-#define PSR_READ_NAME(name) PSR_READ_##name
-
-#define PSR_READ_DECL(name)                                                    \
-  FL_EXTERN fl_ast_t* PSR_READ_NAME(name)(PSR_READ_HEADER)
-
-#define PSR_READ_HEADER                                                        \
-  fl_token_list_t* tokens, fl_psrstack_t* stack, fl_psrstate_t* state
-
-#define PSR_READ_HEADER_SEND tokens, stack, state
-
-#define PSR_READ_IMPL(name) fl_ast_t* PSR_READ_NAME(name)(PSR_READ_HEADER)
-
-// , printf("%s\n", #name)
-#define PSR_READ(name) PSR_READ_NAME(name)(tokens, stack, state)
-
-#define PSR_AST_EXTEND(ast, name)                                              \
-  PSR_READ_NAME(name)(tokens, stack, state, &ast)
-
 // printf("%s %p type %d\n", __FUNCTION__, ast, ast->type);
 // TODO handle errors when done :)
 #define FL_TRY_READ(name)                                                      \
@@ -571,105 +553,6 @@ extern int dbg_debug_level;
     return ast;                                                                \
   }                                                                            \
   fl_parser_rollback(stack, state);
-
-// calloc is necessary atm
-#define PSR_AST_START(ast_type)                                                \
-  fl_ast_t* ast = (fl_ast_t*)calloc(1, sizeof(fl_ast_t));                      \
-  ast->token_start = state->token;                                             \
-  ast->type = ast_type;
-
-#define PSR_AST_DUMMY(name, ast_type)                                          \
-  fl_ast_t* name = (fl_ast_t*)calloc(1, sizeof(fl_ast_t));                     \
-  name->token_start = state->token;                                            \
-  name->token_end = state->token;                                              \
-  name->type = ast_type;
-
-#define PSR_AST_END()                                                          \
-  if (ast->type != FL_AST_ERROR) {                                             \
-    ast->token_end = state->token;                                             \
-  }
-
-#define PSR_AST_RET()                                                          \
-  PSR_AST_END();                                                               \
-  return ast;
-
-#define PSR_AST_RET_NULL()                                                     \
-  if (ast) {                                                                   \
-    fl_ast_delete(ast);                                                        \
-    ast = 0;                                                                   \
-  }                                                                            \
-  return 0;
-
-#define PSR_ACCEPT(string) fl_parser_accept(tokens, state, string)
-
-#define PSR_ACCEPT_TOKEN(token_type)                                           \
-  fl_parser_accept_token(tokens, state, token_type)
-
-#define PSR_TEST_TOKEN(token_type) state->token->type == token_type
-
-/*
-* new parser MACRO API
-*/
-#define PSR_NEXT() fl_parser_next(tokens, state)
-#define PSR_SKIPWS() fl_parser_skipws(tokens, state)
-
-#define PSR_START(target, ast_type)                                            \
-  fl_ast_t* target = (fl_ast_t*)calloc(1, sizeof(fl_ast_t));                   \
-  target->token_start = state->token;                                          \
-  target->type = ast_type;
-
-// read that can raise errors but 'dont throw'
-#define PSR_SOFT_READ(target, name)                                            \
-  fl_parser_look_ahead(stack, state);                                          \
-  target = PSR_READ(name);                                                     \
-  if (target) {                                                                \
-    /*has errors?*/                                                            \
-    if (target->type != FL_AST_ERROR) {                                        \
-      fl_parser_commit(stack, state);                                          \
-      return target;                                                           \
-    }                                                                          \
-    fl_ast_delete(target);                                                     \
-    target = 0;                                                                \
-  }                                                                            \
-  fl_parser_rollback(stack, state);
-
-// read that can raise errors but 'dont throw'
-#define PSR_RET_READED(target, name)                                           \
-  fl_parser_look_ahead(stack, state);                                          \
-  target = PSR_READ(name);                                                     \
-  if (target) {                                                                \
-    /*has errors?*/                                                            \
-    fl_parser_commit(stack, state);                                            \
-    return target;                                                             \
-  }                                                                            \
-  fl_parser_rollback(stack, state);
-
-#define PSR_RET_IF_ERROR(target, block)                                        \
-  if (target->type == FL_AST_ERROR) {                                          \
-    block return target;                                                       \
-  }
-
-#define PSR_RET_IF_ERROR_OR_NULL(target, block)                                \
-  if (!target || target->type == FL_AST_ERROR) {                               \
-    block return target;                                                       \
-  }
-
-#define PSR_RET_OK(target)                                                     \
-  PSR_END(target);                                                             \
-  return target;
-
-#define PSR_END(target)                                                        \
-  if (target->type != FL_AST_ERROR) {                                          \
-    target->token_end = state->token;                                          \
-  }
-
-// target allow to reuse current ast
-#define PSR_RET_SYNTAX_ERROR(target, string)                                   \
-  cg_print("(psr-err) %s\n", string);                                          \
-  target->type = FL_AST_ERROR;                                                 \
-  target->token_end = state->token;                                            \
-  target->err.str = string;                                                    \
-  target->err.zone = FL_ERROR_SYNTAX;
 
 #define FL_CODEGEN_HEADER                                                      \
   fl_ast_t* node, LLVMBuilderRef builder, LLVMModuleRef module,                \

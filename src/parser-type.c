@@ -41,7 +41,7 @@ format
 
 */
 PSR_READ_IMPL(type) {
-  PSR_START(type, FL_AST_TYPE);
+  PSR_START(type_node, FL_AST_TYPE);
 
   // primitives
   fl_tokens_t tk = state->token->type;
@@ -55,50 +55,43 @@ PSR_READ_IMPL(type) {
   size_t i;
   for (i = 0; i < 12; ++i) {
     if (tk == tks[i]) {
-      type->ty_id = i + 1;
+      type_node->ty_id = i + 1;
       PSR_NEXT();
 
-      PSR_RET_OK(type);
+      PSR_RET_OK(type_node);
     }
   }
 
   // primitive fail, try wrapper
-  fl_ast_t* id = PSR_READ(lit_identifier);
-  PSR_RET_IF_ERROR_OR_NULL(id, { fl_ast_delete(type); });
+  PSR_READ_OR_DIE(id, lit_identifier, {
+    fl_ast_delete(type_node);
+  }, 0);
 
   PSR_SKIPWS();
 
   if (PSR_ACCEPT_TOKEN(FL_TK_LT)) {
     PSR_SKIPWS();
 
-    fl_ast_t* child = PSR_READ(type);
-    if (!child) {
+    PSR_READ_OR_DIE(child, type, {
+      fl_ast_delete(type_node);
       fl_ast_delete(id);
-      PSR_RET_SYNTAX_ERROR(type, "type expected");
-    }
-
-    PSR_RET_IF_ERROR(child, {
-      fl_ast_delete(id);
-      fl_ast_delete(type);
-    });
+    }, "type expected");
 
     PSR_SKIPWS();
 
-    if (!PSR_ACCEPT_TOKEN(FL_TK_GT)) {
-      // hard
+    PSR_EXPECT_TOKEN(FL_TK_GT, type_node, {
       fl_ast_delete(id);
       fl_ast_delete(child);
-      PSR_RET_SYNTAX_ERROR(type, "expected '>'");
-    }
+    }, "expected '>'");
 
     // unroll recursion, creating new types
     // handle "primitive" defined wrappers
     if (strcmp(id->identifier.string->value, "ptr") == 0) {
-      type->ty_id = fl_parser_get_typeid(FL_POINTER, child->ty_id);
+      type_node->ty_id = fl_parser_get_typeid(FL_POINTER, child->ty_id);
     }
 
     if (strcmp(id->identifier.string->value, "vector") == 0) {
-      type->ty_id = fl_parser_get_typeid(FL_VECTOR, child->ty_id);
+      type_node->ty_id = fl_parser_get_typeid(FL_VECTOR, child->ty_id);
     }
 
     // TODO handle user defined wrappers
@@ -106,10 +99,10 @@ PSR_READ_IMPL(type) {
 
     // void is a primitive will never reach here, it's safe to check != 0
     fl_ast_delete(child);
+    fl_ast_delete(id);
 
-    if (type->ty_id) {
-      fl_ast_delete(id);
-      PSR_RET_OK(type);
+    if (type_node->ty_id) {
+      PSR_RET_OK(type_node);
     }
     // do something?!
   }
@@ -117,7 +110,7 @@ PSR_READ_IMPL(type) {
   fl_ast_delete(id);
   // TODO handle this could be user defined type
 
-  fl_ast_delete(type);
+  fl_ast_delete(type_node);
   return 0;
 }
 

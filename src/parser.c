@@ -45,19 +45,17 @@ fl_ast_t* fl_parser(fl_token_list_t* tokens) {
 
   fl_parser_stack_init(stack, tokens, state);
 
-  PSR_AST_START(FL_AST_PROGRAM);
+  PSR_START(program, FL_AST_PROGRAM);
 
-  fl_ast_t* body;
+  program->program.tokens = tokens;
+  program->program.body = PSR_READ(program_block);
 
-  ast->program.tokens = tokens;
-  ast->program.body = PSR_READ(program_block);
-
-  PSR_AST_END();
+  PSR_END(program);
 
   free(stack);
   free(state);
 
-  return ast;
+  return program;
 }
 
 void fl_parse_core(fl_ast_t* ast) {

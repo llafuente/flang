@@ -26,14 +26,13 @@
 #include "flang.h"
 
 PSR_READ_IMPL(stmt_if) {
-  PSR_START(stmt, FL_AST_STMT_IF);
-
-  if (!PSR_ACCEPT_TOKEN(FL_TK_IF)) {
-    fl_ast_delete(stmt);
+  if (!PSR_TEST_TOKEN(FL_TK_IF)) {
     return 0;
   }
 
-  cg_print("(parser) if readed");
+  cg_print("(parser) if start!") PSR_START(stmt, FL_AST_STMT_IF);
+
+  PSR_ACCEPT_TOKEN(FL_TK_IF);
 
   fl_ast_t* t = PSR_READ(expression);
   cg_print("(parser) expression");

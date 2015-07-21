@@ -26,10 +26,10 @@
 #include "flang.h"
 
 PSR_READ_IMPL(comment) {
-  PSR_AST_START(FL_AST_STMT_COMMENT);
+  PSR_START(ast, FL_AST_STMT_COMMENT);
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_MCOMMENT)) {
-    PSR_AST_RET_NULL();
+    PSR_RET_KO(ast);
   }
   ast->comment.text = state->token->string;
 
@@ -39,5 +39,5 @@ PSR_READ_IMPL(comment) {
     PSR_SYNTAX_ERROR(ast, "expected '*/'");
   }
 
-  PSR_AST_RET();
+  PSR_RET_OK(ast);
 }

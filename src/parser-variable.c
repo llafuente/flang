@@ -36,36 +36,36 @@ PSR_READ_IMPL(decl_variable) {
 }
 
 PSR_READ_IMPL(decl_variable_no_type) {
-  PSR_AST_START(FL_AST_DTOR_VAR);
+  PSR_START(ast, FL_AST_DTOR_VAR);
 
   fl_tokens_t tks[] = {FL_TK_VAR, FL_TK_UNVAR, FL_TK_CONST, FL_TK_STATIC,
                        FL_TK_GLOBAL};
   if (!fl_parser_accept_token_list(tokens, state, tks, 5)) {
-    PSR_AST_RET_NULL();
+    PSR_RET_KO(ast);
   }
 
   fl_parser_skipws(tokens, state);
 
   ast->var.id = PSR_READ(lit_identifier);
   if (!ast->var.id) {
-    PSR_AST_RET_NULL();
+    PSR_RET_KO(ast);
   }
 
   // this variable need to be inferred
-  PSR_AST_DUMMY(type, FL_AST_TYPE);
+  PSR_CREATE(type, FL_AST_TYPE);
   type->ty_id = 0;
   ast->var.type = type;
 
-  PSR_AST_RET();
+  PSR_RET_OK(ast);
 }
 
 PSR_READ_IMPL(decl_variable_with_type) {
-  PSR_AST_START(FL_AST_DTOR_VAR);
+  PSR_START(ast, FL_AST_DTOR_VAR);
 
   fl_tokens_t tks[] = {FL_TK_VAR, FL_TK_UNVAR, FL_TK_CONST, FL_TK_STATIC,
                        FL_TK_GLOBAL};
   if (!fl_parser_accept_token_list(tokens, state, tks, 5)) {
-    PSR_AST_RET_NULL();
+    PSR_RET_KO(ast);
   }
 
   fl_parser_skipws(tokens, state);
@@ -73,19 +73,19 @@ PSR_READ_IMPL(decl_variable_with_type) {
   ast->var.type = PSR_READ(type);
 
   if (!ast->var.type) {
-    PSR_AST_RET_NULL();
+    PSR_RET_KO(ast);
   }
 
   fl_parser_skipws(tokens, state);
 
   ast->var.id = PSR_READ(lit_identifier);
   if (!ast->var.id) {
-    PSR_AST_RET_NULL();
+    PSR_RET_KO(ast);
   }
 
   cg_print("*** TYPED! [%zu]\n", ast->var.type->ty_id);
 
   ast->var.id->ty_id = ast->var.type->ty_id;
 
-  PSR_AST_RET();
+  PSR_RET_OK(ast);
 }

@@ -26,122 +26,105 @@
 #include "flang.h"
 
 PSR_READ_IMPL(decl_function) {
-  PSR_AST_START(FL_AST_DECL_FUNCTION);
+  PSR_START(fn_node, FL_AST_DECL_FUNCTION);
 
   if (PSR_ACCEPT_TOKEN(FL_TK_FFI_C)) {
-    ast->func.ffi = true;
-    fl_parser_skipws(tokens, state);
+    fn_node->func.ffi = true;
+    PSR_SKIPWS();
   }
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_FUNCTION)) {
-    PSR_AST_RET_NULL();
+    PSR_RET_KO(fn_node);
   }
+  PSR_SKIPWS();
 
-  // hard-errors!
+  PSR_READ_OR_DIE(id, lit_identifier, {
+    fl_ast_delete(fn_node);
+  }, "cannot parse function identifier");
 
-  fl_parser_skipws(tokens, state);
+  fn_node->func.id = id;
 
-  ast->func.id = PSR_READ(lit_identifier);
-  if (!ast->func.id) {
-    PSR_SYNTAX_ERROR(ast, "cannot parse function identifier");
-    return ast;
-  }
-
-  fl_parser_skipws(tokens, state);
+  PSR_SKIPWS();
 
   // params
-  if (!PSR_ACCEPT_TOKEN(FL_TK_LPARENTHESIS)) {
-    PSR_SYNTAX_ERROR(ast, "expected '('");
-    return ast;
-  }
+  PSR_EXPECT_TOKEN(FL_TK_LPARENTHESIS, fn_node, { fl_ast_delete(id); },
+                   "expected '('");
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_RPARENTHESIS)) {
     fl_ast_t** list = calloc(100, sizeof(fl_ast_t*)); // TODO resize support
-    ast->func.params = list;
+    fn_node->func.params = list;
 
     size_t i = 0;
     do {
-      fl_parser_skipws(tokens, state);
+      PSR_SKIPWS();
 
       // varargs must be the latest argument
       if (PSR_ACCEPT_TOKEN(FL_TK_3DOT)) {
-        ast->func.varargs = true;
-        fl_parser_skipws(tokens, state);
+        fn_node->func.varargs = true;
+        PSR_SKIPWS();
 
         break;
       }
 
-      fl_ast_t* param = PSR_READ(parameter);
-
-      if (param->type == FL_AST_ERROR) { // hard error error
-        fl_ast_delete(ast);
-        return param;
-      }
+      PSR_READ_OR_DIE(param, parameter, {
+        fl_ast_delete(fn_node);
+      }, 0);
 
       list[i++] = param;
 
-      fl_parser_skipws(tokens, state);
+      PSR_SKIPWS();
     } while (PSR_ACCEPT_TOKEN(FL_TK_COMMA));
-    ast->func.nparams = i;
+    fn_node->func.nparams = i;
 
-    if (!PSR_ACCEPT_TOKEN(FL_TK_RPARENTHESIS)) {
-      fl_ast_delete(ast->func.id);
+    PSR_EXPECT_TOKEN(FL_TK_RPARENTHESIS, fn_node, {
+      fl_ast_delete(fn_node->func.id);
       fl_ast_delete_list(list);
-
-      PSR_SYNTAX_ERROR(ast, "expected ')'");
-      return ast;
-    }
+    }, "expected ')'");
   }
 
-  fl_parser_skipws(tokens, state);
+  PSR_SKIPWS();
 
   // try to read return type
 
   if (PSR_ACCEPT_TOKEN(FL_TK_COLON)) {
-    fl_parser_skipws(tokens, state);
+    PSR_SKIPWS();
 
-    fl_ast_t* rtype = PSR_READ(type);
-    if (rtype->type == FL_AST_ERROR) { // hard error error
-      fl_ast_delete(ast);
-      return rtype;
-    }
-    ast->func.ret_type = rtype;
+    PSR_READ_OR_DIE(ret_type, type, {
+      fl_ast_delete(fn_node);
+    }, 0);
 
-    fl_parser_skipws(tokens, state);
+    fn_node->func.ret_type = ret_type;
+
+    PSR_SKIPWS();
   } else {
-    PSR_AST_DUMMY(ty, FL_AST_TYPE);
+    PSR_CREATE(ty, FL_AST_TYPE);
     ty->ty_id = 1;
-    ast->func.ret_type = ty; // void
+    fn_node->func.ret_type = ty; // void
   }
 
-  fl_parser_skipws(tokens, state);
+  PSR_SKIPWS();
 
   // check if it's only a declaration without body
   if (PSR_TEST_TOKEN(FL_TK_SEMICOLON)) {
-    PSR_AST_RET();
+    PSR_RET_OK(fn_node);
   }
 
-  // block always return
-  fl_ast_t* body = PSR_READ(block);
+  PSR_READ_OR_DIE(body, block, { fl_ast_delete(fn_node); },
+                  "expected block of code");
 
-  if (body->type == FL_AST_ERROR) { // hard error error
-    fl_ast_delete(ast);
-    return body;
-  }
+  fn_node->func.body = body;
 
-  ast->func.body = body;
-
-  PSR_AST_RET();
+  PSR_RET_OK(fn_node);
 }
 
 PSR_READ_IMPL(stmt_return) {
-  PSR_AST_START(FL_AST_STMT_RETURN);
+  PSR_START(ast, FL_AST_STMT_RETURN);
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_RETURN)) {
-    PSR_AST_RET_NULL();
+    PSR_RET_KO(ast);
   }
 
-  fl_parser_skipws(tokens, state);
+  PSR_SKIPWS();
 
   fl_ast_t* argument = PSR_READ(expression);
 
@@ -152,19 +135,19 @@ PSR_READ_IMPL(stmt_return) {
 
   ast->ret.argument = argument;
 
-  PSR_AST_RET();
+  PSR_RET_OK(ast);
 }
 
 PSR_READ_IMPL(parameter_typed) {
-  PSR_AST_START(FL_AST_PARAMETER);
+  PSR_START(ast, FL_AST_PARAMETER);
 
   fl_ast_t* type = PSR_READ(type);
   if (!type) {
     // soft error
-    PSR_AST_RET_NULL();
+    PSR_RET_KO(ast);
   }
 
-  fl_parser_skipws(tokens, state);
+  PSR_SKIPWS();
 
   fl_ast_t* id = PSR_READ(lit_identifier);
   if (!id) {
@@ -178,11 +161,11 @@ PSR_READ_IMPL(parameter_typed) {
   ast->param.id = id;
   id->ty_id = type->ty_id;
 
-  PSR_AST_RET();
+  PSR_RET_OK(ast);
 }
 
 PSR_READ_IMPL(parameter_notyped) {
-  PSR_AST_START(FL_AST_PARAMETER);
+  PSR_START(ast, FL_AST_PARAMETER);
 
   // hard error
   ast->param.id = PSR_READ(lit_identifier);
@@ -191,11 +174,11 @@ PSR_READ_IMPL(parameter_notyped) {
     return ast;
   }
 
-  PSR_AST_DUMMY(type, FL_AST_TYPE);
+  PSR_CREATE(type, FL_AST_TYPE);
   type->ty_id = 0;
   ast->param.type = type;
 
-  PSR_AST_RET();
+  PSR_RET_OK(ast);
 }
 
 PSR_READ_IMPL(parameter) {

@@ -26,37 +26,38 @@
 #include "flang.h"
 
 PSR_READ_IMPL(block) {
-  PSR_AST_START(FL_AST_BLOCK);
+  PSR_START(block, FL_AST_BLOCK);
+  cg_print("start block\n");
 
-  if (!PSR_ACCEPT_TOKEN(FL_TK_LCBRACKET)) {
-    PSR_SYNTAX_ERROR(ast, "expected '{'");
-    return ast;
-  }
+  PSR_EXPECT_TOKEN(FL_TK_LCBRACKET, block, {}, "expected '{'");
 
+  PSR_SKIPWS();
+
+  cg_print("{ readed \n");
   fl_parser_look_ahead(stack, state);
-  PSR_AST_EXTEND(ast, block_body);
-  if (ast->type == FL_AST_ERROR) {
-    fl_parser_rollback(stack, state);
 
-    return ast;
-  }
+  PSR_EXTEND(block, block_body);
 
-  if (!PSR_ACCEPT_TOKEN(FL_TK_RCBRACKET)) {
-    PSR_SYNTAX_ERROR(ast, "expected '}'");
-    fl_parser_rollback(stack, state);
-    return ast;
-  }
+  PSR_RET_IF_ERROR(block, { fl_parser_rollback(stack, state); });
+
+  PSR_EXPECT_TOKEN(FL_TK_RCBRACKET, block,
+                   { fl_parser_rollback(stack, state); }, "expected '}'");
+  cg_print("} readed \n");
+
+  PSR_SKIPWS();
 
   fl_parser_commit(stack, state);
 
-  PSR_AST_RET();
+  cg_print("end block ok\n");
+
+  PSR_RET_OK(block);
 }
 PSR_READ_IMPL(program_block) {
-  PSR_AST_START(FL_AST_BLOCK);
+  PSR_START(block, FL_AST_BLOCK);
 
-  PSR_AST_EXTEND(ast, block_body);
+  PSR_EXTEND(block, block_body);
 
-  PSR_AST_RET();
+  PSR_RET_OK(block);
 }
 
 fl_read_cb_t block_stmts[] = {
@@ -71,17 +72,11 @@ void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend) {
   size_t i = 0;
   size_t j = 0;
 
-  fl_token_t* last_token;
-
   while (!fl_parser_eof(tokens, state)) {
-    last_token = state->token;
-
     for (j = 0; j < 6; ++j) {
+      cg_print("%zu\n", j);
       fl_parser_look_ahead(stack, state);
-      cg_print("read attempt %zu-%zu\n", i, j);
       stmt = block_stmts[j](PSR_READ_HEADER_SEND);
-
-      cg_print("read attempt [%p]\n", stmt);
 
       // soft error
       if (!stmt) {
@@ -93,31 +88,33 @@ void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend) {
 
       // hard error
       if (stmt->type == FL_AST_ERROR) {
-        // free each list
-        fl_ast_delete_list(list);
+        fl_parser_rollback(stack, state);
+
+        // free extended node, and "return" current stmt error
+        fl_ast_delete(*extend);
         *extend = stmt;
 
-        fl_parser_rollback(stack, state);
         return;
       }
 
+      fl_parser_commit(stack, state);
       list[i++] = stmt;
 
-      fl_parser_commit(stack, state);
       break;
     }
 
     // read "semicolon" or NEW-LINE
-    fl_parser_skipws(tokens, state);
+    PSR_SKIPWS();
     PSR_ACCEPT_TOKEN(FL_TK_SEMICOLON);
-    fl_parser_skipws(tokens, state);
+    PSR_SKIPWS();
 
     if (state->token->type == FL_TK_RCBRACKET) {
       break;
     }
 
-    if (last_token == state->token) {
-      fl_ast_delete_list(list);
+    // nothing readed!
+    if (i == 0) {
+      free(list);
       (*extend)->block.body = 0;
       PSR_SYNTAX_ERROR((*extend), "invalid statement");
       return;
