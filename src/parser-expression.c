@@ -124,7 +124,7 @@ PSR_READ_IMPL(expr_primary) {
   PSR_RET_IF_ERROR(inside, {});
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_RPARENTHESIS)) {
-    fl_ast_delete_list(ast);
+    fl_ast_delete(ast);
     PSR_SYNTAX_ERROR(ast, "expected ')'");
     return ast;
   }

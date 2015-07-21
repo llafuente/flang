@@ -65,7 +65,7 @@ fl_read_cb_t block_stmts[] = {
     PSR_READ_NAME(stmt_if),       PSR_READ_NAME(comment)};
 
 void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend) {
-  fl_ast_t* ast;
+  fl_ast_t* stmt;
   fl_ast_t** list = calloc(100, sizeof(fl_ast_t*));
   (*extend)->block.body = list;
   size_t i = 0;
@@ -79,29 +79,29 @@ void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend) {
     for (j = 0; j < 6; ++j) {
       fl_parser_look_ahead(stack, state);
       cg_print("read attempt %zu-%zu\n", i, j);
-      ast = block_stmts[j](PSR_READ_HEADER_SEND);
+      stmt = block_stmts[j](PSR_READ_HEADER_SEND);
 
-      cg_print("read attempt [%p]\n", ast);
+      cg_print("read attempt [%p]\n", stmt);
 
       // soft error
-      if (!ast) {
+      if (!stmt) {
         fl_parser_rollback(stack, state);
         continue;
       }
 
-      fl_ast_debug(ast);
+      fl_ast_debug(stmt);
 
       // hard error
-      if (ast->type == FL_AST_ERROR) {
+      if (stmt->type == FL_AST_ERROR) {
         // free each list
-        fl_ast_delete(*extend);
-        *extend = ast;
+        fl_ast_delete_list(list);
+        *extend = stmt;
 
         fl_parser_rollback(stack, state);
         return;
       }
 
-      list[i++] = ast;
+      list[i++] = stmt;
 
       fl_parser_commit(stack, state);
       break;
@@ -119,7 +119,7 @@ void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend) {
     if (last_token == state->token) {
       fl_ast_delete_list(list);
       (*extend)->block.body = 0;
-      PSR_SYNTAX_ERROR((*extend), "unkown statement");
+      PSR_SYNTAX_ERROR((*extend), "invalid statement");
       return;
     }
   }

@@ -26,11 +26,13 @@
 #include "flang.h"
 
 PSR_READ_IMPL(stmt_if) {
-  PSR_START(ast, FL_AST_STMT_IF);
+  PSR_START(stmt, FL_AST_STMT_IF);
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_IF)) {
-    PSR_AST_RET_NULL();
+    fl_ast_delete(stmt);
+    return 0;
   }
+
   cg_print("(parser) if readed");
 
   fl_ast_t* t = PSR_READ(expression);
@@ -38,17 +40,19 @@ PSR_READ_IMPL(stmt_if) {
   fl_ast_debug(t);
 
   if (!t) {
-    PSR_SYNTAX_ERROR(ast, "expected an expression");
+    PSR_RET_SYNTAX_ERROR(stmt, "expected an expression");
   }
-  PSR_RET_IF_ERROR(t, { fl_ast_delete(ast); });
+  PSR_RET_IF_ERROR(t, { fl_ast_delete(stmt); });
 
   fl_ast_t* body = PSR_READ(block);
   cg_print("(parser) body");
-  fl_ast_debug(body);
-  PSR_RET_IF_ERROR(body, { fl_ast_delete(ast); });
+  PSR_RET_IF_ERROR(body, {
+    fl_ast_delete(t);
+    fl_ast_delete(stmt);
+  });
 
-  ast->if_stmt.test = t;
-  ast->if_stmt.block = body;
+  stmt->if_stmt.test = t;
+  stmt->if_stmt.block = body;
   cg_print("(parser) if ok!");
-  PSR_RET_OK(ast);
+  PSR_RET_OK(stmt);
 }

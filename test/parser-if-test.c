@@ -36,5 +36,22 @@ TASK_IMPL(parser_if) {
   fl_codegen(root, "test");
   fl_ast_delete(root);
 
+  root = fl_parse_utf8("if(true) {}");
+  CHK_BODY(root, body);
+  fl_codegen(root, "test");
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("if(true)");
+  CHK_ERROR(root, body, "expected '{'");
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("if(true) {");
+  CHK_ERROR(root, body, "expected '}'");
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("if(true) {/}");
+  CHK_ERROR(root, body, "invalid statement");
+  fl_ast_delete(root);
+
   return 0;
 }
