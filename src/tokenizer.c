@@ -139,7 +139,7 @@ void fl_tokens_debug(fl_token_list_t* tokens) {
 fl_token_list_t* fl_tokenize(string* file) {
   // TODO resize!
   fl_token_list_t* tokens = (fl_token_list_t*)malloc(sizeof(fl_token_list_t) +
-                                                     sizeof(fl_token_t) * 500);
+                                                     sizeof(fl_token_t) * 750);
 
   tokens->size = 0;
 

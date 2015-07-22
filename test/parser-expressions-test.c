@@ -174,5 +174,15 @@ TASK_IMPL(parser_expressions) {
 
   fl_ast_delete(root);
 
+  root = fl_parse_utf8("1 | 2");
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("5.0 == 5.0");
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+  fl_ast_delete(root);
+
   return 0;
 }

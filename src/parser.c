@@ -79,9 +79,10 @@ fl_ast_t* fl_parse(string* code) {
 
   root->program.code = code;
 
-  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0, 0);
-#ifdef FL_VERBOSE
-#endif
+  // TODO remove this, just for debugging purpose
+  printf(stderr, "\n\n*******************************\n");
+  fl_ast_debug(root);
+  printf(stderr, "\n*******************************\n\n");
 
   return root;
 }

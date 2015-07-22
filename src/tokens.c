@@ -104,7 +104,7 @@ fl_tokens_cfg_t fl_token_list[101] = {
     {FL_TK_CEQUAL, false, "^=", 2, 0, 0, false},
     {FL_TK_CARET, false, "^", 1, 0, 0, false},
 
-    {FL_TK_OREQUAL, false, "|=", 1, 0, 0, false},
+    {FL_TK_OREQUAL, false, "|=", 2, 0, 0, false},
     {FL_TK_OR, false, "|", 1, 0, 0, false},
     {FL_TK_OR2, false, "||", 2, 0, 0, false},
     {FL_TK_OR2, false, "or", 2, 0, 0, false},

@@ -41,10 +41,8 @@
 
 #define PSR_READ_IMPL(name) fl_ast_t* PSR_READ_NAME(name)(PSR_READ_HEADER)
 
-// , printf("%s\n", #name)
-#define PSR_READ(name)                                                         \
-  PSR_READ_NAME(name)(tokens, stack, state);                                   \
-  printf(#name "\n");
+// printf(#name "\n");
+#define PSR_READ(name) PSR_READ_NAME(name)(tokens, stack, state);
 
 //- parser implementation helpers
 

@@ -61,31 +61,35 @@ TASK_IMPL(parser_literals) {
   root = fl_parse_utf8("false");
   CHK_BODY(root, body);
   ASSERT(body->type == FL_AST_LIT_BOOLEAN, "FL_AST_LIT_BOOLEAN");
-  ASSERT(body->boolean.value == false, "value = true");
+  ASSERT(body->boolean.value == false, "value = false");
   fl_ast_delete(root);
-
-#define FL_VERBOSE
 
   root = fl_parse_utf8("1567");
   CHK_BODY(root, body);
   ASSERT(body->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
-  ASSERT(body->numeric.value == 1567, "value = true");
+  ASSERT(body->numeric.value == 1567, "value = 1567");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("1e1");
   CHK_BODY(root, body);
   ASSERT(body->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
-  ASSERT(body->numeric.value == 10, "value = true");
+  ASSERT(body->numeric.value == 10, "value = 10");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("0xff");
   CHK_BODY(root, body);
   ASSERT(body->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
-  ASSERT(body->numeric.value == 0xff, "value = true");
+  ASSERT(body->numeric.value == 0xff, "value = 0xff");
   fl_ast_delete(root);
 
   // TODO binary 0b000000001
   // TODO octal 0o777
+
+  root = fl_parse_utf8("5.2");
+  CHK_BODY(root, body);
+  ASSERT(body->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  ASSERT(body->numeric.value == 5.2, "value = 5.2");
+  fl_ast_delete(root);
 
   root = fl_parse_utf8("wtf");
   CHK_BODY(root, body);

@@ -70,9 +70,12 @@ void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend) {
   fl_ast_t** list = calloc(100, sizeof(fl_ast_t*));
   (*extend)->block.body = list;
   size_t i = 0;
+  size_t last;
   size_t j = 0;
 
   while (!fl_parser_eof(tokens, state)) {
+    last = i;
+
     for (j = 0; j < 6; ++j) {
       cg_print("read block id: %zu\n", j);
       fl_parser_look_ahead(stack, state);
@@ -113,8 +116,8 @@ void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend) {
     }
 
     // nothing readed!
-    if (i == 0) {
-      free(list);
+    if (last == i) {
+      fl_ast_delete_list(list);
       (*extend)->block.body = 0;
       PSR_SET_SYNTAX_ERROR((*extend), "invalid statement");
       return;

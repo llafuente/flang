@@ -128,7 +128,7 @@ PSR_READ_IMPL(lit_array) { return 0; }
 // TODO
 PSR_READ_IMPL(lit_object) { return 0; }
 
-// TODO manage overflow/underflow errors
+// TODO manage overflow/underflow errors (syntax errors?)
 PSR_READ_IMPL(lit_numeric) {
   PSR_START(ast, FL_AST_LIT_NUMERIC);
 
@@ -145,6 +145,27 @@ PSR_READ_IMPL(lit_numeric) {
   char* start = str->value;
   if (isdigit(start[0])) {
     char* endp = start + (str->used);
+    char* buffer = 0;
+
+    // check next token if "."
+    PSR_NEXT();
+    if (PSR_TEST_TOKEN(FL_TK_DOT)) {
+      // exit(1);
+      PSR_NEXT();
+      char* decimal = state->token->string->value;
+      if (isdigit(start[0])) {
+        // concat
+        buffer = malloc(100); // TODO proper calculation
+        buffer[0] = '\0';
+        strcat(buffer, start);
+        strcat(buffer, ".");
+        strcat(buffer, decimal);
+        start = buffer;
+        endp = strchr(buffer, '\0');
+        PSR_NEXT();
+      }
+    }
+
     // must be a number and error will be final!
     double result = strtod(start, &endp);
     if (errno) {
@@ -154,7 +175,6 @@ PSR_READ_IMPL(lit_numeric) {
         fprintf(stderr, "ERROR! underflow\n");
       }
     }
-    PSR_NEXT();
 
     ast->numeric.value = result;
 
@@ -162,6 +182,10 @@ PSR_READ_IMPL(lit_numeric) {
       ast->ty_id = 9; // bigger possible i64
     } else {
       ast->ty_id = 12; // bigger possible f64
+    }
+
+    if (buffer) {
+      free(buffer);
     }
     PSR_RET_OK(ast);
   }
