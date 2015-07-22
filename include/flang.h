@@ -538,36 +538,12 @@ extern int dbg_debug_level;
 
 #define FL_EXTERN extern
 
-// printf("%s %p type %d\n", __FUNCTION__, ast, ast->type);
-// TODO handle errors when done :)
-#define FL_TRY_READ(name)                                                      \
-  fl_parser_look_ahead(stack, state);                                          \
-  ast = PSR_READ(name);                                                        \
-  if (ast) {                                                                   \
-    /*handle errors*/                                                          \
-    if (ast->type == FL_AST_ERROR) {                                           \
-      fl_parser_rollback(stack, state);                                        \
-      return ast;                                                              \
-    }                                                                          \
-    fl_parser_commit(stack, state);                                            \
-    return ast;                                                                \
-  }                                                                            \
-  fl_parser_rollback(stack, state);
-
 #define FL_CODEGEN_HEADER                                                      \
   fl_ast_t* node, LLVMBuilderRef builder, LLVMModuleRef module,                \
       LLVMContextRef context, LLVMBasicBlockRef current_block
 
 #define FL_CODEGEN_HEADER_SEND node, builder, module, context, current_block
 #define FL_CODEGEN_PASSTHROUGH builder, module, context, current_block
-
-// target_ast allow to reuse current ast
-#define PSR_SYNTAX_ERROR(target_ast, string)                                   \
-  cg_print("(psr-err) %s\n", string);                                          \
-  target_ast->type = FL_AST_ERROR;                                             \
-  target_ast->token_end = state->token;                                        \
-  target_ast->err.str = string;                                                \
-  target_ast->err.zone = FL_ERROR_SYNTAX;
 
 //-
 //- functions, global variables
@@ -755,6 +731,8 @@ FL_EXTERN void* fl_ast_reverse(fl_ast_t* ast, fl_ast_ret_cb_t cb,
                                fl_ast_t* parent, size_t level, void* userdata);
 
 FL_EXTERN void fl_ast_delete(fl_ast_t* ast);
+
+FL_EXTERN void fl_ast_delete_props(fl_ast_t* ast);
 
 FL_EXTERN void fl_ast_delete_list(fl_ast_t** list);
 

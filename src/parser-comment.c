@@ -26,18 +26,19 @@
 #include "flang.h"
 
 PSR_READ_IMPL(comment) {
-  PSR_START(ast, FL_AST_STMT_COMMENT);
-
-  if (!PSR_ACCEPT_TOKEN(FL_TK_MCOMMENT)) {
-    PSR_RET_KO(ast);
+  if (!PSR_TEST_TOKEN(FL_TK_MCOMMENT)) {
+    return 0;
   }
-  ast->comment.text = state->token->string;
+
+  PSR_START(com_node, FL_AST_STMT_COMMENT);
+
+  PSR_ACCEPT_TOKEN(FL_TK_MCOMMENT);
+
+  com_node->comment.text = state->token->string;
 
   PSR_NEXT();
 
-  if (!PSR_ACCEPT_TOKEN(FL_TK_MCOMMENT)) {
-    PSR_SYNTAX_ERROR(ast, "expected '*/'");
-  }
+  PSR_EXPECT_TOKEN(FL_TK_MCOMMENT, com_node, {}, "expected '*/'");
 
-  PSR_RET_OK(ast);
+  PSR_RET_OK(com_node);
 }

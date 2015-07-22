@@ -46,10 +46,9 @@ int main(int argc, const char* argv[]) {
 
   TASK_RUN(codegen_expressions);
   TASK_RUN(codegen_functions);
-
   TASK_RUN(flang_files);
 
-  printf("OK\n");
+  printf("\nOK\n");
 
   return 0;
 }

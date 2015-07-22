@@ -43,12 +43,10 @@ PSR_READ_IMPL(stmt_if) {
   }
   PSR_RET_IF_ERROR(t, { fl_ast_delete(stmt); });
 
-  fl_ast_t* body = PSR_READ(block);
-  cg_print("(parser) body");
-  PSR_RET_IF_ERROR(body, {
+  PSR_READ_OR_DIE(body, block, {
     fl_ast_delete(t);
     fl_ast_delete(stmt);
-  });
+  }, "expected block of code");
 
   stmt->if_stmt.test = t;
   stmt->if_stmt.block = body;

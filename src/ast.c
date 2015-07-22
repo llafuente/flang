@@ -202,6 +202,10 @@ void fl_ast_delete_list(fl_ast_t** list) {
   free(list);
 }
 void fl_ast_delete(fl_ast_t* ast) {
+  fl_ast_delete_props(ast);
+  free(ast);
+}
+void fl_ast_delete_props(fl_ast_t* ast) {
 // fprintf(stderr, "ast [%p]", ast);
 #define SAFE_DEL(test)                                                         \
   if (test) {                                                                  \
@@ -209,64 +213,39 @@ void fl_ast_delete(fl_ast_t* ast) {
     test = 0;                                                                  \
   }
 
+#define SAFE_DEL_LIST(test)                                                    \
+  if (test) {                                                                  \
+    fl_ast_delete_list(test);                                                  \
+    test = 0;                                                                  \
+  }
+
   switch (ast->type) {
-  case FL_AST_PROGRAM:
-    if (ast->program.body) {
-      fl_ast_delete(ast->program.body);
-    }
-    if (ast->program.core) {
-      fl_ast_delete(ast->program.core);
-    }
+  case FL_AST_PROGRAM: {
+    SAFE_DEL(ast->program.body);
+    SAFE_DEL(ast->program.core);
     fl_tokens_delete(ast->program.tokens);
     st_delete(&ast->program.code);
-    break;
-  case FL_AST_BLOCK: {
-    fl_ast_delete_list(ast->block.body);
-    ast->block.body = 0;
   } break;
-  case FL_AST_EXPR_ASSIGNAMENT:
-    if (ast->assignament.left) {
-      fl_ast_delete(ast->assignament.left);
-      ast->assignament.left = 0;
-    }
-
-    if (ast->assignament.right) {
-      fl_ast_delete(ast->assignament.right);
-      ast->assignament.right = 0;
-    }
-    break;
-  case FL_AST_EXPR_BINOP:
-    if (ast->binop.left) {
-      fl_ast_delete(ast->binop.left);
-      ast->binop.left = 0;
-    }
-    if (ast->binop.right) {
-      fl_ast_delete(ast->binop.right);
-      ast->binop.right = 0;
-    }
-    break;
-  case FL_AST_EXPR_LUNARY:
-    if (ast->lunary.right) {
-      fl_ast_delete(ast->lunary.right);
-      ast->lunary.right = 0;
-    }
-    break;
-  case FL_AST_EXPR_RUNARY:
-    if (ast->runary.element) {
-      fl_ast_delete(ast->runary.element);
-      ast->runary.element = 0;
-    }
-    break;
+  case FL_AST_BLOCK: {
+    SAFE_DEL_LIST(ast->block.body);
+  } break;
+  case FL_AST_EXPR_ASSIGNAMENT: {
+    SAFE_DEL(ast->assignament.left);
+    SAFE_DEL(ast->assignament.right);
+  } break;
+  case FL_AST_EXPR_BINOP: {
+    SAFE_DEL(ast->binop.left);
+    SAFE_DEL(ast->binop.right);
+  } break;
+  case FL_AST_EXPR_LUNARY: {
+    SAFE_DEL(ast->lunary.right);
+  } break;
+  case FL_AST_EXPR_RUNARY: {
+    SAFE_DEL(ast->runary.element);
+  } break;
   case FL_AST_EXPR_CALL: {
-    if (ast->call.callee) {
-      fl_ast_delete(ast->call.callee);
-    }
-
-    if (ast->call.arguments) {
-      fl_ast_delete_list(ast->call.arguments);
-      ast->call.arguments = 0;
-    }
-
+    SAFE_DEL(ast->call.callee);
+    SAFE_DEL_LIST(ast->call.arguments);
   } break;
   case FL_AST_LIT_STRING:
     st_delete(&ast->string.value);
@@ -275,21 +254,12 @@ void fl_ast_delete(fl_ast_t* ast) {
     st_delete(&ast->identifier.string);
     break;
   case FL_AST_DTOR_VAR:
-    if (ast->var.id) {
-      fl_ast_delete(ast->var.id);
-    }
-    if (ast->var.type) {
-      fl_ast_delete(ast->var.type);
-    }
+    SAFE_DEL(ast->var.id);
+    SAFE_DEL(ast->var.type);
     break;
   case FL_AST_DECL_FUNCTION:
-    if (ast->func.id) {
-      fl_ast_delete(ast->func.id);
-    }
-
-    if (ast->func.ret_type) {
-      fl_ast_delete(ast->func.ret_type);
-    }
+    SAFE_DEL(ast->func.id);
+    SAFE_DEL(ast->func.ret_type);
 
     if (ast->func.params) {
       size_t i = 0;
@@ -308,17 +278,10 @@ void fl_ast_delete(fl_ast_t* ast) {
     }
     free(ast->func.body);
     break;
-  case FL_AST_PARAMETER:
-    if (ast->param.id) {
-      fl_ast_delete(ast->param.id);
-      ast->param.id = 0;
-    }
-
-    if (ast->param.type) {
-      fl_ast_delete(ast->param.type);
-      ast->param.type = 0;
-    }
-    break;
+  case FL_AST_PARAMETER: {
+    SAFE_DEL(ast->param.id);
+    SAFE_DEL(ast->param.type);
+  } break;
   case FL_AST_STMT_RETURN: {
     SAFE_DEL(ast->ret.argument);
   } break;
@@ -332,7 +295,6 @@ void fl_ast_delete(fl_ast_t* ast) {
   } break;
   default: {}
   }
-  free(ast);
 }
 
 fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {

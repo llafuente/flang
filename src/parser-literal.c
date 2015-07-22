@@ -28,6 +28,9 @@
 PSR_READ_IMPL(literal) {
   fl_ast_t* ast;
 
+  // null must be above, because if numeric found null
+  // will be parsed as 0
+
   FL_TRY_READ(lit_null);
   FL_TRY_READ(lit_boolean);
   FL_TRY_READ(lit_string);
@@ -38,12 +41,15 @@ PSR_READ_IMPL(literal) {
 }
 
 PSR_READ_IMPL(lit_null) {
+  if (!PSR_TEST_TOKEN(FL_TK_NULL)) {
+    return 0;
+  }
+
   PSR_START(ast, FL_AST_LIT_NULL);
 
-  if (PSR_ACCEPT("null") || PSR_ACCEPT("nil")) {
-    PSR_RET_OK(ast);
-  }
-  PSR_RET_KO(ast);
+  PSR_NEXT(); // already "accepted" above
+
+  PSR_RET_OK(ast);
 }
 
 PSR_READ_IMPL(lit_boolean) {
@@ -62,50 +68,56 @@ PSR_READ_IMPL(lit_boolean) {
 }
 
 PSR_READ_IMPL(lit_string_sq) {
-  PSR_START(ast, FL_AST_LIT_STRING);
-
-  if (!PSR_ACCEPT_TOKEN(FL_TK_SQUOTE)) {
-    PSR_RET_KO(ast);
+  if (!PSR_TEST_TOKEN(FL_TK_SQUOTE)) {
+    return 0;
   }
 
-  ast->string.value = st_unescape(state->token->string);
+  PSR_START(str_node, FL_AST_LIT_STRING);
+
+  PSR_NEXT(); // already "accepted" above
+
+  str_node->string.value = st_unescape(state->token->string);
+
   PSR_NEXT();
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_SQUOTE)) {
-    PSR_RET_KO(ast);
+    PSR_RET_KO(str_node);
   }
 
-  PSR_RET_OK(ast);
+  PSR_RET_OK(str_node);
 }
 
 PSR_READ_IMPL(lit_string_dq) {
-  PSR_START(ast, FL_AST_LIT_STRING);
-
-  if (!PSR_ACCEPT_TOKEN(FL_TK_DQUOTE)) {
-    PSR_RET_KO(ast);
+  if (!PSR_TEST_TOKEN(FL_TK_DQUOTE)) {
+    return 0;
   }
-  ast->string.value = st_unescape(state->token->string);
+
+  PSR_START(str_node, FL_AST_LIT_STRING);
+
+  PSR_NEXT(); // already "accepted" above
+
+  str_node->string.value = st_unescape(state->token->string);
+
   PSR_NEXT();
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_DQUOTE)) {
-    PSR_RET_KO(ast);
+    PSR_RET_KO(str_node);
   }
 
-  PSR_RET_OK(ast);
+  PSR_RET_OK(str_node);
 }
 
 PSR_READ_IMPL(lit_string) {
-  fl_ast_t* ast;
+  fl_ast_t* str_node;
 
-  ast = PSR_READ(lit_string_sq);
-
-  if (ast) {
-    return ast;
+  str_node = PSR_READ(lit_string_sq);
+  if (str_node) {
+    return str_node;
   }
 
-  ast = PSR_READ(lit_string_dq);
-  if (ast) {
-    return ast;
+  str_node = PSR_READ(lit_string_dq);
+  if (str_node) {
+    return str_node;
   }
 
   return 0;
@@ -160,14 +172,14 @@ PSR_READ_IMPL(lit_numeric) {
 // TODO review what should be valid and what not
 // right now we should accept "anything that is not token"
 PSR_READ_IMPL(lit_identifier) {
-  if (state->token->type == FL_TK_UNKOWN) {
-    PSR_START(ast, FL_AST_LIT_IDENTIFIER);
-
-    ast->identifier.string = st_clone(state->token->string);
-    PSR_NEXT();
-
-    PSR_RET_OK(ast);
+  if (state->token->type != FL_TK_UNKOWN) {
+    return 0;
   }
 
-  return 0;
+  PSR_START(id_node, FL_AST_LIT_IDENTIFIER);
+
+  id_node->identifier.string = st_clone(state->token->string);
+  PSR_NEXT();
+
+  PSR_RET_OK(id_node);
 }

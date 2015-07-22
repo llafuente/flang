@@ -38,17 +38,15 @@ PSR_READ_IMPL(decl_function) {
   }
   PSR_SKIPWS();
 
-  PSR_READ_OR_DIE(id, lit_identifier, {
-    fl_ast_delete(fn_node);
-  }, "cannot parse function identifier");
+  PSR_READ_OR_DIE(id, lit_identifier, { fl_ast_delete(fn_node); },
+                  "cannot parse function identifier");
 
   fn_node->func.id = id;
 
   PSR_SKIPWS();
 
   // params
-  PSR_EXPECT_TOKEN(FL_TK_LPARENTHESIS, fn_node, { fl_ast_delete(id); },
-                   "expected '('");
+  PSR_EXPECT_TOKEN(FL_TK_LPARENTHESIS, fn_node, {}, "expected '('");
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_RPARENTHESIS)) {
     fl_ast_t** list = calloc(100, sizeof(fl_ast_t*)); // TODO resize support
@@ -66,9 +64,7 @@ PSR_READ_IMPL(decl_function) {
         break;
       }
 
-      PSR_READ_OR_DIE(param, parameter, {
-        fl_ast_delete(fn_node);
-      }, 0);
+      PSR_READ_OR_DIE(param, parameter, { fl_ast_delete(fn_node); }, 0);
 
       list[i++] = param;
 
@@ -89,9 +85,7 @@ PSR_READ_IMPL(decl_function) {
   if (PSR_ACCEPT_TOKEN(FL_TK_COLON)) {
     PSR_SKIPWS();
 
-    PSR_READ_OR_DIE(ret_type, type, {
-      fl_ast_delete(fn_node);
-    }, 0);
+    PSR_READ_OR_DIE(ret_type, type, { fl_ast_delete(fn_node); }, 0);
 
     fn_node->func.ret_type = ret_type;
 
@@ -149,12 +143,8 @@ PSR_READ_IMPL(parameter_typed) {
 
   PSR_SKIPWS();
 
-  fl_ast_t* id = PSR_READ(lit_identifier);
-  if (!id) {
-    // hard error
-    PSR_SYNTAX_ERROR(ast, "expected identifier");
-  }
-  PSR_RET_IF_ERROR(id, { fl_ast_delete(ast); });
+  PSR_READ_OR_DIE(id, lit_identifier, { fl_ast_delete(ast); },
+                  "expected identifier");
 
   // set type of the identifier
   ast->param.type = type;
@@ -170,7 +160,7 @@ PSR_READ_IMPL(parameter_notyped) {
   // hard error
   ast->param.id = PSR_READ(lit_identifier);
   if (!ast->param.id) {
-    PSR_SYNTAX_ERROR(ast, "expected identifier");
+    PSR_SET_SYNTAX_ERROR(ast, "expected identifier");
     return ast;
   }
 

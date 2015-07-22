@@ -39,7 +39,6 @@ TASK_IMPL(parser_functions) {
   ASSERT(body->func.params == 0, "no args");
   fl_ast_delete(root);
 
-
   root = fl_parse_utf8("fn x(yy, zz , mm ,xx) {}");
   CHK_BODY(root, body);
   ASSERT(body->type == FL_AST_DECL_FUNCTION, "FL_AST_DECL_FUNCTION");

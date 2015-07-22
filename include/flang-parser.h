@@ -61,6 +61,7 @@
 #define PSR_EXPECT_TOKEN(token_type, target, err_block, err_str)               \
   if (!PSR_ACCEPT_TOKEN(token_type)) {                                         \
     err_block;                                                                 \
+    fl_ast_delete_props(target);                                               \
     PSR_SET_SYNTAX_ERROR(target, err_str);                                     \
     target->token_start = state->token;                                        \
     return target;                                                             \
@@ -74,7 +75,7 @@
 //- ast
 
 #define PSR_CREATE(target, ast_type)                                           \
-  fl_ast_t* target = (fl_ast_t*)calloc(1, sizeof(fl_ast_t)); \
+  fl_ast_t* target = (fl_ast_t*)calloc(1, sizeof(fl_ast_t));                   \
   target->type = ast_type;
 
 #define PSR_START(target, ast_type)                                            \

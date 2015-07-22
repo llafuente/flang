@@ -74,7 +74,7 @@ void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend) {
 
   while (!fl_parser_eof(tokens, state)) {
     for (j = 0; j < 6; ++j) {
-      cg_print("%zu\n", j);
+      cg_print("read block id: %zu\n", j);
       fl_parser_look_ahead(stack, state);
       stmt = block_stmts[j](PSR_READ_HEADER_SEND);
 
@@ -116,7 +116,7 @@ void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend) {
     if (i == 0) {
       free(list);
       (*extend)->block.body = 0;
-      PSR_SYNTAX_ERROR((*extend), "invalid statement");
+      PSR_SET_SYNTAX_ERROR((*extend), "invalid statement");
       return;
     }
   }

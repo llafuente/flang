@@ -125,8 +125,7 @@ PSR_READ_IMPL(expr_primary) {
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_RPARENTHESIS)) {
     fl_ast_delete(ast);
-    PSR_SYNTAX_ERROR(ast, "expected ')'");
-    return ast;
+    PSR_RET_SYNTAX_ERROR(ast, "expected ')'");
   }
 
   dbg_silly("(expr-primary) ok!\n");
@@ -404,8 +403,7 @@ PSR_READ_IMPL(expr_call) {
   if (!PSR_ACCEPT_TOKEN(FL_TK_RPARENTHESIS)) {
     fl_ast_delete_list(list);
     fl_ast_delete(callee);
-    PSR_SYNTAX_ERROR(ast, "expected ')'");
-    return ast;
+    PSR_RET_SYNTAX_ERROR(ast, "expected ')'");
   }
 
   PSR_RET_OK(ast);

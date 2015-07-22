@@ -63,9 +63,7 @@ PSR_READ_IMPL(type) {
   }
 
   // primitive fail, try wrapper
-  PSR_READ_OR_DIE(id, lit_identifier, {
-    fl_ast_delete(type_node);
-  }, 0);
+  PSR_READ_OR_DIE(id, lit_identifier, { fl_ast_delete(type_node); }, 0);
 
   PSR_SKIPWS();
 
@@ -126,30 +124,24 @@ PSR_READ_IMPL(cast) {
     return 0;
   }
 
-  // hard
   PSR_SKIPWS();
-
-  if (!PSR_ACCEPT_TOKEN(FL_TK_LPARENTHESIS)) {
-    PSR_SYNTAX_ERROR(cast, "expected '('");
-  }
-
-  fl_ast_t* ty = PSR_READ(type);
-  PSR_RET_IF_ERROR_OR_NULL(ty, { fl_ast_delete(cast); });
+  PSR_EXPECT_TOKEN(FL_TK_LPARENTHESIS, cast, {}, "expected '('");
 
   PSR_SKIPWS();
-  if (!PSR_ACCEPT_TOKEN(FL_TK_RPARENTHESIS)) {
-    fl_ast_delete(ty);
-    PSR_SYNTAX_ERROR(cast, "expected ')'");
-  }
+  PSR_READ_OR_DIE(ty, type, { fl_ast_delete(cast); }, "expected expression");
 
-  fl_ast_t* element = PSR_READ(expr_conditional);
+  PSR_SKIPWS();
+  PSR_EXPECT_TOKEN(FL_TK_RPARENTHESIS, cast, { fl_ast_delete(ty); },
+                   "expected ')'");
 
-  PSR_RET_IF_ERROR_OR_NULL(element, {
+  PSR_SKIPWS();
+  PSR_READ_OR_DIE(element, expr_conditional, {
     fl_ast_delete(cast);
     fl_ast_delete(ty);
-  });
+  }, "expected expression");
 
   cast->ty_id = ty->ty_id;
+  fl_ast_delete(ty);
   cast->cast.element = element;
 
   PSR_RET_OK(cast);

@@ -139,6 +139,7 @@ TASK_IMPL(flang_files) {
     }
     st_delete(&output);
     st_delete(&output_cmp);
+    // debug: if (i==1) exit(1);
   }
 
   free(fl_file);
