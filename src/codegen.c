@@ -137,12 +137,14 @@ LLVMModuleRef fl_codegen(fl_ast_t* root, char* module_name) {
   LLVMValueRef parent = LLVMAddFunction(
       module, "main", LLVMFunctionType(LLVMInt32Type(), 0, 0, 0));
   LLVMSetFunctionCallConv(parent, LLVMCCallConv);
-  LLVMBasicBlockRef current_block = LLVMAppendBasicBlock(parent, "main-entry");
+  LLVMBasicBlockRef main_block = LLVMAppendBasicBlock(parent, "main-entry");
 
-  LLVMPositionBuilderAtEnd(builder, current_block);
+  LLVMPositionBuilderAtEnd(builder, main_block);
 
   // node must have parent, because we need to search backwards
   fl_ast_parent(root);
+  LLVMBasicBlockRef* current_block;
+  current_block = &main_block;
   fl_codegen_ast(root, FL_CODEGEN_PASSTHROUGH);
 
   LLVMBuildRet(builder, LLVMConstInt(LLVMInt32Type(), 0, false));
@@ -265,6 +267,22 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
     // cg_error("(codegen) ast->type not handled %d\n", node->type);
   }
   return 0;
+}
+
+void fl_codegen_do_block(LLVMBasicBlockRef block, LLVMBasicBlockRef fall_block,
+                         FL_CODEGEN_HEADER) {
+  LLVMBasicBlockRef old_cb = *current_block;
+
+  *current_block = block;
+  LLVMPositionBuilderAtEnd(builder, *current_block); // new block
+  // codegen
+  fl_codegen_ast(node, FL_CODEGEN_PASSTHROUGH);
+  if (fall_block) {
+    LLVMBuildBr(builder, fall_block);
+  }
+  // restore
+  *current_block = old_cb;
+  LLVMPositionBuilderAtEnd(builder, *current_block);
 }
 
 LLVMValueRef fl_codegen_cast(FL_CODEGEN_HEADER) {
@@ -513,7 +531,7 @@ LLVMValueRef fl_codegen_dtor_var(FL_CODEGEN_HEADER) {
 
   return ref;
 }
-//TODO parent rewrite!
+// TODO parent rewrite!
 LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
 
   if (!node->func.ret_type) {
@@ -532,7 +550,8 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
         cg_error("(codegen) Parameter %zu don't have type.\n", i);
       }
 
-      cg_print("(codegen) parameter %zu of type %zu\n", i, tmp->param.id->ty_id);
+      cg_print("(codegen) parameter %zu of type %zu\n", i,
+               tmp->param.id->ty_id);
       param_types[i++] = fl_codegen_get_typeid(tmp->param.id->ty_id);
     }
   }
@@ -563,15 +582,12 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
 
   if (node->func.body) {
     LLVMBasicBlockRef block = LLVMAppendBasicBlock(func, "function-block");
-    LLVMPositionBuilderAtEnd(builder, block);
-
-    fl_codegen_ast(node->func.body, FL_CODEGEN_PASSTHROUGH);
-
-    LLVMPositionBuilderAtEnd(builder, current_block);
+    fl_codegen_do_block(block, 0, node->func.body, FL_CODEGEN_PASSTHROUGH);
   }
 
   return func;
 }
+
 LLVMValueRef fl_codegen_return(FL_CODEGEN_HEADER) {
   LLVMValueRef argument =
       fl_codegen_ast(node->ret.argument, FL_CODEGEN_PASSTHROUGH);
@@ -583,13 +599,20 @@ LLVMValueRef fl_codegen_return(FL_CODEGEN_HEADER) {
 LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER) {
   cg_print("(codegen) expression call\n");
 
+  LLVMValueRef fn =
+      LLVMGetNamedFunction(module, node->call.callee->identifier.string->value);
+  if (!fn) {
+    cg_error("function [%s] not found in current context\n",
+             node->call.callee->identifier.string->value);
+  }
+
   LLVMValueRef arguments[node->call.narguments];
   LLVMValueRef value;
 
-  size_t i = 0;
-  fl_ast_t* tmp;
+  if (node->call.narguments) {
+    size_t i = 0;
+    fl_ast_t* tmp;
 
-  if (node->call.arguments) {
     while ((tmp = node->call.arguments[i]) != 0) {
       printf("(codegen) argument! %zu\n", i);
       value = fl_codegen_ast(tmp, FL_CODEGEN_PASSTHROUGH);
@@ -599,15 +622,13 @@ LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER) {
       }
       arguments[i++] = value;
     }
-  }
-  LLVMValueRef fn =
-      LLVMGetNamedFunction(module, node->call.callee->identifier.string->value);
-  if (!fn) {
-    cg_error("function [%s] not found in current context\n",
-             node->call.callee->identifier.string->value);
+
+    return LLVMBuildCall(builder, fn, arguments, node->call.narguments, "");
   }
 
-  return LLVMBuildCall(builder, fn, arguments, node->call.narguments, "call");
+  LLVMValueRef* empty_args;
+  *empty_args = 0;
+  return LLVMBuildCall(builder, fn, empty_args, 0, "");
 
   /*
   LLVMValueRef argument =
@@ -631,14 +652,15 @@ LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER) {
 }
 
 LLVMValueRef fl_codegen_lunary(FL_CODEGEN_HEADER) {
-  LLVMValueRef element = fl_codegen_ast(node->lunary.right, FL_CODEGEN_PASSTHROUGH);
+  LLVMValueRef element =
+      fl_codegen_ast(node->lunary.right, FL_CODEGEN_PASSTHROUGH);
 
   switch (node->lunary.operator) {
   case FL_TK_MINUS:
     return LLVMBuildNeg(builder, element, "negate");
   case FL_TK_EXCLAMATION:
     return LLVMBuildNot(builder, element, "not");
-    default: {}
+  default: {}
   }
   cg_error("lunary not handled %d\n", node->lunary.operator);
   /*
@@ -652,23 +674,41 @@ LLVMValueRef fl_codegen_lunary(FL_CODEGEN_HEADER) {
 
 LLVMValueRef fl_codegen_if(FL_CODEGEN_HEADER) {
   cg_print("(codegen) fl_codegen_if\n");
+  bool has_else = false;
 
-  LLVMBasicBlockRef if_true_block = LLVMAppendBasicBlock(parent, "if-true");
-  LLVMBasicBlockRef if_false_block = LLVMAppendBasicBlock(parent, "if-false");
+  // end at the end
   LLVMBasicBlockRef end_block = LLVMAppendBasicBlock(parent, "if-end");
+  LLVMMoveBasicBlockAfter(end_block, *current_block);
 
-  LLVMValueRef test = fl_codegen_ast(node->if_stmt.test, FL_CODEGEN_PASSTHROUGH);
-  LLVMBuildCondBr (builder, test, if_true_block, end_block);
+  // else in the middle
+  LLVMBasicBlockRef if_else_block;
+  if (has_else) {
+    if_else_block = LLVMAppendBasicBlock(parent, "if-false");
+    LLVMMoveBasicBlockAfter(if_else_block, *current_block);
+  }
 
-  LLVMPositionBuilderAtEnd(builder, if_true_block);
+  // then at the top
+  LLVMBasicBlockRef if_then_block = LLVMAppendBasicBlock(parent, "if-true");
+  LLVMMoveBasicBlockAfter(if_then_block, *current_block);
 
-  fl_codegen_ast(node->if_stmt.block, FL_CODEGEN_PASSTHROUGH);
-  LLVMBuildBr (builder, end_block);
+  // test expression
+  LLVMValueRef test =
+      fl_codegen_ast(node->if_stmt.test, FL_CODEGEN_PASSTHROUGH);
+  LLVMBuildCondBr(builder, test, if_then_block,
+                  has_else ? if_else_block : end_block);
 
-  LLVMPositionBuilderAtEnd(builder, if_false_block);
-  LLVMBuildBr (builder, end_block);
+  // then block
+  fl_codegen_do_block(if_then_block, end_block, node->if_stmt.block,
+                      FL_CODEGEN_PASSTHROUGH);
+
+  if (has_else) {
+    LLVMPositionBuilderAtEnd(builder, if_else_block);
+    // fl_codegen_ast(node->if_stmt.else, FL_CODEGEN_PASSTHROUGH);
+    //?! LLVMBuildBr(builder, end_block);
+  }
 
   LLVMPositionBuilderAtEnd(builder, end_block);
+  *current_block = end_block;
 
   return 0;
 }

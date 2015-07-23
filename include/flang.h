@@ -540,10 +540,11 @@ extern int dbg_debug_level;
 
 #define FL_CODEGEN_HEADER                                                      \
   fl_ast_t* node, LLVMBuilderRef builder, LLVMModuleRef module,                \
-      LLVMContextRef context, LLVMBasicBlockRef current_block, \
+      LLVMContextRef context, LLVMBasicBlockRef* current_block,                \
       LLVMValueRef parent
 
-#define FL_CODEGEN_HEADER_SEND node, builder, module, context, current_block, parent
+#define FL_CODEGEN_HEADER_SEND                                                 \
+  node, builder, module, context, current_block, parent
 #define FL_CODEGEN_PASSTHROUGH builder, module, context, current_block, parent
 
 //-

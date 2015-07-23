@@ -5,6 +5,13 @@ if (b) {
   printf("ok %d\n", b);
 }
 
+function move(i64 a) : i64 {
+  printf("moved!\n");
+  return 0;
+}
+
 if (!b) {
   printf("ok %d\n", !b);
 }
+
+move(1);
