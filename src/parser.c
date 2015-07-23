@@ -121,6 +121,7 @@ fl_ast_t* fl_parse_file(char* filename, bool core) {
   fl_ast_t* r = fl_parse(code);
 
   if (!core) {
+    cg_print("PARSING CORE!\n");
     // parse core
     fl_parse_core(r);
   }

@@ -2,5 +2,9 @@ var bool b;
 b = true;
 
 if (b) {
-  printf("ok");
+  printf("ok %d\n", b);
+}
+
+if (!b) {
+  printf("ok %d\n", !b);
 }

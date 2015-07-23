@@ -33,12 +33,10 @@ TASK_IMPL(parser_if) {
 
   root = fl_parse_utf8("var bool b; b = 1; if (b == true) { printf('ok'); }");
   CHK_BODY(root, body);
-  fl_codegen(root, "test");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("if(true) {}");
   CHK_BODY(root, body);
-  fl_codegen(root, "test");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("if(true)");

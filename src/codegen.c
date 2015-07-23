@@ -134,10 +134,10 @@ LLVMModuleRef fl_codegen(fl_ast_t* root, char* module_name) {
   */
 
   // create main
-  LLVMValueRef main = LLVMAddFunction(
+  LLVMValueRef parent = LLVMAddFunction(
       module, "main", LLVMFunctionType(LLVMInt32Type(), 0, 0, 0));
-  LLVMSetFunctionCallConv(main, LLVMCCallConv);
-  LLVMBasicBlockRef current_block = LLVMAppendBasicBlock(main, "main-entry");
+  LLVMSetFunctionCallConv(parent, LLVMCCallConv);
+  LLVMBasicBlockRef current_block = LLVMAppendBasicBlock(parent, "main-entry");
 
   LLVMPositionBuilderAtEnd(builder, current_block);
 
@@ -174,11 +174,13 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
     cg_print("(codegen) program\n");
 
     if (node->program.core) {
-      cg_print("(codegen) generating core\n");
+      cg_print("(codegen) ** generating core\n");
       int odbg_debug_level = dbg_debug_level;
       dbg_debug_level = 0;
       fl_codegen_ast(node->program.core, FL_CODEGEN_PASSTHROUGH);
       dbg_debug_level = odbg_debug_level;
+    } else {
+      cg_print("(codegen) ** core not found\n");
     }
 
     return fl_codegen_ast(node->program.body, FL_CODEGEN_PASSTHROUGH);
@@ -257,6 +259,8 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
   case FL_AST_EXPR_LUNARY:
     cg_print("(codegen) lunary\n");
     return fl_codegen_lunary(FL_CODEGEN_HEADER_SEND);
+  case FL_AST_STMT_IF:
+    return fl_codegen_if(FL_CODEGEN_HEADER_SEND);
   default: {}
     // cg_error("(codegen) ast->type not handled %d\n", node->type);
   }
@@ -509,7 +513,7 @@ LLVMValueRef fl_codegen_dtor_var(FL_CODEGEN_HEADER) {
 
   return ref;
 }
-
+//TODO parent rewrite!
 LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
 
   if (!node->func.ret_type) {
@@ -528,7 +532,7 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
         cg_error("(codegen) Parameter %zu don't have type.\n", i);
       }
 
-      cg_print("(codegen) parameter %zu of type %d\n", i, tmp->param.id->ty_id);
+      cg_print("(codegen) parameter %zu of type %zu\n", i, tmp->param.id->ty_id);
       param_types[i++] = fl_codegen_get_typeid(tmp->param.id->ty_id);
     }
   }
@@ -599,7 +603,7 @@ LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER) {
   LLVMValueRef fn =
       LLVMGetNamedFunction(module, node->call.callee->identifier.string->value);
   if (!fn) {
-    cg_error("function %s not found\n",
+    cg_error("function [%s] not found in current context\n",
              node->call.callee->identifier.string->value);
   }
 
@@ -625,9 +629,46 @@ LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER) {
   }
   */
 }
+
 LLVMValueRef fl_codegen_lunary(FL_CODEGEN_HEADER) {
-  cg_print("(codegen) negate\n");
-  return LLVMBuildNeg(
-      builder, fl_codegen_ast(node->lunary.right, FL_CODEGEN_PASSTHROUGH),
-      "negate");
+  LLVMValueRef element = fl_codegen_ast(node->lunary.right, FL_CODEGEN_PASSTHROUGH);
+
+  switch (node->lunary.operator) {
+  case FL_TK_MINUS:
+    return LLVMBuildNeg(builder, element, "negate");
+  case FL_TK_EXCLAMATION:
+    return LLVMBuildNot(builder, element, "not");
+    default: {}
+  }
+  cg_error("lunary not handled %d\n", node->lunary.operator);
+  /*
+  case FL_TK_PLUS2:
+  case FL_TK_MINUS2:
+  case FL_TK_PLUS:
+  case FL_TK_TILDE:
+  case FL_TK_DELETE:
+  */
+}
+
+LLVMValueRef fl_codegen_if(FL_CODEGEN_HEADER) {
+  cg_print("(codegen) fl_codegen_if\n");
+
+  LLVMBasicBlockRef if_true_block = LLVMAppendBasicBlock(parent, "if-true");
+  LLVMBasicBlockRef if_false_block = LLVMAppendBasicBlock(parent, "if-false");
+  LLVMBasicBlockRef end_block = LLVMAppendBasicBlock(parent, "if-end");
+
+  LLVMValueRef test = fl_codegen_ast(node->if_stmt.test, FL_CODEGEN_PASSTHROUGH);
+  LLVMBuildCondBr (builder, test, if_true_block, end_block);
+
+  LLVMPositionBuilderAtEnd(builder, if_true_block);
+
+  fl_codegen_ast(node->if_stmt.block, FL_CODEGEN_PASSTHROUGH);
+  LLVMBuildBr (builder, end_block);
+
+  LLVMPositionBuilderAtEnd(builder, if_false_block);
+  LLVMBuildBr (builder, end_block);
+
+  LLVMPositionBuilderAtEnd(builder, end_block);
+
+  return 0;
 }

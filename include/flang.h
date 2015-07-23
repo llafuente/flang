@@ -540,10 +540,11 @@ extern int dbg_debug_level;
 
 #define FL_CODEGEN_HEADER                                                      \
   fl_ast_t* node, LLVMBuilderRef builder, LLVMModuleRef module,                \
-      LLVMContextRef context, LLVMBasicBlockRef current_block
+      LLVMContextRef context, LLVMBasicBlockRef current_block, \
+      LLVMValueRef parent
 
-#define FL_CODEGEN_HEADER_SEND node, builder, module, context, current_block
-#define FL_CODEGEN_PASSTHROUGH builder, module, context, current_block
+#define FL_CODEGEN_HEADER_SEND node, builder, module, context, current_block, parent
+#define FL_CODEGEN_PASSTHROUGH builder, module, context, current_block, parent
 
 //-
 //- functions, global variables
@@ -775,6 +776,7 @@ FL_EXTERN LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_return(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_lunary(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef fl_codegen_if(FL_CODEGEN_HEADER);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(codegen-type.c) */
