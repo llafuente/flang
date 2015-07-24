@@ -674,7 +674,7 @@ LLVMValueRef fl_codegen_lunary(FL_CODEGEN_HEADER) {
 
 LLVMValueRef fl_codegen_if(FL_CODEGEN_HEADER) {
   cg_print("(codegen) fl_codegen_if\n");
-  bool has_else = false;
+  bool has_else = node->if_stmt.alternate > 0;
 
   // end at the end
   LLVMBasicBlockRef end_block = LLVMAppendBasicBlock(parent, "if-end");
@@ -703,8 +703,8 @@ LLVMValueRef fl_codegen_if(FL_CODEGEN_HEADER) {
 
   if (has_else) {
     LLVMPositionBuilderAtEnd(builder, if_else_block);
-    // fl_codegen_ast(node->if_stmt.else, FL_CODEGEN_PASSTHROUGH);
-    //?! LLVMBuildBr(builder, end_block);
+    fl_codegen_do_block(if_else_block, end_block, node->if_stmt.alternate,
+                        FL_CODEGEN_PASSTHROUGH);
   }
 
   LLVMPositionBuilderAtEnd(builder, end_block);

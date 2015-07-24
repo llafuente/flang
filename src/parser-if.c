@@ -33,6 +33,7 @@ PSR_READ_IMPL(stmt_if) {
   cg_print("(parser) if start!") PSR_START(stmt, FL_AST_STMT_IF);
 
   PSR_ACCEPT_TOKEN(FL_TK_IF);
+  PSR_SKIPWS();
 
   fl_ast_t* t = PSR_READ(expression);
   cg_print("(parser) expression");
@@ -50,6 +51,28 @@ PSR_READ_IMPL(stmt_if) {
 
   stmt->if_stmt.test = t;
   stmt->if_stmt.block = body;
+
+  PSR_SKIPWS();
+  if (PSR_ACCEPT_TOKEN(FL_TK_ELSE)) {
+    PSR_SKIPWS();
+    // test if
+    if (PSR_TEST_TOKEN(FL_TK_IF)) {
+      // read full if
+      PSR_READ_OR_DIE(else_block, stmt_if, { fl_ast_delete(stmt); },
+                      "expected else if statement");
+
+      stmt->if_stmt.alternate = else_block;
+
+    } else {
+      // read block
+      PSR_READ_OR_DIE(else_block, block, { fl_ast_delete(stmt); },
+                      "expected else block");
+
+      stmt->if_stmt.alternate = else_block;
+    }
+  }
+
   cg_print("(parser) if ok!");
+
   PSR_RET_OK(stmt);
 }

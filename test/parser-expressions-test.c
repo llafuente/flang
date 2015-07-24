@@ -184,5 +184,9 @@ TASK_IMPL(parser_expressions) {
   ASSERT(body->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
   fl_ast_delete(root);
 
+  root = fl_parse_utf8("var i32 i; i = 1; i == 5.0");
+  CHK_BODY(root, body);
+  fl_ast_delete(root);
+
   return 0;
 }

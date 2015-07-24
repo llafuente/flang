@@ -51,5 +51,17 @@ TASK_IMPL(parser_if) {
   CHK_ERROR(root, body, "invalid statement");
   fl_ast_delete(root);
 
+  root = fl_parse_utf8("var bool b; b = 1;\n"
+                       "if (b == true) { printf('ok'); }\n"
+                       "else { printf('ko'); }");
+  CHK_BODY(root, body);
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("var i32 b; b = 1;\n"
+                       "if (b == 2) { printf('2'); }\n"
+                       "else if (b == 1) { printf('1'); }");
+  CHK_BODY(root, body);
+  fl_ast_delete(root);
+
   return 0;
 }

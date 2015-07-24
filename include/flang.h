@@ -162,6 +162,7 @@ enum fl_tokens {
   FL_TK_NULL,
 
   FL_TK_IF = 120,
+  FL_TK_ELSE,
   FL_TK_NEW,
   FL_TK_DELETE,
   FL_TK_RESIZE,

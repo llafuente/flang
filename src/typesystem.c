@@ -71,14 +71,15 @@ size_t ts_get_bigger_typeid(size_t a, size_t b) {
 
 bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
                 void* userdata) {
-#define CREATE_CAST(cast, node)                                                \
+#define CREATE_CAST(cast, node, type_id)                                                \
   fl_ast_t* cast = (fl_ast_t*)calloc(1, sizeof(fl_ast_t));                     \
   cast->token_start = 0;                                                       \
   cast->token_end = 0;                                                         \
   cast->type = FL_AST_CAST;                                                    \
   cast->parent = node->parent;                                                 \
   node->parent = cast;                                                         \
-  cast->cast.element = node;
+  cast->cast.element = node; \
+  cast->ty_id = type_id;
 
   switch (node->type) {
   case FL_AST_EXPR_CALL: {
@@ -89,14 +90,14 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     //}
     cg_print("(typesystem) ret [%p]\n", fdecl);
     if (fdecl) {
-      fl_ast_debug(fdecl);
+      //fl_ast_debug(fdecl);
 
       node->ty_id = fl_ast_get_typeid(fdecl->func.ret_type);
     }
 
   } break;
   case FL_AST_EXPR_ASSIGNAMENT: {
-    fl_ast_debug(node);
+    //fl_ast_debug(node);
 
     size_t l_type = fl_ast_get_typeid(node->assignament.left);
 
@@ -108,18 +109,17 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     }
 
     if (l_type != r_type) {
-      dbg_debug("cast needed [%zu - %zu]\n", l_type, r_type);
+      dbg_debug("(typesystem) assignament cast [%zu - %zu]\n", l_type, r_type);
       // TODO check cast if valid!
 
-      CREATE_CAST(cast, r);
+      CREATE_CAST(cast, r, l_type);
 
-      cast->ty_id = l_type;
       node->assignament.right = cast;
       node->ty_id = l_type;
     }
   } break;
   case FL_AST_EXPR_BINOP: {
-    cg_print("(ts) binop found %d\n", node->binop.operator);
+    cg_print("(typesystem) binop found %d\n", node->binop.operator);
     fl_ast_debug(node);
     // cast if necessary
     fl_ast_t* l = node->binop.left;
@@ -153,6 +153,30 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
         cg_error("invalid operants\n");
       }
       break;
+    case FL_TK_EQUAL2:
+    case FL_TK_EEQUAL:  // !=
+    case FL_TK_LTE:
+    case FL_TK_LT:
+    case FL_TK_GTE:
+    case FL_TK_GT: {
+      // TODO this should test if any side is a literal
+      // TEST parser-expression-test.c:187
+
+      // both sides must be the same! the bigger one
+      node->ty_id = ts_get_bigger_typeid(l_type, r_type);
+      if (node->ty_id != l_type) {
+        // cast left side
+        CREATE_CAST(cast, l, node->ty_id);
+        node->binop.left = cast;
+      }
+
+      if (node->ty_id != r_type) {
+        // cast right side
+        CREATE_CAST(cast, r, node->ty_id);
+        node->binop.right = cast;
+      }
+
+    } break;
     default: {
       // TODO check fp-vs-int -> cast
       node->ty_id = ts_get_bigger_typeid(l_type, r_type);

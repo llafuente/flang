@@ -2,16 +2,33 @@ var bool b;
 b = true;
 
 if (b) {
-  printf("ok %d\n", b);
+  printf("1. ok %d\n", b);
 }
 
 function move(i64 a) : i64 {
-  printf("moved!\n");
+  printf("2. moved!\n");
   return 0;
 }
 
 if (!b) {
-  printf("ok %d\n", !b);
+  printf("2. ok %d\n", !b);
 }
 
 move(1);
+
+var i32 i;
+i = 2;
+
+if (i == 1) {
+  printf("3. i == 1; fail!\n");
+} else {
+  printf("3. else?; ok!\n");
+}
+
+if (i == 1) {
+  printf("4. i == 1; fail!\n");
+} else if (i == 2) {
+  printf("4. i == 2; ok!\n");
+} else {
+  printf("4. else?; fail!\n");
+}
