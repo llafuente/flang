@@ -165,6 +165,7 @@ enum fl_tokens {
   FL_TK_ELSE,
   FL_TK_FOR,
   FL_TK_WHILE,
+  FL_TK_DO,
   FL_TK_NEW,
   FL_TK_DELETE,
   FL_TK_RESIZE,
@@ -731,6 +732,7 @@ PSR_READ_DECL(stmt_if);
 
 PSR_READ_IMPL(stmt_for);
 PSR_READ_IMPL(stmt_while);
+PSR_READ_IMPL(stmt_dowhile);
 
 /* cldoc:end-category() */
 

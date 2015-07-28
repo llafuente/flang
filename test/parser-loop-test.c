@@ -89,5 +89,36 @@ TASK_IMPL(parser_for) {
   CHK_ERROR(root, body, "expected condition expression");
   fl_ast_delete(root);
 
+  root = fl_parse_utf8("var i32 x; x = 1; do {"
+                       "printf(\"%d\", x);"
+                       "++x;"
+                       "} while x < 10;");
+  CHK_BODY(root, body);
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("var i32 x; x = 1; do {"
+                       "printf(\"%d\", x);"
+                       "++x;"
+                       "} while ");
+  CHK_ERROR(root, body, "expected condition expression");
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("var i32 x; x = 1; do {"
+                       "printf(\"%d\", x);"
+                       "++x;"
+                       "}");
+  CHK_ERROR(root, body, "expected 'while'");
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("var i32 x; x = 1; do {"
+                       "printf(\"%d\", x);"
+                       "++x;");
+  CHK_ERROR(root, body, "expected '}'");
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("var i32 x; x = 1; do ");
+  CHK_ERROR(root, body, "expected '{'");
+  fl_ast_delete(root);
+
   return 0;
 }

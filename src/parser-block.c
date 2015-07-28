@@ -64,7 +64,8 @@ fl_read_cb_t block_stmts[] = {
     PSR_READ_NAME(decl_variable), PSR_READ_NAME(decl_function),
     PSR_READ_NAME(stmt_return),   PSR_READ_NAME(expression),
     PSR_READ_NAME(stmt_if),       PSR_READ_NAME(comment),
-    PSR_READ_NAME(stmt_for),      PSR_READ_NAME(stmt_while)};
+    PSR_READ_NAME(stmt_for),      PSR_READ_NAME(stmt_while),
+    PSR_READ_NAME(stmt_dowhile)};
 
 void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend) {
   fl_ast_t* stmt;
@@ -77,7 +78,7 @@ void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend) {
   while (!fl_parser_eof(tokens, state)) {
     last = i;
 
-    for (j = 0; j < 8; ++j) {
+    for (j = 0; j < 9; ++j) {
       cg_print("read block id: %zu\n", j);
       fl_parser_look_ahead(stack, state);
       stmt = block_stmts[j](PSR_READ_HEADER_SEND);

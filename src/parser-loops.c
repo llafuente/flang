@@ -94,3 +94,32 @@ PSR_READ_IMPL(stmt_while) {
 
   PSR_RET_OK(stmt);
 }
+
+PSR_READ_IMPL(stmt_dowhile) {
+  if (!PSR_TEST_TOKEN(FL_TK_DO)) {
+    return 0;
+  }
+
+  cg_print("(parser) if start!");
+  PSR_START(stmt, FL_AST_STMT_LOOP);
+  stmt->loop.type = FL_AST_STMT_DOWHILE;
+
+  PSR_ACCEPT_TOKEN(FL_TK_DO);
+  PSR_SKIPWS();
+
+  PSR_READ_OR_DIE(block, block, { fl_ast_delete(stmt); },
+                  "expected block of code");
+
+  stmt->loop.block = block;
+
+  PSR_SKIPWS();
+  PSR_EXPECT_TOKEN(FL_TK_WHILE, stmt, {}, "expected 'while'");
+  PSR_SKIPWS();
+
+  PSR_READ_OR_DIE(post_cond, expression, { fl_ast_delete(stmt); },
+                  "expected condition expression");
+
+  stmt->loop.post_cond = post_cond;
+
+  PSR_RET_OK(stmt);
+}
