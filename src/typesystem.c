@@ -71,14 +71,14 @@ size_t ts_get_bigger_typeid(size_t a, size_t b) {
 
 bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
                 void* userdata) {
-#define CREATE_CAST(cast, node, type_id)                                                \
+#define CREATE_CAST(cast, node, type_id)                                       \
   fl_ast_t* cast = (fl_ast_t*)calloc(1, sizeof(fl_ast_t));                     \
   cast->token_start = 0;                                                       \
   cast->token_end = 0;                                                         \
   cast->type = FL_AST_CAST;                                                    \
   cast->parent = node->parent;                                                 \
   node->parent = cast;                                                         \
-  cast->cast.element = node; \
+  cast->cast.element = node;                                                   \
   cast->ty_id = type_id;
 
   switch (node->type) {
@@ -90,14 +90,14 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     //}
     cg_print("(typesystem) ret [%p]\n", fdecl);
     if (fdecl) {
-      //fl_ast_debug(fdecl);
+      // fl_ast_debug(fdecl);
 
       node->ty_id = fl_ast_get_typeid(fdecl->func.ret_type);
     }
 
   } break;
   case FL_AST_EXPR_ASSIGNAMENT: {
-    //fl_ast_debug(node);
+    // fl_ast_debug(node);
 
     size_t l_type = fl_ast_get_typeid(node->assignament.left);
 
@@ -154,7 +154,7 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
       }
       break;
     case FL_TK_EQUAL2:
-    case FL_TK_EEQUAL:  // !=
+    case FL_TK_EEQUAL: // !=
     case FL_TK_LTE:
     case FL_TK_LT:
     case FL_TK_GTE:

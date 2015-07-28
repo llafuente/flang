@@ -23,33 +23,50 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/// @file
-
+#include "flang.h"
 #include "tasks.h"
-#include "fixtures.h"
+#include "test.h"
 
-int main(int argc, const char* argv[]) {
+TASK_IMPL(parser_for) {
+  fl_ast_t* root;
+  fl_ast_t* body;
 
-  printf("    ###############\n");
-  printf("    ## unit test ##\n");
-  printf("    ###############\n");
+  root = fl_parse_utf8("var i32 x; for x = 1; x < 10; ++x {"
+                       "printf(\"%d\", x);"
+                       "}");
+  CHK_BODY(root, body);
+  fl_ast_delete(root);
 
-  TASK_RUN(tokenizer);
+  root = fl_parse_utf8("var i32 x; for x = 1; x < 10; ++x ");
+  CHK_ERROR(root, body, "expected '{'");
+  fl_ast_delete(root);
 
-  TASK_RUN(parser_utils);
-  TASK_RUN(parser_literals);
-  TASK_RUN(parser_expressions);
-  TASK_RUN(parser_variables);
-  TASK_RUN(parser_functions);
-  TASK_RUN(parser_types);
-  TASK_RUN(parser_if);
-  TASK_RUN(parser_for);
+  root = fl_parse_utf8("var i32 x; for x = 1; x < 10;");
+  CHK_ERROR(root, body, "expected update expression");
+  fl_ast_delete(root);
 
-  TASK_RUN(codegen_expressions);
-  TASK_RUN(codegen_functions);
-  TASK_RUN(flang_files);
+  root = fl_parse_utf8("var i32 x; for x = 1; x < 10");
+  CHK_ERROR(root, body, "expected semicolon");
+  fl_ast_delete(root);
 
-  printf("\nOK\n");
+  root = fl_parse_utf8("var i32 x; for x = 1;");
+  CHK_ERROR(root, body, "expected condition expression");
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("var i32 x; for x = 1");
+  CHK_ERROR(root, body, "expected semicolon");
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("var i32 x; for ");
+  CHK_ERROR(root, body, "expected initialization expression");
+  fl_ast_delete(root);
+
+  // TODO this should be valid!?
+  root = fl_parse_utf8("for var i32 x = 1; x < 10; ++x {"
+                       "printf(\"%d\", x);"
+                       "}");
+  CHK_ERROR(root, body, "expected initialization expression");
+  fl_ast_delete(root);
 
   return 0;
 }

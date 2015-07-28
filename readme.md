@@ -12,6 +12,7 @@ make
 * read file to string
 * tokenize the string (tokenizer)
 * from tokens create the AST (parser)
+* type inference (pass-inference)
 * Resolve dependencies in the AST (typesystem)
 * generate IR from ast (codegen)
   * execute jit (exec-jit)
@@ -22,7 +23,9 @@ make
 
 ## tokenizer
 
-Split a string with the information found in `tokens.c` and spaces.
+Tokenize code with the information found in `tokens.c`.
+
+### Notes
 
 Tokenizer will add a new line token before EOF, that is also a token.
 
@@ -37,6 +40,10 @@ From the tokenizer data, generate a simple AST.
 
 It will report only lexer error mostly: "expected &lt;something&gt;"
 
+## typesystem
+
+Fill the gaps in the AST. Mostly implicit casting.
+
 ## codegen
 
-Get the AST and generate code with `LLVM-C`
+From the AST generate code with `LLVM-C`

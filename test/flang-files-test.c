@@ -84,8 +84,8 @@ string* execute(char* cmd) {
 TASK_IMPL(flang_files) {
 
   char* files[] = {"../test/fl/expressions", "../test/fl/casting",
-                   "../test/fl/if"};
-  size_t nfiles = 3;
+                   "../test/fl/if", "../test/fl/loops"};
+  size_t nfiles = 4;
   char* fl_file = malloc(sizeof(char) * 100);
   char* txt_file = malloc(sizeof(char) * 100);
   char* bc_file = malloc(sizeof(char) * 100);
@@ -98,7 +98,7 @@ TASK_IMPL(flang_files) {
   size_t i;
 
   for (i = 0; i < nfiles; ++i) {
-    printf("\033[2J");
+    printf("\033[2J"); // "clear screen"
 
     fl_file[0] = '\0';
     strcat(fl_file, files[i]);

@@ -30,13 +30,12 @@ PSR_READ_IMPL(stmt_if) {
     return 0;
   }
 
-  cg_print("(parser) if start!") PSR_START(stmt, FL_AST_STMT_IF);
+  PSR_START(stmt, FL_AST_STMT_IF);
 
   PSR_ACCEPT_TOKEN(FL_TK_IF);
   PSR_SKIPWS();
 
   fl_ast_t* t = PSR_READ(expression);
-  cg_print("(parser) expression");
   fl_ast_debug(t);
 
   if (!t) {
@@ -71,8 +70,6 @@ PSR_READ_IMPL(stmt_if) {
       stmt->if_stmt.alternate = else_block;
     }
   }
-
-  cg_print("(parser) if ok!");
 
   PSR_RET_OK(stmt);
 }

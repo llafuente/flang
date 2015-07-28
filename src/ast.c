@@ -102,6 +102,13 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
     TRAVERSE(ast->if_stmt.block);
     TRAVERSE(ast->if_stmt.alternate);
   } break;
+  case FL_AST_STMT_LOOP: {
+    TRAVERSE(ast->loop.init);
+    TRAVERSE(ast->loop.pre_cond);
+    TRAVERSE(ast->loop.update);
+    TRAVERSE(ast->loop.block);
+    TRAVERSE(ast->loop.post_cond);
+  } break;
   case FL_AST_CAST: {
     TRAVERSE(ast->cast.element);
   } break;
@@ -289,6 +296,13 @@ void fl_ast_delete_props(fl_ast_t* ast) {
     SAFE_DEL(ast->if_stmt.test);
     SAFE_DEL(ast->if_stmt.block);
     SAFE_DEL(ast->if_stmt.alternate);
+  }
+  case FL_AST_STMT_LOOP: {
+    SAFE_DEL(ast->loop.init);
+    SAFE_DEL(ast->loop.pre_cond);
+    SAFE_DEL(ast->loop.update);
+    SAFE_DEL(ast->loop.block);
+    SAFE_DEL(ast->loop.post_cond);
   }
   case FL_AST_CAST: {
     SAFE_DEL(ast->cast.element);

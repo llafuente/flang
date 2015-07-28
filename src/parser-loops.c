@@ -23,33 +23,49 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/// @file
+#include "flang.h"
 
-#include "tasks.h"
-#include "fixtures.h"
+PSR_READ_IMPL(stmt_for) {
+  if (!PSR_TEST_TOKEN(FL_TK_FOR)) {
+    return 0;
+  }
 
-int main(int argc, const char* argv[]) {
+  cg_print("(parser) if start!");
+  PSR_START(stmt, FL_AST_STMT_LOOP);
+  stmt->loop.type = FL_AST_STMT_FOR;
 
-  printf("    ###############\n");
-  printf("    ## unit test ##\n");
-  printf("    ###############\n");
+  PSR_ACCEPT_TOKEN(FL_TK_FOR);
+  PSR_SKIPWS();
 
-  TASK_RUN(tokenizer);
+  PSR_READ_OR_DIE(init, expression, { fl_ast_delete(stmt); },
+                  "expected initialization expression");
 
-  TASK_RUN(parser_utils);
-  TASK_RUN(parser_literals);
-  TASK_RUN(parser_expressions);
-  TASK_RUN(parser_variables);
-  TASK_RUN(parser_functions);
-  TASK_RUN(parser_types);
-  TASK_RUN(parser_if);
-  TASK_RUN(parser_for);
+  stmt->loop.init = init;
 
-  TASK_RUN(codegen_expressions);
-  TASK_RUN(codegen_functions);
-  TASK_RUN(flang_files);
+  PSR_SKIPWS();
+  PSR_EXPECT_TOKEN(FL_TK_SEMICOLON, stmt, {}, "expected semicolon");
+  PSR_SKIPWS();
 
-  printf("\nOK\n");
+  PSR_READ_OR_DIE(pre_cond, expression, { fl_ast_delete(stmt); },
+                  "expected condition expression");
 
-  return 0;
+  stmt->loop.pre_cond = pre_cond;
+
+  PSR_SKIPWS();
+  PSR_EXPECT_TOKEN(FL_TK_SEMICOLON, stmt, {}, "expected semicolon");
+  PSR_SKIPWS();
+
+  PSR_READ_OR_DIE(update, expression, { fl_ast_delete(stmt); },
+                  "expected update expression");
+
+  stmt->loop.update = update;
+
+  PSR_SKIPWS();
+
+  PSR_READ_OR_DIE(block, block, { fl_ast_delete(stmt); },
+                  "expected block of code");
+
+  stmt->loop.block = block;
+
+  PSR_RET_OK(stmt);
 }

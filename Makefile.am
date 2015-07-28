@@ -14,6 +14,7 @@ COMPILER_SOURCES = src/tokenizer.c \
                 src/parser-type.c \
                 src/parser-comment.c \
                 src/parser-if.c \
+                src/parser-loops.c \
                 src/pass-inference.c \
                 src/codegen.c \
                 src/codegen-type.c \
@@ -48,6 +49,7 @@ SOURCES_TEST = test/tasks.c \
                test/parser-functions-test.c \
                test/parser-types-test.c \
                test/parser-if-test.c \
+               test/parser-loop-test.c \
                test/codegen-expressions-test.c \
                test/codegen-functions-test.c \
                test/flang-files-test.c

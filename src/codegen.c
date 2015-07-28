@@ -227,7 +227,7 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
     cg_print("(codegen) dirty? %d\n", id->dirty);
     fl_ast_debug(id);
 
-    if (id->dirty) {
+    if (id->dirty || !id->last_codegen) {
       cg_print("(codegen) load needed [%p]\n", id->codegen);
 
       // load it!
@@ -263,26 +263,31 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
     return fl_codegen_lunary(FL_CODEGEN_HEADER_SEND);
   case FL_AST_STMT_IF:
     return fl_codegen_if(FL_CODEGEN_HEADER_SEND);
+  case FL_AST_STMT_LOOP:
+    return fl_codegen_loop(FL_CODEGEN_HEADER_SEND);
   default: {}
     // cg_error("(codegen) ast->type not handled %d\n", node->type);
   }
   return 0;
 }
 
-void fl_codegen_do_block(LLVMBasicBlockRef block, LLVMBasicBlockRef fall_block,
-                         FL_CODEGEN_HEADER) {
+LLVMValueRef fl_codegen_do_block(LLVMBasicBlockRef block,
+                                 LLVMBasicBlockRef fall_block,
+                                 FL_CODEGEN_HEADER) {
   LLVMBasicBlockRef old_cb = *current_block;
 
   *current_block = block;
   LLVMPositionBuilderAtEnd(builder, *current_block); // new block
   // codegen
-  fl_codegen_ast(node, FL_CODEGEN_PASSTHROUGH);
+  LLVMValueRef rnode = fl_codegen_ast(node, FL_CODEGEN_PASSTHROUGH);
   if (fall_block) {
     LLVMBuildBr(builder, fall_block);
   }
   // restore
   *current_block = old_cb;
   LLVMPositionBuilderAtEnd(builder, *current_block);
+
+  return rnode;
 }
 
 LLVMValueRef fl_codegen_cast(FL_CODEGEN_HEADER) {
@@ -660,12 +665,29 @@ LLVMValueRef fl_codegen_lunary(FL_CODEGEN_HEADER) {
     return LLVMBuildNeg(builder, element, "negate");
   case FL_TK_EXCLAMATION:
     return LLVMBuildNot(builder, element, "not");
+  // TODO buggy, need tests!
+  case FL_TK_PLUS2: {
+    LLVMTypeRef type = LLVMTypeOf(element);
+    LLVMValueRef one = LLVMConstInt(type, 1, false);
+    LLVMValueRef one_added = LLVMBuildAdd(builder, element, one, "");
+    // if can be stored do it
+    if (node->lunary.right->type == FL_AST_LIT_IDENTIFIER) {
+      node->lunary.right->dirty = true;
+      return LLVMBuildStore(builder, one_added,
+                            (LLVMValueRef)node->lunary.right->codegen);
+    }
+    return one_added;
+  }
+  case FL_TK_MINUS2: {
+    LLVMTypeRef type = LLVMTypeOf(element);
+    LLVMValueRef one = LLVMConstInt(type, 1, false);
+    LLVMValueRef one_substracted = LLVMBuildSub(builder, element, one, "");
+    return LLVMBuildStore(builder, element, one_substracted);
+  }
   default: {}
   }
   cg_error("lunary not handled %d\n", node->lunary.operator);
   /*
-  case FL_TK_PLUS2:
-  case FL_TK_MINUS2:
   case FL_TK_PLUS:
   case FL_TK_TILDE:
   case FL_TK_DELETE:
@@ -709,6 +731,135 @@ LLVMValueRef fl_codegen_if(FL_CODEGEN_HEADER) {
 
   LLVMPositionBuilderAtEnd(builder, end_block);
   *current_block = end_block;
+
+  return 0;
+}
+
+LLVMValueRef fl_codegen_loop(FL_CODEGEN_HEADER) {
+  cg_print("(codegen) fl_codegen_loop\n");
+
+  // blocks are backwards!
+  LLVMBasicBlockRef pre_cond;
+  LLVMBasicBlockRef update;
+  LLVMBasicBlockRef start = LLVMAppendBasicBlock(parent, "loop-start");
+  LLVMBasicBlockRef block = LLVMAppendBasicBlock(parent, "loop-block");
+  LLVMBasicBlockRef end_block = LLVMAppendBasicBlock(parent, "loop-end");
+
+  LLVMBuildBr(builder, start); // current-block -> start
+  // initialization at start
+  if (node->loop.init) {
+    fl_codegen_do_block(start, 0, node->loop.init, FL_CODEGEN_PASSTHROUGH);
+  }
+
+  if (node->loop.pre_cond) {
+    pre_cond = LLVMAppendBasicBlock(parent, "loop-pre_cond");
+
+    LLVMPositionBuilderAtEnd(builder, start);
+    LLVMBuildBr(builder, pre_cond);
+    LLVMPositionBuilderAtEnd(builder, current_block);
+
+    // test expression
+
+    LLVMPositionBuilderAtEnd(builder, pre_cond);
+    LLVMValueRef pre_cond_test =
+        fl_codegen_ast(node->loop.pre_cond, FL_CODEGEN_PASSTHROUGH);
+    LLVMBuildCondBr(builder, pre_cond_test, block, end_block);
+    LLVMPositionBuilderAtEnd(builder, current_block);
+    /*
+    LLVMPositionBuilderAtEnd(builder, pre_cond);
+    LLVMBuildBr(builder, block);
+    LLVMPositionBuilderAtEnd(builder, current_block);
+    */
+  } else {
+    LLVMPositionBuilderAtEnd(builder, start);
+    LLVMBuildBr(builder, block);
+    LLVMPositionBuilderAtEnd(builder, current_block);
+  }
+
+  if (node->loop.update) {
+    update = LLVMAppendBasicBlock(parent, "loop-update");
+    fl_codegen_do_block(update, pre_cond, node->loop.update,
+                        FL_CODEGEN_PASSTHROUGH);
+  }
+
+  fl_codegen_do_block(block, update ? update : end_block, node->loop.block,
+                      FL_CODEGEN_PASSTHROUGH);
+
+  LLVMMoveBasicBlockAfter(end_block, *current_block);
+  if (update) {
+    LLVMMoveBasicBlockAfter(update, *current_block);
+  }
+  LLVMMoveBasicBlockAfter(block, *current_block);
+  if (pre_cond) {
+    LLVMMoveBasicBlockAfter(pre_cond, *current_block);
+  }
+  LLVMMoveBasicBlockAfter(start, *current_block);
+
+  LLVMPositionBuilderAtEnd(builder, end_block);
+  *current_block = end_block;
+  /*
+
+
+
+  if (node->loop.update) {
+    update = LLVMAppendBasicBlock(parent, "loop-update");
+    LLVMMoveBasicBlockAfter(update, *current_block);
+    fl_codegen_do_block(update, 0, node->loop.update, FL_CODEGEN_PASSTHROUGH);
+
+    LLVMBuildBr(builder, pre_cond ? pre_cond : block);
+  }
+
+  LLVMMoveBasicBlockAfter(block, *current_block);
+
+  if (pre_cond) {
+    LLVMMoveBasicBlockAfter(pre_cond, *current_block);
+  }
+
+  start = LLVMAppendBasicBlock(parent, "loop-start");
+  LLVMMoveBasicBlockAfter(start, *current_block);
+
+  // initialization at start
+  if (node->loop.init) {
+    fl_codegen_do_block(start, 0, node->loop.init, FL_CODEGEN_PASSTHROUGH);
+  }
+  */
+  /*
+  bool has_else = node->loop.init > 0;
+
+  // end at the end
+  LLVMBasicBlockRef end_block = LLVMAppendBasicBlock(parent, "if-end");
+  LLVMMoveBasicBlockAfter(end_block, *current_block);
+
+  // else in the middle
+  LLVMBasicBlockRef if_else_block;
+  if (has_else) {
+    if_else_block = LLVMAppendBasicBlock(parent, "if-false");
+    LLVMMoveBasicBlockAfter(if_else_block, *current_block);
+  }
+
+  // then at the top
+  LLVMBasicBlockRef if_then_block = LLVMAppendBasicBlock(parent, "if-true");
+  LLVMMoveBasicBlockAfter(if_then_block, *current_block);
+
+  // test expression
+  LLVMValueRef test =
+      fl_codegen_ast(node->if_stmt.test, FL_CODEGEN_PASSTHROUGH);
+  LLVMBuildCondBr(builder, test, if_then_block,
+                  has_else ? if_else_block : end_block);
+
+  // then block
+  fl_codegen_do_block(if_then_block, end_block, node->if_stmt.block,
+                      FL_CODEGEN_PASSTHROUGH);
+
+  if (has_else) {
+    LLVMPositionBuilderAtEnd(builder, if_else_block);
+    fl_codegen_do_block(if_else_block, end_block, node->if_stmt.alternate,
+                        FL_CODEGEN_PASSTHROUGH);
+  }
+
+  LLVMPositionBuilderAtEnd(builder, end_block);
+  *current_block = end_block;
+  */
 
   return 0;
 }

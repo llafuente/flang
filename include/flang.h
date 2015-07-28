@@ -163,6 +163,7 @@ enum fl_tokens {
 
   FL_TK_IF = 120,
   FL_TK_ELSE,
+  FL_TK_FOR,
   FL_TK_NEW,
   FL_TK_DELETE,
   FL_TK_RESIZE,
@@ -256,6 +257,10 @@ enum fl_ast_type {
   FL_AST_STMT_RETURN = 52,
 
   FL_AST_STMT_IF = 60,
+  FL_AST_STMT_LOOP = 61,
+  FL_AST_STMT_FOR = 62,     // not used
+  FL_AST_STMT_WHILE = 63,   // not used
+  FL_AST_STMT_DOWHILE = 64, // not used
 
   FL_AST_STMT_COMMENT = 100,
   FL_AST_STMT_LOG = 101,
@@ -382,6 +387,14 @@ struct fl_ast {
       struct fl_ast* block; // consequent
       struct fl_ast* alternate;
     } if_stmt;
+    struct fl_ast_stmt_loop {
+      struct fl_ast* init;
+      struct fl_ast* pre_cond;
+      struct fl_ast* update;
+      struct fl_ast* block;
+      struct fl_ast* post_cond;
+      fl_ast_type_t type;
+    } loop;
     struct fl_ast_expr_call {
       fl_ast_t* callee;
       struct fl_ast** arguments;
@@ -713,6 +726,12 @@ PSR_READ_DECL(stmt_if);
 
 /* cldoc:end-category() */
 
+/* cldoc:begin-category(parser-loops.c) */
+
+PSR_READ_IMPL(stmt_for);
+
+/* cldoc:end-category() */
+
 /* cldoc:begin-category(parser-comment.c) */
 
 PSR_READ_DECL(comment);
@@ -779,6 +798,7 @@ FL_EXTERN LLVMValueRef fl_codegen_return(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_lunary(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_if(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef fl_codegen_loop(FL_CODEGEN_HEADER);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(codegen-type.c) */
