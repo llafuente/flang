@@ -658,7 +658,7 @@ LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER) {
 
 LLVMValueRef fl_codegen_lunary(FL_CODEGEN_HEADER) {
   LLVMValueRef element =
-      fl_codegen_ast(node->lunary.right, FL_CODEGEN_PASSTHROUGH);
+      fl_codegen_ast(node->lunary.element, FL_CODEGEN_PASSTHROUGH);
 
   switch (node->lunary.operator) {
   case FL_TK_MINUS:
@@ -671,10 +671,10 @@ LLVMValueRef fl_codegen_lunary(FL_CODEGEN_HEADER) {
     LLVMValueRef one = LLVMConstInt(type, 1, false);
     LLVMValueRef one_added = LLVMBuildAdd(builder, element, one, "");
     // if can be stored do it
-    if (node->lunary.right->type == FL_AST_LIT_IDENTIFIER) {
-      node->lunary.right->dirty = true;
+    if (node->lunary.element->type == FL_AST_LIT_IDENTIFIER) {
+      node->lunary.element->dirty = true;
       return LLVMBuildStore(builder, one_added,
-                            (LLVMValueRef)node->lunary.right->codegen);
+                            (LLVMValueRef)node->lunary.element->codegen);
     }
     return one_added;
   }
@@ -757,7 +757,7 @@ LLVMValueRef fl_codegen_loop(FL_CODEGEN_HEADER) {
 
     LLVMPositionBuilderAtEnd(builder, start);
     LLVMBuildBr(builder, pre_cond);
-    LLVMPositionBuilderAtEnd(builder, current_block);
+    LLVMPositionBuilderAtEnd(builder, *current_block);
 
     // test expression
 
@@ -765,11 +765,11 @@ LLVMValueRef fl_codegen_loop(FL_CODEGEN_HEADER) {
     LLVMValueRef pre_cond_test =
         fl_codegen_ast(node->loop.pre_cond, FL_CODEGEN_PASSTHROUGH);
     LLVMBuildCondBr(builder, pre_cond_test, block, end_block);
-    LLVMPositionBuilderAtEnd(builder, current_block);
+    LLVMPositionBuilderAtEnd(builder, *current_block);
   } else {
     LLVMPositionBuilderAtEnd(builder, start);
     LLVMBuildBr(builder, block);
-    LLVMPositionBuilderAtEnd(builder, current_block);
+    LLVMPositionBuilderAtEnd(builder, *current_block);
   }
 
   if (node->loop.update) {
@@ -787,7 +787,7 @@ LLVMValueRef fl_codegen_loop(FL_CODEGEN_HEADER) {
     LLVMValueRef post_cond_test =
         fl_codegen_ast(node->loop.post_cond, FL_CODEGEN_PASSTHROUGH);
     LLVMBuildCondBr(builder, post_cond_test, block, end_block);
-    LLVMPositionBuilderAtEnd(builder, current_block);
+    LLVMPositionBuilderAtEnd(builder, *current_block);
   }
 
   fl_codegen_do_block(

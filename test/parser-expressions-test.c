@@ -78,7 +78,7 @@ TASK_IMPL(parser_expressions) {
   CHK_BODY(root, body);
   ASSERT(body->type == FL_AST_EXPR_LUNARY, "ast is FL_AST_EXPR_LUNARY");
 
-  ASSERT(body->lunary.right->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  ASSERT(body->lunary.element->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
   ASSERT(body->lunary.operator== FL_TK_MINUS, "operator FL_TK_MINUS");
 
   fl_ast_delete(root);
@@ -87,7 +87,7 @@ TASK_IMPL(parser_expressions) {
   CHK_BODY(root, body);
   ASSERT(body->type == FL_AST_EXPR_RUNARY, "ast is FL_AST_EXPR_RUNARY");
 
-  ASSERT(body->lunary.right->type == FL_AST_LIT_IDENTIFIER,
+  ASSERT(body->lunary.element->type == FL_AST_LIT_IDENTIFIER,
          "FL_AST_LIT_IDENTIFIER");
   ASSERT(body->lunary.operator== FL_TK_PLUS2, "operator FL_TK_PLUS2");
 

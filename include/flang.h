@@ -230,6 +230,7 @@ typedef enum fl_error_zone fl_error_zone_t;
 enum fl_ast_type {
   FL_AST_PROGRAM = 1,
   FL_AST_BLOCK = 2,
+  FL_AST_LIST = 3, // TODO block->list, arguments->list, parameter->list etc.
 
   FL_AST_LIT_ARRAY = 10,
   FL_AST_LIT_OBJECT = 11,
@@ -344,7 +345,7 @@ struct fl_ast {
     } binop;
 
     struct fl_ast_expr_lunary {
-      struct fl_ast* right;
+      struct fl_ast* element;
       fl_tokens_t operator;
     } lunary;
 

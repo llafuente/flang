@@ -330,9 +330,9 @@ PSR_READ_IMPL(expr_unary_left) {
     PSR_RET_KO(ast);
   };
 
-  ast->lunary.right = PSR_READ(expr_lhs);
+  ast->lunary.element = PSR_READ(expr_lhs);
   // TODO handle errors
-  if (!ast->lunary.right) {
+  if (!ast->lunary.element) {
     PSR_RET_KO(ast);
   }
 

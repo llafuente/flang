@@ -71,7 +71,7 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
     TRAVERSE(ast->binop.right);
     break;
   case FL_AST_EXPR_LUNARY:
-    TRAVERSE(ast->lunary.right);
+    TRAVERSE(ast->lunary.element);
     break;
   case FL_AST_EXPR_RUNARY:
     TRAVERSE(ast->runary.element);
@@ -245,7 +245,7 @@ void fl_ast_delete_props(fl_ast_t* ast) {
     SAFE_DEL(ast->binop.right);
   } break;
   case FL_AST_EXPR_LUNARY: {
-    SAFE_DEL(ast->lunary.right);
+    SAFE_DEL(ast->lunary.element);
   } break;
   case FL_AST_EXPR_RUNARY: {
     SAFE_DEL(ast->runary.element);
