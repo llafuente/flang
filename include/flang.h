@@ -164,6 +164,7 @@ enum fl_tokens {
   FL_TK_IF = 120,
   FL_TK_ELSE,
   FL_TK_FOR,
+  FL_TK_WHILE,
   FL_TK_NEW,
   FL_TK_DELETE,
   FL_TK_RESIZE,
@@ -729,6 +730,7 @@ PSR_READ_DECL(stmt_if);
 /* cldoc:begin-category(parser-loops.c) */
 
 PSR_READ_IMPL(stmt_for);
+PSR_READ_IMPL(stmt_while);
 
 /* cldoc:end-category() */
 

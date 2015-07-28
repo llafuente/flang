@@ -69,3 +69,28 @@ PSR_READ_IMPL(stmt_for) {
 
   PSR_RET_OK(stmt);
 }
+
+PSR_READ_IMPL(stmt_while) {
+  if (!PSR_TEST_TOKEN(FL_TK_WHILE)) {
+    return 0;
+  }
+
+  cg_print("(parser) if start!");
+  PSR_START(stmt, FL_AST_STMT_LOOP);
+  stmt->loop.type = FL_AST_STMT_WHILE;
+
+  PSR_ACCEPT_TOKEN(FL_TK_WHILE);
+  PSR_SKIPWS();
+
+  PSR_READ_OR_DIE(pre_cond, expression, { fl_ast_delete(stmt); },
+                  "expected condition expression");
+
+  stmt->loop.pre_cond = pre_cond;
+
+  PSR_READ_OR_DIE(block, block, { fl_ast_delete(stmt); },
+                  "expected block of code");
+
+  stmt->loop.block = block;
+
+  PSR_RET_OK(stmt);
+}

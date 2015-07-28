@@ -148,6 +148,7 @@ fl_tokens_cfg_t fl_token_list[103] = {
     {FL_TK_IF, false, "if", 2, 0, 0, false},
     {FL_TK_ELSE, false, "else", 4, 0, 0, false},
     {FL_TK_FOR, false, "for ", 4, 0, 0, false}, // TODO nasty hack?
+    {FL_TK_WHILE, false, "while", 5, 0, 0, false},
 
     {FL_TK_CAST, false, "cast", 4, 0, 0, false},
     // special chars

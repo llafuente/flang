@@ -739,8 +739,9 @@ LLVMValueRef fl_codegen_loop(FL_CODEGEN_HEADER) {
   cg_print("(codegen) fl_codegen_loop\n");
 
   // blocks are backwards!
-  LLVMBasicBlockRef pre_cond;
-  LLVMBasicBlockRef update;
+  LLVMBasicBlockRef pre_cond = 0;
+  LLVMBasicBlockRef post_cond = 0;
+  LLVMBasicBlockRef update = 0;
   LLVMBasicBlockRef start = LLVMAppendBasicBlock(parent, "loop-start");
   LLVMBasicBlockRef block = LLVMAppendBasicBlock(parent, "loop-block");
   LLVMBasicBlockRef end_block = LLVMAppendBasicBlock(parent, "loop-end");
@@ -782,8 +783,10 @@ LLVMValueRef fl_codegen_loop(FL_CODEGEN_HEADER) {
                         FL_CODEGEN_PASSTHROUGH);
   }
 
-  fl_codegen_do_block(block, update ? update : end_block, node->loop.block,
-                      FL_CODEGEN_PASSTHROUGH);
+  fl_codegen_do_block(
+      block, update ? update : (pre_cond ? pre_cond
+                                         : (post_cond ? post_cond : end_block)),
+      node->loop.block, FL_CODEGEN_PASSTHROUGH);
 
   LLVMMoveBasicBlockAfter(end_block, *current_block);
   if (update) {
