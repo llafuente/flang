@@ -30,73 +30,73 @@
 // TODO review if ";" is required
 TASK_IMPL(parser_literals) {
   fl_ast_t* root;
-  fl_ast_t* body;
+  fl_ast_t** body;
 
   root = fl_parse_utf8("\"hello:\\\"w\'orld\"");
-  CHK_BODY(root, body);
-  ASSERT(body->type == FL_AST_LIT_STRING, "FL_AST_LIT_STRING");
+  CHK_GET_BODY(root, body);
+  ASSERT(body[0]->type == FL_AST_LIT_STRING, "FL_AST_LIT_STRING");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("'hello:\"wo\\\'rld'");
-  CHK_BODY(root, body);
-  ASSERT(body->type == FL_AST_LIT_STRING, "FL_AST_LIT_STRING");
+  CHK_GET_BODY(root, body);
+  ASSERT(body[0]->type == FL_AST_LIT_STRING, "FL_AST_LIT_STRING");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("null");
-  CHK_BODY(root, body);
-  ASSERT(body->type == FL_AST_LIT_NULL, "FL_AST_LIT_NULL");
+  CHK_GET_BODY(root, body);
+  ASSERT(body[0]->type == FL_AST_LIT_NULL, "FL_AST_LIT_NULL");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("nil");
-  CHK_BODY(root, body);
-  ASSERT(body->type == FL_AST_LIT_NULL, "FL_AST_LIT_NULL");
+  CHK_GET_BODY(root, body);
+  ASSERT(body[0]->type == FL_AST_LIT_NULL, "FL_AST_LIT_NULL");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("true");
-  CHK_BODY(root, body);
-  ASSERT(body->type == FL_AST_LIT_BOOLEAN, "FL_AST_LIT_BOOLEAN");
-  ASSERT(body->boolean.value == true, "value = true");
+  CHK_GET_BODY(root, body);
+  ASSERT(body[0]->type == FL_AST_LIT_BOOLEAN, "FL_AST_LIT_BOOLEAN");
+  ASSERT(body[0]->boolean.value == true, "value = true");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("false");
-  CHK_BODY(root, body);
-  ASSERT(body->type == FL_AST_LIT_BOOLEAN, "FL_AST_LIT_BOOLEAN");
-  ASSERT(body->boolean.value == false, "value = false");
+  CHK_GET_BODY(root, body);
+  ASSERT(body[0]->type == FL_AST_LIT_BOOLEAN, "FL_AST_LIT_BOOLEAN");
+  ASSERT(body[0]->boolean.value == false, "value = false");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("1567");
-  CHK_BODY(root, body);
-  ASSERT(body->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
-  ASSERT(body->numeric.value == 1567, "value = 1567");
+  CHK_GET_BODY(root, body);
+  ASSERT(body[0]->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  ASSERT(body[0]->numeric.value == 1567, "value = 1567");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("1e1");
-  CHK_BODY(root, body);
-  ASSERT(body->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
-  ASSERT(body->numeric.value == 10, "value = 10");
+  CHK_GET_BODY(root, body);
+  ASSERT(body[0]->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  ASSERT(body[0]->numeric.value == 10, "value = 10");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("0xff");
-  CHK_BODY(root, body);
-  ASSERT(body->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
-  ASSERT(body->numeric.value == 0xff, "value = 0xff");
+  CHK_GET_BODY(root, body);
+  ASSERT(body[0]->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  ASSERT(body[0]->numeric.value == 0xff, "value = 0xff");
   fl_ast_delete(root);
 
   // TODO binary 0b000000001
   // TODO octal 0o777
 
   root = fl_parse_utf8("5.2");
-  CHK_BODY(root, body);
-  ASSERT(body->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
-  ASSERT(body->numeric.value == 5.2, "value = 5.2");
+  CHK_GET_BODY(root, body);
+  ASSERT(body[0]->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
+  ASSERT(body[0]->numeric.value == 5.2, "value = 5.2");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("wtf");
-  CHK_BODY(root, body);
-  ASSERT(body->type == FL_AST_LIT_IDENTIFIER, "FL_AST_LIT_IDENTIFIER");
-  ASSERT(strcmp(body->identifier.string->value, "wtf") == 0,
+  CHK_GET_BODY(root, body);
+  ASSERT(body[0]->type == FL_AST_LIT_IDENTIFIER, "FL_AST_LIT_IDENTIFIER");
+  ASSERT(strcmp(body[0]->identifier.string->value, "wtf") == 0,
          "identifier = wtf");
-  st_delete(&body->identifier.string);
+  st_delete(&body[0]->identifier.string);
   fl_ast_delete(root);
 
   return 0;

@@ -34,7 +34,7 @@ TASK_IMPL(parser_for) {
   root = fl_parse_utf8("var i32 x; for x = 1; x < 10; ++x {"
                        "printf(\"%d\", x);"
                        "}");
-  CHK_BODY(root, body);
+  CHK_BODY(root);
   fl_ast_delete(root);
 
   root = fl_parse_utf8("var i32 x; for x = 1; x < 10; ++x ");
@@ -72,7 +72,7 @@ TASK_IMPL(parser_for) {
                        "printf(\"%d\", x);"
                        "++x;"
                        "}");
-  CHK_BODY(root, body);
+  CHK_BODY(root);
   fl_ast_delete(root);
 
   root = fl_parse_utf8("var i32 x; x = 1; while x < 10 {"
@@ -93,7 +93,7 @@ TASK_IMPL(parser_for) {
                        "printf(\"%d\", x);"
                        "++x;"
                        "} while x < 10;");
-  CHK_BODY(root, body);
+  CHK_BODY(root);
   fl_ast_delete(root);
 
   root = fl_parse_utf8("var i32 x; x = 1; do {"

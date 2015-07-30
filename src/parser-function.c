@@ -136,8 +136,12 @@ PSR_READ_IMPL(parameter_typed) {
   PSR_START(ast, FL_AST_PARAMETER);
 
   fl_ast_t* type = PSR_READ(type);
+  // soft error
   if (!type) {
-    // soft error
+    PSR_RET_KO(ast);
+  }
+  if (type->type == FL_AST_ERROR) {
+    fl_ast_delete(type);
     PSR_RET_KO(ast);
   }
 

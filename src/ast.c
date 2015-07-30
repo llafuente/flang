@@ -62,6 +62,9 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
   case FL_AST_BLOCK: {
     TRAVERSE_LIST(ast->block.body);
   } break;
+  case FL_AST_LIST: {
+    TRAVERSE_LIST(ast->list.elements);
+  } break;
   case FL_AST_EXPR_ASSIGNAMENT:
     TRAVERSE(ast->assignament.left);
     TRAVERSE(ast->assignament.right);
@@ -111,6 +114,14 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
   } break;
   case FL_AST_CAST: {
     TRAVERSE(ast->cast.element);
+  } break;
+  case FL_AST_DECL_STRUCT: {
+    TRAVERSE(ast->structure.id);
+    TRAVERSE(ast->structure.fields);
+  } break;
+  case FL_AST_DECL_STRUCT_FIELD: {
+    TRAVERSE(ast->field.id);
+    TRAVERSE(ast->field.type);
   } break;
   default: {}
   }
@@ -236,6 +247,9 @@ void fl_ast_delete_props(fl_ast_t* ast) {
   case FL_AST_BLOCK: {
     SAFE_DEL_LIST(ast->block.body);
   } break;
+  case FL_AST_LIST: {
+    SAFE_DEL_LIST(ast->list.elements);
+  } break;
   case FL_AST_EXPR_ASSIGNAMENT: {
     SAFE_DEL(ast->assignament.left);
     SAFE_DEL(ast->assignament.right);
@@ -306,6 +320,14 @@ void fl_ast_delete_props(fl_ast_t* ast) {
   }
   case FL_AST_CAST: {
     SAFE_DEL(ast->cast.element);
+  } break;
+  case FL_AST_DECL_STRUCT: {
+    SAFE_DEL(ast->structure.id);
+    SAFE_DEL(ast->structure.fields);
+  } break;
+  case FL_AST_DECL_STRUCT_FIELD: {
+    SAFE_DEL(ast->field.id);
+    SAFE_DEL(ast->field.type);
   } break;
   default: {}
   }

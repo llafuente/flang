@@ -32,11 +32,11 @@ TASK_IMPL(parser_if) {
   fl_ast_t* body;
 
   root = fl_parse_utf8("var bool b; b = 1; if (b == true) { printf('ok'); }");
-  CHK_BODY(root, body);
+  CHK_BODY(root);
   fl_ast_delete(root);
 
   root = fl_parse_utf8("if(true) {}");
-  CHK_BODY(root, body);
+  CHK_BODY(root);
   fl_ast_delete(root);
 
   root = fl_parse_utf8("if(true)");
@@ -54,13 +54,13 @@ TASK_IMPL(parser_if) {
   root = fl_parse_utf8("var bool b; b = 1;\n"
                        "if (b == true) { printf('ok'); }\n"
                        "else { printf('ko'); }");
-  CHK_BODY(root, body);
+  CHK_BODY(root);
   fl_ast_delete(root);
 
   root = fl_parse_utf8("var i32 b; b = 1;\n"
                        "if (b == 2) { printf('2'); }\n"
                        "else if (b == 1) { printf('1'); }");
-  CHK_BODY(root, body);
+  CHK_BODY(root);
   fl_ast_delete(root);
 
   return 0;

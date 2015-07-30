@@ -64,7 +64,7 @@ TASK_IMPL(codegen_expressions) {
 
   root = fl_parse_utf8("printf(\"%f\", 1 + 2);");
   fl_parse_core(root);
-  CHK_BODY(root, body)
+  CHK_BODY(root)
   fl_codegen(root, "test");
   fl_ast_delete(root);
 

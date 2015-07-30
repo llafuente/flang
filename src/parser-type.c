@@ -67,6 +67,7 @@ PSR_READ_IMPL(type) {
 
   PSR_SKIPWS();
 
+  // wapper type<subtype>
   if (PSR_ACCEPT_TOKEN(FL_TK_LT)) {
     PSR_SKIPWS();
 
@@ -85,11 +86,11 @@ PSR_READ_IMPL(type) {
     // unroll recursion, creating new types
     // handle "primitive" defined wrappers
     if (strcmp(id->identifier.string->value, "ptr") == 0) {
-      type_node->ty_id = fl_parser_get_typeid(FL_POINTER, child->ty_id);
+      type_node->ty_id = ts_wapper_typeid(FL_POINTER, child->ty_id);
     }
 
     if (strcmp(id->identifier.string->value, "vector") == 0) {
-      type_node->ty_id = fl_parser_get_typeid(FL_VECTOR, child->ty_id);
+      type_node->ty_id = ts_wapper_typeid(FL_VECTOR, child->ty_id);
     }
 
     // TODO handle user defined wrappers
@@ -105,11 +106,79 @@ PSR_READ_IMPL(type) {
     // do something?!
   }
 
+  size_t ty_id = ts_named_typeid(id->identifier.string);
+  cg_print("**TYPE [%s] %zu", id->identifier.string->value, ty_id);
   fl_ast_delete(id);
-  // TODO handle this could be user defined type
 
-  fl_ast_delete(type_node);
-  return 0;
+  if (!ty_id) {
+    PSR_RET_SYNTAX_ERROR(type_node, "unkown type");
+  }
+
+  type_node->ty_id = ty_id;
+  PSR_RET_OK(type_node);
+}
+
+PSR_READ_IMPL(decl_struct) {
+  if (!PSR_TEST_TOKEN(FL_TK_STRUCT)) {
+    return 0;
+  }
+
+  PSR_START(structure, FL_AST_DECL_STRUCT);
+  fl_type_t st_type;
+  st_type.of = FL_STRUCT;
+
+  PSR_ACCEPT_TOKEN(FL_TK_STRUCT);
+  PSR_SKIPWS();
+
+  PSR_READ_OR_DIE(id, lit_identifier, { fl_ast_delete(structure); },
+                  "expected identifier"); // no anonymous structs!
+  PSR_SKIPWS();
+
+  structure->structure.id = id;
+
+  PSR_EXPECT_TOKEN(FL_TK_LCBRACKET, structure, {}, "expected '{'");
+  PSR_SKIPWS();
+
+  PSR_START_LIST(list);
+  structure->structure.fields = list;
+
+  size_t* ty_list = calloc(sizeof(size_t), 100);
+
+  if (!PSR_TEST_TOKEN(FL_TK_RCBRACKET)) {
+    do {
+      PSR_SKIPWS();
+
+      PSR_START(field, FL_AST_DECL_STRUCT_FIELD);
+
+      PSR_READ_OR_DIE(type, type, {
+        free(ty_list);
+        fl_ast_delete(structure);
+        fl_ast_delete(field);
+      }, "expected type");
+      PSR_SKIPWS();
+      field->field.type = type;
+
+      PSR_READ_OR_DIE(id_field, lit_identifier, {
+        free(ty_list);
+        fl_ast_delete(structure);
+        fl_ast_delete(field);
+      }, "expected identifier");
+      PSR_SKIPWS();
+      field->field.id = id_field;
+
+      PSR_END(field);
+
+      ty_list[list->list.count] = type->ty_id;
+      list->list.elements[list->list.count++] = field;
+    } while (PSR_ACCEPT_TOKEN(FL_TK_COMMA));
+  }
+
+  PSR_EXPECT_TOKEN(FL_TK_RCBRACKET, structure, { free(ty_list); },
+                   "expected '}'");
+
+  structure->ty_id = ts_struct_typeid(ty_list, list->list.count, structure);
+
+  PSR_RET_OK(structure);
 }
 
 PSR_READ_IMPL(cast) {
@@ -145,80 +214,4 @@ PSR_READ_IMPL(cast) {
   cast->cast.element = element;
 
   PSR_RET_OK(cast);
-}
-
-fl_type_t* fl_type_table = 0;
-size_t fl_type_size = 0;
-
-void fl_parser_init_types() {
-  if (!fl_type_table) {
-    printf("\n\n\n*****INIT TABLE****\n\n\n");
-    fl_type_table = calloc(sizeof(fl_type_t), 100);
-
-    // 0 means infer!
-    fl_type_table[0].of = FL_INFER;
-    // [1] void
-    fl_type_table[1].of = FL_VOID;
-
-    size_t id = 2;
-    // [2] bool
-    fl_type_table[id].of = FL_NUMBER;
-    fl_type_table[id].number.bits = 1;
-    fl_type_table[id].number.fp = false;
-    fl_type_table[id].number.sign = false;
-    // [3-10] i8,u8,i16,u16,i32,u32,i64,u64
-    size_t i = 3;
-    for (; i < 7; i++) {
-      fl_type_table[++id].of = FL_NUMBER;
-      fl_type_table[id].number.bits = pow(2, i);
-      fl_type_table[id].number.fp = false;
-      fl_type_table[id].number.sign = false;
-
-      fl_type_table[++id].of = FL_NUMBER;
-      fl_type_table[id].number.bits = pow(2, i);
-      fl_type_table[id].number.fp = false;
-      fl_type_table[id].number.sign = true;
-    }
-
-    // [11] f32
-    fl_type_table[++id].of = FL_NUMBER;
-    fl_type_table[id].number.bits = 32;
-    fl_type_table[id].number.fp = true;
-    fl_type_table[id].number.sign = true;
-
-    // [12] f64
-    fl_type_table[++id].of = FL_NUMBER;
-    fl_type_table[id].number.bits = 64;
-    fl_type_table[id].number.fp = true;
-    fl_type_table[id].number.sign = true;
-
-    // [13+] user defined atm
-    fl_type_size = ++id;
-  }
-}
-
-size_t fl_parser_get_typeid(fl_types_t wrapper, size_t child) {
-  size_t i;
-
-  for (i = 0; i < fl_type_size; ++i) {
-    if (fl_type_table[i].of == wrapper && fl_type_table[i].ptr.to == child) {
-      return i;
-    }
-  }
-  // add it!
-  i = fl_type_size++;
-  switch (wrapper) {
-  case FL_POINTER:
-    fl_type_table[i].of = wrapper;
-    fl_type_table[i].ptr.to = child;
-    break;
-  case FL_VECTOR:
-    fl_type_table[i].of = wrapper;
-    fl_type_table[i].vector.size = 0;
-    fl_type_table[i].vector.to = child;
-    break;
-  default: { cg_error("(parser) fl_parser_get_typeid fail\n"); }
-  }
-
-  return i;
 }

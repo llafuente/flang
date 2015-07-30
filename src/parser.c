@@ -38,7 +38,7 @@ void fl_state_debug(fl_psrstate_t* state) {
 }
 
 fl_ast_t* fl_parser(fl_token_list_t* tokens) {
-  fl_parser_init_types();
+  ts_init();
 
   fl_psrstack_t* stack = malloc(sizeof(fl_psrstack_t));
   fl_psrstate_t* state = malloc(sizeof(fl_psrstate_t));

@@ -30,55 +30,58 @@
 // TODO review if ";" is required
 TASK_IMPL(parser_functions) {
   fl_ast_t* root;
-  fl_ast_t* body;
+  fl_ast_t** body;
+  fl_ast_t* err;
 
   root = fl_parse_utf8("fn x() {}");
-  CHK_BODY(root, body);
-  ASSERT(body->type == FL_AST_DECL_FUNCTION, "FL_AST_DECL_FUNCTION");
-  ASSERT(body->func.id->type == FL_AST_LIT_IDENTIFIER, "FL_AST_LIT_IDENTIFIER");
-  ASSERT(body->func.params == 0, "no args");
+  CHK_GET_BODY(root, body);
+  ASSERT(body[0]->type == FL_AST_DECL_FUNCTION, "FL_AST_DECL_FUNCTION");
+  ASSERT(body[0]->func.id->type == FL_AST_LIT_IDENTIFIER,
+         "FL_AST_LIT_IDENTIFIER");
+  ASSERT(body[0]->func.params == 0, "no args");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("fn x(yy, zz , mm ,xx) {}");
-  CHK_BODY(root, body);
-  ASSERT(body->type == FL_AST_DECL_FUNCTION, "FL_AST_DECL_FUNCTION");
-  ASSERT(body->func.id->type == FL_AST_LIT_IDENTIFIER, "FL_AST_LIT_IDENTIFIER");
-  ASSERT(body->func.params != 0, "no args");
+  CHK_GET_BODY(root, body);
+  ASSERT(body[0]->type == FL_AST_DECL_FUNCTION, "FL_AST_DECL_FUNCTION");
+  ASSERT(body[0]->func.id->type == FL_AST_LIT_IDENTIFIER,
+         "FL_AST_LIT_IDENTIFIER");
+  ASSERT(body[0]->func.params != 0, "no args");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("fn {}");
-  CHK_ERROR(root, body, "cannot parse function identifier");
-  CHK_ERROR_RANGE(body, 4, 1, 5, 1);
+  CHK_ERROR(root, err, "cannot parse function identifier");
+  CHK_ERROR_RANGE(err, 4, 1, 5, 1);
   fl_ast_delete(root);
 
   root = fl_parse_utf8("fn hell ({}");
-  CHK_ERROR(root, body, "expected identifier");
+  CHK_ERROR(root, err, "expected identifier");
   fl_ast_delete(root);
 
   root = fl_parse_utf8("fn x a");
-  CHK_ERROR(root, body, "expected '('");
-  CHK_ERROR_RANGE(body, 6, 1, 7, 1);
+  CHK_ERROR(root, err, "expected '('");
+  CHK_ERROR_RANGE(err, 6, 1, 7, 1);
   fl_ast_delete(root);
 
   root = fl_parse_utf8("fn (){};");
-  CHK_ERROR(root, body, "cannot parse function identifier");
-  CHK_ERROR_RANGE(body, 4, 1, 5, 1);
+  CHK_ERROR(root, err, "cannot parse function identifier");
+  CHK_ERROR_RANGE(err, 4, 1, 5, 1);
   fl_ast_delete(root);
 
   root = fl_parse_utf8("fn x () { fn (){}; }");
-  CHK_ERROR(root, body, "cannot parse function identifier");
-  CHK_ERROR_RANGE(body, 14, 1, 15, 1);
+  CHK_ERROR(root, err, "cannot parse function identifier");
+  CHK_ERROR_RANGE(err, 14, 1, 15, 1);
   fl_ast_delete(root);
 
   // TODO 'template'
   root = fl_parse_utf8("fn x(i8 arg1, i8 arg2) { return arg1 + arg2;}");
-  CHK_BODY(root, body);
+  CHK_BODY(root);
   fl_ast_delete(root);
 
   // declaration only
   root = fl_parse_utf8(
       "fn x( i8 arg1 , i8 arg2 ) : i8 ; fn printf2( ptr<i8> format, ... ) ;");
-  CHK_BODY(root, body);
+  CHK_BODY(root);
   fl_codegen(root, "test");
   fl_ast_delete(root);
   return 0;

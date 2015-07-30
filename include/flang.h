@@ -43,12 +43,11 @@
 #include <llvm-c/Transforms/Scalar.h>
 #include <llvm-c/BitWriter.h>
 
+#include "hash.h"
+
 //-
 //- type declaration
 //-
-
-struct fl_struct_members;
-typedef struct fl_struct_members fl_struct_members_t;
 
 struct fl_enum_members;
 typedef struct fl_enum_members fl_enum_members_t;
@@ -160,6 +159,7 @@ enum fl_tokens {
   FL_TK_F32,
   FL_TK_F64,
   FL_TK_NULL,
+  FL_TK_STRUCT,
 
   FL_TK_IF = 120,
   FL_TK_ELSE,
@@ -254,6 +254,8 @@ enum fl_ast_type {
   FL_AST_DTOR_VAR = 31,
 
   FL_AST_TYPE = 40,
+  FL_AST_DECL_STRUCT = 41,
+  FL_AST_DECL_STRUCT_FIELD = 42,
 
   FL_AST_DECL_FUNCTION = 50,
   FL_AST_PARAMETER = 51,
@@ -313,6 +315,13 @@ struct fl_ast {
       size_t nbody;
     } block;
 
+    struct fl_ast_list {
+      // list of statements
+      struct fl_ast** elements;
+      // count
+      size_t count;
+    } list;
+
     struct fl_ast_lit_boolean {
       bool value;
     } boolean;
@@ -353,18 +362,32 @@ struct fl_ast {
       struct fl_ast* element;
       fl_tokens_t operator;
     } runary;
+
     struct fl_ast_cast {
       fl_ast_t* element;
       // use ty_id as type
     } cast;
+
     struct fl_ast_dtor_variable {
       // TODO add type
       struct fl_ast* id;
       fl_ast_t* type;
     } var;
+
     // just for reference, but ty_id is used
     struct fl_ast_idtype {
     } ty;
+
+    struct fl_ast_decl_struct {
+      fl_ast_t* id;
+      fl_ast_t* fields; // list
+    } structure;        // aggregate
+
+    struct fl_ast_decl_struct_field {
+      fl_ast_t* type;
+      fl_ast_t* id;
+    } field; // aggregate
+
     struct fl_ast_decl_function {
       // TODO use fl_type_t*
       struct fl_ast* id;
@@ -375,6 +398,7 @@ struct fl_ast {
       bool varargs;
       bool ffi; // TODO maybe ffi_type, 0 means flang, 1 means c...
     } func;
+
     struct fl_ast_parameter {
       struct fl_ast* id;
       struct fl_ast* type;
@@ -382,14 +406,17 @@ struct fl_ast {
       struct fl_ast** assertions;
       size_t nassertions;
     } param;
+
     struct fl_ast_stmt_return {
       struct fl_ast* argument;
     } ret;
+
     struct fl_ast_stmt_if {
       struct fl_ast* test;
       struct fl_ast* block; // consequent
       struct fl_ast* alternate;
     } if_stmt;
+
     struct fl_ast_stmt_loop {
       struct fl_ast* init;
       struct fl_ast* pre_cond;
@@ -398,6 +425,7 @@ struct fl_ast {
       struct fl_ast* post_cond;
       fl_ast_type_t type;
     } loop;
+
     struct fl_ast_expr_call {
       fl_ast_t* callee;
       struct fl_ast** arguments;
@@ -421,11 +449,11 @@ typedef struct fl_parser_stack fl_psrstack_t;
 enum fl_types {
   FL_VOID = 1,
   FL_NUMBER = 2,
-  FL_POINTER = 3,
-  FL_VECTOR = 4,
+  FL_POINTER = 3, // wrapper
+  FL_VECTOR = 4,  // wrapper
   FL_FUNCTION = 5,
   FL_STRUCT = 6,
-  FL_ENUM = 7,
+  FL_ENUM = 7, // TODO this is in fact an "int"
 
   FL_INFER = 10,
 
@@ -466,32 +494,35 @@ struct fl_type {
     } ptr;
 
     struct fl_type_vector {
-      size_t size;
+      size_t size; // TODO 0 resizable?
       size_t to;
     } vector;
 
     struct fl_type_function {
-      string* name; // 0 means anonymous
-      struct fl_type* ret;
-      struct fl_type** params;
+      string* id; // 0 means anonymous
+      size_t ret;
+      size_t* params;
       size_t nparams;
+
+      fl_ast_t* decl;
     } fn;
 
     struct fl_type_struct {
-      string* name;
-      fl_struct_members_t** members;
-    } agg; // aggregate
+      string* id;
+      size_t* fields;
+      size_t nfields;
+
+      fl_ast_t* decl;
+    } structure;
 
     struct fl_type_enum {
-      string* name;
-      fl_enum_members_t** members;
+      string* id;
+      size_t* members;
+      size_t nmembers;
+
+      fl_ast_t* decl;
     } enu;
   };
-};
-
-struct fl_struct_members {
-  string* name;
-  fl_type_t* type;
 };
 
 struct fl_enum_members {
@@ -588,11 +619,21 @@ FL_EXTERN fl_token_list_t* fl_tokenize(string* file);
 
 /* cldoc:begin-category(typesystem.c) */
 
+extern fl_type_t* fl_type_table;
+extern size_t fl_type_size;
+extern hashtable_t* ts_hashtable;
+
 FL_EXTERN bool ts_is_number(size_t id);
 FL_EXTERN bool ts_is_fp(size_t id);
 FL_EXTERN bool ts_is_int(size_t id);
 FL_EXTERN size_t ts_get_bigger_typeid(size_t a, size_t b);
 FL_EXTERN fl_ast_t* ts_pass(fl_ast_t* node);
+FL_EXTERN size_t ts_struct_typeid(size_t* list, size_t length, fl_ast_t* decl);
+FL_EXTERN size_t ts_named_typeid(string* id);
+
+FL_EXTERN void ts_init();
+FL_EXTERN void ts_exit();
+
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(parser.c) */
@@ -705,11 +746,8 @@ PSR_READ_DECL(decl_variable_with_type);
 /* cldoc:begin-category(parser-type.c) */
 
 PSR_READ_DECL(type);
+PSR_READ_DECL(decl_struct);
 PSR_READ_DECL(cast);
-extern fl_type_t* fl_type_table;
-extern size_t fl_type_size;
-size_t fl_parser_get_typeid(fl_types_t wrapper, size_t child);
-void fl_parser_init_types();
 
 /* cldoc:end-category() */
 

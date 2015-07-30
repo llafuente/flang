@@ -47,7 +47,7 @@ void fl_print_type(size_t ty_id) {
     fl_print_type(ty.vector.to);
     break;
   case FL_FUNCTION:
-    printf("[%zu] Function -> ", ty.fn.name ? ty.fn.name->value : "Anonymous");
+    printf("[%zu] Function -> ", ty.fn.id ? ty.fn.id->value : "Anonymous");
     size_t i;
     fl_print_type(ty.fn.ret);
     for (i = 0; i < ty.fn.nparams; ++i) {
@@ -83,6 +83,9 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
   case FL_AST_BLOCK:
     printf("block");
     break;
+  case FL_AST_LIST:
+    printf("list [count=%zu]", node->list.count);
+    break;
   case FL_AST_EXPR_ASSIGNAMENT:
     printf("assignament");
     break;
@@ -113,6 +116,12 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     break;
   case FL_AST_TYPE:
     printf("type T(%zu)", node->ty_id);
+    break;
+  case FL_AST_DECL_STRUCT:
+    printf("struct T(%zu)", node->ty_id);
+    break;
+  case FL_AST_DECL_STRUCT_FIELD:
+    printf("field T(%zu)", node->ty_id);
     break;
   case FL_AST_DECL_FUNCTION:
     printf("function T(%zu) [params=%zu]", node->ty_id, node->func.nparams);

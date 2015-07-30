@@ -28,8 +28,8 @@
 // warning
 // IF COUNT IS OUT OF SYNC, BAD THING HAPPEN!
 
-size_t fl_token_list_count = 104;
-fl_tokens_cfg_t fl_token_list[104] = {
+size_t fl_token_list_count = 106;
+fl_tokens_cfg_t fl_token_list[106] = {
     {FL_TK_EOF, false, "\x00", 1, 0, 0, false},
     {FL_TK_NEWLINE, false, "\n", 1, 0, 0, false},
     {FL_TK_LOG, false, "log", 3, 0, 0, false},
@@ -151,6 +151,7 @@ fl_tokens_cfg_t fl_token_list[104] = {
     {FL_TK_WHILE, false, "while", 5, 0, 0, false},
     {FL_TK_DO, false, "do", 2, 0, 0, false},
 
+    {FL_TK_STRUCT, false, "struct", 6, 0, 0, false},
     {FL_TK_CAST, false, "cast", 4, 0, 0, false},
     // special chars
     {FL_TK_AT, false, "@", 1, 0, 0, false},

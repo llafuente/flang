@@ -25,6 +25,60 @@
 
 #include "flang.h"
 
+hashtable_t* ts_hashtable = 0;
+fl_type_t* fl_type_table = 0;
+size_t fl_type_size = 0;
+
+void ts_init() {
+  if (!ts_hashtable) {
+    ts_hashtable = ht_create(65536);
+  }
+
+  if (!fl_type_table) {
+    fl_type_table = calloc(sizeof(fl_type_t), 100);
+
+    // 0 means infer!
+    fl_type_table[0].of = FL_INFER;
+    // [1] void
+    fl_type_table[1].of = FL_VOID;
+
+    size_t id = 2;
+    // [2] bool
+    fl_type_table[id].of = FL_NUMBER;
+    fl_type_table[id].number.bits = 1;
+    fl_type_table[id].number.fp = false;
+    fl_type_table[id].number.sign = false;
+    // [3-10] i8,u8,i16,u16,i32,u32,i64,u64
+    size_t i = 3;
+    for (; i < 7; i++) {
+      fl_type_table[++id].of = FL_NUMBER;
+      fl_type_table[id].number.bits = pow(2, i);
+      fl_type_table[id].number.fp = false;
+      fl_type_table[id].number.sign = false;
+
+      fl_type_table[++id].of = FL_NUMBER;
+      fl_type_table[id].number.bits = pow(2, i);
+      fl_type_table[id].number.fp = false;
+      fl_type_table[id].number.sign = true;
+    }
+
+    // [11] f32
+    fl_type_table[++id].of = FL_NUMBER;
+    fl_type_table[id].number.bits = 32;
+    fl_type_table[id].number.fp = true;
+    fl_type_table[id].number.sign = true;
+
+    // [12] f64
+    fl_type_table[++id].of = FL_NUMBER;
+    fl_type_table[id].number.bits = 64;
+    fl_type_table[id].number.fp = true;
+    fl_type_table[id].number.sign = true;
+
+    // [13+] user defined atm
+    fl_type_size = ++id;
+  }
+}
+
 bool ts_is_number(size_t id) {
   fl_type_t t = fl_type_table[id];
   return t.of == FL_NUMBER;
@@ -215,4 +269,85 @@ fl_ast_t* ts_pass(fl_ast_t* node) {
   cg_print("(ts) pass start!\n");
 
   fl_ast_traverse(node, ts_pass_cb, 0, 0, 0);
+}
+
+// wrapper types are
+// * FL_POINTER
+// * FL_VECTOR
+size_t ts_wapper_typeid(fl_types_t wrapper, size_t child) {
+  size_t i;
+
+  for (i = 0; i < fl_type_size; ++i) {
+    if (fl_type_table[i].of == wrapper && fl_type_table[i].ptr.to == child) {
+      return i;
+    }
+  }
+  // add it!
+  i = fl_type_size++;
+  switch (wrapper) {
+  case FL_POINTER:
+    fl_type_table[i].of = wrapper;
+    fl_type_table[i].ptr.to = child;
+    break;
+  case FL_VECTOR:
+    fl_type_table[i].of = wrapper;
+    fl_type_table[i].vector.size = 0;
+    fl_type_table[i].vector.to = child;
+    break;
+  default: { cg_error("(parser) fl_parser_get_typeid fail\n"); }
+  }
+
+  return i;
+}
+
+// transfer list ownership
+size_t ts_struct_typeid(size_t* list, size_t length, fl_ast_t* decl) {
+  size_t i;
+  size_t j;
+
+  string* id = decl->structure.id->identifier.string;
+
+  for (i = 0; i < fl_type_size; ++i) {
+    // struct and same length?
+    if (fl_type_table[i].of == FL_STRUCT &&
+        fl_type_table[i].structure.nfields == length) {
+      if (0 == memcmp(list, fl_type_table[i].structure.fields,
+                      sizeof(size_t) * length)) {
+        free(list);
+
+        ht_set(ts_hashtable, id->value, i);
+        return i;
+      }
+    }
+  }
+
+  // add it!
+  i = fl_type_size++;
+  fl_type_table[i].of = FL_STRUCT;
+  fl_type_table[i].structure.id = id;
+  fl_type_table[i].structure.decl = decl;
+  fl_type_table[i].structure.fields = list;
+  fl_type_table[i].structure.nfields = length;
+
+  ht_set(ts_hashtable, id->value, i);
+  return i;
+}
+
+size_t ts_named_typeid(string* id) { return ht_get(ts_hashtable, id->value); }
+
+void ts_exit() {
+  size_t i;
+
+  for (i = 0; i < fl_type_size; ++i) {
+    // struct and same length?
+    if (fl_type_table[i].of == FL_STRUCT) {
+      free(fl_type_table[i].structure.fields);
+    }
+  }
+
+  free(fl_type_table);
+  fl_type_table = 0;
+
+  ht_free(ts_hashtable);
+  ts_hashtable = 0;
 }

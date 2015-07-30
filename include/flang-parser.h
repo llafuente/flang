@@ -80,6 +80,11 @@
   PSR_CREATE(target, ast_type)                                                 \
   target->token_start = state->token;
 
+#define PSR_START_LIST(target)                                                 \
+  PSR_START(target, FL_AST_LIST);                                              \
+  target->list.count = 0;                                                      \
+  target->list.elements = calloc(100, sizeof(fl_ast_t*));
+
 #define PSR_END(target)                                                        \
   if (target->type != FL_AST_ERROR) {                                          \
     target->token_end = state->token;                                          \
@@ -182,7 +187,7 @@
       PSR_START(err_node, FL_AST_ERROR);                                       \
       fl_parser_rollback(stack, state);                                        \
       err_block;                                                               \
-      PSR_RET_SYNTAX_ERROR(err_node, syntax_err);                              \
+      PSR_RET_SYNTAX_ERROR(err_node, (char*)syntax_err);                       \
     }                                                                          \
     fl_parser_rollback(stack, state);                                          \
     err_block;                                                                 \

@@ -25,6 +25,7 @@
 
 #include "flang.h"
 #include "tasks.h"
+#include "test.h"
 
 void test_parser_type(fl_ast_t* root, size_t typeid) {
   fl_ast_t* fbody;
@@ -44,6 +45,7 @@ void test_parser_type(fl_ast_t* root, size_t typeid) {
 // TODO review if ";" is required
 TASK_IMPL(parser_types) {
   fl_ast_t* root;
+  fl_ast_t** body;
   fl_ast_t* ast;
 
   root = fl_parse_utf8("var bool hello;");
@@ -97,6 +99,48 @@ TASK_IMPL(parser_types) {
   root = fl_parse_utf8("var x; x = 10;");
   test_parser_type(root, 9); // inferred!
 
+  fl_ast_delete(root);
+
+  // empty struct
+  root = fl_parse_utf8("struct test {}");
+  CHK_BODY(root);
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("struct test {"
+                       "i8 t1"
+                       "}");
+  CHK_BODY(root);
+  fl_ast_delete(root);
+
+  root = fl_parse_utf8("struct test {"
+                       "i8 t1,"
+                       "i32 t2"
+                       "}");
+  CHK_BODY(root);
+  fl_ast_delete(root);
+
+  // same type!
+  root = fl_parse_utf8("struct test {"
+                       "i8 t1,"
+                       "i32 t2"
+                       "}"
+                       "struct test2 {"
+                       "i8 t1,"
+                       "i32 t2"
+                       "}");
+  CHK_GET_BODY(root, body);
+  ASSERT(body[0]->ty_id == body[1]->ty_id, "same typeid");
+  fl_ast_delete(root);
+
+  // test must be a type after decl
+  root = fl_parse_utf8("struct test {"
+                       "i8 t1,"
+                       "i32 t2"
+                       "}"
+                       "struct test2 {"
+                       "test t"
+                       "}");
+  CHK_GET_BODY(root, body);
   fl_ast_delete(root);
 
   return 0;

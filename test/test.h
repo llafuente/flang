@@ -23,12 +23,15 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#define CHK_BODY(root, target)                                                 \
+#define CHK_BODY(root)                                                         \
   ASSERT(root != 0, "root is not null");                                       \
   ASSERT(root->type == FL_AST_PROGRAM, "root is a program");                   \
   ASSERT(root->program.body->type == FL_AST_BLOCK, "program has body");        \
-  ASSERT(root->program.body->block.nbody > 0, "body has statements");          \
-  target = root->program.body->block.body[0];
+  ASSERT(root->program.body->block.nbody > 0, "body has statements");
+
+#define CHK_GET_BODY(root, target)                                             \
+  CHK_BODY(root);                                                              \
+  target = root->program.body->block.body;
 
 #define CHK_ERROR(root, target, msg)                                           \
   ASSERT(root != 0, "root is not null");                                       \
