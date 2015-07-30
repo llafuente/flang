@@ -38,6 +38,15 @@ TASK_IMPL(tokenizer) {
   fl_tokens_delete(tokens);
   st_delete(&code);
 
+  code = st_newc("-2", st_enc_utf8);
+  tokens = fl_tokenize(code);
+
+  ASSERT(tokens->size == 4, "priority token test");
+
+  fl_tokens_delete(tokens);
+  st_delete(&code);
+
+
   // test escape string
   code = st_newc("log \"hello\"; log \"\\\"hell\\\"\"; ", st_enc_utf8);
   tokens = fl_tokenize(code);

@@ -181,12 +181,13 @@ typedef enum fl_tokens fl_tokens_t;
 
 struct fl_tokens_cfg {
   fl_tokens_t type;
-  bool can_be_escaped;
   char* text;
   size_t text_s;
   char* close_text;
   size_t close_text_s;
   bool escapable;
+  bool is_punctuation;
+  bool is_reserved_word;
 };
 
 typedef struct fl_tokens_cfg fl_tokens_cfg_t;
