@@ -475,6 +475,8 @@ typedef enum fl_types fl_types_t;
 
 // type must be unique
 struct fl_type {
+  string* id;
+
   fl_types_t of;
   void* codegen; // cache for codegen.
 
@@ -500,7 +502,6 @@ struct fl_type {
     } vector;
 
     struct fl_type_function {
-      string* id; // 0 means anonymous
       size_t ret;
       size_t* params;
       size_t nparams;
@@ -509,7 +510,6 @@ struct fl_type {
     } fn;
 
     struct fl_type_struct {
-      string* id;
       size_t* fields;
       size_t nfields;
 
@@ -517,7 +517,6 @@ struct fl_type {
     } structure;
 
     struct fl_type_enum {
-      string* id;
       size_t* members;
       size_t nmembers;
 

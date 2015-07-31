@@ -41,35 +41,45 @@ void ts_init() {
     fl_type_table[0].of = FL_INFER;
     // [1] void
     fl_type_table[1].of = FL_VOID;
+    fl_type_table[1].id = st_newc("void", st_enc_ascii);
 
     size_t id = 2;
     // [2] bool
     fl_type_table[id].of = FL_NUMBER;
+    fl_type_table[id].id = st_newc("bool", st_enc_ascii);
     fl_type_table[id].number.bits = 1;
     fl_type_table[id].number.fp = false;
     fl_type_table[id].number.sign = false;
     // [3-10] i8,u8,i16,u16,i32,u32,i64,u64
     size_t i = 3;
+    char buffer[20];
     for (; i < 7; i++) {
+      size_t bits = pow(2, i);
       fl_type_table[++id].of = FL_NUMBER;
-      fl_type_table[id].number.bits = pow(2, i);
+      fl_type_table[id].number.bits = bits;
       fl_type_table[id].number.fp = false;
       fl_type_table[id].number.sign = false;
+      sprintf(buffer, "u%d", bits);
+      fl_type_table[id].id = st_newc(buffer, st_enc_ascii);
 
       fl_type_table[++id].of = FL_NUMBER;
-      fl_type_table[id].number.bits = pow(2, i);
+      fl_type_table[id].number.bits = bits;
       fl_type_table[id].number.fp = false;
       fl_type_table[id].number.sign = true;
+      sprintf(buffer, "i%d", bits);
+      fl_type_table[id].id = st_newc(buffer, st_enc_ascii);
     }
 
     // [11] f32
     fl_type_table[++id].of = FL_NUMBER;
+    fl_type_table[id].id = st_newc("f32", st_enc_ascii);
     fl_type_table[id].number.bits = 32;
     fl_type_table[id].number.fp = true;
     fl_type_table[id].number.sign = true;
 
     // [12] f64
     fl_type_table[++id].of = FL_NUMBER;
+    fl_type_table[id].id = st_newc("f64", st_enc_ascii);
     fl_type_table[id].number.bits = 64;
     fl_type_table[id].number.fp = true;
     fl_type_table[id].number.sign = true;
@@ -324,7 +334,7 @@ size_t ts_struct_typeid(size_t* list, size_t length, fl_ast_t* decl) {
   // add it!
   i = fl_type_size++;
   fl_type_table[i].of = FL_STRUCT;
-  fl_type_table[i].structure.id = id;
+  fl_type_table[i].id = id;
   fl_type_table[i].structure.decl = decl;
   fl_type_table[i].structure.fields = list;
   fl_type_table[i].structure.nfields = length;
@@ -339,6 +349,9 @@ void ts_exit() {
   size_t i;
 
   for (i = 0; i < fl_type_size; ++i) {
+    if (i < 13) {
+      st_delete(&fl_type_table[i].id);
+    }
     // struct and same length?
     if (fl_type_table[i].of == FL_STRUCT) {
       free(fl_type_table[i].structure.fields);

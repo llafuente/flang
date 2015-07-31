@@ -47,7 +47,7 @@ void fl_print_type(size_t ty_id) {
     fl_print_type(ty.vector.to);
     break;
   case FL_FUNCTION:
-    printf("[%zu] Function -> ", ty.fn.id ? ty.fn.id->value : "Anonymous");
+    printf("[%zu] Function -> ", ty.id ? ty.id->value : "Anonymous");
     size_t i;
     fl_print_type(ty.fn.ret);
     for (i = 0; i < ty.fn.nparams; ++i) {

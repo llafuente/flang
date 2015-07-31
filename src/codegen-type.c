@@ -64,7 +64,7 @@ LLVMTypeRef fl_codegen_get_typeid(size_t id, LLVMContextRef context) {
         (void*)LLVMPointerType(fl_codegen_get_typeid(t.ptr.to, context), 0);
     break;
   case FL_STRUCT: {
-    t.codegen = LLVMStructCreateNamed(context, t.structure.id->value);
+    t.codegen = LLVMStructCreateNamed(context, t.id->value);
     // create the list!
     fl_ast_t* l = t.structure.decl->structure.fields;
 
