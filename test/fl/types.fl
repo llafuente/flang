@@ -1,0 +1,7 @@
+struct ts {
+  i8 a
+};
+
+var ts b;
+
+printf("ir ok\n");

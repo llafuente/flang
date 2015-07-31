@@ -25,11 +25,11 @@
 
 #include "flang.h"
 
-LLVMTypeRef fl_codegen_get_type(fl_ast_t* node) {
-  return fl_codegen_get_typeid(node->ty_id);
+LLVMTypeRef fl_codegen_get_type(fl_ast_t* node, LLVMContextRef context) {
+  return fl_codegen_get_typeid(node->ty_id, context);
 }
 
-LLVMTypeRef fl_codegen_get_typeid(size_t id) {
+LLVMTypeRef fl_codegen_get_typeid(size_t id, LLVMContextRef context) {
   // TODO codegen is cached?
   fl_type_t t = fl_type_table[id];
 
@@ -60,10 +60,25 @@ LLVMTypeRef fl_codegen_get_typeid(size_t id) {
     }
     break;
   case FL_POINTER:
-    t.codegen = (void*)LLVMPointerType(fl_codegen_get_typeid(t.ptr.to), 0);
+    t.codegen =
+        (void*)LLVMPointerType(fl_codegen_get_typeid(t.ptr.to, context), 0);
     break;
-  default:
-    cg_error("(codegen) type not handled yet.\n");
+  case FL_STRUCT: {
+    t.codegen = LLVMStructCreateNamed(context, t.structure.id->value);
+    // create the list!
+    fl_ast_t* l = t.structure.decl->structure.fields;
+
+    size_t i;
+    size_t count = t.structure.nfields;
+    LLVMTypeRef* types = malloc(count * sizeof(LLVMTypeRef));
+    for (i = 0; i < count; ++i) {
+      // types[i] = fl_codegen_get_typeid(l->list.elements[i]->ty_id, context);
+      types[i] = fl_codegen_get_typeid(t.structure.fields[i], context);
+    }
+    LLVMStructSetBody(t.codegen, types, count, 0);
+    free(types);
+  } break;
+  default: { cg_error("(codegen) type not handled yet [%zu].\n", id); }
   }
 
   if (!t.codegen) {
@@ -74,7 +89,8 @@ LLVMTypeRef fl_codegen_get_typeid(size_t id) {
 }
 
 LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
-                                size_t expected, LLVMValueRef value) {
+                                size_t expected, LLVMValueRef value,
+                                LLVMContextRef context) {
   cg_print("(codegen) *casting types [%zu == %zu] [%p]\n", expected, current,
            value);
 
@@ -93,24 +109,24 @@ LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
         cg_print("(codegen) fptosi");
 
         if (ex_type.number.sign) {
-          return LLVMBuildFPToSI(builder, value,
-                                 fl_codegen_get_typeid(expected), "cast");
+          return LLVMBuildFPToSI(
+              builder, value, fl_codegen_get_typeid(expected, context), "cast");
         }
 
-        return LLVMBuildFPToUI(builder, value, fl_codegen_get_typeid(expected),
-                               "cast");
+        return LLVMBuildFPToUI(
+            builder, value, fl_codegen_get_typeid(expected, context), "cast");
       }
       // *itofp
       if (!cu_type.number.fp && ex_type.number.fp) {
         cg_print("(codegen) sitofp\n");
 
         if (ex_type.number.sign) {
-          return LLVMBuildSIToFP(builder, value,
-                                 fl_codegen_get_typeid(expected), "cast");
+          return LLVMBuildSIToFP(
+              builder, value, fl_codegen_get_typeid(expected, context), "cast");
         }
 
-        return LLVMBuildUIToFP(builder, value, fl_codegen_get_typeid(expected),
-                               "cast");
+        return LLVMBuildUIToFP(
+            builder, value, fl_codegen_get_typeid(expected, context), "cast");
       }
 
       // LLVMBuildFPTrunc
@@ -121,30 +137,30 @@ LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
       if (cu_type.number.bits < ex_type.number.bits) {
         cg_print("(codegen) upcast\n");
         if (fp) {
-          return LLVMBuildFPExt(builder, value, fl_codegen_get_typeid(expected),
-                                "cast");
+          return LLVMBuildFPExt(
+              builder, value, fl_codegen_get_typeid(expected, context), "cast");
         }
 
         // sign -> sign
         if ((cu_type.number.sign && ex_type.number.sign) ||
             (!cu_type.number.sign && ex_type.number.sign)) {
-          return LLVMBuildSExt(builder, value, fl_codegen_get_typeid(expected),
-                               "cast");
+          return LLVMBuildSExt(
+              builder, value, fl_codegen_get_typeid(expected, context), "cast");
         }
 
-        return LLVMBuildZExt(builder, value, fl_codegen_get_typeid(expected),
-                             "cast");
+        return LLVMBuildZExt(builder, value,
+                             fl_codegen_get_typeid(expected, context), "cast");
       }
 
       // downcast / truncate
       if (cu_type.number.bits > ex_type.number.bits) {
         cg_print("(codegen) downcast");
         if (fp) {
-          return LLVMBuildFPTrunc(builder, value,
-                                  fl_codegen_get_typeid(expected), "cast");
+          return LLVMBuildFPTrunc(
+              builder, value, fl_codegen_get_typeid(expected, context), "cast");
         }
-        return LLVMBuildTrunc(builder, value, fl_codegen_get_typeid(expected),
-                              "cast");
+        return LLVMBuildTrunc(builder, value,
+                              fl_codegen_get_typeid(expected, context), "cast");
       }
       break;
     default: {

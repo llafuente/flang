@@ -27,16 +27,12 @@
 #include "tasks.h"
 #include "test.h"
 
-void test_parser_type(fl_ast_t* root, size_t typeid) {
-  fl_ast_t* fbody;
+void test_parser_type(fl_ast_t* body, size_t typeid) {
   fl_ast_t* var_type;
 
-  ASSERT(root != 0, "string literal found!");
+  ASSERT(body->type == FL_AST_DTOR_VAR, "first in body: FL_AST_DTOR_VAR");
 
-  fbody = *(root->program.body->block.body);
-  ASSERT(fbody->type == FL_AST_DTOR_VAR, "first in body: FL_AST_DTOR_VAR");
-
-  var_type = fbody->var.type;
+  var_type = body->var.type;
   ASSERT(var_type != 0, "dtor has a type");
   ASSERTE(var_type->type, FL_AST_TYPE, "%d != %d", "dtor type is FL_AST_TYPE");
   ASSERTE(var_type->ty_id, typeid, "%zu != %zu", "typeid ?");
@@ -44,104 +40,85 @@ void test_parser_type(fl_ast_t* root, size_t typeid) {
 
 // TODO review if ";" is required
 TASK_IMPL(parser_types) {
-  fl_ast_t* root;
-  fl_ast_t** body;
-  fl_ast_t* ast;
+  dbg_debug_level = 0;
 
-  root = fl_parse_utf8("var bool hello;");
-  test_parser_type(root, 2);
-  fl_ast_delete(root);
+  TEST_PARSER_OK("bool type=2", "var bool hello;",
+                 { test_parser_type(*body, 2); });
 
-  root = fl_parse_utf8("var i8 hello;");
-  test_parser_type(root, 3);
-  fl_ast_delete(root);
+  TEST_PARSER_OK("i8 type=3", "var i8 hello;", { test_parser_type(*body, 3); });
 
-  root = fl_parse_utf8("var u8 hello;");
-  test_parser_type(root, 4);
-  fl_ast_delete(root);
+  TEST_PARSER_OK("u8 type=4", "var u8 hello;", { test_parser_type(*body, 4); });
 
-  root = fl_parse_utf8("var i16 hello;");
-  test_parser_type(root, 5);
-  fl_ast_delete(root);
+  TEST_PARSER_OK("i16 type=5", "var i16 hello;",
+                 { test_parser_type(*body, 5); });
 
-  root = fl_parse_utf8("var i32 hello;");
-  test_parser_type(root, 7);
-  fl_ast_delete(root);
+  TEST_PARSER_OK("i32 type=7", "var i32 hello;",
+                 { test_parser_type(*body, 7); });
 
-  root = fl_parse_utf8("var i64 hello;");
-  test_parser_type(root, 9);
-  fl_ast_delete(root);
+  TEST_PARSER_OK("i64 type=9", "var i64 hello;",
+                 { test_parser_type(*body, 9); });
 
-  root = fl_parse_utf8("var f32 hello;");
-  test_parser_type(root, 11);
-  fl_ast_delete(root);
+  TEST_PARSER_OK("f32 type=11", "var f32 hello;",
+                 { test_parser_type(*body, 11); });
 
-  root = fl_parse_utf8("var f64 hello;");
-  test_parser_type(root, 12);
+  TEST_PARSER_OK("f64 type=12", "var f64 hello;", {
+    test_parser_type(*body, 12);
 
-  fl_type_t ty = fl_type_table[12];
-  ASSERTE(ty.number.fp, true, "%d == %d", "type if fp");
-  ASSERTE(ty.number.bits, 64, "%d == %d", "type is 64 bits");
+    // this must be tested inside, test macro clean types
+    fl_type_t ty = fl_type_table[12];
+    ASSERTE(ty.number.fp, true, "%d == %d", "type if fp");
+    ASSERTE(ty.number.bits, 64, "%d == %d", "type is 64 bits");
+  });
 
-  fl_ast_delete(root);
+  TEST_PARSER_OK("custom type 01", "var ptr<f32> hello;",
+                 { test_parser_type(*body, 13); });
 
-  root = fl_parse_utf8("var ptr<f32> hello;");
-  test_parser_type(root, 14);
-  fl_ast_delete(root);
+  TEST_PARSER_OK("uniques 01", "var ptr<f32> a; var ptr<f32> b;", {
+    test_parser_type(body[0], 13);
+    test_parser_type(body[1], 13);
+  });
 
-  // unique echeck!
-  root = fl_parse_utf8("var ptr<f32> hello;");
-  test_parser_type(root, 14);
-  fl_ast_delete(root);
+  TEST_PARSER_OK("inference 01", "var x; x = 10;",
+                 { test_parser_type(body[0], 9); });
 
-  // fl_print_type_table();
+  TEST_PARSER_OK("empty struct", "struct test {}",
+                 { ASSERT(body[0]->ty_id == 13, "typeid 13"); });
 
-  root = fl_parse_utf8("var x; x = 10;");
-  test_parser_type(root, 9); // inferred!
+  TEST_PARSER_OK("simple struct", "struct test {"
+                                  "i8 t1"
+                                  "}",
+                 { ASSERT(body[0]->ty_id == 13, "typeid 13"); });
 
-  fl_ast_delete(root);
+  TEST_PARSER_OK("complex struct", "struct test {"
+                                   "i8 t1,"
+                                   "i32 t2"
+                                   "}",
+                 { ASSERT(body[0]->ty_id == 13, "typeid 13"); });
 
-  // empty struct
-  root = fl_parse_utf8("struct test {}");
-  CHK_BODY(root);
-  fl_ast_delete(root);
+  TEST_PARSER_OK("unique 02", "struct test {"
+                              "i8 t1,"
+                              "i32 t2"
+                              "}"
+                              "struct test2 {"
+                              "i8 t1,"
+                              "i32 t2"
+                              "}",
+                 {
+                   ASSERT(body[0]->ty_id == 13, "typeid 13");
+                   ASSERT(body[1]->ty_id == 13, "typeid 13");
+                 });
 
-  root = fl_parse_utf8("struct test {"
-                       "i8 t1"
-                       "}");
-  CHK_BODY(root);
-  fl_ast_delete(root);
-
-  root = fl_parse_utf8("struct test {"
-                       "i8 t1,"
-                       "i32 t2"
-                       "}");
-  CHK_BODY(root);
-  fl_ast_delete(root);
-
-  // same type!
-  root = fl_parse_utf8("struct test {"
-                       "i8 t1,"
-                       "i32 t2"
-                       "}"
-                       "struct test2 {"
-                       "i8 t1,"
-                       "i32 t2"
-                       "}");
-  CHK_GET_BODY(root, body);
-  ASSERT(body[0]->ty_id == body[1]->ty_id, "same typeid");
-  fl_ast_delete(root);
-
-  // test must be a type after decl
-  root = fl_parse_utf8("struct test {"
-                       "i8 t1,"
-                       "i32 t2"
-                       "}"
-                       "struct test2 {"
-                       "test t"
-                       "}");
-  CHK_GET_BODY(root, body);
-  fl_ast_delete(root);
+  TEST_PARSER_OK("struct type usage", "struct test {"
+                                      "i8 t1,"
+                                      "i32 t2"
+                                      "}"
+                                      "struct test2 {"
+                                      "test t"
+                                      "}",
+                 {
+                   ASSERT(body[0]->ty_id == 13, "typeid 13");
+                   ASSERT(body[1]->ty_id == 14, "typeid 14");
+                 });
 
   return 0;
 }

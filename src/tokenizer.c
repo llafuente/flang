@@ -190,7 +190,9 @@ fl_token_list_t* fl_tokenize(string* file) {
     tk = fl_get_token(state.itr, diff + 1);
     // check next char, allow 'for*'
     if (tk && !tk->is_punctuation) {
-      if (diff > tk->text_s && (isdigit(state.itr[tk->text_s]) || isalpha(state.itr[tk->text_s]) || state.itr[tk->text_s] == '_')) {
+      if (diff > tk->text_s &&
+          (isdigit(state.itr[tk->text_s]) || isalpha(state.itr[tk->text_s]) ||
+           state.itr[tk->text_s] == '_')) {
         tk = 0; // invalid, is part of a bigger word
       }
     }

@@ -647,7 +647,7 @@ FL_EXTERN fl_ast_t* fl_parse_utf8(char* str);
 
 FL_EXTERN fl_ast_t* fl_parse_file(char* filename, bool core);
 
-FL_EXTERN void fl_parse_core(fl_ast_t* ast);
+FL_EXTERN void fl_parse_core(fl_ast_t* root);
 
 /* cldoc:end-category() */
 
@@ -847,11 +847,12 @@ FL_EXTERN LLVMValueRef fl_codegen_loop(FL_CODEGEN_HEADER);
 
 /* cldoc:begin-category(codegen-type.c) */
 
-FL_EXTERN LLVMTypeRef fl_codegen_get_type(fl_ast_t* node);
-FL_EXTERN LLVMTypeRef fl_codegen_get_typeid(size_t id);
-FL_EXTERN LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder,
-                                          size_t current, size_t expected,
-                                          LLVMValueRef value);
+FL_EXTERN LLVMTypeRef
+fl_codegen_get_type(fl_ast_t* node, LLVMContextRef context);
+FL_EXTERN LLVMTypeRef fl_codegen_get_typeid(size_t id, LLVMContextRef context);
+FL_EXTERN LLVMValueRef
+fl_codegen_cast_op(LLVMBuilderRef builder, size_t current, size_t expected,
+                   LLVMValueRef value, LLVMContextRef context);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(debug.c) */

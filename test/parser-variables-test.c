@@ -25,29 +25,22 @@
 
 #include "flang.h"
 #include "tasks.h"
+#include "test.h"
 
 // TODO review if ";" is required
 TASK_IMPL(parser_variables) {
-  fl_ast_t* root;
-  fl_ast_t* ast;
+  dbg_debug_level = 0;
 
-  root = fl_parse_utf8("var hello;");
-  ast = *(root->program.body->block.body);
+  TEST_PARSER_OK("var decl 01", "var hello;", {
+    ASSERT(body[0]->type == FL_AST_DTOR_VAR, "type: FL_AST_DTOR_VAR");
+  });
 
-  ASSERT(ast != 0, "string literal found!");
+  TEST_PARSER_OK("var decl 02", "var i8 hello;", {
 
-  ASSERT(ast->type == FL_AST_DTOR_VAR, "type: FL_AST_DTOR_VAR");
-  fl_ast_delete(root);
-
-  root = fl_parse_utf8("var i8 hello;");
-  ast = *(root->program.body->block.body);
-
-  ASSERT(ast != 0, "string literal found!");
-
-  ASSERT(ast->type == FL_AST_DTOR_VAR, "type: FL_AST_DTOR_VAR");
-  ASSERT(ast->var.type->type == FL_AST_TYPE, "type.type: FL_AST_TYPE");
-  ASSERTE(ast->var.type->ty_id, 3, "%zu == %d", "typeid i8 is 3");
-  fl_ast_delete(root);
+    ASSERT(body[0]->type == FL_AST_DTOR_VAR, "type: FL_AST_DTOR_VAR");
+    ASSERT(body[0]->var.type->type == FL_AST_TYPE, "type.type: FL_AST_TYPE");
+    ASSERTE(body[0]->var.type->ty_id, 3, "%zu == %d", "typeid i8 is 3");
+  });
 
   return 0;
 }

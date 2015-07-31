@@ -25,49 +25,29 @@
 
 #include "flang.h"
 #include "tasks.h"
+#include "test.h"
 
-// TODO review if ";" is required
 TASK_IMPL(codegen_functions) {
-  fl_ast_t* root;
-  LLVMModuleRef module;
 
-  root = fl_parse_utf8("fn x(f64 arg1, f64 arg2) : f64 {"
-                       "  return arg1 + arg2;"
-                       "}");
+  TEST_CODEGEN_OK("cg function 01", "fn x(f64 arg1, f64 arg2) : f64 {"
+                                    "  return arg1 + arg2;"
+                                    "}",
+                  {});
 
-  fl_codegen(root, "test");
+  TEST_CODEGEN_OK("cg function 02", "fn x(f64 arg1, f64 arg2) : f64 {"
+                                    "  return arg1 + arg2;"
+                                    "}"
+                                    "var f64 sum; "
+                                    "sum = x(1, 2);",
+                  {});
 
-  fl_ast_delete(root);
-
-  root = fl_parse_utf8("fn x(f64 arg1, f64 arg2) : f64 {"
-                       "  return arg1 + arg2;"
-                       "}"
-                       "var f64 sum; "
-                       "sum = x(1, 2);");
-
-  fl_codegen(root, "test");
-
-  fl_ast_delete(root);
-
-  root = fl_parse_utf8("printf('%s\n', 'hello');");
-  fl_parse_core(root);
-
-  module = fl_codegen(root, "test");
+  TEST_CODEGEN_OK("cg function 03", "printf('%s\\n', 'hello');",
+                  { fl_to_bitcode(module, "hello-world.bc"); });
 
   // fl_interpreter(module);
-  fl_to_bitcode(module, "hello-world.bc");
-
-  fl_ast_delete(root);
-
-  root = fl_parse_utf8("var ptr<i8> str; str = 'hello'; printf('%s\n', str);");
-  fl_parse_core(root);
-
-  module = fl_codegen(root, "test");
-
-  // fl_interpreter(module);
-  fl_to_bitcode(module, "hello-world-ptr.bc");
-
-  fl_ast_delete(root);
+  TEST_CODEGEN_OK("cg function 04",
+                  "var ptr<i8> str; str = 'hello'; printf('%s\\n', str);",
+                  { fl_to_bitcode(module, "hello-world.bc"); });
 
   return 0;
 }

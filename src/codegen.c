@@ -265,6 +265,9 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
     return fl_codegen_if(FL_CODEGEN_HEADER_SEND);
   case FL_AST_STMT_LOOP:
     return fl_codegen_loop(FL_CODEGEN_HEADER_SEND);
+  case FL_AST_DECL_STRUCT:
+    // ignore it, will be created on first use
+    break;
   default: {}
     // cg_error("(codegen) ast->type not handled %d\n", node->type);
   }
@@ -308,7 +311,7 @@ LLVMValueRef fl_codegen_cast(FL_CODEGEN_HEADER) {
 
   cg_print("(codegen) do cast [%p][%p]\n", el, element);
   return fl_codegen_cast_op(builder, fl_ast_get_typeid(el), node->ty_id,
-                            element);
+                            element, context);
 }
 
 LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER) {
@@ -320,17 +323,19 @@ LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER) {
   fl_type_t t = fl_type_table[ty];
 
   if (t.number.fp) {
-    return LLVMConstReal(fl_codegen_get_typeid(ty), node->numeric.value);
+    return LLVMConstReal(fl_codegen_get_typeid(ty, context),
+                         node->numeric.value);
   }
 
-  return LLVMConstInt(fl_codegen_get_typeid(ty), node->numeric.value,
+  return LLVMConstInt(fl_codegen_get_typeid(ty, context), node->numeric.value,
                       t.number.sign);
 }
 
 LLVMValueRef fl_codegen_lit_boolean(FL_CODEGEN_HEADER) {
   fl_type_t t = fl_type_table[2];
 
-  return LLVMConstInt(fl_codegen_get_typeid(2), node->boolean.value, false);
+  return LLVMConstInt(fl_codegen_get_typeid(2, context), node->boolean.value,
+                      false);
 }
 
 LLVMValueRef fl_codegen_lit_string(FL_CODEGEN_HEADER) {
@@ -433,10 +438,10 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
     use_fp = true;
   } else if (l_fp && !r_fp) {
     // upcast right
-    rhs = fl_codegen_cast_op(builder, r_type, l_type, rhs);
+    rhs = fl_codegen_cast_op(builder, r_type, l_type, rhs, context);
     use_fp = true;
   } else {
-    lhs = fl_codegen_cast_op(builder, l_type, r_type, lhs);
+    lhs = fl_codegen_cast_op(builder, l_type, r_type, lhs, context);
     use_fp = true;
   }
 
@@ -530,7 +535,7 @@ LLVMValueRef fl_codegen_dtor_var(FL_CODEGEN_HEADER) {
   }
 
   LLVMValueRef ref =
-      LLVMBuildAlloca(builder, fl_codegen_get_type(node->var.type),
+      LLVMBuildAlloca(builder, fl_codegen_get_type(node->var.type, context),
                       node->var.id->identifier.string->value);
   node->codegen = (void*)ref;
 
@@ -557,13 +562,13 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
 
       cg_print("(codegen) parameter %zu of type %zu\n", i,
                tmp->param.id->ty_id);
-      param_types[i++] = fl_codegen_get_typeid(tmp->param.id->ty_id);
+      param_types[i++] = fl_codegen_get_typeid(tmp->param.id->ty_id, context);
     }
   }
   // TODO manage return type
   LLVMTypeRef ret_type =
-      LLVMFunctionType(fl_codegen_get_type(node->func.ret_type), param_types,
-                       node->func.nparams, node->func.varargs);
+      LLVMFunctionType(fl_codegen_get_type(node->func.ret_type, context),
+                       param_types, node->func.nparams, node->func.varargs);
 
   LLVMValueRef func = LLVMAddFunction(
       module, node->func.id->identifier.string->value, ret_type);

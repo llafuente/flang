@@ -46,7 +46,6 @@ TASK_IMPL(tokenizer) {
   fl_tokens_delete(tokens);
   st_delete(&code);
 
-
   // test escape string
   code = st_newc("log \"hello\"; log \"\\\"hell\\\"\"; ", st_enc_utf8);
   tokens = fl_tokenize(code);

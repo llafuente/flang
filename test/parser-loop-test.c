@@ -27,98 +27,80 @@
 #include "tasks.h"
 #include "test.h"
 
-TASK_IMPL(parser_for) {
+TASK_IMPL(parser_loops) {
   fl_ast_t* root;
   fl_ast_t* body;
 
-  root = fl_parse_utf8("var i32 x; for x = 1; x < 10; ++x {"
-                       "printf(\"%d\", x);"
-                       "}");
-  CHK_BODY(root);
-  fl_ast_delete(root);
+  TEST_PARSER_OK("loop 01", "var i32 x; for x = 1; x < 10; ++x {"
+                            "printf(\"%d\", x);"
+                            "}",
+                 {});
 
-  root = fl_parse_utf8("var i32 x; for x = 1; x < 10; ++x ");
-  CHK_ERROR(root, body, "expected '{'");
-  fl_ast_delete(root);
+  TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1; x < 10; ++x ",
+                    "expected '{'", {});
 
-  root = fl_parse_utf8("var i32 x; for x = 1; x < 10;");
-  CHK_ERROR(root, body, "expected update expression");
-  fl_ast_delete(root);
+  TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1; x < 10;",
+                    "expected update expression", {});
 
-  root = fl_parse_utf8("var i32 x; for x = 1; x < 10");
-  CHK_ERROR(root, body, "expected semicolon");
-  fl_ast_delete(root);
+  TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1; x < 10",
+                    "expected semicolon", {});
 
-  root = fl_parse_utf8("var i32 x; for x = 1;");
-  CHK_ERROR(root, body, "expected condition expression");
-  fl_ast_delete(root);
+  TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1;",
+                    "expected condition expression", {});
 
-  root = fl_parse_utf8("var i32 x; for x = 1");
-  CHK_ERROR(root, body, "expected semicolon");
-  fl_ast_delete(root);
+  TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1", "expected semicolon",
+                    {});
 
-  root = fl_parse_utf8("var i32 x; for ");
-  CHK_ERROR(root, body, "expected initialization expression");
-  fl_ast_delete(root);
+  TEST_PARSER_ERROR("loop 01", "var i32 x; for ",
+                    "expected initialization expression", {});
 
   // TODO this should be valid!?
-  root = fl_parse_utf8("for var i32 x = 1; x < 10; ++x {"
-                       "printf(\"%d\", x);"
-                       "}");
-  CHK_ERROR(root, body, "expected initialization expression");
-  fl_ast_delete(root);
+  TEST_PARSER_ERROR("loop 01", "for var i32 x = 1; x < 10; ++x {"
+                               "printf(\"%d\", x);"
+                               "}",
+                    "expected initialization expression", {});
 
-  root = fl_parse_utf8("var i32 x; x = 1; while x < 10 {"
-                       "printf(\"%d\", x);"
-                       "++x;"
-                       "}");
-  CHK_BODY(root);
-  fl_ast_delete(root);
+  TEST_PARSER_OK("loop 01", "var i32 x; x = 1; while x < 10 {"
+                            "printf(\"%d\", x);"
+                            "++x;"
+                            "}",
+                 {});
 
-  root = fl_parse_utf8("var i32 x; x = 1; while x < 10 {"
-                       "printf(\"%d\", x);"
-                       "++x;");
-  CHK_ERROR(root, body, "expected '}'");
-  fl_ast_delete(root);
+  TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; while x < 10 {"
+                               "printf(\"%d\", x);"
+                               "++x;",
+                    "expected '}'", {});
 
-  root = fl_parse_utf8("var i32 x; x = 1; while x < 10");
-  CHK_ERROR(root, body, "expected '{'");
-  fl_ast_delete(root);
+  TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; while x < 10", "expected '{'",
+                    {});
 
-  root = fl_parse_utf8("var i32 x; x = 1; while");
-  CHK_ERROR(root, body, "expected condition expression");
-  fl_ast_delete(root);
+  TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; while",
+                    "expected condition expression", {});
 
-  root = fl_parse_utf8("var i32 x; x = 1; do {"
-                       "printf(\"%d\", x);"
-                       "++x;"
-                       "} while x < 10;");
-  CHK_BODY(root);
-  fl_ast_delete(root);
+  TEST_PARSER_OK("loop 01", "var i32 x; x = 1; do {"
+                            "printf(\"%d\", x);"
+                            "++x;"
+                            "} while x < 10;",
+                 {});
 
-  root = fl_parse_utf8("var i32 x; x = 1; do {"
-                       "printf(\"%d\", x);"
-                       "++x;"
-                       "} while ");
-  CHK_ERROR(root, body, "expected condition expression");
-  fl_ast_delete(root);
+  TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; do {"
+                               "printf(\"%d\", x);"
+                               "++x;"
+                               "} while ",
+                    "expected condition expression", {});
 
-  root = fl_parse_utf8("var i32 x; x = 1; do {"
-                       "printf(\"%d\", x);"
-                       "++x;"
-                       "}");
-  CHK_ERROR(root, body, "expected 'while'");
-  fl_ast_delete(root);
+  TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; do {"
+                               "printf(\"%d\", x);"
+                               "++x;"
+                               "}",
+                    "expected 'while'", {});
 
-  root = fl_parse_utf8("var i32 x; x = 1; do {"
-                       "printf(\"%d\", x);"
-                       "++x;");
-  CHK_ERROR(root, body, "expected '}'");
-  fl_ast_delete(root);
+  TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; do {"
+                               "printf(\"%d\", x);"
+                               "++x;",
+                    "expected '}'", {});
 
-  root = fl_parse_utf8("var i32 x; x = 1; do ");
-  CHK_ERROR(root, body, "expected '{'");
-  fl_ast_delete(root);
+  TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; do ", "expected '{'", {});
 
   return 0;
 }
