@@ -248,8 +248,9 @@ enum fl_ast_type {
   FL_AST_EXPR_LUNARY = 24,
   FL_AST_EXPR_RUNARY = 25,
   FL_AST_EXPR_CALL = 26,
+  FL_AST_EXPR_MEMBER = 27,
 
-  FL_AST_CAST = 27,
+  FL_AST_CAST = 28,
 
   // TODO FL_AST_DECL_VAR = 30
   FL_AST_DTOR_VAR = 31,
@@ -340,6 +341,9 @@ struct fl_ast {
 
     struct fl_ast_lit_identifier {
       string* string;
+      // typesystem must search what this identifier means
+      // variable, function, member
+      bool resolve;
     } identifier;
 
     struct fl_ast_expr_assignament {
@@ -432,6 +436,11 @@ struct fl_ast {
       struct fl_ast** arguments;
       size_t narguments;
     } call;
+
+    struct fl_ast_expr_member {
+      fl_ast_t* left;
+      fl_ast_t* property;
+    } member;
 
     struct fl_ast_stmt_comment {
       string* text;
@@ -628,13 +637,20 @@ FL_EXTERN bool ts_is_fp(size_t id);
 FL_EXTERN bool ts_is_int(size_t id);
 FL_EXTERN size_t ts_get_bigger_typeid(size_t a, size_t b);
 FL_EXTERN fl_ast_t* ts_pass(fl_ast_t* node);
-FL_EXTERN size_t ts_struct_typeid(size_t* list, size_t length, fl_ast_t* decl);
+
 FL_EXTERN size_t ts_named_typeid(string* id);
+FL_EXTERN size_t ts_struct_typeid(size_t* list, size_t length, fl_ast_t* decl);
+FL_EXTERN size_t ts_struct_property_type(size_t id, string* property);
+FL_EXTERN size_t ts_struct_property_idx(size_t id, string* property);
+
+FL_EXTERN size_t ts_var_typeid(fl_ast_t* id);
 
 FL_EXTERN void ts_init();
 FL_EXTERN void ts_exit();
 
 /* cldoc:end-category() */
+
+typedef fl_ast_t* (*psr_read_t)(PSR_READ_HEADER);
 
 /* cldoc:begin-category(parser.c) */
 
@@ -671,6 +687,8 @@ FL_EXTERN bool fl_parser_accept_token_list(fl_token_list_t* tokens,
                                            fl_psrstate_t* state,
                                            fl_tokens_t token_type[],
                                            size_t tk_count);
+FL_EXTERN fl_ast_t* psr_read_list(psr_read_t* arr, size_t length,
+                                  PSR_READ_HEADER);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(parser-stack.c) */
@@ -731,8 +749,6 @@ PSR_READ_DECL(expr_unary_left);
 PSR_READ_DECL(expr_unary_right);
 PSR_READ_DECL(expr_call);
 PSR_READ_DECL(expr_argument);
-
-typedef fl_ast_t* (*fl_read_cb_t)(PSR_READ_HEADER);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(parser-variable.c) */

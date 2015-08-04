@@ -45,16 +45,18 @@ PSR_READ_IMPL(expr_assignment) {
 PSR_READ_IMPL(expr_assignment_full) {
   PSR_START(ast, FL_AST_EXPR_ASSIGNAMENT);
 
+  dbg_silly("(expr_assignment_full) left\n");
   ast->assignament.left = PSR_READ(expr_lhs);
 
   // TODO manage errors
   if (!ast->assignament.left) {
+    dbg_silly("(expr_assignment_full) ko\n");
     PSR_RET_KO(ast);
   }
 
   // printf("(parser) expr_assignment_full left\n");
 
-  fl_parser_skipws(tokens, state);
+  PSR_SKIPWS();
 
   // now token must be an assignament operator
 
@@ -77,22 +79,23 @@ PSR_READ_IMPL(expr_assignment_full) {
     ast->assignament.operator= state->token->type;
     break;
   default:
+    dbg_silly("(expr_assignment_full) ko 2\n");
     PSR_RET_KO(ast);
   }
   PSR_NEXT();
   // printf("(parser) expr_assignment_full operator\n");
 
-  fl_parser_skipws(tokens, state);
+  PSR_SKIPWS();
 
+  dbg_silly("(expr_assignment_full) right\n");
   ast->assignament.right = PSR_READ(expr_assignment);
   // TODO manage errors
   if (!ast->assignament.right) {
+    dbg_silly("(expr_assignment_full) ko 3\n");
     PSR_RET_KO(ast);
   }
 
-  fl_ast_debug(ast);
-
-  // printf("(parser) expr_assignment_full right\n");
+  dbg_silly("(expr_assignment_full) ok\n");
 
   PSR_RET_OK(ast);
 }
@@ -109,45 +112,129 @@ PSR_READ_IMPL(expr_lhs) {
 
   return 0;
 }
-
+// - Literal
+// - "(" expression ")"
 PSR_READ_IMPL(expr_primary) {
-  fl_ast_t* ast;
 
-  PSR_SOFT_READ(ast, literal);
+  // TODO lit_array, lit_object?
+  PSR_READ_OK(literal, literal);
+  if (literal) {
+    dbg_silly("(expr-primary) literal!\n");
+    if (literal->type == FL_AST_LIT_IDENTIFIER) {
+      literal->identifier.resolve = true;
+    }
+    return literal;
+  }
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_LPARENTHESIS)) {
-    PSR_RET_KO(ast); // soft
+    dbg_silly("(expr-primary) no group\n");
+    return 0;
   }
+
   dbg_silly("(expr-primary) parenthesis\n");
 
-  fl_ast_t* inside = PSR_READ(expr_logical_or);
+  fl_ast_t* inside = PSR_READ(expr_logical_or); // TODO expression
   PSR_RET_IF_ERROR(inside, {});
 
-  if (!PSR_ACCEPT_TOKEN(FL_TK_RPARENTHESIS)) {
-    fl_ast_delete(ast);
-    PSR_RET_SYNTAX_ERROR(ast, "expected ')'");
-  }
+  PSR_EXPECT_TOKEN(FL_TK_RPARENTHESIS, inside, {}, "expected ')'");
 
-  dbg_silly("(expr-primary) ok!\n");
+  dbg_silly("(expr-primary) group readed!\n");
 
   PSR_RET_OK(inside);
 }
 
+// TODO DO IT!
+PSR_READ_IMPL(expr_new_full) {
+  // "new" WS callee:MemberExpression WS args:Arguments
+  return 0;
+}
+
+/*
+rest:(
+ property:Expression _W_ "]" {
+  return { property: property, computed: true };
+}
+/  property:IdentifierName {
+  return { property: property, computed: false };
+}
+)*
+*/
+
+PSR_READ_IMPL(expr_member) {
+  // PSR_START(member, FL_AST_EXPR_MEMBER);
+  dbg_debug("expr_member\n");
+  psr_read_t left[] = {PSR_READ_NAME(expr_primary),
+                       PSR_READ_NAME(expr_new_full)};
+  fl_ast_t* member_left = psr_read_list(left, 2, PSR_READ_HEADER_SEND);
+  if (!member_left) {
+    dbg_debug("invalid left\n");
+    return 0;
+  }
+
+  fl_ast_t* last = member_left;
+
+  PSR_SKIPWS();
+
+  // PSR_START_FROM(member_left, property, FL_AST_EXPR_MEMBER);
+  // test "." and "["
+  if (!PSR_TEST_TOKEN(FL_TK_DOT) && !PSR_TEST_TOKEN(FL_TK_LBRACKET)) {
+    PSR_RET_OK(last);
+  }
+
+  do {
+    PSR_START_FROM(last, member, FL_AST_EXPR_MEMBER);
+    member->member.left = last;
+    last = member;
+
+    if (PSR_ACCEPT_TOKEN(FL_TK_DOT)) {
+      dbg_debug("dot accesss\n");
+      PSR_SKIPWS();
+      PSR_READ_OR_DIE(property, lit_identifier, {
+        fl_ast_delete(last);
+        fl_ast_delete(property);
+      }, "expected expression");
+      dbg_debug("dot accesss - ok\n");
+      last->member.property = property;
+
+      PSR_END(member);
+    } else if (PSR_ACCEPT_TOKEN(FL_TK_LBRACKET)) {
+      dbg_debug("bracket access\n");
+      PSR_SKIPWS();
+
+      PSR_READ_OR_DIE(property, expression, {
+        fl_ast_delete(last);
+        fl_ast_delete(property);
+      }, "expected identifier");
+      dbg_debug("bracket access - ok\n");
+
+      last->member.property = property;
+
+      PSR_EXPECT_TOKEN(FL_TK_RCBRACKET, last, {}, "expected ']'");
+
+      PSR_END(member);
+    }
+
+  } while (PSR_TEST_TOKEN(FL_TK_DOT) || PSR_TEST_TOKEN(FL_TK_LBRACKET));
+
+  fl_ast_debug(last);
+
+  PSR_RET_OK(last);
+}
+
+// TODO or: "new" WS callee:NewExpression
+PSR_READ_IMPL(expr_new) { return PSR_READ(expr_member); }
+
+// TODO do it, is a passthough right now
 PSR_READ_IMPL(expr_conditional) {
   // PSR_START(ast, FL_AST_EXPR_CONDITIONAL);
 
   fl_ast_t* left = PSR_READ(expr_logical_or);
 
-  if (!left) {
-    // PSR_RET_KO(ast);
-    return 0;
-  }
-
-  return left;
+  return left ? left : 0;
 }
 
 fl_ast_t* PSR_READ_binop(PSR_READ_HEADER, fl_tokens_t operators[], size_t n_ops,
-                         fl_read_cb_t next) {
+                         psr_read_t next) {
   // TODO resizable
   fl_ast_t** leafs = malloc(sizeof(fl_ast_t*) * 10);
   size_t leafs_s = 0;
@@ -158,10 +245,9 @@ fl_ast_t* PSR_READ_binop(PSR_READ_HEADER, fl_tokens_t operators[], size_t n_ops,
   size_t ops;
 
   do {
-    fl_parser_skipws(tokens, state);
+    PSR_SKIPWS();
 
     PSR_START(ast, FL_AST_EXPR_BINOP);
-    dbg_silly("(parser-binop) read left\n");
 
     ast->binop.left = 0;
     ast->binop.right = 0;
@@ -177,10 +263,8 @@ fl_ast_t* PSR_READ_binop(PSR_READ_HEADER, fl_tokens_t operators[], size_t n_ops,
       fl_ast_delete(ast);
     } else {
       // try to read the operator
-      dbg_silly("(parser-binop) read operator\n");
-
       leafs[leafs_s++] = ast;
-      fl_parser_skipws(tokens, state);
+      PSR_SKIPWS();
 
       op_found = false;
       for (ops = 0; ops < n_ops; ++ops) {
@@ -372,30 +456,33 @@ PSR_READ_IMPL(expr_argument) { return PSR_READ(expression); }
 PSR_READ_IMPL(expr_call) {
   PSR_START(ast, FL_AST_EXPR_CALL);
 
-  fl_ast_t* callee = PSR_READ(lit_identifier); // TODO member expr
+  fl_ast_t* callee = PSR_READ(expr_member);
   if (!callee) {
     PSR_RET_KO(ast); // soft
   }
 
-  fl_parser_skipws(tokens, state);
+  // TODO if return member expression undo the skip?
+  PSR_SKIPWS();
 
+  // at least return member expression
   if (!PSR_ACCEPT_TOKEN(FL_TK_LPARENTHESIS)) {
-    fl_ast_delete(callee);
-    PSR_RET_KO(ast); // soft
+    fl_ast_delete(ast);
+    return callee;
   }
+
   // from now on, hard!
   ast->call.callee = callee;
 
-  fl_parser_skipws(tokens, state);
+  PSR_SKIPWS();
 
   fl_ast_t** list = calloc(100, sizeof(fl_ast_t*)); // TODO resize support
   size_t i = 0;
   do {
-    fl_parser_skipws(tokens, state);
+    PSR_SKIPWS();
 
     list[i++] = PSR_READ(expr_argument);
 
-    fl_parser_skipws(tokens, state);
+    PSR_SKIPWS();
   } while (PSR_ACCEPT_TOKEN(FL_TK_COMMA));
   ast->call.arguments = list;
   ast->call.narguments = i;

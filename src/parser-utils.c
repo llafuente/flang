@@ -122,3 +122,24 @@ void fl_parser_skipws(fl_token_list_t* tokens, fl_psrstate_t* state) {
     return;
   } while (true);
 }
+
+fl_ast_t* psr_read_list(psr_read_t* arr, size_t length, PSR_READ_HEADER) {
+  fl_ast_t* target;
+
+  size_t i;
+  for (i = 0; i < length; ++i) {
+
+    fl_parser_look_ahead(stack, state);
+    target = arr[i](tokens, stack, state);
+    dbg_debug("psr_read_list: %d [%p]\n", i, target);
+    if (!target || target->type == FL_AST_ERROR) {
+      fl_parser_rollback(stack, state);
+      continue;
+    } else {
+      fl_parser_commit(stack, state);
+      return target;
+    }
+  }
+
+  return 0;
+}

@@ -107,7 +107,7 @@ PSR_READ_IMPL(type) {
   }
 
   size_t ty_id = ts_named_typeid(id->identifier.string);
-  cg_print("**TYPE [%s] %zu", id->identifier.string->value, ty_id);
+  cg_print("**TYPE [%zu] = '%s'\n", ty_id, id->identifier.string->value);
   fl_ast_delete(id);
 
   if (!ty_id) {

@@ -146,6 +146,34 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
   cast->ty_id = type_id;
 
   switch (node->type) {
+  case FL_AST_LIT_IDENTIFIER: {
+    if (node->identifier.resolve) {
+      if (node->parent->type == FL_AST_EXPR_CALL) {
+        // TODO solve call expr!
+      } else if (node->parent->type == FL_AST_EXPR_MEMBER) {
+        // it's handled below, but maybe can be optimized at this level...
+      } else {
+        // it's a var
+        node->ty_id = ts_var_typeid(node);
+      }
+    }
+  } break;
+  case FL_AST_EXPR_MEMBER: {
+    fl_ast_t* l = node->member.left;
+    fl_ast_t* p = node->member.property;
+
+    size_t l_typeid;
+    if (l->type == FL_AST_LIT_IDENTIFIER) {
+      l->ty_id = ts_var_typeid(l);
+    } else {
+      ts_pass(l);
+    }
+
+    // now we should know left type
+    // get poperty index -> typeid
+    node->ty_id = ts_struct_property_type(l->ty_id, p->identifier.string);
+
+  } break;
   case FL_AST_EXPR_CALL: {
     fl_ast_t* fdecl = fl_ast_find_fn_decl(node->call.callee);
     // if (!fdecl) {
@@ -163,14 +191,18 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
   case FL_AST_EXPR_ASSIGNAMENT: {
     // fl_ast_debug(node);
 
-    size_t l_type = fl_ast_get_typeid(node->assignament.left);
-
+    fl_ast_t* l = node->assignament.left;
     fl_ast_t* r = node->assignament.right;
-    size_t r_type = fl_ast_get_typeid(r);
-    if (!r_type) {
-      ts_pass(r);
-      r_type = r->ty_id;
+
+    if (l->type == FL_AST_LIT_IDENTIFIER) {
+      l->ty_id = ts_var_typeid(l);
+    } else {
+      ts_pass(l);
     }
+    ts_pass(r);
+
+    size_t l_type = l->ty_id;
+    size_t r_type = r->ty_id;
 
     if (l_type != r_type) {
       dbg_debug("(typesystem) assignament cast [%zu - %zu]\n", l_type, r_type);
@@ -179,8 +211,8 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
       CREATE_CAST(cast, r, l_type);
 
       node->assignament.right = cast;
-      node->ty_id = l_type;
     }
+    node->ty_id = l_type;
   } break;
   case FL_AST_EXPR_BINOP: {
     cg_print("(typesystem) binop found %d\n", node->binop.operator);
@@ -310,6 +342,43 @@ size_t ts_wapper_typeid(fl_types_t wrapper, size_t child) {
   return i;
 }
 
+size_t ts_struct_property_idx(size_t id, string* property) {
+  if (fl_type_table[id].of != FL_STRUCT) {
+    cg_error("type [%zu] is not an struct\n", id);
+  }
+
+  fl_ast_t* list = fl_type_table[id].structure.decl->structure.fields;
+
+  size_t i;
+  for (i = 0; i < list->list.count; ++i) {
+    if (st_cmp(list->list.elements[i]->field.id->identifier.string, property) ==
+        0) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+size_t ts_struct_property_type(size_t id, string* property) {
+  cg_print("ts_struct_property_type [%zu] '%s'\n", id, property->value);
+  if (fl_type_table[id].of != FL_STRUCT) {
+    cg_error("type [%zu] is not an struct\n", id);
+  }
+
+  fl_ast_t* list = fl_type_table[id].structure.decl->structure.fields;
+
+  size_t i;
+  for (i = 0; i < list->list.count; ++i) {
+    if (st_cmp(list->list.elements[i]->field.id->identifier.string, property) ==
+        0) {
+      return fl_type_table[id].structure.fields[i];
+    }
+  }
+
+  return 0;
+}
+
 // transfer list ownership
 size_t ts_struct_typeid(size_t* list, size_t length, fl_ast_t* decl) {
   size_t i;
@@ -325,6 +394,7 @@ size_t ts_struct_typeid(size_t* list, size_t length, fl_ast_t* decl) {
                       sizeof(size_t) * length)) {
         free(list);
 
+        cg_print("SET type [%zu] = '%s'\n", i, id->value);
         ht_set(ts_hashtable, id->value, i);
         return i;
       }
@@ -339,8 +409,26 @@ size_t ts_struct_typeid(size_t* list, size_t length, fl_ast_t* decl) {
   fl_type_table[i].structure.fields = list;
   fl_type_table[i].structure.nfields = length;
 
+  cg_print("SET type [%zu] = '%s'\n", i, id->value);
   ht_set(ts_hashtable, id->value, i);
+  /*
+  size_t t = ht_get(ts_hashtable, id->value);
+  assert(t != i);
+  */
   return i;
+}
+
+size_t ts_var_typeid(fl_ast_t* id) {
+  assert(id->type != FL_AST_LIT_IDENTIFIER);
+
+  fl_ast_t* decl = fl_ast_search_decl_var(id, id->identifier.string);
+
+  if (!decl) {
+    cg_error("(ts) cannot find var declaration %s\n",
+             id->identifier.string->value);
+  }
+
+  return fl_ast_get_typeid(decl);
 }
 
 size_t ts_named_typeid(string* id) { return ht_get(ts_hashtable, id->value); }

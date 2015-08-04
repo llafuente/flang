@@ -80,9 +80,9 @@ TASK_IMPL(parser_literals) {
   // TODO binary 0b000000001
   // TODO octal 0o777
 
-  TEST_PARSER_OK("id literals 03", "wtf", {
-    ASSERT(body[0]->type == FL_AST_LIT_IDENTIFIER, "FL_AST_LIT_IDENTIFIER");
-    ASSERT(strcmp(body[0]->identifier.string->value, "wtf") == 0,
+  TEST_PARSER_OK("id literals 03", "var wtf; wtf;", {
+    ASSERT(body[1]->type == FL_AST_LIT_IDENTIFIER, "FL_AST_LIT_IDENTIFIER");
+    ASSERT(strcmp(body[1]->identifier.string->value, "wtf") == 0,
            "identifier = wtf");
     // st_delete(&body[0]->identifier.string);
   });

@@ -44,7 +44,7 @@ PSR_READ_IMPL(decl_variable_no_type) {
     PSR_RET_KO(ast);
   }
 
-  fl_parser_skipws(tokens, state);
+  PSR_SKIPWS();
 
   ast->var.id = PSR_READ(lit_identifier);
   if (!ast->var.id) {
@@ -68,24 +68,29 @@ PSR_READ_IMPL(decl_variable_with_type) {
     PSR_RET_KO(ast);
   }
 
-  fl_parser_skipws(tokens, state);
+  PSR_SKIPWS();
 
-  ast->var.type = PSR_READ(type);
+  PSR_READ_OK(type, type)
 
-  if (!ast->var.type) {
+  if (!type) {
     PSR_RET_KO(ast);
   }
 
-  fl_parser_skipws(tokens, state);
+  ast->var.type = type;
 
-  ast->var.id = PSR_READ(lit_identifier);
-  if (!ast->var.id) {
+  PSR_SKIPWS();
+
+  PSR_READ_OK(id, lit_identifier)
+
+  if (!id) {
     PSR_RET_KO(ast);
   }
+  ast->var.id = id;
 
   cg_print("*** TYPED! [%zu]\n", ast->var.type->ty_id);
 
   ast->var.id->ty_id = ast->var.type->ty_id;
+  ast->ty_id = ast->var.type->ty_id;
 
   PSR_RET_OK(ast);
 }

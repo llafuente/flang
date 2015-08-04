@@ -60,7 +60,7 @@ PSR_READ_IMPL(program_block) {
   PSR_RET_OK(block);
 }
 
-fl_read_cb_t block_stmts[] = {
+psr_read_t block_stmts[] = {
     PSR_READ_NAME(decl_variable), PSR_READ_NAME(decl_function),
     PSR_READ_NAME(stmt_return),   PSR_READ_NAME(expression),
     PSR_READ_NAME(stmt_if),       PSR_READ_NAME(comment),

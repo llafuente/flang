@@ -29,7 +29,7 @@
 
 //- declaration, parameter, calling, arguments...
 
-#define PSR_READ_NAME(name) PSR_READ_##name
+#define PSR_READ_NAME(name) psr_##name
 
 #define PSR_READ_DECL(name)                                                    \
   FL_EXTERN fl_ast_t* PSR_READ_NAME(name)(PSR_READ_HEADER)
@@ -79,6 +79,11 @@
 #define PSR_START(target, ast_type)                                            \
   PSR_CREATE(target, ast_type)                                                 \
   target->token_start = state->token;
+
+// use src node as start point
+#define PSR_START_FROM(src, target, ast_type)                                  \
+  PSR_CREATE(target, ast_type)                                                 \
+  target->token_start = src->token_start;
 
 #define PSR_START_LIST(target)                                                 \
   PSR_START(target, FL_AST_LIST);                                              \
@@ -196,6 +201,20 @@
     fl_parser_rollback(stack, state);                                          \
     err_block;                                                                 \
     return target;                                                             \
+  } else {                                                                     \
+    fl_parser_commit(stack, state);                                            \
+  }
+
+// ignore error (target = 0)
+#define PSR_READ_OK(target, name)                                              \
+  fl_parser_look_ahead(stack, state);                                          \
+  fl_ast_t* target = PSR_READ(name);                                           \
+  if (!target) {                                                               \
+    fl_parser_rollback(stack, state);                                          \
+  } else if (target->type == FL_AST_ERROR) {                                   \
+    fl_parser_rollback(stack, state);                                          \
+    fl_ast_delete(target);                                                     \
+    target = 0;                                                                \
   } else {                                                                     \
     fl_parser_commit(stack, state);                                            \
   }

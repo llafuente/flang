@@ -71,13 +71,16 @@ fl_ast_t* fl_parse(string* code) {
   tokens = fl_tokenize(code);
 
   fl_ast_t* root = fl_parser(tokens);
+  root->program.code = code;
 
   // do inference
-  cg_print("(parser) finish -> passes\n");
+  fl_ast_debug(root);
+  cg_print("(parser) first inference\n");
   fl_pass_inference(root);
+  cg_print("(parser) typesystem\n");
   ts_pass(root);
-
-  root->program.code = code;
+  cg_print("(parser) second inference\n");
+  fl_pass_inference(root);
 
   // TODO remove this, just for debugging purpose
   printf(stderr, "\n\n*******************************\n");

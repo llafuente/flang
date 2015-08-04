@@ -82,12 +82,12 @@ TASK_IMPL(parser_expressions) {
     ASSERT(body[0]->lunary.operator== FL_TK_MINUS, "operator FL_TK_MINUS");
   });
 
-  TEST_PARSER_OK("unary 02", "xxx++", {
-    ASSERT(body[0]->type == FL_AST_EXPR_RUNARY, "ast is FL_AST_EXPR_RUNARY");
+  TEST_PARSER_OK("unary 02", "var i64 xxx; xxx++", {
+    ASSERT(body[1]->type == FL_AST_EXPR_RUNARY, "ast is FL_AST_EXPR_RUNARY");
 
-    ASSERT(body[0]->lunary.element->type == FL_AST_LIT_IDENTIFIER,
+    ASSERT(body[1]->lunary.element->type == FL_AST_LIT_IDENTIFIER,
            "FL_AST_LIT_IDENTIFIER");
-    ASSERT(body[0]->lunary.operator== FL_TK_PLUS2, "operator FL_TK_PLUS2");
+    ASSERT(body[1]->lunary.operator== FL_TK_PLUS2, "operator FL_TK_PLUS2");
   });
 
   // TODO nice hack for testing, but declaration first!
@@ -161,7 +161,31 @@ TASK_IMPL(parser_expressions) {
     ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
   });
 
+  dbg_debug_level = 10;
+
   TEST_PARSER_OK("equality 2", "var i32 i; i = 1; i == 5.0", {});
 
+  // TODO illustrate typesystem vs inference war, fix it!
+  TEST_PARSER_OK("member access", "struct xxx {i8 b};"
+                                  "var xxx sin;"
+                                  "var x;"
+                                  "x = sin.b;",
+                 {});
+  TEST_PARSER_OK("member access",
+
+                 "struct yyy {i64 hello};"
+                 "var yyy s;"
+                 "s.hello = 1;",
+                 {
+                   ASSERT(body[0]->ty_id == 13, "struct type 13");
+                   ASSERT(body[1]->ty_id == 13, "variable type 13");
+                   ASSERT(body[2]->ty_id == 9, "assignament type 9");
+                 });
+  /*
+    TEST_PARSER_OK("member access", "var h; h = s.hello.world();", {});
+    TEST_PARSER_OK("member access", "var h; h = s.hello.world(15, 20);", {});
+
+    exit(1);
+  */
   return 0;
 }

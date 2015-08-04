@@ -66,7 +66,8 @@ bool dtors_var_infer(fl_ast_t* node, fl_ast_t* parent, size_t level,
           if (fnod->parent->type == FL_AST_EXPR_ASSIGNAMENT &&
               fnod->parent->assignament.left == fnod) {
             // type is the right one
-            size_t t = fl_ast_ret_type(fnod->parent->assignament.right);
+            // size_t t = fl_ast_ret_type(fnod->parent->assignament.right);
+            size_t t = fnod->parent->assignament.right->ty_id;
             if (t) {
               node->var.type->ty_id = t;
               break;

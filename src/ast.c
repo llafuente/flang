@@ -83,6 +83,10 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
     TRAVERSE(ast->call.callee);
     TRAVERSE_LIST(ast->call.arguments);
   } break;
+  case FL_AST_EXPR_MEMBER: {
+    TRAVERSE(ast->member.left);
+    TRAVERSE(ast->member.property);
+  } break;
   case FL_AST_DTOR_VAR: {
     TRAVERSE(ast->var.id);
     TRAVERSE(ast->var.type);
@@ -268,6 +272,10 @@ void fl_ast_delete_props(fl_ast_t* ast) {
     SAFE_DEL(ast->call.callee);
     SAFE_DEL_LIST(ast->call.arguments);
   } break;
+  case FL_AST_EXPR_MEMBER: {
+    SAFE_DEL(ast->member.left);
+    SAFE_DEL(ast->member.property);
+  } break;
   case FL_AST_LIT_STRING:
     st_delete(&ast->string.value);
     break;
@@ -383,6 +391,7 @@ size_t fl_ast_get_typeid(fl_ast_t* node) {
   case FL_AST_EXPR_CALL: {
     // search function
   }
+  case FL_AST_EXPR_MEMBER:
   case FL_AST_EXPR_BINOP: {
     // this is valid only after ts_pass
     return node->ty_id;
@@ -432,10 +441,7 @@ size_t fl_ast_ret_type(fl_ast_t* node) {
     return fl_ast_ret_type(node->assignament.right);
   case FL_AST_LIT_NUMERIC:
     return node->ty_id;
-  default: {
-    printf("cannot find type!");
-    exit(1);
-  }
+  default: { cg_error("(fl_ast_ret_type) cannot find type!"); }
   }
 
   return 0;

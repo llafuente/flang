@@ -87,7 +87,7 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     printf("list [count=%zu]", node->list.count);
     break;
   case FL_AST_EXPR_ASSIGNAMENT:
-    printf("assignament");
+    printf("assignament T(%zu)", node->ty_id);
     break;
   case FL_AST_EXPR_BINOP:
     printf("binop T(%zu) [operator=%d]", node->ty_id, node->binop.operator);
@@ -111,8 +111,11 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
   case FL_AST_EXPR_CALL:
     printf("call T(%zu) [arguments=%zu]", node->ty_id, node->call.narguments);
     break;
+  case FL_AST_EXPR_MEMBER:
+    printf("member T(%zu)", node->ty_id);
+    break;
   case FL_AST_DTOR_VAR:
-    printf("variable");
+    printf("variable T(%zu)", node->ty_id);
     break;
   case FL_AST_TYPE:
     printf("type T(%zu)", node->ty_id);
