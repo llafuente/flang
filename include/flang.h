@@ -396,7 +396,7 @@ struct fl_ast {
     struct fl_ast_decl_function {
       // TODO use fl_type_t*
       struct fl_ast* id;
-      struct fl_ast** params;
+      struct fl_ast* params;
       size_t nparams;
       struct fl_ast* body;
       struct fl_ast* ret_type;

@@ -94,7 +94,7 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
   case FL_AST_DECL_FUNCTION: {
     TRAVERSE(ast->func.id);
     TRAVERSE(ast->func.ret_type);
-    TRAVERSE_LIST(ast->func.params);
+    TRAVERSE(ast->func.params);
     TRAVERSE(ast->func.body);
   } break;
   case FL_AST_PARAMETER: {
@@ -171,6 +171,13 @@ void* fl_ast_reverse(fl_ast_t* ast, fl_ast_ret_cb_t cb, fl_ast_t* parent,
   case FL_AST_BLOCK: {
     REVERSE_LIST(ast->block.body);
   } break;
+  case FL_AST_LIST: {
+    REVERSE_LIST(ast->list.elements);
+    if (ast->parent->type == FL_AST_DECL_FUNCTION) {
+      // recursion!
+      return 0;
+    }
+  }; break;
   case FL_AST_EXPR_ASSIGNAMENT:
     break;
   case FL_AST_EXPR_BINOP:
@@ -185,7 +192,7 @@ void* fl_ast_reverse(fl_ast_t* ast, fl_ast_ret_cb_t cb, fl_ast_t* parent,
   case FL_AST_DTOR_VAR:
     break;
   case FL_AST_DECL_FUNCTION: {
-    REVERSE_LIST(ast->func.params);
+    REVERSE(ast->func.params);
   } break;
   case FL_AST_PARAMETER:
     break;
@@ -289,18 +296,7 @@ void fl_ast_delete_props(fl_ast_t* ast) {
   case FL_AST_DECL_FUNCTION:
     SAFE_DEL(ast->func.id);
     SAFE_DEL(ast->func.ret_type);
-
-    if (ast->func.params) {
-      size_t i = 0;
-      fl_ast_t* tmp;
-
-      while ((tmp = ast->func.params[i++]) != 0) {
-        fl_ast_delete(tmp);
-      }
-
-      free(ast->func.params);
-      ast->func.params = 0;
-    }
+    SAFE_DEL(ast->func.params);
     if (ast->func.body) {
       fl_ast_delete(ast->func.body);
       ast->func.body = 0;
@@ -345,11 +341,12 @@ fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {
   while ((node = node->parent) != 0) {
     switch (node->type) {
     case FL_AST_DECL_FUNCTION: {
-      size_t i = 0;
-      fl_ast_t* tmp;
 
-      if (node->func.params) {
-        while ((tmp = node->func.params[i++]) != 0) {
+      if (node->func.nparams) {
+        size_t i = 0;
+        fl_ast_t* tmp;
+        fl_ast_t* list = node->func.params;
+        while ((tmp = list->list.elements[i++]) != 0) {
           if (st_cmp(name, tmp->param.id->identifier.string) == 0) {
             printf("(ast) found param %zu\n", i);
             return tmp->param.id;

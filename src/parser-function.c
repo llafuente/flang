@@ -49,10 +49,9 @@ PSR_READ_IMPL(decl_function) {
   PSR_EXPECT_TOKEN(FL_TK_LPARENTHESIS, fn_node, {}, "expected '('");
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_RPARENTHESIS)) {
-    fl_ast_t** list = calloc(100, sizeof(fl_ast_t*)); // TODO resize support
+    PSR_START_LIST(list);
     fn_node->func.params = list;
 
-    size_t i = 0;
     do {
       PSR_SKIPWS();
 
@@ -66,11 +65,11 @@ PSR_READ_IMPL(decl_function) {
 
       PSR_READ_OR_DIE(param, parameter, { fl_ast_delete(fn_node); }, 0);
 
-      list[i++] = param;
+      list->list.elements[list->list.count++] = param;
 
       PSR_SKIPWS();
     } while (PSR_ACCEPT_TOKEN(FL_TK_COMMA));
-    fn_node->func.nparams = i;
+    fn_node->func.nparams = list->list.count;
 
     PSR_EXPECT_TOKEN(FL_TK_RPARENTHESIS, fn_node, {
       fl_ast_delete(fn_node->func.id);

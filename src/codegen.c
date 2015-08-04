@@ -552,10 +552,11 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
 
   // TODO manage type
   size_t i = 0;
+  fl_ast_t* list = node->func.params;
   fl_ast_t* tmp;
 
   if (node->func.params) {
-    while ((tmp = node->func.params[i]) != 0) {
+    while ((tmp = list->list.elements[i]) != 0) {
       if (!tmp->param.id->ty_id) {
         cg_error("(codegen) Parameter %zu don't have type.\n", i);
       }
@@ -577,7 +578,7 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
 
   i = 0;
   if (node->func.params) {
-    while ((tmp = node->func.params[i]) != 0) {
+    while ((tmp = list->list.elements[i]) != 0) {
       printf("(codegen) set name [%zu]%s\n", i,
              tmp->param.id->identifier.string->value);
       LLVMValueRef param = LLVMGetParam(func, i);
