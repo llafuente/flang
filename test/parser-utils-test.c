@@ -27,6 +27,8 @@
 #include "tasks.h"
 
 TASK_IMPL(parser_utils) {
+  log_debug_level = 0;
+  
   string* code;
   fl_token_list_t* tokens;
   // tets priority <= gt than '<' '='

@@ -25,29 +25,29 @@
 
 #include "flang.h"
 
-int dbg_debug_level = 4;
+int log_debug_level = 4;
 
 void fl_print_type(size_t ty_id) {
   fl_type_t ty = fl_type_table[ty_id];
 
   switch (ty.of) {
   case FL_VOID:
-    printf("[%zu] VOID\n", ty_id);
+    log_debug("[%zu] VOID", ty_id);
     break;
   case FL_NUMBER:
-    printf("[%zu] Number (fp %d, bits %d, sign %d)\n", ty_id, ty.number.fp,
+  log_debug("[%zu] Number (fp %d, bits %d, sign %d)", ty_id, ty.number.fp,
            ty.number.bits, ty.number.sign);
     break;
   case FL_POINTER:
-    printf("[%zu] Pointer -> ", ty_id);
+    log_debug("[%zu] Pointer -> ", ty_id);
     fl_print_type(ty.ptr.to);
     break;
   case FL_VECTOR:
-    printf("[%zu] Vector -> ", ty_id);
+  log_debug("[%zu] Vector -> ", ty_id);
     fl_print_type(ty.vector.to);
     break;
   case FL_FUNCTION:
-    printf("[%zu] Function -> ", ty.id ? ty.id->value : "Anonymous");
+  log_debug("[%zu] Function -> ", ty.id ? ty.id->value : "Anonymous");
     size_t i;
     fl_print_type(ty.func.ret);
     for (i = 0; i < ty.func.nparams; ++i) {
@@ -67,7 +67,7 @@ void fl_print_type_table() {
 bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
                      void* userdata) {
   if (!node) {
-    printf("(null)\n");
+    log_warning("fl_ast_debug_cb: null\n");
     return true;
   }
   level = level * 2;
@@ -166,7 +166,7 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
 }
 
 void fl_ast_debug(fl_ast_t* node) {
-  if (dbg_debug_level >= 4) {
+  if (log_debug_level >= 4) {
     fl_ast_traverse(node, fl_ast_debug_cb, 0, 0, 0);
   }
 }

@@ -45,7 +45,7 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
   }
 
   if (!ast) {
-    dbg_warning("(fl_ast_traverse) : null\n");
+    log_warning("fl_ast_traverse: (nil)");
     return;
   }
 
@@ -157,7 +157,7 @@ void* fl_ast_reverse(fl_ast_t* ast, fl_ast_ret_cb_t cb, fl_ast_t* parent,
   }
 
   if (!ast) {
-    dbg_warning("(fl_ast_reverse) : null\n");
+    log_warning("fl_ast_reverse: (nil)");
     return 0;
   }
 
@@ -351,7 +351,7 @@ fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {
         fl_ast_t* list = node->func.params;
         while ((tmp = list->list.elements[i++]) != 0) {
           if (st_cmp(name, tmp->param.id->identifier.string) == 0) {
-            dbg_verbose("(ast) found param %zu\n", i);
+            log_verbose("found parameter @ [%zu]", i);
             return tmp->param.id;
           }
         }
@@ -366,7 +366,7 @@ fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {
         while ((tmp = node->block.body[i++]) != 0) {
           if (tmp->type == FL_AST_DTOR_VAR &&
               st_cmp(name, tmp->var.id->identifier.string) == 0) {
-            dbg_verbose("(ast) found dtor @ %zu index\n", i);
+            log_verbose("found var decl @ [%zu]", i);
             return tmp;
           }
         }
@@ -383,10 +383,10 @@ size_t fl_ast_get_typeid(fl_ast_t* node) {
   // check AST is somewhat "type-related"
   switch (node->type) {
   case FL_AST_DTOR_VAR:
-    dbg_verbose("(ast) dtor: %zu\n", node->var.type->ty_id);
+    log_verbose("var decl T(%zu)", node->var.type->ty_id);
     return node->var.type->ty_id;
   case FL_AST_PARAMETER:
-    dbg_verbose("(ast) parameter: %zu\n", node->param.id->ty_id);
+    log_verbose("parameter T(%zu)", node->param.id->ty_id);
     return node->param.id->ty_id;
   case FL_AST_EXPR_CALL: {
     // search function
@@ -404,7 +404,7 @@ size_t fl_ast_get_typeid(fl_ast_t* node) {
       return node->ty_id;
     }
 
-    dbg_verbose("(ast) identifier: %s\n", node->identifier.string->value);
+    log_verbose("identifier T(%s)", node->identifier.string->value);
     // search var-dtor and return it
     fl_ast_t* dtor = fl_ast_search_decl_var(node, node->identifier.string);
     if (dtor) {
@@ -412,7 +412,7 @@ size_t fl_ast_get_typeid(fl_ast_t* node) {
     }
   } break;
   case FL_AST_TYPE:
-    dbg_verbose("(ast) type: %zu\n", node->ty_id);
+    log_verbose("type T(%zu)", node->ty_id);
     return node->ty_id;
   case FL_AST_CAST:
     return node->ty_id;
@@ -427,7 +427,7 @@ size_t fl_ast_get_typeid(fl_ast_t* node) {
     return 13;
   default: {}
   }
-  cg_error("(ast) node is not type related! %d\n", node->type);
+  log_error("fl_ast_get_typeid: node is not type related! %d", node->type);
 }
 
 bool fl_ast_is_pointer(fl_ast_t* node) {
@@ -441,7 +441,7 @@ size_t fl_ast_ret_type(fl_ast_t* node) {
     return fl_ast_ret_type(node->assignament.right);
   case FL_AST_LIT_NUMERIC:
     return node->ty_id;
-  default: { cg_error("(fl_ast_ret_type) cannot find type!"); }
+  default: { log_error("fl_ast_ret_type: cannot find type!"); }
   }
 
   return 0;
@@ -452,9 +452,6 @@ bool fl_ast_find_fn_decl_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
 
   if (node->type == FL_AST_DECL_FUNCTION) {
     string* id = (string*)userdata;
-
-    dbg_silly("chk %s - %s\n", id->value,
-              node->func.id->identifier.string->value);
 
     if (st_cmp(id, node->func.id->identifier.string) == 0) {
       *ret = node;
@@ -467,7 +464,7 @@ bool fl_ast_find_fn_decl_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
 
 fl_ast_t* fl_ast_find_fn_decl(fl_ast_t* identifier) {
   if (identifier->type != FL_AST_LIT_IDENTIFIER) {
-    cg_error("(fl_ast_find_fn_decl) must be an identifier!");
+    log_error("(fl_ast_find_fn_decl) must be an identifier!");
   }
 
   return (fl_ast_t*)fl_ast_reverse(identifier, fl_ast_find_fn_decl_cb, 0, 0,

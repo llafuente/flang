@@ -131,7 +131,7 @@ fl_ast_t* psr_read_list(psr_read_t* arr, size_t length, PSR_READ_HEADER) {
 
     fl_parser_look_ahead(stack, state);
     target = arr[i](tokens, stack, state);
-    dbg_debug("psr_read_list: %d [%p]\n", i, target);
+    log_debug("psr_read_list: %d [%p]\n", i, target);
     if (!target || target->type == FL_AST_ERROR) {
       fl_parser_rollback(stack, state);
       continue;

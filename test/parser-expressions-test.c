@@ -29,7 +29,7 @@
 
 // TODO review if ";" is required
 TASK_IMPL(parser_expressions) {
-  dbg_debug_level = 0;
+  log_debug_level = 0;
 
   TEST_PARSER_OK("expressions 01", "1+2", {
     ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
@@ -160,8 +160,6 @@ TASK_IMPL(parser_expressions) {
   TEST_PARSER_OK("equality", "5.0 == 5.0", {
     ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
   });
-
-  dbg_debug_level = 10;
 
   TEST_PARSER_OK("equality 2", "var i32 i; i = 1; i == 5.0", {});
 

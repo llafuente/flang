@@ -30,7 +30,7 @@ PSR_READ_IMPL(stmt_for) {
     return 0;
   }
 
-  cg_print("(parser) if start!");
+  log_debug("(parser) if start!");
   PSR_START(stmt, FL_AST_STMT_LOOP);
   stmt->loop.type = FL_AST_STMT_FOR;
 
@@ -75,7 +75,7 @@ PSR_READ_IMPL(stmt_while) {
     return 0;
   }
 
-  cg_print("(parser) if start!");
+  log_debug("(parser) if start!");
   PSR_START(stmt, FL_AST_STMT_LOOP);
   stmt->loop.type = FL_AST_STMT_WHILE;
 
@@ -100,7 +100,7 @@ PSR_READ_IMPL(stmt_dowhile) {
     return 0;
   }
 
-  cg_print("(parser) if start!");
+  log_debug("(parser) if start!");
   PSR_START(stmt, FL_AST_STMT_LOOP);
   stmt->loop.type = FL_AST_STMT_DOWHILE;
 

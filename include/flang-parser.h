@@ -164,7 +164,7 @@
   target->err.zone = FL_ERROR_SYNTAX;
 
 #define PSR_RET_SYNTAX_ERROR(target, string)                                   \
-  cg_print("(psr-err) %s\n", string);                                          \
+  log_verbose("(psr-err) %s\n", string);                                       \
   PSR_SET_SYNTAX_ERROR(target, string)                                         \
   return target;
 

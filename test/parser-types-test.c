@@ -40,7 +40,7 @@ void test_parser_type(fl_ast_t* body, size_t typeid) {
 
 // TODO review if ";" is required
 TASK_IMPL(parser_types) {
-  dbg_debug_level = 0;
+  log_debug_level = 0;
 
   TEST_PARSER_OK("bool type=2", "var bool hello;",
                  { test_parser_type(*body, 2); });

@@ -59,10 +59,10 @@ fl_ast_t* fl_parser(fl_token_list_t* tokens) {
 }
 
 void fl_parse_core(fl_ast_t* root) {
-  int odbg_debug_level = dbg_debug_level;
-  dbg_debug_level = 0;
+  int olog_debug_level = log_debug_level;
+  log_debug_level = 0;
   root->program.core = fl_parse_file("./../core/ffi-c.fl", true);
-  dbg_debug_level = odbg_debug_level;
+  log_debug_level = olog_debug_level;
 }
 
 fl_ast_t* fl_parse(string* code) {
@@ -75,17 +75,15 @@ fl_ast_t* fl_parse(string* code) {
 
   // do inference
   fl_ast_debug(root);
-  cg_print("(parser) first inference\n");
+  log_debug("(parser) first inference");
   fl_pass_inference(root);
-  cg_print("(parser) typesystem\n");
+  log_debug("(parser) typesystem");
   ts_pass(root);
-  cg_print("(parser) second inference\n");
+  log_debug("(parser) second inference");
   fl_pass_inference(root);
 
   // TODO remove this, just for debugging purpose
-  printf(stderr, "\n\n*******************************\n");
   fl_ast_debug(root);
-  printf(stderr, "\n*******************************\n\n");
 
   return root;
 }
@@ -124,7 +122,7 @@ fl_ast_t* fl_parse_file(char* filename, bool core) {
   fl_ast_t* r = fl_parse(code);
 
   if (!core) {
-    cg_print("PARSING CORE!\n");
+    log_debug("PARSING CORE!\n");
     // parse core
     fl_parse_core(r);
   }

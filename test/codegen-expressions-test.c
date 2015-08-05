@@ -29,6 +29,8 @@
 
 // TODO review if ";" is required
 TASK_IMPL(codegen_expressions) {
+  log_debug_level = 0;
+  
   TEST_CODEGEN_OK("expr 01", "var i64 c; c = 1 + 2;", {});
   // TODO make it work, core should be parsed before
   // TEST_CODEGEN_OK("expr 02", "var string hello;", {});

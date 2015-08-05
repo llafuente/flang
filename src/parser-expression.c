@@ -45,16 +45,16 @@ PSR_READ_IMPL(expr_assignment) {
 PSR_READ_IMPL(expr_assignment_full) {
   PSR_START(ast, FL_AST_EXPR_ASSIGNAMENT);
 
-  dbg_silly("(expr_assignment_full) left\n");
+  log_silly("(expr_assignment_full) left");
   ast->assignament.left = PSR_READ(expr_lhs);
 
   // TODO manage errors
   if (!ast->assignament.left) {
-    dbg_silly("(expr_assignment_full) ko\n");
+    log_silly("(expr_assignment_full) ko");
     PSR_RET_KO(ast);
   }
 
-  // printf("(parser) expr_assignment_full left\n");
+  // printf("(parser) expr_assignment_full left");
 
   PSR_SKIPWS();
 
@@ -79,23 +79,23 @@ PSR_READ_IMPL(expr_assignment_full) {
     ast->assignament.operator= state->token->type;
     break;
   default:
-    dbg_silly("(expr_assignment_full) ko 2\n");
+    log_silly("(expr_assignment_full) ko 2");
     PSR_RET_KO(ast);
   }
   PSR_NEXT();
-  // printf("(parser) expr_assignment_full operator\n");
+  // printf("(parser) expr_assignment_full operator");
 
   PSR_SKIPWS();
 
-  dbg_silly("(expr_assignment_full) right\n");
+  log_silly("(expr_assignment_full) right");
   ast->assignament.right = PSR_READ(expr_assignment);
   // TODO manage errors
   if (!ast->assignament.right) {
-    dbg_silly("(expr_assignment_full) ko 3\n");
+    log_silly("(expr_assignment_full) ko 3");
     PSR_RET_KO(ast);
   }
 
-  dbg_silly("(expr_assignment_full) ok\n");
+  log_silly("(expr_assignment_full) ok");
 
   PSR_RET_OK(ast);
 }
@@ -103,7 +103,7 @@ PSR_READ_IMPL(expr_assignment_full) {
 PSR_READ_IMPL(expr_lhs) {
   fl_ast_t* ast;
 
-  // printf("**expr_lhs %s\n", state->token->string->value);
+  // printf("**expr_lhs %s", state->token->string->value);
 
   FL_TRY_READ(expr_call);
   FL_TRY_READ(expr_primary);
@@ -119,7 +119,7 @@ PSR_READ_IMPL(expr_primary) {
   // TODO lit_array, lit_object?
   PSR_READ_OK(literal, literal);
   if (literal) {
-    dbg_silly("(expr-primary) literal!\n");
+    log_silly("(expr-primary) literal!");
     if (literal->type == FL_AST_LIT_IDENTIFIER) {
       literal->identifier.resolve = true;
     }
@@ -127,18 +127,18 @@ PSR_READ_IMPL(expr_primary) {
   }
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_LPARENTHESIS)) {
-    dbg_silly("(expr-primary) no group\n");
+    log_silly("(expr-primary) no group");
     return 0;
   }
 
-  dbg_silly("(expr-primary) parenthesis\n");
+  log_silly("(expr-primary) parenthesis");
 
   fl_ast_t* inside = PSR_READ(expr_logical_or); // TODO expression
   PSR_RET_IF_ERROR(inside, {});
 
   PSR_EXPECT_TOKEN(FL_TK_RPARENTHESIS, inside, {}, "expected ')'");
 
-  dbg_silly("(expr-primary) group readed!\n");
+  log_silly("(expr-primary) group readed!");
 
   PSR_RET_OK(inside);
 }
@@ -162,12 +162,12 @@ rest:(
 
 PSR_READ_IMPL(expr_member) {
   // PSR_START(member, FL_AST_EXPR_MEMBER);
-  dbg_debug("expr_member\n");
+  log_debug("expr_member");
   psr_read_t left[] = {PSR_READ_NAME(expr_primary),
                        PSR_READ_NAME(expr_new_full)};
   fl_ast_t* member_left = psr_read_list(left, 2, PSR_READ_HEADER_SEND);
   if (!member_left) {
-    dbg_debug("invalid left\n");
+    log_debug("invalid left");
     return 0;
   }
 
@@ -187,25 +187,25 @@ PSR_READ_IMPL(expr_member) {
     last = member;
 
     if (PSR_ACCEPT_TOKEN(FL_TK_DOT)) {
-      dbg_debug("dot accesss\n");
+      log_debug("dot accesss");
       PSR_SKIPWS();
       PSR_READ_OR_DIE(property, lit_identifier, {
         fl_ast_delete(last);
         fl_ast_delete(property);
       }, "expected expression");
-      dbg_debug("dot accesss - ok\n");
+      log_debug("dot accesss - ok");
       last->member.property = property;
 
       PSR_END(member);
     } else if (PSR_ACCEPT_TOKEN(FL_TK_LBRACKET)) {
-      dbg_debug("bracket access\n");
+      log_debug("bracket access");
       PSR_SKIPWS();
 
       PSR_READ_OR_DIE(property, expression, {
         fl_ast_delete(last);
         fl_ast_delete(property);
       }, "expected identifier");
-      dbg_debug("bracket access - ok\n");
+      log_debug("bracket access - ok");
 
       last->member.property = property;
 
@@ -252,10 +252,10 @@ fl_ast_t* PSR_READ_binop(PSR_READ_HEADER, fl_tokens_t operators[], size_t n_ops,
     ast->binop.left = 0;
     ast->binop.right = 0;
 
-    // printf("state before literal %lu [%p]\n", state->current,
+    // printf("state before literal %lu [%p]", state->current,
     // ast->binop.left);
     ast->binop.left = next(PSR_READ_HEADER_SEND);
-    // printf("state after literal %lu [%p]\n", state->current,
+    // printf("state after literal %lu [%p]", state->current,
     // ast->binop.left);
 
     if (!ast->binop.left) {

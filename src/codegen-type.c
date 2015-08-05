@@ -37,7 +37,7 @@ LLVMTypeRef fl_codegen_get_typeid(size_t id, LLVMContextRef context) {
     return (LLVMTypeRef)t.codegen;
   }
 
-  cg_print("(codegen) llvm for typeid = %zu\n", id);
+  log_verbose("llvm for typeid = %zu", id);
 
   switch (t.of) {
   case FL_VOID:
@@ -54,7 +54,7 @@ LLVMTypeRef fl_codegen_get_typeid(size_t id, LLVMContextRef context) {
         break;
       }
     } else {
-      cg_print("(codegen) t.number.bits %d\n", t.number.bits);
+      log_silly("t.number.bits %d", t.number.bits);
 
       t.codegen = (void*)LLVMIntType(t.number.bits);
     }
@@ -78,11 +78,11 @@ LLVMTypeRef fl_codegen_get_typeid(size_t id, LLVMContextRef context) {
     LLVMStructSetBody(t.codegen, types, count, 0);
     free(types);
   } break;
-  default: { cg_error("(codegen) type not handled yet [%zu].\n", id); }
+  default: { log_error("type not handled yet [%zu]", id); }
   }
 
   if (!t.codegen) {
-    cg_error("(codegen) cannot find LLVM-type.\n");
+    log_error("cannot find LLVM-type");
   }
 
   return (LLVMTypeRef)t.codegen;
@@ -91,8 +91,7 @@ LLVMTypeRef fl_codegen_get_typeid(size_t id, LLVMContextRef context) {
 LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
                                 size_t expected, LLVMValueRef value,
                                 LLVMContextRef context) {
-  cg_print("(codegen) *casting types [%zu == %zu] [%p]\n", expected, current,
-           value);
+  log_debug("cast [%zu == %zu] [%p]", expected, current, value);
 
   if (expected == current) {
     return value;
@@ -106,7 +105,7 @@ LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
     case FL_NUMBER:
       // fpto*i
       if (cu_type.number.fp && !ex_type.number.fp) {
-        cg_print("(codegen) fptosi");
+        log_verbose("fptosi");
 
         if (ex_type.number.sign) {
           return LLVMBuildFPToSI(
@@ -118,7 +117,7 @@ LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
       }
       // *itofp
       if (!cu_type.number.fp && ex_type.number.fp) {
-        cg_print("(codegen) sitofp\n");
+        log_verbose("sitofp");
 
         if (ex_type.number.sign) {
           return LLVMBuildSIToFP(
@@ -135,7 +134,8 @@ LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
 
       // upcast
       if (cu_type.number.bits < ex_type.number.bits) {
-        cg_print("(codegen) upcast\n");
+        log_verbose("upcast");
+
         if (fp) {
           return LLVMBuildFPExt(
               builder, value, fl_codegen_get_typeid(expected, context), "cast");
@@ -154,7 +154,8 @@ LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
 
       // downcast / truncate
       if (cu_type.number.bits > ex_type.number.bits) {
-        cg_print("(codegen) downcast");
+        log_verbose("downcast");
+
         if (fp) {
           return LLVMBuildFPTrunc(
               builder, value, fl_codegen_get_typeid(expected, context), "cast");
@@ -165,12 +166,11 @@ LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,
       break;
     default: {
       // TODO more friendly
-      cg_error("(codegen) invalid cast of type %zu to %zu", current, expected);
+      log_error("invalid cast of type %zu to %zu", current, expected);
     }
     }
   }
 
-  cg_error("(codegen) invalid casting");
-  // LLVMBuildSIToFP(LLVMBuilderRef B, LLVMValueRef Val, LLVMTypeRef DestTy,
-  // const char *Name)
+  log_error("invalid casting");
+  return 0;
 }

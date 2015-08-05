@@ -29,7 +29,7 @@
 
 // TODO review if ";" is required
 TASK_IMPL(parser_functions) {
-  dbg_debug_level = 0;
+  log_debug_level = 0;
 
   TEST_PARSER_OK("function 01", "fn x() {}", {
     ASSERT(body[0]->type == FL_AST_DECL_FUNCTION, "FL_AST_DECL_FUNCTION");

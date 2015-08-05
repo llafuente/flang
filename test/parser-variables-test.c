@@ -29,7 +29,7 @@
 
 // TODO review if ";" is required
 TASK_IMPL(parser_variables) {
-  dbg_debug_level = 0;
+  log_debug_level = 0;
 
   TEST_PARSER_OK("var decl 01", "var hello;", {
     ASSERT(body[0]->type == FL_AST_DTOR_VAR, "type: FL_AST_DTOR_VAR");

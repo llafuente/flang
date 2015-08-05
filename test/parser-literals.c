@@ -29,7 +29,7 @@
 
 // TODO review if ";" is required
 TASK_IMPL(parser_literals) {
-  dbg_debug_level = 0;
+  log_debug_level = 0;
 
   TEST_PARSER_OK("string literals 01", "\"hello:\\\"w\'orld\"", {
     ASSERT(body[0]->type == FL_AST_LIT_STRING, "FL_AST_LIT_STRING");

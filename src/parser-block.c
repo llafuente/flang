@@ -27,13 +27,12 @@
 
 PSR_READ_IMPL(block) {
   PSR_START(block, FL_AST_BLOCK);
-  cg_print("start block\n");
+  log_debug("start block");
 
   PSR_EXPECT_TOKEN(FL_TK_LCBRACKET, block, {}, "expected '{'");
 
   PSR_SKIPWS();
 
-  cg_print("{ readed \n");
   fl_parser_look_ahead(stack, state);
 
   PSR_EXTEND(block, block_body);
@@ -42,13 +41,12 @@ PSR_READ_IMPL(block) {
 
   PSR_EXPECT_TOKEN(FL_TK_RCBRACKET, block,
                    { fl_parser_rollback(stack, state); }, "expected '}'");
-  cg_print("} readed \n");
 
   PSR_SKIPWS();
 
   fl_parser_commit(stack, state);
 
-  cg_print("end block ok\n");
+  log_debug("end block ok");
 
   PSR_RET_OK(block);
 }
@@ -79,7 +77,7 @@ void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend) {
     last = i;
 
     for (j = 0; j < 10; ++j) {
-      dbg_verbose("read block id: %zu", j);
+      log_verbose("read block id: %zu", j);
       fl_parser_look_ahead(stack, state);
       stmt = block_stmts[j](PSR_READ_HEADER_SEND);
 

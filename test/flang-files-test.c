@@ -82,6 +82,7 @@ string* execute(char* cmd) {
 }
 
 TASK_IMPL(flang_files) {
+  log_debug_level = 0;
 
   char* files[] = {"../test/fl/expressions", "../test/fl/casting",
                    "../test/fl/if", "../test/fl/loops", "../test/fl/types"};
@@ -98,7 +99,9 @@ TASK_IMPL(flang_files) {
   size_t i;
 
   for (i = 0; i < nfiles; ++i) {
-    printf("\033[2J"); // "clear screen"
+    if (log_debug_level >= 4) {
+      printf("\033[2J"); // "clear screen"
+    }
 
     fl_file[0] = '\0';
     strcat(fl_file, files[i]);

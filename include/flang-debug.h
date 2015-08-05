@@ -29,7 +29,7 @@
 
 #include <libgen.h>
 
-extern int dbg_debug_level;
+extern int log_debug_level;
 
 // 0 - error
 // 1 - warning
@@ -38,42 +38,35 @@ extern int dbg_debug_level;
 // 4 - verbose
 // 5 - silly
 #define dbg(level, ...)                                                        \
-  if (dbg_debug_level >= level) {                                              \
+  if (log_debug_level >= level) {                                              \
     char buf[] = __FILE__;                                                     \
-    fprintf(stderr, "%s:%d ", basename(buf), __LINE__);                        \
+    fprintf(stderr, "%20s:%d ", basename(buf), __LINE__);                        \
     fprintf(stderr, __VA_ARGS__);                                              \
     fprintf(stderr, "\n");                                                     \
+    if (level == 0) {                                                          \
+      void* array[10];                                                         \
+      size_t size;                                                             \
+      char** strings;                                                          \
+      size_t i;                                                                \
+                                                                               \
+      size = backtrace(array, 10);                                             \
+      strings = backtrace_symbols(array, size);                                \
+                                                                               \
+      fprintf(stderr, "Obtained %zd stack frames.\n", size);                   \
+                                                                               \
+      for (i = 0; i < size; i++) {                                             \
+        fprintf(stderr, "%s\n", strings[i]);                                   \
+      }                                                                        \
+                                                                               \
+      free(strings);                                                           \
+                                                                               \
+      exit(1);                                                                 \
+    }                                                                          \
   }
 
-#define dbg_error(...) dbg(0, __VA_ARGS__)
-#define dbg_warning(...) dbg(1, __VA_ARGS__)
-#define dbg_info(...) dbg(2, __VA_ARGS__)
-#define dbg_debug(...) dbg(3, __VA_ARGS__)
-#define dbg_verbose(...) dbg(4, __VA_ARGS__)
-#define dbg_silly(...) dbg(5, __VA_ARGS__)
-
-#define cg_print(...) dbg_debug(__VA_ARGS__);
-
-#define cg_error(...)                                                          \
-  do {                                                                         \
-    dbg_error(__VA_ARGS__);                                                    \
-    dbg_error("@%s - %d\n", __FILE__, __LINE__);                               \
-                                                                               \
-    void* array[10];                                                           \
-    size_t size;                                                               \
-    char** strings;                                                            \
-    size_t i;                                                                  \
-                                                                               \
-    size = backtrace(array, 10);                                               \
-    strings = backtrace_symbols(array, size);                                  \
-                                                                               \
-    fprintf(stderr, "Obtained %zd stack frames.\n", size);                     \
-                                                                               \
-    for (i = 0; i < size; i++) {                                               \
-      fprintf(stderr, "%s\n", strings[i]);                                     \
-    }                                                                          \
-                                                                               \
-    free(strings);                                                             \
-                                                                               \
-    exit(1);                                                                   \
-  } while (false)
+#define log_error(...) dbg(0, __VA_ARGS__)
+#define log_warning(...) dbg(1, __VA_ARGS__)
+#define log_info(...) dbg(2, __VA_ARGS__)
+#define log_debug(...) dbg(3, __VA_ARGS__)
+#define log_verbose(...) dbg(4, __VA_ARGS__)
+#define log_silly(...) dbg(5, __VA_ARGS__)

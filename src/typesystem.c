@@ -128,7 +128,7 @@ size_t ts_get_bigger_typeid(size_t a, size_t b) {
   }
 
   // only numbers?
-  cg_print("(typesystem) ts_get_bigger_typeid of %d & %d\n", t_a.of, t_b.of);
+  log_debug("ts_get_bigger_typeid of %d & %d", t_a.of, t_b.of);
 
   return a;
 }
@@ -192,7 +192,7 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     size_t r_type = r->ty_id;
 
     if (l_type != r_type) {
-      dbg_debug("(typesystem) assignament cast [%zu - %zu]\n", l_type, r_type);
+      log_debug("assignament cast [%zu - %zu]", l_type, r_type);
       // TODO check cast if valid!
 
       CREATE_CAST(cast, r, l_type);
@@ -202,7 +202,7 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     node->ty_id = l_type;
   } break;
   case FL_AST_EXPR_BINOP: {
-    cg_print("(typesystem) binop found %d\n", node->binop.operator);
+    log_debug("binop found %d", node->binop.operator);
     fl_ast_debug(node);
     // cast if necessary
     fl_ast_t* l = node->binop.left;
@@ -233,7 +233,7 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     case FL_TK_GT2:
       // left and right must be Integers!
       if (l_fp || r_fp) {
-        cg_error("invalid operants\n");
+        log_error("invalid operants");
       }
       break;
     case FL_TK_EQUAL2:
@@ -295,7 +295,7 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
 }
 
 fl_ast_t* ts_pass(fl_ast_t* node) {
-  cg_print("(ts) pass start!\n");
+  log_debug("pass start!");
 
   fl_ast_traverse(node, ts_pass_cb, 0, 0, 0);
 }
@@ -323,7 +323,7 @@ size_t ts_wapper_typeid(fl_types_t wrapper, size_t child) {
     fl_type_table[i].vector.size = 0;
     fl_type_table[i].vector.to = child;
     break;
-  default: { cg_error("(parser) fl_parser_get_typeid fail\n"); }
+  default: { log_error("ts_wapper_typeid unhandled"); }
   }
 
   return i;
@@ -331,7 +331,7 @@ size_t ts_wapper_typeid(fl_types_t wrapper, size_t child) {
 
 size_t ts_struct_property_idx(size_t id, string* property) {
   if (fl_type_table[id].of != FL_STRUCT) {
-    cg_error("type [%zu] is not an struct\n", id);
+    log_error("type [%zu] is not an struct", id);
   }
 
   fl_ast_t* list = fl_type_table[id].structure.decl->structure.fields;
@@ -348,9 +348,10 @@ size_t ts_struct_property_idx(size_t id, string* property) {
 }
 
 size_t ts_struct_property_type(size_t id, string* property) {
-  cg_print("ts_struct_property_type [%zu] '%s'\n", id, property->value);
+  log_debug("ts_struct_property_type [%zu] '%s'", id, property->value);
+
   if (fl_type_table[id].of != FL_STRUCT) {
-    cg_error("type [%zu] is not an struct\n", id);
+    log_error("type [%zu] is not an struct", id);
   }
 
   fl_ast_t* list = fl_type_table[id].structure.decl->structure.fields;
@@ -381,7 +382,7 @@ size_t ts_struct_create(size_t* list, size_t length, fl_ast_t* decl) {
                       sizeof(size_t) * length)) {
         free(list);
 
-        cg_print("SET type [%zu] = '%s'\n", i, id->value);
+        log_debug("SET type [%zu] = '%s'", i, id->value);
         ht_set(ts_hashtable, id->value, i);
         return i;
       }
@@ -396,7 +397,7 @@ size_t ts_struct_create(size_t* list, size_t length, fl_ast_t* decl) {
   fl_type_table[i].structure.fields = list;
   fl_type_table[i].structure.nfields = length;
 
-  cg_print("SET type [%zu] = '%s'\n", i, id->value);
+  log_debug("SET type [%zu] = '%s'", i, id->value);
   ht_set(ts_hashtable, id->value, i);
   /*
   size_t t = ht_get(ts_hashtable, id->value);
@@ -427,7 +428,7 @@ size_t ts_fn_create(fl_ast_t* decl) {
                       sizeof(size_t) * length)) {
         free(tparams);
 
-        cg_print("SET fn type [%zu] = '%s'\n", i, id->value);
+        log_debug("SET fn type [%zu] = '%s'", i, id->value);
         ht_set(ts_hashtable, id->value, i);
         return i;
       }
@@ -444,7 +445,7 @@ size_t ts_fn_create(fl_ast_t* decl) {
   fl_type_table[i].func.ret = ret;
   fl_type_table[i].func.varargs = decl->func.varargs;
 
-  cg_print("SET fn type [%zu] = '%s'\n", i, id->value);
+  log_debug("SET fn type [%zu] = '%s'", i, id->value);
   ht_set(ts_hashtable, id->value, i);
   /*
   size_t t = ht_get(ts_hashtable, id->value);
@@ -474,8 +475,8 @@ size_t ts_var_typeid(fl_ast_t* id) {
   fl_ast_t* decl = fl_ast_search_decl_var(id, id->identifier.string);
 
   if (!decl) {
-    cg_error("(ts) cannot find var declaration %s\n",
-             id->identifier.string->value);
+    log_error("(ts) cannot find var declaration %s",
+              id->identifier.string->value);
   }
 
   return fl_ast_get_typeid(decl);
