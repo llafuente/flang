@@ -201,6 +201,39 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     }
     node->ty_id = l_type;
   } break;
+  case FL_AST_EXPR_CALL: {
+    if (!node->ty_id) {
+      ts_pass(node->call.callee);
+    }
+
+    if (!node->call.callee->ty_id) {
+      log_warning("ignore expr call type");
+      break; //TODO passthought printf atm
+    }
+
+    fl_type_t* t = &fl_type_table[node->call.callee->ty_id];
+    assert(t->of != FL_FUNCTION);
+
+    fl_ast_debug(node);
+
+    // cast arguments
+    fl_ast_t* args = node->call.arguments;
+    fl_ast_t* arg;
+    size_t i;
+    size_t count = args->list.count;
+
+    for (i = 0; i < count; ++i) {
+      arg = args->list.elements[i];
+      ts_pass(arg);
+
+      if (arg->ty_id != t->func.params[i]) {
+        // cast right side
+        CREATE_CAST(cast, arg, t->func.params[i]);
+        args->list.elements[i] = cast;
+      }
+    }
+
+  } break;
   case FL_AST_EXPR_BINOP: {
     log_debug("binop found %d", node->binop.operator);
     fl_ast_debug(node);
@@ -269,21 +302,11 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
       } else if (l_fp && r_fp) {
       } else if (l_fp && !r_fp) {
         // upcast right
-        fl_ast_t* cast = (fl_ast_t*)calloc(1, sizeof(fl_ast_t));
-        cast->token_start = 0;
-        cast->token_end = 0;
-        cast->type = FL_AST_CAST;
-        cast->ty_id = l_type;
-        cast->cast.element = node->binop.right;
+        CREATE_CAST(cast, node->binop.right, l_type);
         node->binop.right = cast;
         node->ty_id = l_type;
       } else {
-        fl_ast_t* cast = (fl_ast_t*)calloc(1, sizeof(fl_ast_t));
-        cast->token_start = 0;
-        cast->token_end = 0;
-        cast->type = FL_AST_CAST;
-        cast->ty_id = r_type;
-        cast->cast.element = node->binop.left;
+        CREATE_CAST(cast, node->binop.left, r_type);
         node->binop.left = cast;
         node->ty_id = r_type;
       }

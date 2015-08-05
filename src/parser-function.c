@@ -153,6 +153,7 @@ PSR_READ_IMPL(parameter_typed) {
   ast->param.type = type;
   ast->param.id = id;
   id->ty_id = type->ty_id;
+  ast->ty_id = type->ty_id;
 
   PSR_RET_OK(ast);
 }

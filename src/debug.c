@@ -47,12 +47,14 @@ void fl_print_type(size_t ty_id) {
     fl_print_type(ty.vector.to);
     break;
   case FL_FUNCTION:
-  log_debug("[%zu] Function -> ", ty.id ? ty.id->value : "Anonymous");
+  log_debug("[%s] Function arity(%zu) -> [%zu]", ty.id ? ty.id->value : "Anonymous", ty.func.nparams, ty.func.ret);
     size_t i;
     fl_print_type(ty.func.ret);
+    log_debug("**");
     for (i = 0; i < ty.func.nparams; ++i) {
       fl_print_type(ty.func.params[i]);
     }
+    log_debug("**");
   }
 }
 
