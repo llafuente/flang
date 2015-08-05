@@ -176,7 +176,7 @@ PSR_READ_IMPL(decl_struct) {
   PSR_EXPECT_TOKEN(FL_TK_RCBRACKET, structure, { free(ty_list); },
                    "expected '}'");
 
-  structure->ty_id = ts_struct_typeid(ty_list, list->list.count, structure);
+  structure->ty_id = ts_struct_create(ty_list, list->list.count, structure);
 
   PSR_RET_OK(structure);
 }

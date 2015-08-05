@@ -48,10 +48,10 @@ PSR_READ_IMPL(decl_function) {
   // params
   PSR_EXPECT_TOKEN(FL_TK_LPARENTHESIS, fn_node, {}, "expected '('");
 
-  if (!PSR_ACCEPT_TOKEN(FL_TK_RPARENTHESIS)) {
-    PSR_START_LIST(list);
-    fn_node->func.params = list;
+  PSR_START_LIST(list);
+  fn_node->func.params = list;
 
+  if (!PSR_ACCEPT_TOKEN(FL_TK_RPARENTHESIS)) {
     do {
       PSR_SKIPWS();
 
@@ -59,7 +59,6 @@ PSR_READ_IMPL(decl_function) {
       if (PSR_ACCEPT_TOKEN(FL_TK_3DOT)) {
         fn_node->func.varargs = true;
         PSR_SKIPWS();
-
         break;
       }
 
@@ -69,13 +68,12 @@ PSR_READ_IMPL(decl_function) {
 
       PSR_SKIPWS();
     } while (PSR_ACCEPT_TOKEN(FL_TK_COMMA));
-    fn_node->func.nparams = list->list.count;
 
-    PSR_EXPECT_TOKEN(FL_TK_RPARENTHESIS, fn_node, {
-      fl_ast_delete(fn_node->func.id);
-      fl_ast_delete_list(list);
-    }, "expected ')'");
+    PSR_EXPECT_TOKEN(FL_TK_RPARENTHESIS, fn_node, {}, "expected ')'");
   }
+
+  fn_node->func.nparams = list->list.count;
+  PSR_END(list);
 
   PSR_SKIPWS();
 
@@ -94,6 +92,8 @@ PSR_READ_IMPL(decl_function) {
     ty->ty_id = 1;
     fn_node->func.ret_type = ty; // void
   }
+
+  fn_node->ty_id = ts_fn_create(fn_node);
 
   PSR_SKIPWS();
 

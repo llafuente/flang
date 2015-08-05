@@ -454,11 +454,11 @@ PSR_READ_IMPL(expr_unary_right) {
 PSR_READ_IMPL(expr_argument) { return PSR_READ(expression); }
 
 PSR_READ_IMPL(expr_call) {
-  PSR_START(ast, FL_AST_EXPR_CALL);
+  PSR_START(ecall, FL_AST_EXPR_CALL);
 
-  fl_ast_t* callee = PSR_READ(expr_member);
+  PSR_READ_OK(callee, expr_member)
   if (!callee) {
-    PSR_RET_KO(ast); // soft
+    PSR_RET_KO(ecall); // soft
   }
 
   // TODO if return member expression undo the skip?
@@ -466,32 +466,30 @@ PSR_READ_IMPL(expr_call) {
 
   // at least return member expression
   if (!PSR_ACCEPT_TOKEN(FL_TK_LPARENTHESIS)) {
-    fl_ast_delete(ast);
+    fl_ast_delete(ecall);
     return callee;
   }
 
   // from now on, hard!
-  ast->call.callee = callee;
+  ecall->call.callee = callee;
 
   PSR_SKIPWS();
 
-  fl_ast_t** list = calloc(100, sizeof(fl_ast_t*)); // TODO resize support
-  size_t i = 0;
+  PSR_START_LIST(list);
+  ecall->call.arguments = list;
   do {
     PSR_SKIPWS();
 
-    list[i++] = PSR_READ(expr_argument);
+    PSR_READ_OR_DIE(argument, expr_argument, { fl_ast_delete(ecall); },
+                    "expected function argument");
+
+    list->list.elements[list->list.count++] = argument;
 
     PSR_SKIPWS();
   } while (PSR_ACCEPT_TOKEN(FL_TK_COMMA));
-  ast->call.arguments = list;
-  ast->call.narguments = i;
+  ecall->call.narguments = list->list.count;
 
-  if (!PSR_ACCEPT_TOKEN(FL_TK_RPARENTHESIS)) {
-    fl_ast_delete_list(list);
-    fl_ast_delete(callee);
-    PSR_RET_SYNTAX_ERROR(ast, "expected ')'");
-  }
+  PSR_EXPECT_TOKEN(FL_TK_RPARENTHESIS, callee, {}, "expected ')'");
 
-  PSR_RET_OK(ast);
+  PSR_RET_OK(ecall);
 }

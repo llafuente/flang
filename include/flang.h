@@ -24,6 +24,7 @@
 */
 
 #include "flang-parser.h"
+#include "flang-debug.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -433,7 +434,7 @@ struct fl_ast {
 
     struct fl_ast_expr_call {
       fl_ast_t* callee;
-      struct fl_ast** arguments;
+      struct fl_ast* arguments;
       size_t narguments;
     } call;
 
@@ -514,9 +515,10 @@ struct fl_type {
       size_t ret;
       size_t* params;
       size_t nparams;
+      bool varargs;
 
       fl_ast_t* decl;
-    } fn;
+    } func;
 
     struct fl_type_struct {
       size_t* fields;
@@ -538,56 +540,6 @@ struct fl_enum_members {
   string* name;
   size_t value;
 };
-
-//-
-//- DEBUG MACROS
-//-
-
-extern int dbg_debug_level;
-// 0 - error
-// 1 - warning
-// 2 - info
-// 3 - debug
-// 4 - verbose
-// 5 - silly
-#define dbg(level, ...)                                                        \
-  if (dbg_debug_level >= level) {                                              \
-    fprintf(stderr, "%s:%d ", __FILE__, __LINE__);                             \
-    fprintf(stderr, __VA_ARGS__);                                              \
-  }
-
-#define dbg_error(...) dbg(0, __VA_ARGS__)
-#define dbg_warning(...) dbg(1, __VA_ARGS__)
-#define dbg_info(...) dbg(2, __VA_ARGS__)
-#define dbg_debug(...) dbg(3, __VA_ARGS__)
-#define dbg_verbose(...) dbg(4, __VA_ARGS__)
-#define dbg_silly(...) dbg(5, __VA_ARGS__)
-
-#define cg_print(...) dbg_debug(__VA_ARGS__);
-
-#define cg_error(...)                                                          \
-  do {                                                                         \
-    dbg_error(__VA_ARGS__);                                                    \
-    dbg_error("@%s - %d\n", __FILE__, __LINE__);                               \
-                                                                               \
-    void* array[10];                                                           \
-    size_t size;                                                               \
-    char** strings;                                                            \
-    size_t i;                                                                  \
-                                                                               \
-    size = backtrace(array, 10);                                               \
-    strings = backtrace_symbols(array, size);                                  \
-                                                                               \
-    fprintf(stderr, "Obtained %zd stack frames.\n", size);                     \
-                                                                               \
-    for (i = 0; i < size; i++) {                                               \
-      fprintf(stderr, "%s\n", strings[i]);                                     \
-    }                                                                          \
-                                                                               \
-    free(strings);                                                             \
-                                                                               \
-    exit(1);                                                                   \
-  } while (false)
 
 //-
 //- MACROS
@@ -638,11 +590,16 @@ FL_EXTERN bool ts_is_int(size_t id);
 FL_EXTERN size_t ts_get_bigger_typeid(size_t a, size_t b);
 FL_EXTERN fl_ast_t* ts_pass(fl_ast_t* node);
 
+// return the unique typeid given ret + arguments
+FL_EXTERN size_t ts_fn_create(fl_ast_t* decl);
+// return the unique typeid given fields
+FL_EXTERN size_t ts_struct_create(size_t* list, size_t length, fl_ast_t* decl);
+
 FL_EXTERN size_t ts_named_typeid(string* id);
-FL_EXTERN size_t ts_struct_typeid(size_t* list, size_t length, fl_ast_t* decl);
 FL_EXTERN size_t ts_struct_property_type(size_t id, string* property);
 FL_EXTERN size_t ts_struct_property_idx(size_t id, string* property);
 
+FL_EXTERN size_t ts_fn_typeid(fl_ast_t* id);
 FL_EXTERN size_t ts_var_typeid(fl_ast_t* id);
 
 FL_EXTERN void ts_init();

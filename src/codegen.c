@@ -579,8 +579,8 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
   i = 0;
   if (node->func.params) {
     while ((tmp = list->list.elements[i]) != 0) {
-      printf("(codegen) set name [%zu]%s\n", i,
-             tmp->param.id->identifier.string->value);
+      dbg_verbose("(codegen) set name [%zu]%s\n", i,
+                  tmp->param.id->identifier.string->value);
       LLVMValueRef param = LLVMGetParam(func, i);
       LLVMSetValueName(param, tmp->param.id->identifier.string->value);
 
@@ -623,8 +623,9 @@ LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER) {
   if (node->call.narguments) {
     size_t i = 0;
     fl_ast_t* tmp;
+    fl_ast_t* list = node->call.arguments;
 
-    while ((tmp = node->call.arguments[i]) != 0) {
+    while ((tmp = list->list.elements[i]) != 0) {
       printf("(codegen) argument! %zu\n", i);
       value = fl_codegen_ast(tmp, FL_CODEGEN_PASSTHROUGH);
       if (!value) {

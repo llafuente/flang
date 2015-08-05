@@ -22,6 +22,7 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+#define STR(val) #val
 
 #define CHK_BODY(root)                                                         \
   ASSERT(root != 0, "root is not null");                                       \
@@ -48,7 +49,7 @@
 
 #define TEST_PARSER_OK(name, code, code_block)                                 \
   {                                                                            \
-    fprintf(stderr, __FILE__ ":" name "\n");                                   \
+    fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
     fl_ast_t* root = fl_parse_utf8(code);                                      \
     CHK_BODY(root);                                                            \
     fl_ast_t** body = root->program.body->block.body;                          \
@@ -59,7 +60,7 @@
 
 #define TEST_PARSER_ERROR(name, code, msg, code_block)                         \
   {                                                                            \
-    fprintf(stderr, __FILE__ ":" name "\n");                                   \
+    fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
     fl_ast_t* root = fl_parse_utf8(code);                                      \
     ASSERT(root != 0, "root is not null");                                     \
     ASSERT(root->type == FL_AST_PROGRAM, "root is a program");                 \
@@ -73,7 +74,7 @@
 
 #define TEST_CODEGEN_OK(name, code, code_block)                                \
   {                                                                            \
-    fprintf(stderr, __FILE__ ":" name "\n");                                   \
+    fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
     fl_ast_t* root = fl_parse_utf8(code);                                      \
     fl_parse_core(root);                                                       \
     CHK_BODY(root);                                                            \

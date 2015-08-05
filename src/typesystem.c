@@ -149,7 +149,8 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
   case FL_AST_LIT_IDENTIFIER: {
     if (node->identifier.resolve) {
       if (node->parent->type == FL_AST_EXPR_CALL) {
-        // TODO solve call expr!
+        node->ty_id = ts_fn_typeid(node);
+        node->parent->ty_id = fl_type_table[node->ty_id].func.ret;
       } else if (node->parent->type == FL_AST_EXPR_MEMBER) {
         // it's handled below, but maybe can be optimized at this level...
       } else {
@@ -172,20 +173,6 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     // now we should know left type
     // get poperty index -> typeid
     node->ty_id = ts_struct_property_type(l->ty_id, p->identifier.string);
-
-  } break;
-  case FL_AST_EXPR_CALL: {
-    fl_ast_t* fdecl = fl_ast_find_fn_decl(node->call.callee);
-    // if (!fdecl) {
-    //  cg_error("(ts) cannot find function %s\n",
-    //  node->call.callee->identifier.string->value);
-    //}
-    cg_print("(typesystem) ret [%p]\n", fdecl);
-    if (fdecl) {
-      // fl_ast_debug(fdecl);
-
-      node->ty_id = fl_ast_get_typeid(fdecl->func.ret_type);
-    }
 
   } break;
   case FL_AST_EXPR_ASSIGNAMENT: {
@@ -380,7 +367,7 @@ size_t ts_struct_property_type(size_t id, string* property) {
 }
 
 // transfer list ownership
-size_t ts_struct_typeid(size_t* list, size_t length, fl_ast_t* decl) {
+size_t ts_struct_create(size_t* list, size_t length, fl_ast_t* decl) {
   size_t i;
   size_t j;
 
@@ -418,6 +405,69 @@ size_t ts_struct_typeid(size_t* list, size_t length, fl_ast_t* decl) {
   return i;
 }
 
+size_t ts_fn_create(fl_ast_t* decl) {
+  string* id = decl->func.id->identifier.string;
+  fl_ast_t* params = decl->func.params;
+  size_t length = params->list.count;
+  size_t* tparams = calloc(length, sizeof(size_t));
+  size_t ret = decl->func.ret_type->ty_id;
+  size_t i;
+
+  for (i = 0; i < length; ++i) {
+    tparams[i] = params->list.elements[i]->ty_id;
+  }
+
+  for (i = 0; i < fl_type_size; ++i) {
+    // function, same parameters length return type and varargs?
+    if (fl_type_table[i].of == FL_FUNCTION &&
+        fl_type_table[i].func.nparams == length &&
+        ret == fl_type_table[i].func.ret &&
+        fl_type_table[i].func.varargs == decl->func.varargs) {
+      if (0 == memcmp(tparams, fl_type_table[i].func.params,
+                      sizeof(size_t) * length)) {
+        free(tparams);
+
+        cg_print("SET fn type [%zu] = '%s'\n", i, id->value);
+        ht_set(ts_hashtable, id->value, i);
+        return i;
+      }
+    }
+  }
+
+  // add it!
+  i = fl_type_size++;
+  fl_type_table[i].of = FL_FUNCTION;
+  fl_type_table[i].id = id;
+  fl_type_table[i].func.decl = decl;
+  fl_type_table[i].func.params = tparams;
+  fl_type_table[i].func.nparams = length;
+  fl_type_table[i].func.ret = ret;
+  fl_type_table[i].func.varargs = decl->func.varargs;
+
+  cg_print("SET fn type [%zu] = '%s'\n", i, id->value);
+  ht_set(ts_hashtable, id->value, i);
+  /*
+  size_t t = ht_get(ts_hashtable, id->value);
+  assert(t != i);
+  */
+  return i;
+}
+
+// TODO global functions!
+size_t ts_fn_typeid(fl_ast_t* id) {
+  assert(id->type != FL_AST_LIT_IDENTIFIER);
+
+  fl_ast_t* fdecl = fl_ast_find_fn_decl(id);
+
+  // TODO search globals and assert!
+  if (fdecl) {
+    return fdecl->ty_id;
+  }
+
+  return 0;
+}
+
+// TODO global vars!
 size_t ts_var_typeid(fl_ast_t* id) {
   assert(id->type != FL_AST_LIT_IDENTIFIER);
 
@@ -443,6 +493,8 @@ void ts_exit() {
     // struct and same length?
     if (fl_type_table[i].of == FL_STRUCT) {
       free(fl_type_table[i].structure.fields);
+    } else if (fl_type_table[i].of == FL_FUNCTION) {
+      free(fl_type_table[i].func.params);
     }
   }
 

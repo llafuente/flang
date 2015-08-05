@@ -28,6 +28,8 @@
 #include "test.h"
 
 TASK_IMPL(parser_if) {
+  dbg_debug_level = 0;
+
   TEST_PARSER_OK("function 01", "var bool b; b = 1;"
                                 "if (b == true) { printf('ok'); }",
                  {});

@@ -45,7 +45,7 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
   }
 
   if (!ast) {
-    printf("(fl_ast_traverse) : null\n");
+    dbg_warning("(fl_ast_traverse) : null\n");
     return;
   }
 
@@ -81,7 +81,7 @@ void fl_ast_traverse(fl_ast_t* ast, fl_ast_cb_t cb, fl_ast_t* parent,
     break;
   case FL_AST_EXPR_CALL: {
     TRAVERSE(ast->call.callee);
-    TRAVERSE_LIST(ast->call.arguments);
+    TRAVERSE(ast->call.arguments);
   } break;
   case FL_AST_EXPR_MEMBER: {
     TRAVERSE(ast->member.left);
@@ -136,7 +136,9 @@ void* fl_ast_reverse(fl_ast_t* ast, fl_ast_ret_cb_t cb, fl_ast_t* parent,
   void* ret;
 #define REVERSE(node)                                                          \
   if (node) {                                                                  \
-    return fl_ast_reverse(node, cb, ast, level, userdata);                     \
+    ret = fl_ast_reverse(node, cb, ast, level, userdata);                      \
+    if (ret)                                                                   \
+      return ret;                                                              \
   }
 
 #define REVERSE_LIST(node)                                                     \
@@ -155,7 +157,7 @@ void* fl_ast_reverse(fl_ast_t* ast, fl_ast_ret_cb_t cb, fl_ast_t* parent,
   }
 
   if (!ast) {
-    printf("(fl_ast_reverse) : null\n");
+    dbg_warning("(fl_ast_reverse) : null\n");
     return 0;
   }
 
@@ -173,7 +175,8 @@ void* fl_ast_reverse(fl_ast_t* ast, fl_ast_ret_cb_t cb, fl_ast_t* parent,
   } break;
   case FL_AST_LIST: {
     REVERSE_LIST(ast->list.elements);
-    if (ast->parent->type == FL_AST_DECL_FUNCTION) {
+    if (ast->parent->type == FL_AST_DECL_FUNCTION ||
+        ast->parent->type == FL_AST_EXPR_CALL) {
       // recursion!
       return 0;
     }
@@ -187,7 +190,7 @@ void* fl_ast_reverse(fl_ast_t* ast, fl_ast_ret_cb_t cb, fl_ast_t* parent,
   case FL_AST_EXPR_RUNARY:
     break;
   case FL_AST_EXPR_CALL: {
-    REVERSE_LIST(ast->call.arguments);
+    REVERSE(ast->call.arguments);
   } break;
   case FL_AST_DTOR_VAR:
     break;
@@ -235,7 +238,7 @@ void fl_ast_delete(fl_ast_t* ast) {
   free(ast);
 }
 void fl_ast_delete_props(fl_ast_t* ast) {
-// fprintf(stderr, "ast [%p]", ast);
+
 #define SAFE_DEL(test)                                                         \
   if (test) {                                                                  \
     fl_ast_delete(test);                                                       \
@@ -277,7 +280,7 @@ void fl_ast_delete_props(fl_ast_t* ast) {
   } break;
   case FL_AST_EXPR_CALL: {
     SAFE_DEL(ast->call.callee);
-    SAFE_DEL_LIST(ast->call.arguments);
+    SAFE_DEL(ast->call.arguments);
   } break;
   case FL_AST_EXPR_MEMBER: {
     SAFE_DEL(ast->member.left);
@@ -348,7 +351,7 @@ fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {
         fl_ast_t* list = node->func.params;
         while ((tmp = list->list.elements[i++]) != 0) {
           if (st_cmp(name, tmp->param.id->identifier.string) == 0) {
-            printf("(ast) found param %zu\n", i);
+            dbg_verbose("(ast) found param %zu\n", i);
             return tmp->param.id;
           }
         }
@@ -363,7 +366,7 @@ fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {
         while ((tmp = node->block.body[i++]) != 0) {
           if (tmp->type == FL_AST_DTOR_VAR &&
               st_cmp(name, tmp->var.id->identifier.string) == 0) {
-            printf("(ast) found dtor @ %zu index\n", i);
+            dbg_verbose("(ast) found dtor @ %zu index\n", i);
             return tmp;
           }
         }
@@ -380,10 +383,10 @@ size_t fl_ast_get_typeid(fl_ast_t* node) {
   // check AST is somewhat "type-related"
   switch (node->type) {
   case FL_AST_DTOR_VAR:
-    printf("(ast) dtor: %zu\n", node->var.type->ty_id);
+    dbg_verbose("(ast) dtor: %zu\n", node->var.type->ty_id);
     return node->var.type->ty_id;
   case FL_AST_PARAMETER:
-    printf("(ast) parameter: %zu\n", node->param.id->ty_id);
+    dbg_verbose("(ast) parameter: %zu\n", node->param.id->ty_id);
     return node->param.id->ty_id;
   case FL_AST_EXPR_CALL: {
     // search function
@@ -401,7 +404,7 @@ size_t fl_ast_get_typeid(fl_ast_t* node) {
       return node->ty_id;
     }
 
-    printf("(ast) identifier: %s\n", node->identifier.string->value);
+    dbg_verbose("(ast) identifier: %s\n", node->identifier.string->value);
     // search var-dtor and return it
     fl_ast_t* dtor = fl_ast_search_decl_var(node, node->identifier.string);
     if (dtor) {
@@ -409,7 +412,7 @@ size_t fl_ast_get_typeid(fl_ast_t* node) {
     }
   } break;
   case FL_AST_TYPE:
-    printf("(ast) type: %zu\n", node->ty_id);
+    dbg_verbose("(ast) type: %zu\n", node->ty_id);
     return node->ty_id;
   case FL_AST_CAST:
     return node->ty_id;

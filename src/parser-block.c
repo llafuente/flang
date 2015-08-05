@@ -79,7 +79,7 @@ void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend) {
     last = i;
 
     for (j = 0; j < 10; ++j) {
-      cg_print("read block id: %zu\n", j);
+      dbg_verbose("read block id: %zu", j);
       fl_parser_look_ahead(stack, state);
       stmt = block_stmts[j](PSR_READ_HEADER_SEND);
 

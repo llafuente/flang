@@ -34,6 +34,7 @@ TASK_IMPL(codegen_functions) {
                                     "}",
                   {});
 
+  dbg_debug_level = 10;
   TEST_CODEGEN_OK("cg function 02", "fn x(f64 arg1, f64 arg2) : f64 {"
                                     "  return arg1 + arg2;"
                                     "}"

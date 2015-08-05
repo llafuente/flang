@@ -49,9 +49,9 @@ void fl_print_type(size_t ty_id) {
   case FL_FUNCTION:
     printf("[%zu] Function -> ", ty.id ? ty.id->value : "Anonymous");
     size_t i;
-    fl_print_type(ty.fn.ret);
-    for (i = 0; i < ty.fn.nparams; ++i) {
-      fl_print_type(ty.fn.params[i]);
+    fl_print_type(ty.func.ret);
+    for (i = 0; i < ty.func.nparams; ++i) {
+      fl_print_type(ty.func.params[i]);
     }
   }
 }
@@ -96,8 +96,8 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     printf("number T(%zu) [value=%f]", node->ty_id, node->numeric.value);
     break;
   case FL_AST_LIT_IDENTIFIER:
-    printf("identifier T(%zu) [string=%s]", node->ty_id,
-           node->identifier.string->value);
+    printf("identifier T(%zu) [resolve=%d string=%s]", node->ty_id,
+           node->identifier.resolve, node->identifier.string->value);
     break;
   case FL_AST_LIT_BOOLEAN:
     printf("boolean T(%zu) [value=%d]", node->ty_id, node->boolean.value);
@@ -166,5 +166,7 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
 }
 
 void fl_ast_debug(fl_ast_t* node) {
-  fl_ast_traverse(node, fl_ast_debug_cb, 0, 0, 0);
+  if (dbg_debug_level >= 4) {
+    fl_ast_traverse(node, fl_ast_debug_cb, 0, 0, 0);
+  }
 }
