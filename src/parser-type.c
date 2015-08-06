@@ -41,23 +41,24 @@ format
 
 */
 PSR_READ_IMPL(type) {
+  log_verbose("start");
   PSR_START(type_node, FL_AST_TYPE);
 
   // primitives
   fl_tokens_t tk = state->token->type;
   fl_tokens_t tks[] = {FL_TK_VOID, FL_TK_BOOL,
 
-                       FL_TK_I8,   FL_TK_U8,   FL_TK_I16, FL_TK_U16,
-                       FL_TK_I32,  FL_TK_U32,  FL_TK_I64, FL_TK_U64,
+                       FL_TK_I8,   FL_TK_U8,   FL_TK_I16,   FL_TK_U16,
+                       FL_TK_I32,  FL_TK_U32,  FL_TK_I64,   FL_TK_U64,
 
-                       FL_TK_F32,  FL_TK_F64};
+                       FL_TK_F32,  FL_TK_F64,  FL_TK_STRING};
 
   size_t i;
-  for (i = 0; i < 12; ++i) {
+  for (i = 0; i < 13; ++i) {
     if (tk == tks[i]) {
       type_node->ty_id = i + 1;
       PSR_NEXT();
-
+      log_verbose("built-in");
       PSR_RET_OK(type_node);
     }
   }
@@ -101,6 +102,7 @@ PSR_READ_IMPL(type) {
     fl_ast_delete(id);
 
     if (type_node->ty_id) {
+      log_verbose("wrapped type");
       PSR_RET_OK(type_node);
     }
     // do something?!
@@ -111,9 +113,11 @@ PSR_READ_IMPL(type) {
   fl_ast_delete(id);
 
   if (!ty_id) {
+    log_verbose("type not found");
     PSR_RET_SYNTAX_ERROR(type_node, "unkown type");
   }
 
+  log_verbose("named type");
   type_node->ty_id = ty_id;
   PSR_RET_OK(type_node);
 }
@@ -130,7 +134,7 @@ PSR_READ_IMPL(decl_struct) {
   PSR_ACCEPT_TOKEN(FL_TK_STRUCT);
   PSR_SKIPWS();
 
-  PSR_READ_OR_DIE(id, lit_identifier, { fl_ast_delete(structure); },
+  PSR_READ_OR_DIE(id, lit_identifier_rw, { fl_ast_delete(structure); },
                   "expected identifier"); // no anonymous structs!
   PSR_SKIPWS();
 
@@ -168,8 +172,7 @@ PSR_READ_IMPL(decl_struct) {
     } while (PSR_ACCEPT_TOKEN(FL_TK_COMMA));
   }
 
-  PSR_EXPECT_TOKEN(FL_TK_RCBRACKET, structure, { },
-                   "expected '}'");
+  PSR_EXPECT_TOKEN(FL_TK_RCBRACKET, structure, {}, "expected '}'");
 
   structure->ty_id = ts_struct_create(structure);
 

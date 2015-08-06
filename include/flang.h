@@ -611,15 +611,13 @@ typedef fl_ast_t* (*psr_read_t)(PSR_READ_HEADER);
 
 /* cldoc:begin-category(parser.c) */
 
-FL_EXTERN fl_ast_t* fl_parser(fl_token_list_t* tokens);
+FL_EXTERN fl_ast_t* fl_parser(fl_token_list_t* tokens, bool core);
 
-FL_EXTERN fl_ast_t* fl_parse(string* code);
+FL_EXTERN fl_ast_t* fl_parse(string* code, bool core);
 
 FL_EXTERN fl_ast_t* fl_parse_utf8(char* str);
 
 FL_EXTERN fl_ast_t* fl_parse_file(char* filename, bool core);
-
-FL_EXTERN void fl_parse_core(fl_ast_t* root);
 
 /* cldoc:end-category() */
 
@@ -680,6 +678,7 @@ PSR_READ_DECL(lit_boolean);
 PSR_READ_DECL(lit_string);
 PSR_READ_DECL(lit_numeric);
 PSR_READ_DECL(lit_identifier);
+PSR_READ_DECL(lit_identifier_rw);
 
 /* cldoc:end-category() */
 

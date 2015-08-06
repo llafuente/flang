@@ -207,3 +207,14 @@ PSR_READ_IMPL(lit_identifier) {
 
   PSR_RET_OK(id_node);
 }
+
+// any literal but punctuation
+// use it with caution
+PSR_READ_IMPL(lit_identifier_rw) {
+  PSR_START(id_node, FL_AST_LIT_IDENTIFIER);
+
+  id_node->identifier.string = st_clone(state->token->string);
+  PSR_NEXT();
+
+  PSR_RET_OK(id_node);
+}

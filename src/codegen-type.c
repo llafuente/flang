@@ -78,7 +78,10 @@ LLVMTypeRef fl_codegen_get_typeid(size_t id, LLVMContextRef context) {
     LLVMStructSetBody(t.codegen, types, count, 0);
     free(types);
   } break;
-  default: { log_error("type not handled yet [%zu]", id); }
+  default: {
+    fl_print_type(id);
+    log_error("type not handled yet [%zu]", id);
+  }
   }
 
   if (!t.codegen) {

@@ -24,6 +24,9 @@
 */
 #define STR(val) #val
 
+// last core typeid + 1
+#define TEST_TYPEID 16
+
 #define CHK_BODY(root)                                                         \
   ASSERT(root != 0, "root is not null");                                       \
   ASSERT(root->type == FL_AST_PROGRAM, "root is a program");                   \
@@ -76,7 +79,6 @@
   {                                                                            \
     fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
     fl_ast_t* root = fl_parse_utf8(code);                                      \
-    fl_parse_core(root);                                                       \
     CHK_BODY(root);                                                            \
     fl_ast_t** body = root->program.body->block.body;                          \
     LLVMModuleRef module = fl_codegen(root, "test");                           \

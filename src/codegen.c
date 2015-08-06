@@ -167,7 +167,6 @@ LLVMModuleRef fl_codegen(fl_ast_t* root, char* module_name) {
   }
   LLVMDisposeMessage(err);
 
-
   // LLVMDumpModule(module);
   // LLVMDisposePassManager(pass_manager);
   LLVMDisposeBuilder(builder);
@@ -222,8 +221,7 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
     fl_ast_debug(id);
 
     if (!id) {
-      log_error("identifier not found: %s",
-                node->identifier.string->value);
+      log_error("identifier not found: %s", node->identifier.string->value);
     }
 
     log_debug("dirty? %d", id->dirty);
@@ -367,7 +365,7 @@ LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
   LLVMValueRef assign = LLVMBuildStore(builder, right, left);
   left_decl->dirty = true;
 
-  //TODO maybe return the lhs load!?
+  // TODO maybe return the lhs load!?
 
   return assign;
 }
@@ -532,8 +530,7 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
         log_error("Parameter %zu don't have type", i);
       }
 
-      log_debug("parameter %zu of type %zu", i,
-                tmp->param.id->ty_id);
+      log_debug("parameter %zu of type %zu", i, tmp->param.id->ty_id);
       param_types[i++] = fl_codegen_get_typeid(tmp->param.id->ty_id, context);
     }
   }

@@ -71,29 +71,31 @@ TASK_IMPL(parser_types) {
   });
 
   TEST_PARSER_OK("custom type 01", "var ptr<f32> hello;",
-                 { test_parser_type(*body, 13); });
+                 { test_parser_type(*body, TEST_TYPEID); });
 
   TEST_PARSER_OK("uniques 01", "var ptr<f32> a; var ptr<f32> b;", {
-    test_parser_type(body[0], 13);
-    test_parser_type(body[1], 13);
+    test_parser_type(body[0], TEST_TYPEID);
+    test_parser_type(body[1], TEST_TYPEID);
   });
 
   TEST_PARSER_OK("inference 01", "var x; x = 10;",
                  { test_parser_type(body[0], 9); });
 
-  TEST_PARSER_OK("empty struct", "struct test {}",
-                 { ASSERT(body[0]->ty_id == 13, "typeid 13"); });
+  TEST_PARSER_OK("empty struct", "struct test {}", {
+    printf("%zu\n", body[0]->ty_id);
+    ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid");
+  });
 
   TEST_PARSER_OK("simple struct", "struct test {"
                                   "i8 t1"
                                   "}",
-                 { ASSERT(body[0]->ty_id == 13, "typeid 13"); });
+                 { ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid"); });
 
   TEST_PARSER_OK("complex struct", "struct test {"
                                    "i8 t1,"
                                    "i32 t2"
                                    "}",
-                 { ASSERT(body[0]->ty_id == 13, "typeid 13"); });
+                 { ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid"); });
 
   TEST_PARSER_OK("unique 02", "struct test {"
                               "i8 t1,"
@@ -104,8 +106,8 @@ TASK_IMPL(parser_types) {
                               "i32 t2"
                               "}",
                  {
-                   ASSERT(body[0]->ty_id == 13, "typeid 13");
-                   ASSERT(body[1]->ty_id == 13, "typeid 13");
+                   ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid struct 1");
+                   ASSERT(body[1]->ty_id == TEST_TYPEID, "typeid struct 2");
                  });
 
   TEST_PARSER_OK("struct type usage", "struct test {"
@@ -116,8 +118,8 @@ TASK_IMPL(parser_types) {
                                       "test t"
                                       "}",
                  {
-                   ASSERT(body[0]->ty_id == 13, "typeid 13");
-                   ASSERT(body[1]->ty_id == 14, "typeid 14");
+                   ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid struct 1");
+                   ASSERT(body[1]->ty_id == TEST_TYPEID + 1, "typeid struct 2");
                  });
 
   return 0;

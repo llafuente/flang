@@ -29,6 +29,10 @@ hashtable_t* ts_hashtable = 0;
 fl_type_t* fl_type_table = 0;
 size_t fl_type_size = 0;
 
+// 0 infer
+// 1-12 built-in
+// 13-x core
+// x... user
 void ts_init() {
   if (!ts_hashtable) {
     ts_hashtable = ht_create(65536);
@@ -84,7 +88,7 @@ void ts_init() {
     fl_type_table[id].number.fp = true;
     fl_type_table[id].number.sign = true;
 
-    // [13+] user defined atm
+    // [13+] core + user
     fl_type_size = ++id;
   }
 }
@@ -208,7 +212,7 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
 
     if (!node->call.callee->ty_id) {
       log_warning("ignore expr call type");
-      break; //TODO passthought printf atm
+      break; // TODO passthought printf atm
     }
 
     fl_type_t* t = &fl_type_table[node->call.callee->ty_id];

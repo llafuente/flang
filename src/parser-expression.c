@@ -119,7 +119,7 @@ PSR_READ_IMPL(expr_primary) {
   // TODO lit_array, lit_object?
   PSR_READ_OK(literal, literal);
   if (literal) {
-    log_silly("(expr-primary) literal!");
+    log_silly("literal!");
     if (literal->type == FL_AST_LIT_IDENTIFIER) {
       literal->identifier.resolve = true;
     }
@@ -127,18 +127,18 @@ PSR_READ_IMPL(expr_primary) {
   }
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_LPARENTHESIS)) {
-    log_silly("(expr-primary) no group");
+    log_silly("no group");
     return 0;
   }
 
-  log_silly("(expr-primary) parenthesis");
+  log_silly("parenthesis");
 
   fl_ast_t* inside = PSR_READ(expr_logical_or); // TODO expression
   PSR_RET_IF_ERROR(inside, {});
 
   PSR_EXPECT_TOKEN(FL_TK_RPARENTHESIS, inside, {}, "expected ')'");
 
-  log_silly("(expr-primary) group readed!");
+  log_silly("group readed!");
 
   PSR_RET_OK(inside);
 }
@@ -161,13 +161,13 @@ rest:(
 */
 
 PSR_READ_IMPL(expr_member) {
-  // PSR_START(member, FL_AST_EXPR_MEMBER);
-  log_debug("expr_member");
+  log_verbose("read expr_primary, expr_new_full");
+
   psr_read_t left[] = {PSR_READ_NAME(expr_primary),
                        PSR_READ_NAME(expr_new_full)};
   fl_ast_t* member_left = psr_read_list(left, 2, PSR_READ_HEADER_SEND);
   if (!member_left) {
-    log_debug("invalid left");
+    log_silly("invalid member.left");
     return 0;
   }
 
@@ -187,25 +187,25 @@ PSR_READ_IMPL(expr_member) {
     last = member;
 
     if (PSR_ACCEPT_TOKEN(FL_TK_DOT)) {
-      log_debug("dot accesss");
+      log_silly("dot accesss");
       PSR_SKIPWS();
       PSR_READ_OR_DIE(property, lit_identifier, {
         fl_ast_delete(last);
         fl_ast_delete(property);
       }, "expected expression");
-      log_debug("dot accesss - ok");
+      log_silly("dot accesss - ok");
       last->member.property = property;
 
       PSR_END(member);
     } else if (PSR_ACCEPT_TOKEN(FL_TK_LBRACKET)) {
-      log_debug("bracket access");
+      log_silly("bracket access");
       PSR_SKIPWS();
 
       PSR_READ_OR_DIE(property, expression, {
         fl_ast_delete(last);
         fl_ast_delete(property);
       }, "expected identifier");
-      log_debug("bracket access - ok");
+      log_silly("bracket access - ok");
 
       last->member.property = property;
 

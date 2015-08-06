@@ -175,8 +175,8 @@ TASK_IMPL(parser_expressions) {
                  "var yyy s;"
                  "s.hello = 1;",
                  {
-                   ASSERT(body[0]->ty_id == 13, "struct type 13");
-                   ASSERT(body[1]->ty_id == 13, "variable type 13");
+                   ASSERT(body[0]->ty_id == TEST_TYPEID, "struct type");
+                   ASSERT(body[1]->ty_id == TEST_TYPEID, "variable type");
                    ASSERT(body[2]->ty_id == 9, "assignament type 9");
                  });
   /*

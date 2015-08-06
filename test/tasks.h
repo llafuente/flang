@@ -128,7 +128,7 @@ extern size_t st_assert_count;
 #define TASK_RUN(name)                                                         \
   printf("\n\n################\n");                                            \
   printf("## %s\n", #name);                                                    \
-  printf("################\n\n");                                                \
+  printf("################\n\n");                                              \
   extern int run_task_##name(void);                                            \
   run_task_##name();
 

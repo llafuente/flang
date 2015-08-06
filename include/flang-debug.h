@@ -40,7 +40,7 @@ extern int log_debug_level;
 #define dbg(level, ...)                                                        \
   if (log_debug_level >= level) {                                              \
     char buf[] = __FILE__;                                                     \
-    fprintf(stderr, "%20s:%d ", basename(buf), __LINE__);                        \
+    fprintf(stderr, "%20s:%3d[%s] ", basename(buf), __LINE__, __FUNCTION__);   \
     fprintf(stderr, __VA_ARGS__);                                              \
     fprintf(stderr, "\n");                                                     \
     if (level == 0) {                                                          \

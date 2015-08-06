@@ -37,7 +37,7 @@ void fl_state_debug(fl_psrstate_t* state) {
   */
 }
 
-fl_ast_t* fl_parser(fl_token_list_t* tokens) {
+fl_ast_t* fl_parser(fl_token_list_t* tokens, bool core) {
   ts_init();
 
   fl_psrstack_t* stack = malloc(sizeof(fl_psrstack_t));
@@ -45,32 +45,34 @@ fl_ast_t* fl_parser(fl_token_list_t* tokens) {
 
   fl_parser_stack_init(stack, tokens, state);
 
-  PSR_START(program, FL_AST_PROGRAM);
+  PSR_START(root, FL_AST_PROGRAM);
 
-  program->program.tokens = tokens;
-  program->program.body = PSR_READ(program_block);
+  root->program.tokens = tokens;
 
-  PSR_END(program);
+  // read core
+  if (!core) {
+    int olog_debug_level = log_debug_level;
+    log_debug_level = 10;
+    root->program.core = fl_parse_file("./../core/ffi-c.fl", true);
+    log_debug_level = olog_debug_level;
+  }
+
+  root->program.body = PSR_READ(program_block);
+
+  PSR_END(root);
 
   free(stack);
   free(state);
 
-  return program;
+  return root;
 }
 
-void fl_parse_core(fl_ast_t* root) {
-  int olog_debug_level = log_debug_level;
-  log_debug_level = 0;
-  root->program.core = fl_parse_file("./../core/ffi-c.fl", true);
-  log_debug_level = olog_debug_level;
-}
-
-fl_ast_t* fl_parse(string* code) {
+fl_ast_t* fl_parse(string* code, bool core) {
   fl_token_list_t* tokens;
 
   tokens = fl_tokenize(code);
 
-  fl_ast_t* root = fl_parser(tokens);
+  fl_ast_t* root = fl_parser(tokens, core);
   root->program.code = code;
 
   // do inference
@@ -93,7 +95,7 @@ fl_ast_t* fl_parse_utf8(char* str) {
 
   code = st_newc(str, st_enc_utf8);
 
-  return fl_parse(code);
+  return fl_parse(code, false);
 }
 
 fl_ast_t* fl_parse_file(char* filename, bool core) {
@@ -119,13 +121,7 @@ fl_ast_t* fl_parse_file(char* filename, bool core) {
   code->length = st_utf8_length(code->value, 0);
   st__zeronull(code->value, result, st_enc_utf8);
 
-  fl_ast_t* r = fl_parse(code);
-
-  if (!core) {
-    log_debug("PARSING CORE!\n");
-    // parse core
-    fl_parse_core(r);
-  }
+  fl_ast_t* r = fl_parse(code, core);
 
   return r;
 }

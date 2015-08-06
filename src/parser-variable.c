@@ -27,9 +27,7 @@
 // TODO declaration - declarator list
 PSR_READ_IMPL(decl_variable) {
   fl_ast_t* ast;
-  log_debug("(parser) decl_variable typed\n");
   FL_TRY_READ(decl_variable_with_type);
-  log_debug("(parser) decl_variable w/t\n");
   FL_TRY_READ(decl_variable_no_type);
 
   return 0;
@@ -60,6 +58,7 @@ PSR_READ_IMPL(decl_variable_no_type) {
 }
 
 PSR_READ_IMPL(decl_variable_with_type) {
+  log_silly("read token var, unvar, const, static, global");
   PSR_START(ast, FL_AST_DTOR_VAR);
 
   fl_tokens_t tks[] = {FL_TK_VAR, FL_TK_UNVAR, FL_TK_CONST, FL_TK_STATIC,
@@ -69,10 +68,10 @@ PSR_READ_IMPL(decl_variable_with_type) {
   }
 
   PSR_SKIPWS();
-
   PSR_READ_OK(type, type)
 
   if (!type) {
+    log_silly("no type...");
     PSR_RET_KO(ast);
   }
 
@@ -80,14 +79,17 @@ PSR_READ_IMPL(decl_variable_with_type) {
 
   PSR_SKIPWS();
 
+  // TODO READ_OR_DIE!
   PSR_READ_OK(id, lit_identifier)
 
   if (!id) {
+    log_silly("no id?");
     PSR_RET_KO(ast);
   }
   ast->var.id = id;
 
-  log_debug("*** TYPED! [%zu]\n", ast->var.type->ty_id);
+  log_verbose("type decl [%zu] '%s'\n", ast->var.type->ty_id,
+              id->identifier.string->value);
 
   ast->var.id->ty_id = ast->var.type->ty_id;
   ast->ty_id = ast->var.type->ty_id;

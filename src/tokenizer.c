@@ -68,7 +68,7 @@ void fl_tokenize_push(fl_token_list_t* tokens, fl_tokens_t type, char* p,
   ++tokens->size;
 
   log_silly("[%zu:%zu] fl_tokenize_push(%s)", line, column,
-         tokens->tokens[tokens_s].string->value);
+            tokens->tokens[tokens_s].string->value);
 }
 
 void fl_tokenize_flush(fl_token_list_t* tokens, fl_tokens_t type,
@@ -86,7 +86,7 @@ void fl_tokenize_flush(fl_token_list_t* tokens, fl_tokens_t type,
   ++tokens->size;
 
   log_silly("[%zu:%zu] fl_tokenize_flush(%s)", lstate->line, lstate->column,
-         tokens->tokens[tokens_s].string->value);
+            tokens->tokens[tokens_s].string->value);
 
   fl_tokenize_cp_state(state, lstate);
 }
@@ -122,13 +122,15 @@ void fl_tokenize_cp_state(fl_tk_state_t* src, fl_tk_state_t* dst) {
 }
 
 void fl_tokens_debug(fl_token_list_t* tokens) {
-  size_t i = 0;
-  for (; i < tokens->size; ++i) {
-    fl_token_t* token = &tokens->tokens[i];
-    // print debug tokens
-    log_debug("%6zu|%3d[%3zu:%3zu - %3zu:%3zu] %s", i, token->type,
-                token->start.line, token->start.column, token->end.line,
-                token->end.column, token->string->value);
+  if (log_debug_level >= 4) {
+    size_t i = 0;
+    for (; i < tokens->size; ++i) {
+      fl_token_t* token = &tokens->tokens[i];
+      // print debug tokens
+      fprintf(stderr, "%6zu|%3d[%3zu:%3zu - %3zu:%3zu] %s\n", i, token->type,
+              token->start.line, token->start.column, token->end.line,
+              token->end.column, token->string->value);
+    }
   }
 }
 

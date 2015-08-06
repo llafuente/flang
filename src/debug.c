@@ -35,19 +35,20 @@ void fl_print_type(size_t ty_id) {
     log_debug("[%zu] VOID", ty_id);
     break;
   case FL_NUMBER:
-  log_debug("[%zu] Number (fp %d, bits %d, sign %d)", ty_id, ty.number.fp,
-           ty.number.bits, ty.number.sign);
+    log_debug("[%zu] Number (fp %d, bits %d, sign %d)", ty_id, ty.number.fp,
+              ty.number.bits, ty.number.sign);
     break;
   case FL_POINTER:
     log_debug("[%zu] Pointer -> ", ty_id);
     fl_print_type(ty.ptr.to);
     break;
   case FL_VECTOR:
-  log_debug("[%zu] Vector -> ", ty_id);
+    log_debug("[%zu] Vector -> ", ty_id);
     fl_print_type(ty.vector.to);
     break;
   case FL_FUNCTION:
-  log_debug("[%s] Function arity(%zu) -> [%zu]", ty.id ? ty.id->value : "Anonymous", ty.func.nparams, ty.func.ret);
+    log_debug("[%s] Function arity(%zu) -> [%zu]",
+              ty.id ? ty.id->value : "Anonymous", ty.func.nparams, ty.func.ret);
     size_t i;
     fl_print_type(ty.func.ret);
     log_debug("**");
