@@ -142,8 +142,6 @@ PSR_READ_IMPL(decl_struct) {
   PSR_START_LIST(list);
   structure->structure.fields = list;
 
-  size_t* ty_list = calloc(sizeof(size_t), 100);
-
   if (!PSR_TEST_TOKEN(FL_TK_RCBRACKET)) {
     do {
       PSR_SKIPWS();
@@ -151,7 +149,6 @@ PSR_READ_IMPL(decl_struct) {
       PSR_START(field, FL_AST_DECL_STRUCT_FIELD);
 
       PSR_READ_OR_DIE(type, type, {
-        free(ty_list);
         fl_ast_delete(structure);
         fl_ast_delete(field);
       }, "expected type");
@@ -159,7 +156,6 @@ PSR_READ_IMPL(decl_struct) {
       field->field.type = type;
 
       PSR_READ_OR_DIE(id_field, lit_identifier, {
-        free(ty_list);
         fl_ast_delete(structure);
         fl_ast_delete(field);
       }, "expected identifier");
@@ -168,15 +164,14 @@ PSR_READ_IMPL(decl_struct) {
 
       PSR_END(field);
 
-      ty_list[list->list.count] = type->ty_id;
       list->list.elements[list->list.count++] = field;
     } while (PSR_ACCEPT_TOKEN(FL_TK_COMMA));
   }
 
-  PSR_EXPECT_TOKEN(FL_TK_RCBRACKET, structure, { free(ty_list); },
+  PSR_EXPECT_TOKEN(FL_TK_RCBRACKET, structure, { },
                    "expected '}'");
 
-  structure->ty_id = ts_struct_create(ty_list, list->list.count, structure);
+  structure->ty_id = ts_struct_create(structure);
 
   PSR_RET_OK(structure);
 }

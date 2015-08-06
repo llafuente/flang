@@ -391,19 +391,25 @@ size_t ts_struct_property_type(size_t id, string* property) {
 }
 
 // transfer list ownership
-size_t ts_struct_create(size_t* list, size_t length, fl_ast_t* decl) {
+size_t ts_struct_create(fl_ast_t* decl) {
   size_t i;
   size_t j;
-
+  fl_ast_t* list = decl->structure.fields;
+  size_t length = list->list.count;
+  size_t* fields = calloc(length, sizeof(size_t));
   string* id = decl->structure.id->identifier.string;
+
+  for (i = 0; i < length; ++i) {
+    fields[i] = list->list.elements[i]->field.type->ty_id;
+  }
 
   for (i = 0; i < fl_type_size; ++i) {
     // struct and same length?
     if (fl_type_table[i].of == FL_STRUCT &&
         fl_type_table[i].structure.nfields == length) {
-      if (0 == memcmp(list, fl_type_table[i].structure.fields,
+      if (0 == memcmp(fields, fl_type_table[i].structure.fields,
                       sizeof(size_t) * length)) {
-        free(list);
+        free(fields);
 
         log_debug("SET type [%zu] = '%s'", i, id->value);
         ht_set(ts_hashtable, id->value, i);
@@ -417,7 +423,7 @@ size_t ts_struct_create(size_t* list, size_t length, fl_ast_t* decl) {
   fl_type_table[i].of = FL_STRUCT;
   fl_type_table[i].id = id;
   fl_type_table[i].structure.decl = decl;
-  fl_type_table[i].structure.fields = list;
+  fl_type_table[i].structure.fields = fields;
   fl_type_table[i].structure.nfields = length;
 
   log_debug("SET type [%zu] = '%s'", i, id->value);

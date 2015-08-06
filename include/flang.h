@@ -593,7 +593,7 @@ FL_EXTERN fl_ast_t* ts_pass(fl_ast_t* node);
 // return the unique typeid given ret + arguments
 FL_EXTERN size_t ts_fn_create(fl_ast_t* decl);
 // return the unique typeid given fields
-FL_EXTERN size_t ts_struct_create(size_t* list, size_t length, fl_ast_t* decl);
+FL_EXTERN size_t ts_struct_create(fl_ast_t* decl);
 
 FL_EXTERN size_t ts_named_typeid(string* id);
 FL_EXTERN size_t ts_struct_property_type(size_t id, string* property);
