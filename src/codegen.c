@@ -163,7 +163,7 @@ LLVMModuleRef fl_codegen(fl_ast_t* root, char* module_name) {
   LLVMVerifyModule(module, LLVMPrintMessageAction, &err);
   if (strlen(err)) {
     log_debug("LLVMVerifyModule");
-    log_error(err);
+    log_error("%s", err);
   }
   LLVMDisposeMessage(err);
 
@@ -215,39 +215,7 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
   case FL_AST_LIT_STRING:
     return fl_codegen_lit_string(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_IDENTIFIER: {
-    log_debug("identifier");
-    fl_ast_debug(node);
-    fl_ast_t* id = fl_ast_search_decl_var(node, node->identifier.string);
-    fl_ast_debug(id);
-
-    if (!id) {
-      log_error("identifier not found: %s", node->identifier.string->value);
-    }
-
-    log_debug("dirty? %d", id->dirty);
-    fl_ast_debug(id);
-
-    if (id->dirty || !id->last_codegen) {
-      log_debug("load needed [%p]", id->codegen);
-
-      // load it!
-      // TODO this is a nice hack but need to be refactored
-      // TODO mark variable as dirty
-      // TODO review, seams to be always necessary
-      // if (fl_ast_is_pointer(left_ast)) {
-      //}
-
-      if (!id->codegen) {
-        log_error("invalid identifier codegen");
-        fl_ast_debug(id);
-      }
-
-      // TODO this is the cause of some nasty bug!
-      id->last_codegen = (void*)LLVMBuildLoad(builder, id->codegen, "load");
-    }
-    log_debug("identifier @%p", id->last_codegen);
-
-    return (LLVMValueRef)id->last_codegen;
+    return fl_codegen_right_identifier(node, FL_CODEGEN_PASSTHROUGH);
   }
   case FL_AST_DTOR_VAR:
     return fl_codegen_dtor_var(FL_CODEGEN_HEADER_SEND);
@@ -342,32 +310,26 @@ LLVMValueRef fl_codegen_lit_string(FL_CODEGEN_HEADER) {
 }
 
 LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
-  log_debug("fl_codegen_assignament");
-
-  fl_ast_debug(node);
-
-  // TODO this is buggy, member expressions not covered!?
-  fl_ast_t* left_decl =
-      fl_ast_search_decl_var(node, node->assignament.left->identifier.string);
-
-  if (!left_decl) {
-    log_error("lhs fail");
-  }
-
-  LLVMValueRef left = (LLVMValueRef)left_decl->codegen;
-
-  // LLVMDoubleTypeInContext(context);
+  log_debug("right");
   LLVMValueRef right =
       fl_codegen_ast(node->assignament.right, FL_CODEGEN_PASSTHROUGH);
 
-  log_silly("(codegen) %p = %p", left, right);
+  log_debug("left");
+  fl_ast_t* l = node->assignament.left;
+  LLVMValueRef left = fl_codegen_lhs(l, FL_CODEGEN_PASSTHROUGH);
+
+  assert(left != 0);
+  assert(right != 0);
 
   LLVMValueRef assign = LLVMBuildStore(builder, right, left);
-  left_decl->dirty = true;
 
-  // TODO maybe return the lhs load!?
-
-  return assign;
+  left = LLVMBuildLoad(builder, left, "");
+  // if left is an identifier, set
+  // if (l->type == FL_AST_LIT_IDENTIFIER) {
+  //  fl_ast_t* id = fl_ast_search_decl_var(node, l->identifier.string);
+  //  id->last_codegen = left;
+  //}
+  return left;
 }
 
 // https://msdn.microsoft.com/en-us/library/09ka8bxx.aspx
@@ -505,7 +467,7 @@ LLVMValueRef fl_codegen_dtor_var(FL_CODEGEN_HEADER) {
   LLVMValueRef ref =
       LLVMBuildAlloca(builder, fl_codegen_get_type(node->var.type, context),
                       node->var.id->identifier.string->value);
-  node->codegen = (void*)ref;
+  node->var.alloca = (void*)ref;
 
   return ref;
 }
@@ -521,11 +483,11 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
 
   // TODO use type info should be faster
   size_t i = 0;
-  fl_ast_t* list = node->func.params;
+  fl_ast_t* params = node->func.params;
   fl_ast_t* tmp;
 
   if (node->func.params) {
-    while ((tmp = list->list.elements[i]) != 0) {
+    while ((tmp = params->list.elements[i]) != 0) {
       if (!tmp->param.id->ty_id) {
         log_error("Parameter %zu don't have type", i);
       }
@@ -546,15 +508,26 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
 
   i = 0;
   if (node->func.params) {
-    while ((tmp = list->list.elements[i]) != 0) {
+    while ((tmp = params->list.elements[i]) != 0) {
       log_verbose("set name [%zu] '%s'", i,
                   tmp->param.id->identifier.string->value);
       LLVMValueRef param = LLVMGetParam(func, i);
       LLVMSetValueName(param, tmp->param.id->identifier.string->value);
+      /*
+      if (node->func.body) {
+        LLVMValueRef ref =
+            LLVMBuildAlloca(builder, LLVMTypeOf(param),
+    tmp->param.id->identifier.string->value);
 
-      tmp->param.id->codegen = (void*)param;
-      tmp->param.id->last_codegen = (void*)param;
-      tmp->param.id->dirty = false;
+      LLVMBuildStore(builder, ref, param);
+      tmp->param.alloca = (void*)ref;
+    } else {
+      tmp->param.alloca = (void*)param;
+
+    }
+    */
+      tmp->param.alloca = (void*)param;
+
       ++i;
     }
   }
@@ -652,7 +625,7 @@ LLVMValueRef fl_codegen_lunary(FL_CODEGEN_HEADER) {
     if (node->lunary.element->type == FL_AST_LIT_IDENTIFIER) {
       node->lunary.element->dirty = true;
       return LLVMBuildStore(builder, one_added,
-                            (LLVMValueRef)node->lunary.element->codegen);
+                            (LLVMValueRef)node->lunary.element->var.alloca);
     }
     return one_added;
   }
@@ -787,4 +760,53 @@ LLVMValueRef fl_codegen_loop(FL_CODEGEN_HEADER) {
   *current_block = end_block;
 
   return 0;
+}
+
+LLVMValueRef fl_codegen_left_identifier(FL_CODEGEN_HEADER) {
+  log_debug("identifier");
+  fl_ast_debug(node);
+  fl_ast_t* decl = fl_ast_search_decl_var(node, node->identifier.string);
+  fl_ast_debug(decl);
+
+  if (!decl) {
+    log_error("identifier not found: '%s'", node->identifier.string->value);
+  }
+
+  if (decl->type == FL_AST_DTOR_VAR) {
+    return (LLVMValueRef)decl->var.alloca;
+  }
+  if (decl->type == FL_AST_PARAMETER) {
+    return (LLVMValueRef)decl->param.alloca;
+  }
+
+  log_error("unhandled identifier decl %d", decl->type);
+
+  return 0;
+}
+
+LLVMValueRef fl_codegen_right_identifier(FL_CODEGEN_HEADER) {
+  fl_ast_t* decl = fl_ast_search_decl_var(node, node->identifier.string);
+
+  if (!decl) {
+    log_error("identifier not found: '%s'", node->identifier.string->value);
+  }
+
+  if (decl->type == FL_AST_DTOR_VAR) {
+    return LLVMBuildLoad(builder, (LLVMValueRef)decl->var.alloca, "");
+  }
+  if (decl->type == FL_AST_PARAMETER) {
+    return (LLVMValueRef)decl->param.alloca;
+  }
+
+  log_error("unhandled identifier decl %d", decl->type);
+
+  return 0;
+}
+
+LLVMValueRef fl_codegen_lhs(FL_CODEGEN_HEADER) {
+  switch (node->type) {
+  case FL_AST_LIT_IDENTIFIER: {
+    return fl_codegen_left_identifier(node, FL_CODEGEN_PASSTHROUGH);
+  }
+  }
 }

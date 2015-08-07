@@ -52,7 +52,7 @@ fl_ast_t* fl_parser(fl_token_list_t* tokens, bool core) {
   // read core
   if (!core) {
     int olog_debug_level = log_debug_level;
-    log_debug_level = 10;
+    log_debug_level = 0;
     root->program.core = fl_parse_file("./../core/ffi-c.fl", true);
     log_debug_level = olog_debug_level;
   }

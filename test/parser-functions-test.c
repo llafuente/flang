@@ -70,9 +70,9 @@ TASK_IMPL(parser_functions) {
                  {});
 
   // declaration only
-  TEST_CODEGEN_OK("function 04", "fn x( i8 arg1 , i8 arg2 ) : i8 ;"
-                                 "fn printf2( ptr<i8> format, ... ) ;",
-                  {});
+  TEST_PARSER_OK("function 04", "fn x( i8 arg1 , i8 arg2 ) : i8 ;"
+                                "fn printf2( ptr<i8> format, ... ) ;",
+                 {});
 
   return 0;
 }

@@ -352,7 +352,7 @@ fl_ast_t* fl_ast_search_decl_var(fl_ast_t* node, string* name) {
         while ((tmp = list->list.elements[i++]) != 0) {
           if (st_cmp(name, tmp->param.id->identifier.string) == 0) {
             log_verbose("found parameter @ [%zu]", i);
-            return tmp->param.id;
+            return tmp;
           }
         }
       }

@@ -45,12 +45,12 @@ PSR_READ_IMPL(expr_assignment) {
 PSR_READ_IMPL(expr_assignment_full) {
   PSR_START(ast, FL_AST_EXPR_ASSIGNAMENT);
 
-  log_silly("(expr_assignment_full) left");
+  log_silly("left");
   ast->assignament.left = PSR_READ(expr_lhs);
 
   // TODO manage errors
   if (!ast->assignament.left) {
-    log_silly("(expr_assignment_full) ko");
+    log_silly("ko");
     PSR_RET_KO(ast);
   }
 
@@ -79,7 +79,7 @@ PSR_READ_IMPL(expr_assignment_full) {
     ast->assignament.operator= state->token->type;
     break;
   default:
-    log_silly("(expr_assignment_full) ko 2");
+    log_silly("ko 2");
     PSR_RET_KO(ast);
   }
   PSR_NEXT();
@@ -87,15 +87,15 @@ PSR_READ_IMPL(expr_assignment_full) {
 
   PSR_SKIPWS();
 
-  log_silly("(expr_assignment_full) right");
+  log_silly("right");
   ast->assignament.right = PSR_READ(expr_assignment);
   // TODO manage errors
   if (!ast->assignament.right) {
-    log_silly("(expr_assignment_full) ko 3");
+    log_silly("ko 3");
     PSR_RET_KO(ast);
   }
 
-  log_silly("(expr_assignment_full) ok");
+  log_silly("ok");
 
   PSR_RET_OK(ast);
 }

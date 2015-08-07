@@ -288,8 +288,6 @@ struct fl_ast {
 
   // codegen
   bool dirty;
-  void* codegen;      // space for codegen injection "userdata"
-  void* last_codegen; // space for codegen injection "userdata-last"
 
   union {
     struct fl_ast_error {
@@ -378,6 +376,8 @@ struct fl_ast {
       // TODO add type
       struct fl_ast* id;
       fl_ast_t* type;
+
+      LLVMValueRef alloca;
     } var;
 
     // just for reference, but ty_id is used
@@ -411,6 +411,8 @@ struct fl_ast {
       struct fl_ast* def;
       struct fl_ast** assertions;
       size_t nassertions;
+
+      LLVMValueRef alloca;
     } param;
 
     struct fl_ast_stmt_return {
@@ -814,6 +816,9 @@ FL_EXTERN LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_lunary(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_if(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_loop(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef fl_codegen_left_identifier(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef fl_codegen_right_identifier(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef fl_codegen_lhs(FL_CODEGEN_HEADER);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(codegen-type.c) */

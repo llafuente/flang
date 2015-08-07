@@ -28,7 +28,7 @@
 #include "test.h"
 
 TASK_IMPL(codegen_functions) {
-  log_debug_level = 0;
+  log_debug_level = 10;
 
   TEST_CODEGEN_OK("cg function 01", "fn x(f64 arg1, f64 arg2) : f64 {"
                                     "  return arg1 + arg2;"
@@ -49,6 +49,10 @@ TASK_IMPL(codegen_functions) {
   TEST_CODEGEN_OK("cg function 04",
                   "var ptr<i8> str; str = 'hello'; printf('%s\\n', str);",
                   { fl_to_bitcode(module, "hello-world.bc"); });
+
+  TEST_CODEGEN_OK("function 05", "fn x( i8 arg1 , i8 arg2 ) : i8 ;"
+                                 "fn printf2( ptr<i8> format, ... ) ;",
+                  {});
 
   return 0;
 }
