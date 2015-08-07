@@ -214,9 +214,10 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
     return fl_codegen_lit_boolean(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_STRING:
     return fl_codegen_lit_string(FL_CODEGEN_HEADER_SEND);
-  case FL_AST_LIT_IDENTIFIER: {
+  case FL_AST_LIT_IDENTIFIER:
     return fl_codegen_right_identifier(node, FL_CODEGEN_PASSTHROUGH);
-  }
+  case FL_AST_EXPR_MEMBER:
+    return fl_codegen_right_member(node, FL_CODEGEN_PASSTHROUGH);
   case FL_AST_DTOR_VAR:
     return fl_codegen_dtor_var(FL_CODEGEN_HEADER_SEND);
   case FL_AST_DECL_FUNCTION:
@@ -803,8 +804,22 @@ LLVMValueRef fl_codegen_right_identifier(FL_CODEGEN_HEADER) {
   return 0;
 }
 
+LLVMValueRef fl_codegen_left_member(FL_CODEGEN_HEADER) {
+  LLVMValueRef left = fl_codegen_lhs(node->member.left, FL_CODEGEN_PASSTHROUGH);
+
+  return LLVMBuildStructGEP(builder, left, node->member.idx, "");
+}
+
+LLVMValueRef fl_codegen_right_member(FL_CODEGEN_HEADER) {
+  LLVMValueRef r = fl_codegen_left_member(node, FL_CODEGEN_PASSTHROUGH);
+  return LLVMBuildLoad(builder, r, "");
+}
+
 LLVMValueRef fl_codegen_lhs(FL_CODEGEN_HEADER) {
   switch (node->type) {
+  case FL_AST_EXPR_MEMBER: {
+    return fl_codegen_left_member(node, FL_CODEGEN_PASSTHROUGH);
+  }
   case FL_AST_LIT_IDENTIFIER: {
     return fl_codegen_left_identifier(node, FL_CODEGEN_PASSTHROUGH);
   }

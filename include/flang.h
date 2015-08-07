@@ -446,6 +446,7 @@ struct fl_ast {
     struct fl_ast_expr_member {
       fl_ast_t* left;
       fl_ast_t* property;
+      size_t idx;
     } member;
 
     struct fl_ast_stmt_comment {
@@ -607,6 +608,7 @@ FL_EXTERN fl_ast_t* ts_pass(fl_ast_t* node);
 FL_EXTERN size_t ts_fn_create(fl_ast_t* decl);
 // return the unique typeid given fields
 FL_EXTERN size_t ts_struct_create(fl_ast_t* decl);
+FL_EXTERN size_t ts_struct_idx(fl_ast_t* decl, string* id);
 
 FL_EXTERN size_t ts_named_typeid(string* id);
 FL_EXTERN fl_type_cg_t* ts_named_type(string* id);
@@ -830,6 +832,8 @@ FL_EXTERN LLVMValueRef fl_codegen_if(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_loop(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_left_identifier(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_right_identifier(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef fl_codegen_right_member(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef fl_codegen_left_member(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef fl_codegen_lhs(FL_CODEGEN_HEADER);
 /* cldoc:end-category() */
 

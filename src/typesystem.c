@@ -440,6 +440,20 @@ size_t ts_struct_create(fl_ast_t* decl) {
   return i;
 }
 
+FL_EXTERN size_t ts_struct_idx(fl_ast_t* decl, string* id) {
+  size_t i;
+  fl_ast_t* list = decl->structure.fields;
+  fl_ast_t** elements = list->list.elements;
+  size_t length = list->list.count;
+
+  for (i = 0; i < length; ++i) {
+    if (st_cmp(elements[i]->field.id, id)) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 size_t ts_fn_create(fl_ast_t* decl) {
   string* id = decl->func.id->identifier.string;
   fl_ast_t* params = decl->func.params;

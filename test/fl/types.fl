@@ -1,7 +1,13 @@
 struct ts {
-  i8 a
+  i32 a
 };
 
 var ts b;
 
-printf("ir ok\n");
+b.a = 1;
+
+var i8 c;
+
+c = b.a;
+
+printf("%d = %d\n", b.a, c);
