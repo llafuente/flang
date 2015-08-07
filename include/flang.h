@@ -44,7 +44,7 @@
 #include <llvm-c/Transforms/Scalar.h>
 #include <llvm-c/BitWriter.h>
 
-#include "hash.h"
+#include "ext/uthash.h"
 
 //-
 //- type declaration
@@ -55,6 +55,9 @@ typedef struct fl_enum_members fl_enum_members_t;
 
 struct fl_type;
 typedef struct fl_type fl_type_t;
+
+struct fl_type_cg;
+typedef struct fl_type_cg fl_type_cg_t;
 
 struct fl_ast;
 typedef struct fl_ast fl_ast_t;
@@ -538,6 +541,14 @@ struct fl_type {
   };
 };
 
+struct fl_type_cg {
+  size_t id;
+  fl_ast_t* decl;
+
+  UT_hash_handle hh; // makes this structure hashable
+  char name[64];     // key (string is WITHIN the structure)
+};
+
 struct fl_enum_members {
   string* name;
   size_t value;
@@ -584,7 +595,7 @@ FL_EXTERN fl_token_list_t* fl_tokenize(string* file);
 
 extern fl_type_t* fl_type_table;
 extern size_t fl_type_size;
-extern hashtable_t* ts_hashtable;
+extern fl_type_cg_t* ts_hashtable;
 
 FL_EXTERN bool ts_is_number(size_t id);
 FL_EXTERN bool ts_is_fp(size_t id);
@@ -598,6 +609,7 @@ FL_EXTERN size_t ts_fn_create(fl_ast_t* decl);
 FL_EXTERN size_t ts_struct_create(fl_ast_t* decl);
 
 FL_EXTERN size_t ts_named_typeid(string* id);
+FL_EXTERN fl_type_cg_t* ts_named_type(string* id);
 FL_EXTERN size_t ts_struct_property_type(size_t id, string* property);
 FL_EXTERN size_t ts_struct_property_idx(size_t id, string* property);
 

@@ -25,19 +25,15 @@
 
 #include "flang.h"
 
-hashtable_t* ts_hashtable = 0;
 fl_type_t* fl_type_table = 0;
 size_t fl_type_size = 0;
+fl_type_cg_t* ts_hashtable = 0;
 
 // 0 infer
 // 1-12 built-in
 // 13-x core
 // x... user
 void ts_init() {
-  if (!ts_hashtable) {
-    ts_hashtable = ht_create(65536);
-  }
-
   if (!fl_type_table) {
     fl_type_table = calloc(sizeof(fl_type_t), 100);
 
@@ -63,14 +59,14 @@ void ts_init() {
       fl_type_table[id].number.bits = bits;
       fl_type_table[id].number.fp = false;
       fl_type_table[id].number.sign = false;
-      sprintf(buffer, "u%d", bits);
+      sprintf(buffer, "u%zu", bits);
       fl_type_table[id].id = st_newc(buffer, st_enc_ascii);
 
       fl_type_table[++id].of = FL_NUMBER;
       fl_type_table[id].number.bits = bits;
       fl_type_table[id].number.fp = false;
       fl_type_table[id].number.sign = true;
-      sprintf(buffer, "i%d", bits);
+      sprintf(buffer, "i%zu", bits);
       fl_type_table[id].id = st_newc(buffer, st_enc_ascii);
     }
 
@@ -394,6 +390,15 @@ size_t ts_struct_property_type(size_t id, string* property) {
   return 0;
 }
 
+void ts_named_set(string* id, fl_ast_t* decl, size_t type_id) {
+  fl_type_cg_t* t = (fl_type_cg_t*)malloc(sizeof(fl_type_cg_t));
+  strncpy(t->name, id->value, 64);
+  t->decl = decl;
+  t->id = type_id;
+
+  HASH_ADD_STR(ts_hashtable, name, t);
+}
+
 // transfer list ownership
 size_t ts_struct_create(fl_ast_t* decl) {
   size_t i;
@@ -416,7 +421,7 @@ size_t ts_struct_create(fl_ast_t* decl) {
         free(fields);
 
         log_debug("SET type [%zu] = '%s'", i, id->value);
-        ht_set(ts_hashtable, id->value, i);
+        ts_named_set(id, decl, i);
         return i;
       }
     }
@@ -431,11 +436,7 @@ size_t ts_struct_create(fl_ast_t* decl) {
   fl_type_table[i].structure.nfields = length;
 
   log_debug("SET type [%zu] = '%s'", i, id->value);
-  ht_set(ts_hashtable, id->value, i);
-  /*
-  size_t t = ht_get(ts_hashtable, id->value);
-  assert(t != i);
-  */
+  ts_named_set(id, decl, i);
   return i;
 }
 
@@ -462,7 +463,7 @@ size_t ts_fn_create(fl_ast_t* decl) {
         free(tparams);
 
         log_debug("SET fn type [%zu] = '%s'", i, id->value);
-        ht_set(ts_hashtable, id->value, i);
+        ts_named_set(id, decl, i);
         return i;
       }
     }
@@ -479,7 +480,7 @@ size_t ts_fn_create(fl_ast_t* decl) {
   fl_type_table[i].func.varargs = decl->func.varargs;
 
   log_debug("SET fn type [%zu] = '%s'", i, id->value);
-  ht_set(ts_hashtable, id->value, i);
+  ts_named_set(id, decl, i);
   /*
   size_t t = ht_get(ts_hashtable, id->value);
   assert(t != i);
@@ -515,7 +516,19 @@ size_t ts_var_typeid(fl_ast_t* id) {
   return fl_ast_get_typeid(decl);
 }
 
-size_t ts_named_typeid(string* id) { return ht_get(ts_hashtable, id->value); }
+fl_type_cg_t* ts_named_type(string* id) {
+  fl_type_cg_t* s;
+  HASH_FIND_STR(ts_hashtable, id->value, s);
+
+  return s;
+}
+
+size_t ts_named_typeid(string* id) {
+  fl_type_cg_t* s;
+  HASH_FIND_STR(ts_hashtable, id->value, s);
+
+  return s ? s->id : 0;
+}
 
 void ts_exit() {
   size_t i;
@@ -535,6 +548,12 @@ void ts_exit() {
   free(fl_type_table);
   fl_type_table = 0;
 
-  ht_free(ts_hashtable);
+  fl_type_cg_t* s;
+  fl_type_cg_t* tmp;
+  HASH_ITER(hh, ts_hashtable, s, tmp) {
+    HASH_DEL(ts_hashtable, s);
+    free(s);
+  }
+
   ts_hashtable = 0;
 }
