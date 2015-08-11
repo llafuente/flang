@@ -172,7 +172,9 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
 
     // now we should know left type
     // get poperty index -> typeid
+    // TODO perf
     node->ty_id = ts_struct_property_type(l->ty_id, p->identifier.string);
+    node->member.idx = ts_struct_property_idx(l->ty_id, p->identifier.string);
 
   } break;
   case FL_AST_EXPR_ASSIGNAMENT: {

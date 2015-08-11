@@ -11,3 +11,14 @@ var i8 c;
 c = b.a;
 
 printf("%d = %d\n", b.a, c);
+
+struct complex {
+  i32 a,
+  i64 b
+};
+
+var complex cx;
+cx.a = 100;
+cx.b = 101;
+
+printf("%d.%d\n", cx.a, cx.b);
