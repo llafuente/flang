@@ -22,3 +22,6 @@ cx.a = 100;
 cx.b = 101;
 
 printf("%d.%d\n", cx.a, cx.b);
+
+
+var vector<i32> list;

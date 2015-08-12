@@ -28,7 +28,7 @@
 #include "test.h"
 
 TASK_IMPL(codegen_functions) {
-  log_debug_level = 10;
+  log_debug_level = 0;
 
   TEST_CODEGEN_OK("cg function 01", "fn x(f64 arg1, f64 arg2) : f64 {"
                                     "  return arg1 + arg2;"

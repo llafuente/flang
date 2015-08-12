@@ -78,6 +78,10 @@ LLVMTypeRef fl_codegen_get_typeid(size_t id, LLVMContextRef context) {
     LLVMStructSetBody(t.codegen, types, count, 0);
     free(types);
   } break;
+  case FL_VECTOR: {
+    t.codegen = LLVMArrayType(fl_codegen_get_typeid(t.vector.to, context),
+                              t.vector.length);
+  } break;
   default: {
     fl_print_type(id);
     log_error("type not handled yet [%zu]", id);

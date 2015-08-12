@@ -102,6 +102,9 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     printf("identifier T(%zu) [resolve=%d string=%s]", node->ty_id,
            node->identifier.resolve, node->identifier.string->value);
     break;
+  case FL_AST_LIT_STRING:
+    printf("string T(%zu) [string=%s]", node->ty_id, node->string.value->value);
+    break;
   case FL_AST_LIT_BOOLEAN:
     printf("boolean T(%zu) [value=%d]", node->ty_id, node->boolean.value);
     break;

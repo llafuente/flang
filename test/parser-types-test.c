@@ -121,6 +121,15 @@ TASK_IMPL(parser_types) {
                    ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid struct 1");
                    ASSERT(body[1]->ty_id == TEST_TYPEID + 1, "typeid struct 2");
                  });
+  TEST_PARSER_OK("struct with vectors", "struct str {"
+                                        "  i32 uniqueness,"
+                                        "  i32 length,"
+                                        "  i32 used,"
+                                        "  u32 capacity,"
+                                        "  i8 encoding,"
+                                        "  vector<i8> value"
+                                        "};",
+                 { ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid struct"); });
 
   return 0;
 }

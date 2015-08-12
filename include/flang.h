@@ -513,8 +513,8 @@ struct fl_type {
     } ptr;
 
     struct fl_type_vector {
-      size_t size; // TODO 0 resizable?
       size_t to;
+      size_t length;
     } vector;
 
     struct fl_type_function {

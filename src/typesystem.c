@@ -332,7 +332,9 @@ size_t ts_wapper_typeid(fl_types_t wrapper, size_t child) {
   size_t i;
 
   for (i = 0; i < fl_type_size; ++i) {
+    // TODO check length?!
     if (fl_type_table[i].of == wrapper && fl_type_table[i].ptr.to == child) {
+      // if (wrapper != FL_VECTOR && fl_type_table[i].vector.length != 0)
       return i;
     }
   }
@@ -345,7 +347,7 @@ size_t ts_wapper_typeid(fl_types_t wrapper, size_t child) {
     break;
   case FL_VECTOR:
     fl_type_table[i].of = wrapper;
-    fl_type_table[i].vector.size = 0;
+    fl_type_table[i].vector.length = 0;
     fl_type_table[i].vector.to = child;
     break;
   default: { log_error("ts_wapper_typeid unhandled"); }

@@ -169,11 +169,9 @@ TASK_IMPL(parser_expressions) {
                                   "var x;"
                                   "x = sin.b;",
                  {});
-  TEST_PARSER_OK("member access",
-
-                 "struct yyy {i64 hello};"
-                 "var yyy s;"
-                 "s.hello = 1;",
+  TEST_PARSER_OK("member access", "struct yyy {i64 hello};"
+                                  "var yyy s;"
+                                  "s.hello = 1;",
                  {
                    ASSERT(body[0]->ty_id == TEST_TYPEID, "struct type");
                    ASSERT(body[1]->ty_id == TEST_TYPEID, "variable type");

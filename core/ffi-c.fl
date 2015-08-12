@@ -4,7 +4,7 @@ struct string {
   i32 used,
   u32 capacity,
   i8 encoding,
-  ptr<i8> value
+  vector<i8> value
 };
 
 
