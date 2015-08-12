@@ -22,13 +22,3 @@ cx.a = 100;
 cx.b = 101;
 
 printf("%d.%d\n", cx.a, cx.b);
-
-
-var vector<i8> list;
-var i64 i;
-
-list = "blablabla";
-
-for i = 0; i < 9; i = i+1 {
-  printf("%c\n", list[i]);
-}

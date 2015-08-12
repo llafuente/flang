@@ -805,9 +805,29 @@ LLVMValueRef fl_codegen_right_identifier(FL_CODEGEN_HEADER) {
 }
 
 LLVMValueRef fl_codegen_left_member(FL_CODEGEN_HEADER) {
-  LLVMValueRef left = fl_codegen_lhs(node->member.left, FL_CODEGEN_PASSTHROUGH);
+  fl_type_t* type = &fl_type_table[node->member.left->ty_id];
+  switch (type->of) {
+  case FL_STRUCT: {
+    LLVMValueRef left =
+        fl_codegen_lhs(node->member.left, FL_CODEGEN_PASSTHROUGH);
+    return LLVMBuildStructGEP(builder, left, node->member.idx, "");
+  }
+  case FL_POINTER: {
+    LLVMValueRef left =
+        fl_codegen_ast(node->member.left, FL_CODEGEN_PASSTHROUGH);
+    LLVMValueRef index[1];
 
-  return LLVMBuildStructGEP(builder, left, node->member.idx, "");
+    if (node->member.expression) {
+      index[0] = fl_codegen_ast(node->member.property, FL_CODEGEN_PASSTHROUGH);
+    }
+
+    return LLVMBuildGEP(builder, left, index, 1, "");
+  }
+  case FL_VECTOR: {
+  }
+  }
+
+  log_error("wtf?!");
 }
 
 LLVMValueRef fl_codegen_right_member(FL_CODEGEN_HEADER) {

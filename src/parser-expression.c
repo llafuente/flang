@@ -119,7 +119,7 @@ PSR_READ_IMPL(expr_primary) {
   // TODO lit_array, lit_object?
   PSR_READ_OK(literal, literal);
   if (literal) {
-    log_silly("literal!");
+    log_verbose("return literal");
     if (literal->type == FL_AST_LIT_IDENTIFIER) {
       literal->identifier.resolve = true;
     }
@@ -138,7 +138,7 @@ PSR_READ_IMPL(expr_primary) {
 
   PSR_EXPECT_TOKEN(FL_TK_RPARENTHESIS, inside, {}, "expected ')'");
 
-  log_silly("group readed!");
+  log_verbose("return expression inside parenthesis");
 
   PSR_RET_OK(inside);
 }
@@ -197,19 +197,22 @@ PSR_READ_IMPL(expr_member) {
 
       PSR_END(member);
     } else if (PSR_ACCEPT_TOKEN(FL_TK_LBRACKET)) {
-      log_silly("bracket access");
+      log_silly("open bracket access: '%s'", state->token->string->value);
       PSR_SKIPWS();
-
+      log_silly("\n\n**********************************");
       PSR_READ_OR_DIE(property, expression, {
         fl_ast_delete(last);
         fl_ast_delete(property);
       }, "expected identifier");
-      log_silly("bracket access - ok");
+      log_silly("\n\n**********************************");
+      log_silly("close bracket access: '%s'", state->token->string->value);
 
       last->member.property = property;
+      last->member.expression = true;
 
-      PSR_EXPECT_TOKEN(FL_TK_RCBRACKET, last, {}, "expected ']'");
+      PSR_EXPECT_TOKEN(FL_TK_RBRACKET, last, {}, "expected ']'");
 
+      log_silly("member read");
       PSR_END(member);
     }
   } while (PSR_TEST_TOKEN(FL_TK_DOT) || PSR_TEST_TOKEN(FL_TK_LBRACKET));
@@ -454,6 +457,7 @@ PSR_READ_IMPL(expr_argument) { return PSR_READ(expression); }
 PSR_READ_IMPL(expr_call) {
   PSR_START(ecall, FL_AST_EXPR_CALL);
 
+  log_verbose("read callee '%s'", state->token->string->value);
   PSR_READ_OK(callee, expr_member)
   if (!callee) {
     PSR_RET_KO(ecall); // soft
@@ -464,6 +468,8 @@ PSR_READ_IMPL(expr_call) {
 
   // at least return member expression
   if (!PSR_ACCEPT_TOKEN(FL_TK_LPARENTHESIS)) {
+    log_verbose("return callee, there is no '(' '%s'",
+                state->token->string->value);
     fl_ast_delete(ecall);
     return callee;
   }

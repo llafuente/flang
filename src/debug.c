@@ -118,7 +118,8 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     printf("call T(%zu) [arguments=%zu]", node->ty_id, node->call.narguments);
     break;
   case FL_AST_EXPR_MEMBER:
-    printf("member T(%zu) idx(%zu)", node->ty_id, node->member.idx);
+    printf("member T(%zu) idx(%zu) expression(%d)", node->ty_id,
+           node->member.idx, node->member.expression);
     break;
   case FL_AST_DTOR_VAR:
     printf("variable T(%zu)", node->ty_id);

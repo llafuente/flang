@@ -447,6 +447,7 @@ struct fl_ast {
       fl_ast_t* left;
       fl_ast_t* property;
       size_t idx;
+      bool expression;
     } member;
 
     struct fl_ast_stmt_comment {
@@ -598,6 +599,7 @@ extern fl_type_t* fl_type_table;
 extern size_t fl_type_size;
 extern fl_type_cg_t* ts_hashtable;
 
+FL_EXTERN bool ts_is_struct(size_t id);
 FL_EXTERN bool ts_is_number(size_t id);
 FL_EXTERN bool ts_is_fp(size_t id);
 FL_EXTERN bool ts_is_int(size_t id);

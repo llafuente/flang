@@ -89,6 +89,21 @@ void ts_init() {
   }
 }
 
+bool ts_is_struct(size_t id) {
+  fl_type_t t = fl_type_table[id];
+  return t.of == FL_STRUCT;
+}
+
+bool ts_is_pointer(size_t id) {
+  fl_type_t t = fl_type_table[id];
+  return t.of == FL_POINTER;
+}
+
+bool ts_is_vector(size_t id) {
+  fl_type_t t = fl_type_table[id];
+  return t.of == FL_VECTOR;
+}
+
 bool ts_is_number(size_t id) {
   fl_type_t t = fl_type_table[id];
   return t.of == FL_NUMBER;
@@ -173,8 +188,23 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     // now we should know left type
     // get poperty index -> typeid
     // TODO perf
-    node->ty_id = ts_struct_property_type(l->ty_id, p->identifier.string);
-    node->member.idx = ts_struct_property_idx(l->ty_id, p->identifier.string);
+    fl_type_t* type = &fl_type_table[l->ty_id];
+    switch (type->of) {
+    case FL_STRUCT: {
+      node->ty_id = ts_struct_property_type(l->ty_id, p->identifier.string);
+      node->member.idx = ts_struct_property_idx(l->ty_id, p->identifier.string);
+    } break;
+    case FL_POINTER: {
+      node->ty_id = type->ptr.to;
+    } break;
+    case FL_VECTOR: {
+      node->ty_id = type->vector.to;
+    } break;
+    default: { log_error("invalid member access type"); }
+    }
+
+    if (ts_is_struct(l->ty_id)) {
+    }
 
   } break;
   case FL_AST_EXPR_ASSIGNAMENT: {
