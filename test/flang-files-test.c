@@ -82,7 +82,7 @@ string* execute(char* cmd) {
 }
 
 TASK_IMPL(flang_files) {
-  log_debug_level = 0;
+  log_debug_level = 10;
 
   char* files[] = {"../test/fl/expressions", "../test/fl/casting",
                    "../test/fl/if", "../test/fl/loops", "../test/fl/types"};

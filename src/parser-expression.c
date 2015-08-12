@@ -175,7 +175,6 @@ PSR_READ_IMPL(expr_member) {
 
   PSR_SKIPWS();
 
-  // PSR_START_FROM(member_left, property, FL_AST_EXPR_MEMBER);
   // test "." and "["
   if (!PSR_TEST_TOKEN(FL_TK_DOT) && !PSR_TEST_TOKEN(FL_TK_LBRACKET)) {
     PSR_RET_OK(last);
@@ -213,7 +212,6 @@ PSR_READ_IMPL(expr_member) {
 
       PSR_END(member);
     }
-
   } while (PSR_TEST_TOKEN(FL_TK_DOT) || PSR_TEST_TOKEN(FL_TK_LBRACKET));
 
   fl_ast_debug(last);
