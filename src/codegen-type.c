@@ -31,68 +31,69 @@ LLVMTypeRef fl_codegen_get_type(fl_ast_t* node, LLVMContextRef context) {
 
 LLVMTypeRef fl_codegen_get_typeid(size_t id, LLVMContextRef context) {
   // TODO codegen is cached?
-  fl_type_t t = fl_type_table[id];
+  fl_type_t* t = &fl_type_table[id];
 
-  if (t.codegen) {
-    return (LLVMTypeRef)t.codegen;
+  if (t->codegen) {
+    return (LLVMTypeRef)t->codegen;
   }
 
   log_verbose("llvm for typeid = %zu", id);
 
-  switch (t.of) {
+  switch (t->of) {
   case FL_VOID:
-    t.codegen = (void*)LLVMVoidType();
+    t->codegen = (void*)LLVMVoidType();
     break;
   case FL_NUMBER:
-    if (t.number.fp) {
-      switch (t.number.bits) {
+    if (t->number.fp) {
+      switch (t->number.bits) {
       case 32:
-        t.codegen = (void*)LLVMFloatType();
+        t->codegen = (void*)LLVMFloatType();
         break;
       case 64:
-        t.codegen = (void*)LLVMDoubleType();
+        t->codegen = (void*)LLVMDoubleType();
         break;
       }
     } else {
-      log_silly("t.number.bits %d", t.number.bits);
+      log_silly("t.number.bits %d", t->number.bits);
 
-      t.codegen = (void*)LLVMIntType(t.number.bits);
+      t->codegen = (void*)LLVMIntType(t->number.bits);
     }
     break;
   case FL_POINTER:
-    t.codegen =
-        (void*)LLVMPointerType(fl_codegen_get_typeid(t.ptr.to, context), 0);
+    t->codegen =
+        (void*)LLVMPointerType(fl_codegen_get_typeid(t->ptr.to, context), 0);
     break;
   case FL_STRUCT: {
-    t.codegen = LLVMStructCreateNamed(context, t.id->value);
+    log_verbose("codegen struct '%s'", t->id->value);
+    t->codegen = LLVMStructCreateNamed(context, t->id->value);
     // create the list!
-    fl_ast_t* l = t.structure.decl->structure.fields;
+    fl_ast_t* l = t->structure.decl->structure.fields;
 
     size_t i;
-    size_t count = t.structure.nfields;
+    size_t count = t->structure.nfields;
     LLVMTypeRef* types = malloc(count * sizeof(LLVMTypeRef));
     for (i = 0; i < count; ++i) {
       // types[i] = fl_codegen_get_typeid(l->list.elements[i]->ty_id, context);
-      types[i] = fl_codegen_get_typeid(t.structure.fields[i], context);
+      types[i] = fl_codegen_get_typeid(t->structure.fields[i], context);
     }
-    LLVMStructSetBody(t.codegen, types, count, 0);
+    LLVMStructSetBody(t->codegen, types, count, 0);
     free(types);
   } break;
   case FL_VECTOR: {
-    t.codegen = LLVMArrayType(fl_codegen_get_typeid(t.vector.to, context),
-                              t.vector.length);
+    t->codegen = LLVMArrayType(fl_codegen_get_typeid(t->vector.to, context),
+                               t->vector.length);
   } break;
   default: {
-    fl_print_type(id);
+    fl_print_type(id, 0);
     log_error("type not handled yet [%zu]", id);
   }
   }
 
-  if (!t.codegen) {
+  if (!t->codegen) {
     log_error("cannot find LLVM-type");
   }
 
-  return (LLVMTypeRef)t.codegen;
+  return (LLVMTypeRef)t->codegen;
 }
 
 LLVMValueRef fl_codegen_cast_op(LLVMBuilderRef builder, size_t current,

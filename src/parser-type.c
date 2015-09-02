@@ -41,20 +41,21 @@ format
 
 */
 PSR_READ_IMPL(type) {
-  log_verbose("start");
+  log_silly("start with built-in types");
+
   PSR_START(type_node, FL_AST_TYPE);
 
   // primitives
   fl_tokens_t tk = state->token->type;
   fl_tokens_t tks[] = {FL_TK_VOID, FL_TK_BOOL,
 
-                       FL_TK_I8,   FL_TK_U8,   FL_TK_I16,   FL_TK_U16,
-                       FL_TK_I32,  FL_TK_U32,  FL_TK_I64,   FL_TK_U64,
+                       FL_TK_I8,   FL_TK_U8,   FL_TK_I16, FL_TK_U16,
+                       FL_TK_I32,  FL_TK_U32,  FL_TK_I64, FL_TK_U64,
 
-                       FL_TK_F32,  FL_TK_F64,  FL_TK_STRING};
+                       FL_TK_F32,  FL_TK_F64 /*FL_TK_STRING*/};
 
   size_t i;
-  for (i = 0; i < 13; ++i) {
+  for (i = 0; i < 12; ++i) {
     if (tk == tks[i]) {
       type_node->ty_id = i + 1;
       PSR_NEXT();
@@ -63,6 +64,8 @@ PSR_READ_IMPL(type) {
     }
   }
 
+  log_silly("no built-in -> identifier");
+
   // primitive fail, try wrapper
   PSR_READ_OR_DIE(id, lit_identifier, { fl_ast_delete(type_node); }, 0);
 
@@ -70,6 +73,8 @@ PSR_READ_IMPL(type) {
 
   // wapper type<subtype>
   if (PSR_ACCEPT_TOKEN(FL_TK_LT)) {
+    log_silly("is a wrapper");
+
     PSR_SKIPWS();
 
     PSR_READ_OR_DIE(child, type, {
@@ -107,6 +112,8 @@ PSR_READ_IMPL(type) {
     }
     // do something?!
   }
+
+  log_silly("search identifier");
 
   size_t ty_id = ts_named_typeid(id->identifier.string);
   log_debug("**TYPE [%zu] = '%s'", ty_id, id->identifier.string->value);

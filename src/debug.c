@@ -27,35 +27,42 @@
 
 int log_debug_level = 4;
 
-void fl_print_type(size_t ty_id) {
+void fl_print_type(size_t ty_id, size_t indent) {
   fl_type_t ty = fl_type_table[ty_id];
 
   switch (ty.of) {
   case FL_VOID:
-    log_debug("[%zu] VOID", ty_id);
+    log_debug("%*s [%zu] VOID", indent, " ", ty_id);
     break;
   case FL_NUMBER:
-    log_debug("[%zu] Number (fp %d, bits %d, sign %d)", ty_id, ty.number.fp,
-              ty.number.bits, ty.number.sign);
+    log_debug("%*s [%zu] Number (fp %d, bits %d, sign %d)", indent, " ", ty_id,
+              ty.number.fp, ty.number.bits, ty.number.sign);
     break;
   case FL_POINTER:
-    log_debug("[%zu] Pointer -> ", ty_id);
-    fl_print_type(ty.ptr.to);
+    log_debug("%*s [%zu] Pointer -> %zu", indent, " ", ty_id, ty.ptr.to);
+    fl_print_type(ty.ptr.to, indent + 2);
     break;
   case FL_VECTOR:
-    log_debug("[%zu] Vector -> ", ty_id);
-    fl_print_type(ty.vector.to);
+    log_debug("%*s [%zu] Vector -> %zu", indent, " ", ty_id, ty.ptr.to);
+    fl_print_type(ty.vector.to, indent + 2);
     break;
-  case FL_FUNCTION:
-    log_debug("[%s] Function arity(%zu) -> [%zu]",
+  case FL_STRUCT: {
+    log_debug("%*s [%zu] Struct [%s]", indent, " ", ty_id,
+              ty.structure.decl->structure.id->identifier.string->value);
+    size_t i;
+    for (i = 0; i < ty.structure.nfields; ++i) {
+      fl_print_type(ty.structure.fields[i], indent + 2);
+    }
+  } break;
+  case FL_FUNCTION: {
+    log_debug("%*s Function [%s] arity(%zu) -> [%zu]", indent, " ",
               ty.id ? ty.id->value : "Anonymous", ty.func.nparams, ty.func.ret);
     size_t i;
-    fl_print_type(ty.func.ret);
-    log_debug("**");
+    fl_print_type(ty.func.ret, indent + 2);
     for (i = 0; i < ty.func.nparams; ++i) {
-      fl_print_type(ty.func.params[i]);
+      fl_print_type(ty.func.params[i], indent + 2);
     }
-    log_debug("**");
+  } break;
   }
 }
 
@@ -63,7 +70,7 @@ void fl_print_type_table() {
   size_t i;
 
   for (i = 0; i < fl_type_size; ++i) {
-    fl_print_type(i);
+    fl_print_type(i, 0);
   }
 }
 

@@ -58,7 +58,7 @@ PSR_READ_IMPL(decl_variable_no_type) {
 }
 
 PSR_READ_IMPL(decl_variable_with_type) {
-  log_silly("read token var, unvar, const, static, global");
+  log_silly("has var, unvar, const, static, global?");
   PSR_START(ast, FL_AST_DTOR_VAR);
 
   fl_tokens_t tks[] = {FL_TK_VAR, FL_TK_UNVAR, FL_TK_CONST, FL_TK_STATIC,
@@ -68,7 +68,8 @@ PSR_READ_IMPL(decl_variable_with_type) {
   }
 
   PSR_SKIPWS();
-  PSR_READ_OK(type, type)
+  PSR_READ_OK(type, type);
+  fl_ast_debug(type);
 
   if (!type) {
     log_silly("no type...");

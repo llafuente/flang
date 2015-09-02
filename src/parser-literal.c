@@ -197,8 +197,10 @@ PSR_READ_IMPL(lit_numeric) {
 
 // TODO review what should be valid and what not
 // right now we should accept "anything that is not token"
+// except string that is part of the core atm.
 PSR_READ_IMPL(lit_identifier) {
-  if (state->token->type != FL_TK_UNKOWN) {
+  if (state->token->type != FL_TK_UNKOWN &&
+      state->token->type != FL_TK_STRING) {
     return 0;
   }
 

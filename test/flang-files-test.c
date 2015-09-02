@@ -86,13 +86,14 @@ TASK_IMPL(flang_files) {
 
   char* files[] = {"../test/fl/expressions", "../test/fl/casting",
                    "../test/fl/if",          "../test/fl/loops",
-                   "../test/fl/types",       "../test/fl/pointers"};
-  size_t nfiles = 6;
+                   "../test/fl/types",       "../test/fl/pointers",
+                   "../test/fl/string"};
+  size_t nfiles = 7;
   char* fl_file = malloc(sizeof(char) * 100);
   char* txt_file = malloc(sizeof(char) * 100);
   char* bc_file = malloc(sizeof(char) * 100);
   char* ir_file = malloc(sizeof(char) * 100);
-  char* cmd = malloc(sizeof(char) * 150);
+  char* cmd = malloc(sizeof(char) * 256);
 
   fl_ast_t* root;
   LLVMModuleRef module;
@@ -119,14 +120,18 @@ TASK_IMPL(flang_files) {
 
     root = fl_parse_file(fl_file, false);
 
+    fl_print_type_table();
+
     module = fl_codegen(root, "test");
+
+    ts_exit();
 
     fl_to_bitcode(module, bc_file);
     fl_to_ir(module, ir_file);
 
     fl_ast_delete(root);
     cmd[0] = '\0';
-    strcat(cmd, "lli ");
+    strcat(cmd, "lli -load libstringc.so ");
     strcat(cmd, ir_file);
     strcat(cmd, " 2>&1");
     string* output = execute(cmd);

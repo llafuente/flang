@@ -187,7 +187,7 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
     } else {
       log_warning("** program.core not found");
     }
-
+    log_verbose("** program.body **");
     return fl_codegen_ast(node->program.body, FL_CODEGEN_PASSTHROUGH);
   case FL_AST_BLOCK: {
     size_t i = 0;
@@ -324,7 +324,7 @@ LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
 
   LLVMValueRef assign = LLVMBuildStore(builder, right, left);
 
-  left = LLVMBuildLoad(builder, left, "");
+  left = LLVMBuildLoad(builder, left, "load_l_ass");
   // if left is an identifier, set
   // if (l->type == FL_AST_LIT_IDENTIFIER) {
   //  fl_ast_t* id = fl_ast_search_decl_var(node, l->identifier.string);
@@ -468,6 +468,8 @@ LLVMValueRef fl_codegen_dtor_var(FL_CODEGEN_HEADER) {
   LLVMValueRef ref =
       LLVMBuildAlloca(builder, fl_codegen_get_type(node->var.type, context),
                       node->var.id->identifier.string->value);
+  // TODO fix me!
+  // LLVMSetAlignment(ref, 8);
   node->var.alloca = (void*)ref;
 
   return ref;
@@ -793,7 +795,7 @@ LLVMValueRef fl_codegen_right_identifier(FL_CODEGEN_HEADER) {
   }
 
   if (decl->type == FL_AST_DTOR_VAR) {
-    return LLVMBuildLoad(builder, (LLVMValueRef)decl->var.alloca, "");
+    return LLVMBuildLoad(builder, (LLVMValueRef)decl->var.alloca, "load_dtor");
   }
   if (decl->type == FL_AST_PARAMETER) {
     return (LLVMValueRef)decl->param.alloca;
@@ -806,10 +808,18 @@ LLVMValueRef fl_codegen_right_identifier(FL_CODEGEN_HEADER) {
 
 LLVMValueRef fl_codegen_left_member(FL_CODEGEN_HEADER) {
   fl_type_t* type = &fl_type_table[node->member.left->ty_id];
+
+  log_verbose("***********************");
+  fl_ast_debug(node);
+  log_verbose("left is %zu", node->member.left->ty_id);
+  fl_print_type(node->member.left->ty_id, 0);
+
   switch (type->of) {
   case FL_STRUCT: {
     LLVMValueRef left =
         fl_codegen_lhs(node->member.left, FL_CODEGEN_PASSTHROUGH);
+    fl_type_t* myt = &fl_type_table[node->member.left->ty_id];
+
     return LLVMBuildStructGEP(builder, left, node->member.idx, "");
   }
   case FL_POINTER: {
@@ -830,9 +840,19 @@ LLVMValueRef fl_codegen_left_member(FL_CODEGEN_HEADER) {
   log_error("wtf?!");
 }
 
+// TODO is this right?! LLVMBuildLoad depens on type?!
 LLVMValueRef fl_codegen_right_member(FL_CODEGEN_HEADER) {
   LLVMValueRef r = fl_codegen_left_member(node, FL_CODEGEN_PASSTHROUGH);
-  return LLVMBuildLoad(builder, r, "");
+
+  fl_type_t* type = &fl_type_table[node->ty_id];
+  switch (type->of) {
+  case FL_VECTOR:
+  case FL_POINTER:
+    return r;
+    break;
+  default:
+    return LLVMBuildLoad(builder, r, "r_member");
+  }
 }
 
 LLVMValueRef fl_codegen_lhs(FL_CODEGEN_HEADER) {

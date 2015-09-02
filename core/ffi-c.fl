@@ -3,9 +3,10 @@ struct string {
   i32 length,
   i32 used,
   u32 capacity,
-  i8 encoding,
+  i32 encoding,
   vector<i8> value
 };
+/*due a bug, encodign cannot be i8 */
 
 
 ffi fn printf(ptr<i8> format, ...) : i32;

@@ -1,0 +1,11 @@
+ffi fn st_newc(ptr<i8> src, i32 enc) : ptr<string>;
+ffi fn st_debug(ptr<string> str);
+/* FIXME: tokenizerbug */
+/* ffi fn st_delete(ptr<ptr<string>> str); */
+
+var ptr<string> s;
+
+s = st_newc("hi!", 0);
+printf("string='%s'\n", s[0].value);
+
+/* st_delete(&s); */

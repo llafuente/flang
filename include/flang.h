@@ -850,7 +850,7 @@ fl_codegen_cast_op(LLVMBuilderRef builder, size_t current, size_t expected,
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(debug.c) */
-FL_EXTERN void fl_print_type(size_t ty_id);
+FL_EXTERN void fl_print_type(size_t ty_id, size_t indent);
 FL_EXTERN void fl_print_type_table();
 FL_EXTERN bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
                                void* userdata);
