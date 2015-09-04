@@ -599,10 +599,12 @@ extern fl_type_t* fl_type_table;
 extern size_t fl_type_size;
 extern fl_type_cg_t* ts_hashtable;
 
+FL_EXTERN bool ts_is_pointer(size_t id);
 FL_EXTERN bool ts_is_struct(size_t id);
 FL_EXTERN bool ts_is_number(size_t id);
 FL_EXTERN bool ts_is_fp(size_t id);
 FL_EXTERN bool ts_is_int(size_t id);
+FL_EXTERN size_t ts_wapper_typeid(fl_types_t wrapper, size_t child);
 FL_EXTERN size_t ts_get_bigger_typeid(size_t a, size_t b);
 FL_EXTERN fl_ast_t* ts_pass(fl_ast_t* node);
 

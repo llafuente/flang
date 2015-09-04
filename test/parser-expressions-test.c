@@ -184,10 +184,9 @@ TASK_IMPL(parser_expressions) {
     exit(1);
   */
 
-  log_debug_level = 10;
-
   TEST_PARSER_OK("array access", "var ptr<i64> x;"
-                                 "x[0];",
+                                 "x[0];"
+                                 "&x;",
                  {
                    ASSERT(body[0]->ty_id == TEST_TYPEID, "struct type");
                    ASSERT(body[1]->ty_id == 9, "dereference type 9");

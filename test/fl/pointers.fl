@@ -2,11 +2,15 @@ var ptr<i8> list;
 var i64 i;
 
 list = "blablabla";
-printf("%c\n", list[0]);
+printf("char = %c\n", list[0]);
 
-
+printf("one by one = "); /* TODO fix remove ');' */
 for i = 0; i < 9; i = i+1 {
   printf("%c", list[i]);
 }
 
 printf("\n");
+/* it's working, but cannot be in the test txt
+printf("address = %p\n", list);
+printf("address = %zu\n", &list);
+*/

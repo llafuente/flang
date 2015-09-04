@@ -46,6 +46,7 @@ TASK_IMPL(codegen_functions) {
                   { fl_to_bitcode(module, "hello-world.bc"); });
 
   // fl_interpreter(module);
+  log_debug_level = 10;
   TEST_CODEGEN_OK("cg function 04",
                   "var ptr<i8> str; str = 'hello'; printf('%s\\n', str);",
                   { fl_to_bitcode(module, "hello-world.bc"); });

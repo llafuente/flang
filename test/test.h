@@ -25,7 +25,7 @@
 #define STR(val) #val
 
 // last core typeid + 1
-#define TEST_TYPEID 17
+#define TEST_TYPEID 18
 
 #define CHK_BODY(root)                                                         \
   ASSERT(root != 0, "root is not null");                                       \

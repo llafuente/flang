@@ -1,2 +1,2 @@
-b
-blablabla
+char = b
+one by one = blablabla

@@ -405,6 +405,7 @@ PSR_READ_IMPL(expr_unary_left) {
   case FL_TK_TILDE:
   case FL_TK_EXCLAMATION:
   case FL_TK_DELETE:
+  case FL_TK_AND:
     // case FL_TK_ASTERISK: // dereference pointer
     // case FL_TK_TYPEOF:
     // case FL_TK_CLONE:

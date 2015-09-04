@@ -84,7 +84,18 @@ void ts_init() {
     fl_type_table[id].number.fp = true;
     fl_type_table[id].number.sign = true;
 
-    // [13+] core + user
+    // [13] pointer address
+    fl_type_table[++id].of = FL_NUMBER;
+    fl_type_table[id].id = st_newc("addr", st_enc_ascii);
+    fl_type_table[id].number.bits = 64;
+    fl_type_table[id].number.fp = false;
+    fl_type_table[id].number.sign = false;
+
+    // adding types here, affects typesystem pass
+    // because some are hardcoded atm!
+
+
+    // [14+] core + user
     fl_type_size = ++id;
   }
 }
@@ -161,6 +172,10 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
   cast->ty_id = type_id;
 
   switch (node->type) {
+  case FL_AST_LIT_STRING: {
+    // TODO ptr<i8> atm -> string in the future
+    node->ty_id = 16;
+  } break;
   case FL_AST_LIT_IDENTIFIER: {
     if (node->identifier.resolve) {
       if (node->parent->type == FL_AST_EXPR_CALL) {
@@ -206,6 +221,24 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     if (ts_is_struct(l->ty_id)) {
     }
 
+  } break;
+  case FL_AST_EXPR_LUNARY: {
+    switch (node->lunary.operator) {
+      case FL_TK_EXCLAMATION:
+        node->ty_id = 2; // bool
+      break;
+      case FL_TK_AND: {
+        size_t el_ty_id = node->lunary.element->ty_id;
+        if (!ts_is_pointer(el_ty_id)) {
+          //TODO error
+        }
+        // create new type if needed
+        // node->ty_id = ts_wapper_typeid(FL_POINTER, el_ty_id);
+        node->ty_id = 13;
+      } break;
+      default:
+        node->ty_id = node->lunary.element->ty_id;
+    }
   } break;
   case FL_AST_EXPR_ASSIGNAMENT: {
     // fl_ast_debug(node);

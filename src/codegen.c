@@ -638,6 +638,9 @@ LLVMValueRef fl_codegen_lunary(FL_CODEGEN_HEADER) {
     LLVMValueRef one_substracted = LLVMBuildSub(builder, element, one, "");
     return LLVMBuildStore(builder, element, one_substracted);
   }
+  case FL_TK_AND: {
+    return element; // this should no be loaded!
+  }
   default: {}
   }
   log_error("lunary not handled %d", node->lunary.operator);
@@ -795,6 +798,9 @@ LLVMValueRef fl_codegen_right_identifier(FL_CODEGEN_HEADER) {
   }
 
   if (decl->type == FL_AST_DTOR_VAR) {
+    if (ts_is_pointer(node->ty_id)) {
+      return (LLVMValueRef)decl->var.alloca;
+    }
     return LLVMBuildLoad(builder, (LLVMValueRef)decl->var.alloca, "load_dtor");
   }
   if (decl->type == FL_AST_PARAMETER) {
@@ -826,6 +832,7 @@ LLVMValueRef fl_codegen_left_member(FL_CODEGEN_HEADER) {
     LLVMValueRef left =
         fl_codegen_ast(node->member.left, FL_CODEGEN_PASSTHROUGH);
     LLVMValueRef index[1];
+    left = LLVMBuildLoad(builder, left, "load_ptr");
 
     if (node->member.expression) {
       index[0] = fl_codegen_ast(node->member.property, FL_CODEGEN_PASSTHROUGH);
