@@ -1,0 +1,4 @@
+/* string must be first atm */
+#load "./../core/string.fl"
+
+#load "./../core/ffi-c.fl"

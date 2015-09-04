@@ -118,7 +118,7 @@ TASK_IMPL(flang_files) {
     strcat(ir_file, files[i]);
     strcat(ir_file, ".ir");
 
-    root = fl_parse_file(fl_file, false);
+    root = fl_parse_file(fl_file, true);
 
     fl_print_type_table();
 

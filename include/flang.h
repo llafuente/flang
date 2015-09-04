@@ -178,7 +178,8 @@ enum fl_tokens {
   FL_TK_STRING,
   FL_TK_BACKTICK,
   FL_TK_DOLLAR,
-  FL_TK_HASH
+  FL_TK_HASH,
+  FL_TK_LOAD
 };
 
 typedef enum fl_tokens fl_tokens_t;
@@ -764,6 +765,12 @@ PSR_READ_DECL(stmt_if);
 PSR_READ_IMPL(stmt_for);
 PSR_READ_IMPL(stmt_while);
 PSR_READ_IMPL(stmt_dowhile);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(parser-load.c) */
+
+PSR_READ_IMPL(pp_load);
 
 /* cldoc:end-category() */
 

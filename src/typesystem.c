@@ -94,7 +94,6 @@ void ts_init() {
     // adding types here, affects typesystem pass
     // because some are hardcoded atm!
 
-
     // [14+] core + user
     fl_type_size = ++id;
   }
@@ -224,20 +223,20 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
   } break;
   case FL_AST_EXPR_LUNARY: {
     switch (node->lunary.operator) {
-      case FL_TK_EXCLAMATION:
-        node->ty_id = 2; // bool
+    case FL_TK_EXCLAMATION:
+      node->ty_id = 2; // bool
       break;
-      case FL_TK_AND: {
-        size_t el_ty_id = node->lunary.element->ty_id;
-        if (!ts_is_pointer(el_ty_id)) {
-          //TODO error
-        }
-        // create new type if needed
-        // node->ty_id = ts_wapper_typeid(FL_POINTER, el_ty_id);
-        node->ty_id = 13;
-      } break;
-      default:
-        node->ty_id = node->lunary.element->ty_id;
+    case FL_TK_AND: {
+      size_t el_ty_id = node->lunary.element->ty_id;
+      if (!ts_is_pointer(el_ty_id)) {
+        // TODO error
+      }
+      // create new type if needed
+      // node->ty_id = ts_wapper_typeid(FL_POINTER, el_ty_id);
+      node->ty_id = 13;
+    } break;
+    default:
+      node->ty_id = node->lunary.element->ty_id;
     }
   } break;
   case FL_AST_EXPR_ASSIGNAMENT: {

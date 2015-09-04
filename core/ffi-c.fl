@@ -1,16 +1,4 @@
-/* this must be the first thing! to parse in the core */
-struct string {
-  i32 length,
-  i32 used,
-  u32 capacity,
-  i32 encoding,
-  vector<i8> value
-};
-/*due a bug, encodign cannot be i8 */
-
-
 ffi fn printf(ptr<i8> format, ...) : i32;
-
 
 /*
 fn plus(i8 a, i8 b) : i8;

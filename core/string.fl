@@ -1,0 +1,12 @@
+/*
+  due a bug (padding), encoding cannot be i8,
+  it's still compatible with the c version...
+*/
+
+struct string {
+  i32 length,
+  i32 used,
+  u32 capacity,
+  i32 encoding,
+  vector<i8> value
+};

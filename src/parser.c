@@ -37,7 +37,7 @@ void fl_state_debug(fl_psrstate_t* state) {
   */
 }
 
-fl_ast_t* fl_parser(fl_token_list_t* tokens, bool core) {
+fl_ast_t* fl_parser(fl_token_list_t* tokens, bool attach_core) {
   ts_init();
 
   fl_psrstack_t* stack = malloc(sizeof(fl_psrstack_t));
@@ -50,10 +50,10 @@ fl_ast_t* fl_parser(fl_token_list_t* tokens, bool core) {
   root->program.tokens = tokens;
 
   // read core
-  if (!core) {
+  if (attach_core) {
     int olog_debug_level = log_debug_level;
     log_debug_level = 0;
-    root->program.core = fl_parse_file("./../core/ffi-c.fl", true);
+    root->program.core = fl_parse_file("./../core/core.fl", false);
     log_debug_level = olog_debug_level;
   }
 
@@ -67,12 +67,12 @@ fl_ast_t* fl_parser(fl_token_list_t* tokens, bool core) {
   return root;
 }
 
-fl_ast_t* fl_parse(string* code, bool core) {
+fl_ast_t* fl_parse(string* code, bool attach_core) {
   fl_token_list_t* tokens;
 
   tokens = fl_tokenize(code);
 
-  fl_ast_t* root = fl_parser(tokens, core);
+  fl_ast_t* root = fl_parser(tokens, attach_core);
   root->program.code = code;
 
   // do inference
@@ -95,10 +95,10 @@ fl_ast_t* fl_parse_utf8(char* str) {
 
   code = st_newc(str, st_enc_utf8);
 
-  return fl_parse(code, false);
+  return fl_parse(code, true);
 }
 
-fl_ast_t* fl_parse_file(char* filename, bool core) {
+fl_ast_t* fl_parse_file(char* filename, bool attach_core) {
   FILE* f = fopen(filename, "r");
   if (!f) {
     fprintf(stderr, "file cannot be opened: %s\n", filename);
@@ -121,7 +121,7 @@ fl_ast_t* fl_parse_file(char* filename, bool core) {
   code->length = st_utf8_length(code->value, 0);
   st__zeronull(code->value, result, st_enc_utf8);
 
-  fl_ast_t* r = fl_parse(code, core);
+  fl_ast_t* r = fl_parse(code, attach_core);
 
   return r;
 }
