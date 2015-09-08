@@ -1,0 +1,16 @@
+function print(ptr<i8> str) : i32 {
+  return printf("%s", str);
+}
+
+function print(i32 num) : i32 {
+  return printf("%d", num);
+}
+
+function print(f32 f) : i32 {
+  return printf("%f", f);
+}
+
+
+print(10);
+print(10.5);
+print("nuse!");

@@ -87,8 +87,8 @@ TASK_IMPL(flang_files) {
   char* files[] = {"../test/fl/expressions", "../test/fl/casting",
                    "../test/fl/if",          "../test/fl/loops",
                    "../test/fl/types",       "../test/fl/pointers",
-                   "../test/fl/string"};
-  size_t nfiles = 7;
+                   "../test/fl/string", "../test/fl/functions"};
+  size_t nfiles = 8;
   char* fl_file = malloc(sizeof(char) * 100);
   char* txt_file = malloc(sizeof(char) * 100);
   char* bc_file = malloc(sizeof(char) * 100);

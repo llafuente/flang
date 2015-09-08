@@ -27,7 +27,7 @@
 
 int log_debug_level = 4;
 
-void fl_print_type(size_t ty_id, size_t indent) {
+void fl_print_type(size_t ty_id, int indent) {
   fl_type_t ty = fl_type_table[ty_id];
 
   switch (ty.of) {
@@ -63,6 +63,12 @@ void fl_print_type(size_t ty_id, size_t indent) {
       fl_print_type(ty.func.params[i], indent + 2);
     }
   } break;
+  case FL_INFER: {
+    log_debug("%*s Unknown", indent, " ");
+  } break;
+  default: {
+    log_error("fl_print_type(%u) not implement", ty.of);
+  }
   }
 }
 
@@ -141,7 +147,7 @@ bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     printf("field T(%zu)", node->ty_id);
     break;
   case FL_AST_DECL_FUNCTION:
-    printf("function T(%zu) [params=%zu]", node->ty_id, node->func.nparams);
+    printf("function T(%zu) id(%s) [params=%zu]", node->ty_id, node->func.uid->value, node->func.nparams);
     break;
   case FL_AST_PARAMETER:
     printf("parameter");

@@ -178,8 +178,7 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
   case FL_AST_LIT_IDENTIFIER: {
     if (node->identifier.resolve) {
       if (node->parent->type == FL_AST_EXPR_CALL) {
-        node->ty_id = ts_fn_typeid(node);
-        node->parent->ty_id = fl_type_table[node->ty_id].func.ret;
+        // see EXPR_CALL below
       } else if (node->parent->type == FL_AST_EXPR_MEMBER) {
         // it's handled below, but maybe can be optimized at this level...
       } else {
@@ -266,8 +265,24 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     node->ty_id = l_type;
   } break;
   case FL_AST_EXPR_CALL: {
+    size_t i;
+    fl_ast_t* args = node->call.arguments;
+    fl_ast_t* arg;
+    size_t count = args->list.count;
+
     if (!node->ty_id) {
-      ts_pass(node->call.callee);
+      // get types from arguments first
+      for (i = 0; i < count; ++i) {
+        ts_pass(args->list.elements[i]);
+      }
+      // now that we have our desired type
+      // search for a compatible function
+      string* callee = node->call.callee->identifier.string;
+
+      size_t cty_id = ts_fn_typeid(node->call.callee);
+      node->ty_id = fl_type_table[cty_id].func.ret;
+      node->call.callee->ty_id = cty_id;
+
     }
 
     if (!node->call.callee->ty_id) {
@@ -281,14 +296,9 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     fl_ast_debug(node);
 
     // cast arguments
-    fl_ast_t* args = node->call.arguments;
-    fl_ast_t* arg;
-    size_t i;
-    size_t count = args->list.count;
-
     for (i = 0; i < count; ++i) {
       arg = args->list.elements[i];
-      ts_pass(arg);
+      //ts_pass(arg);
 
       if (arg->ty_id != t->func.params[i]) {
         // cast right side
@@ -513,7 +523,7 @@ FL_EXTERN size_t ts_struct_idx(fl_ast_t* decl, string* id) {
   size_t length = list->list.count;
 
   for (i = 0; i < length; ++i) {
-    if (st_cmp(elements[i]->field.id, id)) {
+    if (st_cmp(elements[i]->field.id->identifier.string, id)) {
       return i;
     }
   }
@@ -522,6 +532,28 @@ FL_EXTERN size_t ts_struct_idx(fl_ast_t* decl, string* id) {
 
 size_t ts_fn_create(fl_ast_t* decl) {
   string* id = decl->func.id->identifier.string;
+  string* uid;
+
+  // check for collisions
+  if (ts_named_type(id)) {
+    if (decl->func.uid) {
+      if (ts_named_type(decl->func.uid)) {
+        log_error("uid collision!");
+      }
+    } else {
+      // create a unique name!
+      uid = st_concat_random(id, 10);
+      while(ts_named_type(uid)) {
+        st_delete(&uid);
+        uid = st_concat_random(id, 10);
+      }
+    }
+    decl->func.uid = uid;
+  } else {
+    decl->func.uid = st_clone(id);
+  }
+
+
   fl_ast_t* params = decl->func.params;
   size_t length = params->list.count;
   size_t* tparams = calloc(length, sizeof(size_t));

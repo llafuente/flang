@@ -505,7 +505,7 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
                        param_types, node->func.nparams, node->func.varargs);
 
   LLVMValueRef func = LLVMAddFunction(
-      module, node->func.id->identifier.string->value, ret_type);
+      module, node->func.uid->value, ret_type);
   LLVMSetFunctionCallConv(func, LLVMCCallConv);
   LLVMSetLinkage(func, LLVMExternalLinkage);
 
@@ -557,7 +557,7 @@ LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER) {
   log_debug("fl_codegen_expr_call");
 
   LLVMValueRef fn =
-      LLVMGetNamedFunction(module, node->call.callee->identifier.string->value);
+      LLVMGetNamedFunction(module, node->call.decl->func.uid->value);
   if (!fn) {
     log_error("function [%s] not found in current context",
               node->call.callee->identifier.string->value);

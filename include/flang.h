@@ -401,6 +401,7 @@ struct fl_ast {
     struct fl_ast_decl_function {
       // TODO use fl_type_t*
       struct fl_ast* id;
+      string* uid; // realname in the module
       struct fl_ast* params;
       size_t nparams;
       struct fl_ast* body;
@@ -440,6 +441,7 @@ struct fl_ast {
 
     struct fl_ast_expr_call {
       fl_ast_t* callee;
+      fl_ast_t* decl; // set by typesystem
       struct fl_ast* arguments;
       size_t narguments;
     } call;
@@ -859,7 +861,7 @@ fl_codegen_cast_op(LLVMBuilderRef builder, size_t current, size_t expected,
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(debug.c) */
-FL_EXTERN void fl_print_type(size_t ty_id, size_t indent);
+FL_EXTERN void fl_print_type(size_t ty_id, int indent);
 FL_EXTERN void fl_print_type_table();
 FL_EXTERN bool fl_ast_debug_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
                                void* userdata);

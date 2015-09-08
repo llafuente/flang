@@ -251,12 +251,17 @@ void fl_ast_delete_props(fl_ast_t* ast) {
     test = 0;                                                                  \
   }
 
+  #define SAFE_DEL_STR(test)                                                         \
+    if (test) {                                                                  \
+      st_delete(&test);                                                       \
+    }
+
   switch (ast->type) {
   case FL_AST_PROGRAM: {
     SAFE_DEL(ast->program.body);
     SAFE_DEL(ast->program.core);
     fl_tokens_delete(ast->program.tokens);
-    st_delete(&ast->program.code);
+    SAFE_DEL_STR(ast->program.code);
   } break;
   case FL_AST_BLOCK: {
     SAFE_DEL_LIST(ast->block.body);
@@ -287,10 +292,10 @@ void fl_ast_delete_props(fl_ast_t* ast) {
     SAFE_DEL(ast->member.property);
   } break;
   case FL_AST_LIT_STRING:
-    st_delete(&ast->string.value);
+    SAFE_DEL_STR(ast->string.value);
     break;
   case FL_AST_LIT_IDENTIFIER:
-    st_delete(&ast->identifier.string);
+    SAFE_DEL_STR(ast->identifier.string);
     break;
   case FL_AST_DTOR_VAR:
     SAFE_DEL(ast->var.id);
@@ -298,6 +303,7 @@ void fl_ast_delete_props(fl_ast_t* ast) {
     break;
   case FL_AST_DECL_FUNCTION:
     SAFE_DEL(ast->func.id);
+    SAFE_DEL_STR(ast->func.uid);
     SAFE_DEL(ast->func.ret_type);
     SAFE_DEL(ast->func.params);
     if (ast->func.body) {
