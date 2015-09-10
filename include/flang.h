@@ -45,6 +45,7 @@
 #include <llvm-c/BitWriter.h>
 
 #include "ext/uthash.h"
+#include "ext/array.h"
 
 //-
 //- type declaration
@@ -546,9 +547,13 @@ struct fl_type {
   };
 };
 
-struct fl_type_cg {
+struct fl_type_cg_in {
   size_t id;
   fl_ast_t* decl;
+};
+
+struct fl_type_cg {
+  array list;
 
   UT_hash_handle hh; // makes this structure hashable
   char name[64];     // key (string is WITHIN the structure)
@@ -623,6 +628,7 @@ FL_EXTERN size_t ts_struct_property_type(size_t id, string* property);
 FL_EXTERN size_t ts_struct_property_idx(size_t id, string* property);
 
 FL_EXTERN size_t ts_fn_typeid(fl_ast_t* id);
+FL_EXTERN fl_ast_t* ts_find_fn_decl(string* id, fl_ast_t* args);
 FL_EXTERN size_t ts_var_typeid(fl_ast_t* id);
 
 FL_EXTERN void ts_init();
@@ -813,6 +819,8 @@ FL_EXTERN bool fl_ast_is_pointer(fl_ast_t* node);
 FL_EXTERN size_t fl_ast_ret_type(fl_ast_t* node);
 
 FL_EXTERN fl_ast_t* fl_ast_find_fn_decl(fl_ast_t* identifier);
+
+FL_EXTERN array* ast_find_fn_decls(fl_ast_t* node, string* id);
 
 /* cldoc:end-category() */
 

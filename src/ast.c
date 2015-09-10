@@ -169,6 +169,10 @@ void* fl_ast_reverse(fl_ast_t* ast, fl_ast_ret_cb_t cb, fl_ast_t* parent,
 
   switch (ast->type) {
   case FL_AST_PROGRAM:
+    if (ast->program.core) {
+      log_verbose("reverse core -> traverse");
+      fl_ast_traverse(ast->program.core, cb, 0, 0, userdata);
+    }
     break;
   case FL_AST_BLOCK: {
     REVERSE_LIST(ast->block.body);
@@ -251,10 +255,10 @@ void fl_ast_delete_props(fl_ast_t* ast) {
     test = 0;                                                                  \
   }
 
-  #define SAFE_DEL_STR(test)                                                         \
-    if (test) {                                                                  \
-      st_delete(&test);                                                       \
-    }
+#define SAFE_DEL_STR(test)                                                     \
+  if (test) {                                                                  \
+    st_delete(&test);                                                          \
+  }
 
   switch (ast->type) {
   case FL_AST_PROGRAM: {
@@ -475,4 +479,38 @@ fl_ast_t* fl_ast_find_fn_decl(fl_ast_t* identifier) {
 
   return (fl_ast_t*)fl_ast_reverse(identifier, fl_ast_find_fn_decl_cb, 0, 0,
                                    (void*)identifier->identifier.string);
+}
+
+// nasty hack to be fast
+string* ast_search_id = 0;
+bool ast_find_fn_decls_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
+                          void* userdata, void** ret) {
+  log_debug("???? %d", node->type == FL_AST_DECL_FUNCTION);
+
+  if (node->type == FL_AST_DECL_FUNCTION) {
+    fl_ast_debug(node);
+    log_verbose("'%s' == '%s'", ast_search_id->value,
+                node->func.id->identifier.string->value);
+    if (st_cmp(ast_search_id, node->func.id->identifier.string) == 0) {
+      log_verbose("function found push!");
+      array_append((array*)userdata, node);
+    }
+  }
+
+  return true;
+}
+array* ast_find_fn_decls(fl_ast_t* node, string* id) {
+  ast_search_id = id;
+  array* userdata = malloc(sizeof(array));
+  array_new(userdata);
+
+  fl_ast_reverse(node, ast_find_fn_decls_cb, 0, 0, (void*)userdata);
+
+  if (userdata->size) {
+    return userdata;
+  }
+
+  array_delete(userdata);
+  free(userdata);
+  return 0;
 }

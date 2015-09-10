@@ -279,10 +279,15 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
       // search for a compatible function
       string* callee = node->call.callee->identifier.string;
 
-      size_t cty_id = ts_fn_typeid(node->call.callee);
+      fl_ast_t* decl = ts_find_fn_decl(callee, args);
+      if (!decl) {
+        log_error("cannot find compatible function");
+      }
+      node->call.decl = decl;
+
+      size_t cty_id = decl->ty_id;
       node->ty_id = fl_type_table[cty_id].func.ret;
       node->call.callee->ty_id = cty_id;
-
     }
 
     if (!node->call.callee->ty_id) {
@@ -298,7 +303,14 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     // cast arguments
     for (i = 0; i < count; ++i) {
       arg = args->list.elements[i];
-      //ts_pass(arg);
+
+      // varargs goes raw!
+      log_verbose("varargs[%d] params[%zu] i[%zu]", t->func.varargs,
+                  t->func.nparams, i);
+
+      if (t->func.varargs && t->func.nparams <= i) {
+        break;
+      }
 
       if (arg->ty_id != t->func.params[i]) {
         // cast right side
@@ -467,10 +479,16 @@ size_t ts_struct_property_type(size_t id, string* property) {
 }
 
 void ts_named_set(string* id, fl_ast_t* decl, size_t type_id) {
-  fl_type_cg_t* t = (fl_type_cg_t*)malloc(sizeof(fl_type_cg_t));
-  strncpy(t->name, id->value, 64);
-  t->decl = decl;
-  t->id = type_id;
+  fl_type_cg_t* t = ts_named_type(id);
+  if (!t) {
+    t = (fl_type_cg_t*)calloc(1, sizeof(fl_type_cg_t));
+    array_new(&t->list);
+
+    strncpy(t->name, id->value, 64);
+  }
+
+  array_append(&t->list, decl);
+  //! t->list[t->length].id = type_id;
 
   HASH_ADD_STR(ts_hashtable, name, t);
 }
@@ -543,7 +561,7 @@ size_t ts_fn_create(fl_ast_t* decl) {
     } else {
       // create a unique name!
       uid = st_concat_random(id, 10);
-      while(ts_named_type(uid)) {
+      while (ts_named_type(uid)) {
         st_delete(&uid);
         uid = st_concat_random(id, 10);
       }
@@ -552,7 +570,6 @@ size_t ts_fn_create(fl_ast_t* decl) {
   } else {
     decl->func.uid = st_clone(id);
   }
-
 
   fl_ast_t* params = decl->func.params;
   size_t length = params->list.count;
@@ -614,6 +631,22 @@ size_t ts_fn_typeid(fl_ast_t* id) {
   return 0;
 }
 
+// TODO handle args
+fl_ast_t* ts_find_fn_decl(string* id, fl_ast_t* args) {
+  array* arr = ast_find_fn_decls(args->parent, id);
+  log_verbose("declarations with same name = %zu\n", arr->size);
+
+  if (arr->size == 1) {
+    fl_ast_t* ret = array_get(arr, 0);
+    array_delete(arr);
+    free(arr);
+    return ret;
+  }
+  array_delete(arr);
+  free(arr);
+  return 0;
+}
+
 // TODO global vars!
 size_t ts_var_typeid(fl_ast_t* id) {
   assert(id->type != FL_AST_LIT_IDENTIFIER);
@@ -639,7 +672,16 @@ size_t ts_named_typeid(string* id) {
   fl_type_cg_t* s;
   HASH_FIND_STR(ts_hashtable, id->value, s);
 
-  return s ? s->id : 0;
+  // TODO raise something ?!
+  if (!s)
+    return 0;
+
+  if (s->list.size > 1) {
+    log_error("not allowed?!");
+  }
+
+  fl_ast_t* ast = (fl_ast_t*)array_get(&s->list, 0);
+  return ast->ty_id;
 }
 
 void ts_exit() {
@@ -664,6 +706,7 @@ void ts_exit() {
   fl_type_cg_t* tmp;
   HASH_ITER(hh, ts_hashtable, s, tmp) {
     HASH_DEL(ts_hashtable, s);
+    array_delete(&s->list);
     free(s);
   }
 

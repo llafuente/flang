@@ -504,8 +504,7 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
       LLVMFunctionType(fl_codegen_get_type(node->func.ret_type, context),
                        param_types, node->func.nparams, node->func.varargs);
 
-  LLVMValueRef func = LLVMAddFunction(
-      module, node->func.uid->value, ret_type);
+  LLVMValueRef func = LLVMAddFunction(module, node->func.uid->value, ret_type);
   LLVMSetFunctionCallConv(func, LLVMCCallConv);
   LLVMSetLinkage(func, LLVMExternalLinkage);
 
