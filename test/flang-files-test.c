@@ -95,7 +95,7 @@ TASK_IMPL(flang_files) {
   char* ir_file = malloc(sizeof(char) * 100);
   char* cmd = malloc(sizeof(char) * 256);
 
-  fl_ast_t* root;
+  ast_t* root;
   LLVMModuleRef module;
   string* code;
   size_t i;
@@ -120,7 +120,7 @@ TASK_IMPL(flang_files) {
 
     root = fl_parse_file(fl_file, true);
 
-    fl_print_type_table();
+    ty_dump_table();
 
     module = fl_codegen(root, "test");
 
@@ -129,7 +129,7 @@ TASK_IMPL(flang_files) {
     fl_to_bitcode(module, bc_file);
     fl_to_ir(module, ir_file);
 
-    fl_ast_delete(root);
+    ast_delete(root);
     cmd[0] = '\0';
     strcat(cmd, "lli -load libstringc.so ");
     strcat(cmd, ir_file);

@@ -25,51 +25,33 @@
 
 #include "flang.h"
 
-PSR_READ_IMPL(stmt_if) {
-  if (!PSR_TEST_TOKEN(FL_TK_IF)) {
-    return 0;
-  }
+void psr_stack_init(fl_psrstack_t* stack, tk_token_list_t* tokens,
+                    fl_psrstate_t* state) {
+  stack->current = 0;
+  state->look_ahead_idx = 0;
+  state->current = 0;
+  state->token = &tokens->tokens[0];
+  state->next_token = &tokens->tokens[1];
+  state->prev_token = 0;
+}
 
-  PSR_START(stmt, FL_AST_STMT_IF);
+void psr_look_ahead(fl_psrstack_t* stack, fl_psrstate_t* state) {
+  // printf("- psr_look_ahead [%ld]\n", state->current);
 
-  PSR_ACCEPT_TOKEN(FL_TK_IF);
-  PSR_SKIPWS();
+  memcpy(&stack->states[stack->current++], state, sizeof(fl_psrstate_t));
+  ++state->look_ahead_idx;
+}
 
-  fl_ast_t* t = PSR_READ(expression);
-  fl_ast_debug(t);
+void psr_commit(fl_psrstack_t* stack, fl_psrstate_t* state) {
+  // printf("- psr_commit [%ld]\n", state->current);
+  --stack->current;
+  --state->look_ahead_idx;
+}
 
-  if (!t) {
-    PSR_RET_SYNTAX_ERROR(stmt, "expected an expression");
-  }
-  PSR_RET_IF_ERROR(t, { fl_ast_delete(stmt); });
+void psr_rollback(fl_psrstack_t* stack, fl_psrstate_t* state) {
+  // printf("- psr_rollback [%ld]\n", state->current);
 
-  PSR_READ_OR_DIE(body, block, {
-    fl_ast_delete(t);
-    fl_ast_delete(stmt);
-  }, "expected block of code");
-
-  stmt->if_stmt.test = t;
-  stmt->if_stmt.block = body;
-
-  PSR_SKIPWS();
-  if (PSR_ACCEPT_TOKEN(FL_TK_ELSE)) {
-    PSR_SKIPWS();
-    // test if
-    if (PSR_TEST_TOKEN(FL_TK_IF)) {
-      // read full if
-      PSR_READ_OR_DIE(else_block, stmt_if, { fl_ast_delete(stmt); },
-                      "expected else if statement");
-
-      stmt->if_stmt.alternate = else_block;
-
-    } else {
-      // read block
-      PSR_READ_OR_DIE(else_block, block, { fl_ast_delete(stmt); },
-                      "expected else block");
-
-      stmt->if_stmt.alternate = else_block;
-    }
-  }
-
-  PSR_RET_OK(stmt);
+  --stack->current;
+  memcpy(state, &stack->states[stack->current], sizeof(fl_psrstate_t));
+  // printf("- psr_rollback end [%ld]\n", state->current);
 }

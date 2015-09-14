@@ -28,8 +28,8 @@
 // warning
 // IF COUNT IS OUT OF SYNC, BAD THING HAPPEN!
 
-size_t fl_token_list_count = 107;
-fl_tokens_cfg_t fl_token_list[107] = {
+size_t tk_token_list_s = 107;
+tk_token_cfg_t tk_token_list[107] = {
     {FL_TK_EOF, "\x00", 1, 0, 0, false, true, false},
     {FL_TK_NEWLINE, "\n", 1, 0, 0, false, true, false},
     {FL_TK_LOG, "log", 3, 0, 0, false, false, false},

@@ -35,80 +35,7 @@ off = LLVMBuildGEP(builder, param, &stack[depth - 1], 1, "");
 stack[depth - 1] = LLVMBuildLoad(builder, off, "");
 */
 
-LLVMExecutionEngineRef fl_codegen_jit(LLVMModuleRef M) {
-  LLVMExecutionEngineRef MCJIT;
-  char* err_str;
-  struct LLVMMCJITCompilerOptions Options;
-
-  LLVMInitializeMCJITCompilerOptions(&Options, sizeof(Options));
-  Options.OptLevel = 0;
-  Options.CodeModel = LLVMCodeModelDefault;
-  // NoFramePointerElim - This flag is enabled when the -disable-fp-elim is
-  // specified on the command line.  If the target supports the frame pointer
-  // elimination optimization, this option should disable it.
-  Options.NoFramePointerElim = true;
-  // EnableFastISel - This flag enables fast-path instruction selection
-  // which trades away generated code quality in favor of reducing
-  // compile time.
-  Options.EnableFastISel = true;
-  Options.MCJMM = 0;
-
-  if (LLVMCreateMCJITCompilerForModule(&MCJIT, M, &Options, sizeof(Options),
-                                       &err_str)) {
-    fputs(err_str, stderr);
-    LLVMDisposeMessage(err_str);
-  }
-
-  return MCJIT;
-}
-
-void fl_interpreter(LLVMModuleRef module) {
-  char* err;
-
-  LLVMExecutionEngineRef interp;
-  LLVMInitializeNativeTarget();
-  LLVMLinkInInterpreter(); // "Interpreter has not been linked"
-
-  if (LLVMCreateInterpreterForModule(&interp, module, &err) != 0) {
-    fputs("LLVMCreateInterpreterForModule\n", stderr);
-    fputs(err, stderr);
-  }
-
-  LLVMDisposeMessage(err);
-
-  /*
-    LLVMGenericValueRef main_args[] = {
-        LLVMCreateGenericValueOfPointer(0),
-        LLVMCreateGenericValueOfInt(LLVMInt32Type(), 0, false)};
-  */
-  LLVMGenericValueRef res =
-      LLVMRunFunction(interp, LLVMGetNamedFunction(module, "main"), 0, 0);
-
-  LLVMDisposeExecutionEngine(interp);
-  LLVMDisposeModule(module);
-}
-
-bool fl_to_bitcode(LLVMModuleRef module, const char* filename) {
-  // Write out bitcode to file
-  if (LLVMWriteBitcodeToFile(module, filename) != 0) {
-    fprintf(stderr, "error writing bitcode to file '%s'\n", filename);
-    return false;
-  }
-  return true;
-}
-
-// TODO check file, return false!
-bool fl_to_ir(LLVMModuleRef module, const char* filename) {
-  char* irstr = LLVMPrintModuleToString(module);
-  FILE* f = fopen(filename, "w");
-  fputs(irstr, f);
-  fclose(f);
-  LLVMDisposeMessage(irstr);
-
-  return true;
-}
-
-LLVMModuleRef fl_codegen(fl_ast_t* root, char* module_name) {
+LLVMModuleRef fl_codegen(ast_t* root, char* module_name) {
   char* err;
   LLVMContextRef context = LLVMGetGlobalContext();
   LLVMModuleRef module =
@@ -119,7 +46,7 @@ LLVMModuleRef fl_codegen(fl_ast_t* root, char* module_name) {
   LLVMBuilderRef builder = LLVMCreateBuilder();
 
   /*
-    LLVMExecutionEngineRef jit = fl_codegen_jit();
+    LLVMExecutionEngineRef jit = cg_jit();
 
     // Setup optimizations.
     LLVMPassManagerRef pass_manager =
@@ -142,10 +69,10 @@ LLVMModuleRef fl_codegen(fl_ast_t* root, char* module_name) {
   LLVMPositionBuilderAtEnd(builder, main_block);
 
   // node must have parent, because we need to search backwards
-  fl_ast_parent(root);
+  ast_parent(root);
   LLVMBasicBlockRef* current_block;
   current_block = &main_block;
-  fl_codegen_ast(root, FL_CODEGEN_PASSTHROUGH);
+  cg_ast(root, FL_CODEGEN_PASSTHROUGH);
 
   LLVMBuildRet(builder, LLVMConstInt(LLVMInt32Type(), 0, false));
   // optimize main
@@ -174,7 +101,7 @@ LLVMModuleRef fl_codegen(fl_ast_t* root, char* module_name) {
   return module;
 }
 
-LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
+LLVMValueRef cg_ast(FL_CODEGEN_HEADER) {
 
   switch (node->type) {
   case FL_AST_PROGRAM:
@@ -182,54 +109,54 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
       log_verbose("** program.core **");
       int olog_debug_level = log_debug_level;
       log_debug_level = 0;
-      fl_codegen_ast(node->program.core, FL_CODEGEN_PASSTHROUGH);
+      cg_ast(node->program.core, FL_CODEGEN_PASSTHROUGH);
       log_debug_level = olog_debug_level;
     } else {
       log_warning("** program.core not found");
     }
     log_verbose("** program.body **");
-    return fl_codegen_ast(node->program.body, FL_CODEGEN_PASSTHROUGH);
+    return cg_ast(node->program.body, FL_CODEGEN_PASSTHROUGH);
   case FL_AST_BLOCK: {
     size_t i = 0;
-    fl_ast_t* tmp;
+    ast_t* tmp;
 
     while ((tmp = node->block.body[i++])) {
       log_debug("block %zu", i);
-      fl_codegen_ast(tmp, FL_CODEGEN_PASSTHROUGH);
+      cg_ast(tmp, FL_CODEGEN_PASSTHROUGH);
     }
 
     return 0;
   }
   case FL_AST_EXPR_ASSIGNAMENT:
-    return fl_codegen_assignament(FL_CODEGEN_HEADER_SEND);
+    return cg_assignament(FL_CODEGEN_HEADER_SEND);
   case FL_AST_CAST:
-    return fl_codegen_cast(FL_CODEGEN_HEADER_SEND);
+    return cg_cast(FL_CODEGEN_HEADER_SEND);
   case FL_AST_EXPR_BINOP:
-    return fl_codegen_binop(FL_CODEGEN_HEADER_SEND);
+    return cg_binop(FL_CODEGEN_HEADER_SEND);
   case FL_AST_EXPR_CALL:
-    return fl_codegen_expr_call(FL_CODEGEN_HEADER_SEND);
+    return cg_expr_call(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_NUMERIC:
-    return fl_codegen_lit_number(FL_CODEGEN_HEADER_SEND);
+    return cg_lit_number(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_BOOLEAN:
-    return fl_codegen_lit_boolean(FL_CODEGEN_HEADER_SEND);
+    return cg_lit_boolean(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_STRING:
-    return fl_codegen_lit_string(FL_CODEGEN_HEADER_SEND);
+    return cg_lit_string(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_IDENTIFIER:
-    return fl_codegen_right_identifier(node, FL_CODEGEN_PASSTHROUGH);
+    return cg_right_identifier(node, FL_CODEGEN_PASSTHROUGH);
   case FL_AST_EXPR_MEMBER:
-    return fl_codegen_right_member(node, FL_CODEGEN_PASSTHROUGH);
+    return cg_right_member(node, FL_CODEGEN_PASSTHROUGH);
   case FL_AST_DTOR_VAR:
-    return fl_codegen_dtor_var(FL_CODEGEN_HEADER_SEND);
+    return cg_dtor_var(FL_CODEGEN_HEADER_SEND);
   case FL_AST_DECL_FUNCTION:
-    return fl_codegen_function(FL_CODEGEN_HEADER_SEND);
+    return cg_function(FL_CODEGEN_HEADER_SEND);
   case FL_AST_STMT_RETURN:
-    return fl_codegen_return(FL_CODEGEN_HEADER_SEND);
+    return cg_return(FL_CODEGEN_HEADER_SEND);
   case FL_AST_EXPR_LUNARY:
-    return fl_codegen_lunary(FL_CODEGEN_HEADER_SEND);
+    return cg_lunary(FL_CODEGEN_HEADER_SEND);
   case FL_AST_STMT_IF:
-    return fl_codegen_if(FL_CODEGEN_HEADER_SEND);
+    return cg_if(FL_CODEGEN_HEADER_SEND);
   case FL_AST_STMT_LOOP:
-    return fl_codegen_loop(FL_CODEGEN_HEADER_SEND);
+    return cg_loop(FL_CODEGEN_HEADER_SEND);
   case FL_AST_DECL_STRUCT:
     // ignore it, will be created on first use
     break;
@@ -239,7 +166,7 @@ LLVMValueRef fl_codegen_ast(FL_CODEGEN_HEADER) {
   return 0;
 }
 
-LLVMValueRef fl_codegen_do_block(LLVMBasicBlockRef block,
+LLVMValueRef cg_do_block(LLVMBasicBlockRef block,
                                  LLVMBasicBlockRef fall_block,
                                  FL_CODEGEN_HEADER) {
   LLVMBasicBlockRef old_cb = *current_block;
@@ -247,7 +174,7 @@ LLVMValueRef fl_codegen_do_block(LLVMBasicBlockRef block,
   *current_block = block;
   LLVMPositionBuilderAtEnd(builder, *current_block); // new block
   // codegen
-  LLVMValueRef rnode = fl_codegen_ast(node, FL_CODEGEN_PASSTHROUGH);
+  LLVMValueRef rnode = cg_ast(node, FL_CODEGEN_PASSTHROUGH);
   if (fall_block) {
     LLVMBuildBr(builder, fall_block);
   }
@@ -258,66 +185,66 @@ LLVMValueRef fl_codegen_do_block(LLVMBasicBlockRef block,
   return rnode;
 }
 
-LLVMValueRef fl_codegen_cast(FL_CODEGEN_HEADER) {
+LLVMValueRef cg_cast(FL_CODEGEN_HEADER) {
   // check if rigt side is a constant
-  fl_ast_t* el = node->cast.element;
+  ast_t* el = node->cast.element;
 
-  fl_ast_debug(node);
+  ast_dump(node);
   log_debug("%d - %d", el->type, FL_AST_LIT_NUMERIC);
 
   if (el->type == FL_AST_LIT_NUMERIC) {
     log_debug("cast: override numeric type T(%zu)", node->ty_id);
     node->cast.element->ty_id = node->ty_id;
 
-    return fl_codegen_ast(el, FL_CODEGEN_PASSTHROUGH);
+    return cg_ast(el, FL_CODEGEN_PASSTHROUGH);
   }
 
-  LLVMValueRef element = fl_codegen_ast(el, FL_CODEGEN_PASSTHROUGH);
+  LLVMValueRef element = cg_ast(el, FL_CODEGEN_PASSTHROUGH);
 
-  return fl_codegen_cast_op(builder, fl_ast_get_typeid(el), node->ty_id,
+  return cg_cast_op(builder, ast_get_typeid(el), node->ty_id,
                             element, context);
 }
 
-LLVMValueRef fl_codegen_lit_number(FL_CODEGEN_HEADER) {
+LLVMValueRef cg_lit_number(FL_CODEGEN_HEADER) {
   log_debug("number T(%zu)", node->ty_id);
 
   // get parent type, to know what type should i be.
   size_t ty = node->ty_id;
   // size_t ty = node->numeric.ty_id;
-  fl_type_t t = fl_type_table[ty];
+  ty_t t = ts_type_table[ty];
 
   if (t.number.fp) {
-    return LLVMConstReal(fl_codegen_get_typeid(ty, context),
+    return LLVMConstReal(cg_get_typeid(ty, context),
                          node->numeric.value);
   }
 
-  return LLVMConstInt(fl_codegen_get_typeid(ty, context), node->numeric.value,
+  return LLVMConstInt(cg_get_typeid(ty, context), node->numeric.value,
                       t.number.sign);
 }
 
-LLVMValueRef fl_codegen_lit_boolean(FL_CODEGEN_HEADER) {
-  fl_type_t t = fl_type_table[2];
+LLVMValueRef cg_lit_boolean(FL_CODEGEN_HEADER) {
+  ty_t t = ts_type_table[2];
 
-  return LLVMConstInt(fl_codegen_get_typeid(2, context), node->boolean.value,
+  return LLVMConstInt(cg_get_typeid(2, context), node->boolean.value,
                       false);
 }
 
-LLVMValueRef fl_codegen_lit_string(FL_CODEGEN_HEADER) {
-  log_debug("fl_codegen_lit_string");
+LLVMValueRef cg_lit_string(FL_CODEGEN_HEADER) {
+  log_debug("cg_lit_string");
 
   return LLVMBuildGlobalStringPtr(builder, node->string.value->value,
                                   "string_val" // TODO must be unique!
                                   );
 }
 
-LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
+LLVMValueRef cg_assignament(FL_CODEGEN_HEADER) {
   log_debug("right");
   LLVMValueRef right =
-      fl_codegen_ast(node->assignament.right, FL_CODEGEN_PASSTHROUGH);
+      cg_ast(node->assignament.right, FL_CODEGEN_PASSTHROUGH);
 
   log_debug("left");
-  fl_ast_t* l = node->assignament.left;
-  LLVMValueRef left = fl_codegen_lhs(l, FL_CODEGEN_PASSTHROUGH);
+  ast_t* l = node->assignament.left;
+  LLVMValueRef left = cg_lhs(l, FL_CODEGEN_PASSTHROUGH);
 
   assert(left != 0);
   assert(right != 0);
@@ -327,28 +254,28 @@ LLVMValueRef fl_codegen_assignament(FL_CODEGEN_HEADER) {
   left = LLVMBuildLoad(builder, left, "load_l_ass");
   // if left is an identifier, set
   // if (l->type == FL_AST_LIT_IDENTIFIER) {
-  //  fl_ast_t* id = fl_ast_search_decl_var(node, l->identifier.string);
+  //  ast_t* id = ast_search_decl_var(node, l->identifier.string);
   //  id->last_codegen = left;
   //}
   return left;
 }
 
 // https://msdn.microsoft.com/en-us/library/09ka8bxx.aspx
-LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
-  log_debug("fl_codegen_binop");
+LLVMValueRef cg_binop(FL_CODEGEN_HEADER) {
+  log_debug("cg_binop");
 
-  fl_ast_t* l = node->binop.left;
-  fl_ast_t* r = node->binop.right;
+  ast_t* l = node->binop.left;
+  ast_t* r = node->binop.right;
 
   // retrieve left/right side
-  fl_ast_debug(l);
-  LLVMValueRef lhs = fl_codegen_ast(l, FL_CODEGEN_PASSTHROUGH);
+  ast_dump(l);
+  LLVMValueRef lhs = cg_ast(l, FL_CODEGEN_PASSTHROUGH);
   if (!lhs) {
     log_error("invalid lhs");
   }
 
-  fl_ast_debug(r);
-  LLVMValueRef rhs = fl_codegen_ast(r, FL_CODEGEN_PASSTHROUGH);
+  ast_dump(r);
+  LLVMValueRef rhs = cg_ast(r, FL_CODEGEN_PASSTHROUGH);
   if (!rhs) {
     log_error("invalid rhs");
   }
@@ -461,12 +388,12 @@ LLVMValueRef fl_codegen_binop(FL_CODEGEN_HEADER) {
 }
 
 // TODO manage type
-LLVMValueRef fl_codegen_dtor_var(FL_CODEGEN_HEADER) {
-  log_debug("fl_codegen_dtor_var");
+LLVMValueRef cg_dtor_var(FL_CODEGEN_HEADER) {
+  log_debug("cg_dtor_var");
 
   // TODO use ty_id
   LLVMValueRef ref =
-      LLVMBuildAlloca(builder, fl_codegen_get_type(node->var.type, context),
+      LLVMBuildAlloca(builder, cg_get_type(node->var.type, context),
                       node->var.id->identifier.string->value);
   // TODO fix me!
   // LLVMSetAlignment(ref, 8);
@@ -475,8 +402,8 @@ LLVMValueRef fl_codegen_dtor_var(FL_CODEGEN_HEADER) {
   return ref;
 }
 // TODO parent rewrite!
-LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
-  log_debug("fl_codegen_function");
+LLVMValueRef cg_function(FL_CODEGEN_HEADER) {
+  log_debug("cg_function");
 
   if (!node->func.ret_type) {
     log_error("function has no return type");
@@ -486,8 +413,8 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
 
   // TODO use type info should be faster
   size_t i = 0;
-  fl_ast_t* params = node->func.params;
-  fl_ast_t* tmp;
+  ast_t* params = node->func.params;
+  ast_t* tmp;
 
   if (node->func.params) {
     while ((tmp = params->list.elements[i]) != 0) {
@@ -496,12 +423,12 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
       }
 
       log_debug("parameter %zu of type %zu", i, tmp->param.id->ty_id);
-      param_types[i++] = fl_codegen_get_typeid(tmp->param.id->ty_id, context);
+      param_types[i++] = cg_get_typeid(tmp->param.id->ty_id, context);
     }
   }
 
   LLVMTypeRef ret_type =
-      LLVMFunctionType(fl_codegen_get_type(node->func.ret_type, context),
+      LLVMFunctionType(cg_get_type(node->func.ret_type, context),
                        param_types, node->func.nparams, node->func.varargs);
 
   LLVMValueRef func = LLVMAddFunction(module, node->func.uid->value, ret_type);
@@ -536,24 +463,24 @@ LLVMValueRef fl_codegen_function(FL_CODEGEN_HEADER) {
 
   if (node->func.body) {
     LLVMBasicBlockRef block = LLVMAppendBasicBlock(func, "function-block");
-    fl_codegen_do_block(block, 0, node->func.body, FL_CODEGEN_PASSTHROUGH);
+    cg_do_block(block, 0, node->func.body, FL_CODEGEN_PASSTHROUGH);
   }
 
   return func;
 }
 
-LLVMValueRef fl_codegen_return(FL_CODEGEN_HEADER) {
-  log_debug("fl_codegen_return");
+LLVMValueRef cg_return(FL_CODEGEN_HEADER) {
+  log_debug("cg_return");
 
   LLVMValueRef argument =
-      fl_codegen_ast(node->ret.argument, FL_CODEGEN_PASSTHROUGH);
+      cg_ast(node->ret.argument, FL_CODEGEN_PASSTHROUGH);
   LLVMBuildRet(builder, argument);
 
   return 0;
 }
 
-LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER) {
-  log_debug("fl_codegen_expr_call");
+LLVMValueRef cg_expr_call(FL_CODEGEN_HEADER) {
+  log_debug("cg_expr_call");
 
   LLVMValueRef fn =
       LLVMGetNamedFunction(module, node->call.decl->func.uid->value);
@@ -567,12 +494,12 @@ LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER) {
 
   if (node->call.narguments) {
     size_t i = 0;
-    fl_ast_t* tmp;
-    fl_ast_t* list = node->call.arguments;
+    ast_t* tmp;
+    ast_t* list = node->call.arguments;
 
     while ((tmp = list->list.elements[i]) != 0) {
       log_verbose("argument! %zu", i);
-      value = fl_codegen_ast(tmp, FL_CODEGEN_PASSTHROUGH);
+      value = cg_ast(tmp, FL_CODEGEN_PASSTHROUGH);
       if (!value) {
         log_error("argument fail! %zu", i);
       }
@@ -588,7 +515,7 @@ LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER) {
 
   /*
   LLVMValueRef argument =
-      fl_codegen_ast(node->ret.argument, FL_CODEGEN_PASSTHROUGH);
+      cg_ast(node->ret.argument, FL_CODEGEN_PASSTHROUGH);
   LLVMBuildRet(builder, argument);
 
   //LLVMSetInstructionCallConv(result.value, LLVMCallConv.X86Stdcall);
@@ -607,11 +534,11 @@ LLVMValueRef fl_codegen_expr_call(FL_CODEGEN_HEADER) {
   */
 }
 
-LLVMValueRef fl_codegen_lunary(FL_CODEGEN_HEADER) {
-  log_debug("fl_codegen_lunary");
+LLVMValueRef cg_lunary(FL_CODEGEN_HEADER) {
+  log_debug("cg_lunary");
 
   LLVMValueRef element =
-      fl_codegen_ast(node->lunary.element, FL_CODEGEN_PASSTHROUGH);
+      cg_ast(node->lunary.element, FL_CODEGEN_PASSTHROUGH);
 
   switch (node->lunary.operator) {
   case FL_TK_MINUS:
@@ -643,6 +570,7 @@ LLVMValueRef fl_codegen_lunary(FL_CODEGEN_HEADER) {
   default: {}
   }
   log_error("lunary not handled %d", node->lunary.operator);
+  return 0;
   /*
   case FL_TK_PLUS:
   case FL_TK_TILDE:
@@ -650,8 +578,8 @@ LLVMValueRef fl_codegen_lunary(FL_CODEGEN_HEADER) {
   */
 }
 
-LLVMValueRef fl_codegen_if(FL_CODEGEN_HEADER) {
-  log_debug("(codegen) fl_codegen_if");
+LLVMValueRef cg_if(FL_CODEGEN_HEADER) {
+  log_debug("(codegen) cg_if");
   bool has_else = node->if_stmt.alternate > 0;
 
   // end at the end
@@ -671,17 +599,17 @@ LLVMValueRef fl_codegen_if(FL_CODEGEN_HEADER) {
 
   // test expression
   LLVMValueRef test =
-      fl_codegen_ast(node->if_stmt.test, FL_CODEGEN_PASSTHROUGH);
+      cg_ast(node->if_stmt.test, FL_CODEGEN_PASSTHROUGH);
   LLVMBuildCondBr(builder, test, if_then_block,
                   has_else ? if_else_block : end_block);
 
   // then block
-  fl_codegen_do_block(if_then_block, end_block, node->if_stmt.block,
+  cg_do_block(if_then_block, end_block, node->if_stmt.block,
                       FL_CODEGEN_PASSTHROUGH);
 
   if (has_else) {
     LLVMPositionBuilderAtEnd(builder, if_else_block);
-    fl_codegen_do_block(if_else_block, end_block, node->if_stmt.alternate,
+    cg_do_block(if_else_block, end_block, node->if_stmt.alternate,
                         FL_CODEGEN_PASSTHROUGH);
   }
 
@@ -691,8 +619,8 @@ LLVMValueRef fl_codegen_if(FL_CODEGEN_HEADER) {
   return 0;
 }
 // manage for, while, do-while
-LLVMValueRef fl_codegen_loop(FL_CODEGEN_HEADER) {
-  log_debug("fl_codegen_loop");
+LLVMValueRef cg_loop(FL_CODEGEN_HEADER) {
+  log_debug("cg_loop");
 
   // blocks are backwards!
   LLVMBasicBlockRef pre_cond = 0;
@@ -705,7 +633,7 @@ LLVMValueRef fl_codegen_loop(FL_CODEGEN_HEADER) {
   LLVMBuildBr(builder, start); // current-block -> start
   // initialization at start
   if (node->loop.init) {
-    fl_codegen_do_block(start, 0, node->loop.init, FL_CODEGEN_PASSTHROUGH);
+    cg_do_block(start, 0, node->loop.init, FL_CODEGEN_PASSTHROUGH);
   }
 
   if (node->loop.pre_cond) {
@@ -719,7 +647,7 @@ LLVMValueRef fl_codegen_loop(FL_CODEGEN_HEADER) {
 
     LLVMPositionBuilderAtEnd(builder, pre_cond);
     LLVMValueRef pre_cond_test =
-        fl_codegen_ast(node->loop.pre_cond, FL_CODEGEN_PASSTHROUGH);
+        cg_ast(node->loop.pre_cond, FL_CODEGEN_PASSTHROUGH);
     LLVMBuildCondBr(builder, pre_cond_test, block, end_block);
     LLVMPositionBuilderAtEnd(builder, *current_block);
   } else {
@@ -730,7 +658,7 @@ LLVMValueRef fl_codegen_loop(FL_CODEGEN_HEADER) {
 
   if (node->loop.update) {
     update = LLVMAppendBasicBlock(parent, "loop-update");
-    fl_codegen_do_block(update, pre_cond, node->loop.update,
+    cg_do_block(update, pre_cond, node->loop.update,
                         FL_CODEGEN_PASSTHROUGH);
   }
 
@@ -741,12 +669,12 @@ LLVMValueRef fl_codegen_loop(FL_CODEGEN_HEADER) {
 
     LLVMPositionBuilderAtEnd(builder, post_cond);
     LLVMValueRef post_cond_test =
-        fl_codegen_ast(node->loop.post_cond, FL_CODEGEN_PASSTHROUGH);
+        cg_ast(node->loop.post_cond, FL_CODEGEN_PASSTHROUGH);
     LLVMBuildCondBr(builder, post_cond_test, block, end_block);
     LLVMPositionBuilderAtEnd(builder, *current_block);
   }
 
-  fl_codegen_do_block(
+  cg_do_block(
       block, update ? update : (pre_cond ? pre_cond
                                          : (post_cond ? post_cond : end_block)),
       node->loop.block, FL_CODEGEN_PASSTHROUGH);
@@ -767,11 +695,11 @@ LLVMValueRef fl_codegen_loop(FL_CODEGEN_HEADER) {
   return 0;
 }
 
-LLVMValueRef fl_codegen_left_identifier(FL_CODEGEN_HEADER) {
+LLVMValueRef cg_left_identifier(FL_CODEGEN_HEADER) {
   log_debug("identifier");
-  fl_ast_debug(node);
-  fl_ast_t* decl = fl_ast_search_decl_var(node, node->identifier.string);
-  fl_ast_debug(decl);
+  ast_dump(node);
+  ast_t* decl = ast_search_decl_var(node, node->identifier.string);
+  ast_dump(decl);
 
   if (!decl) {
     log_error("identifier not found: '%s'", node->identifier.string->value);
@@ -789,8 +717,8 @@ LLVMValueRef fl_codegen_left_identifier(FL_CODEGEN_HEADER) {
   return 0;
 }
 
-LLVMValueRef fl_codegen_right_identifier(FL_CODEGEN_HEADER) {
-  fl_ast_t* decl = fl_ast_search_decl_var(node, node->identifier.string);
+LLVMValueRef cg_right_identifier(FL_CODEGEN_HEADER) {
+  ast_t* decl = ast_search_decl_var(node, node->identifier.string);
 
   if (!decl) {
     log_error("identifier not found: '%s'", node->identifier.string->value);
@@ -811,46 +739,47 @@ LLVMValueRef fl_codegen_right_identifier(FL_CODEGEN_HEADER) {
   return 0;
 }
 
-LLVMValueRef fl_codegen_left_member(FL_CODEGEN_HEADER) {
-  fl_type_t* type = &fl_type_table[node->member.left->ty_id];
+LLVMValueRef cg_left_member(FL_CODEGEN_HEADER) {
+  ty_t* type = &ts_type_table[node->member.left->ty_id];
 
   log_verbose("***********************");
-  fl_ast_debug(node);
+  ast_dump(node);
   log_verbose("left is %zu", node->member.left->ty_id);
-  fl_print_type(node->member.left->ty_id, 0);
+  ty_dump(node->member.left->ty_id, 0);
 
   switch (type->of) {
   case FL_STRUCT: {
     LLVMValueRef left =
-        fl_codegen_lhs(node->member.left, FL_CODEGEN_PASSTHROUGH);
-    fl_type_t* myt = &fl_type_table[node->member.left->ty_id];
+        cg_lhs(node->member.left, FL_CODEGEN_PASSTHROUGH);
+    ty_t* myt = &ts_type_table[node->member.left->ty_id];
 
     return LLVMBuildStructGEP(builder, left, node->member.idx, "");
   }
   case FL_POINTER: {
     LLVMValueRef left =
-        fl_codegen_ast(node->member.left, FL_CODEGEN_PASSTHROUGH);
+        cg_ast(node->member.left, FL_CODEGEN_PASSTHROUGH);
     LLVMValueRef index[1];
     left = LLVMBuildLoad(builder, left, "load_ptr");
 
     if (node->member.expression) {
-      index[0] = fl_codegen_ast(node->member.property, FL_CODEGEN_PASSTHROUGH);
+      index[0] = cg_ast(node->member.property, FL_CODEGEN_PASSTHROUGH);
     }
 
     return LLVMBuildGEP(builder, left, index, 1, "");
   }
-  case FL_VECTOR: {
+  default: {
+    log_error("wtf?!");
   }
   }
 
-  log_error("wtf?!");
+  return 0;
 }
 
 // TODO is this right?! LLVMBuildLoad depens on type?!
-LLVMValueRef fl_codegen_right_member(FL_CODEGEN_HEADER) {
-  LLVMValueRef r = fl_codegen_left_member(node, FL_CODEGEN_PASSTHROUGH);
+LLVMValueRef cg_right_member(FL_CODEGEN_HEADER) {
+  LLVMValueRef r = cg_left_member(node, FL_CODEGEN_PASSTHROUGH);
 
-  fl_type_t* type = &fl_type_table[node->ty_id];
+  ty_t* type = &ts_type_table[node->ty_id];
   switch (type->of) {
   case FL_VECTOR:
   case FL_POINTER:
@@ -861,13 +790,18 @@ LLVMValueRef fl_codegen_right_member(FL_CODEGEN_HEADER) {
   }
 }
 
-LLVMValueRef fl_codegen_lhs(FL_CODEGEN_HEADER) {
+LLVMValueRef cg_lhs(FL_CODEGEN_HEADER) {
   switch (node->type) {
   case FL_AST_EXPR_MEMBER: {
-    return fl_codegen_left_member(node, FL_CODEGEN_PASSTHROUGH);
+    return cg_left_member(node, FL_CODEGEN_PASSTHROUGH);
   }
   case FL_AST_LIT_IDENTIFIER: {
-    return fl_codegen_left_identifier(node, FL_CODEGEN_PASSTHROUGH);
+    return cg_left_identifier(node, FL_CODEGEN_PASSTHROUGH);
+  }
+  default: {
+    log_error("invalid lhs");
   }
   }
+
+  return 0;
 }

@@ -30,14 +30,14 @@ TASK_IMPL(tokenizer) {
   log_debug_level = 0;
 
   string* code;
-  fl_token_list_t* tokens;
+  tk_token_list_t* tokens;
   // tets priority <= gt than '<' '='
   code = st_newc("a<=b;", st_enc_utf8);
   tokens = fl_tokenize(code);
 
   ASSERT(tokens->size == 6, "priority token test");
 
-  fl_tokens_delete(tokens);
+  tk_tokens_delete(tokens);
   st_delete(&code);
 
   code = st_newc("-2", st_enc_utf8);
@@ -45,7 +45,7 @@ TASK_IMPL(tokenizer) {
 
   ASSERT(tokens->size == 4, "priority token test");
 
-  fl_tokens_delete(tokens);
+  tk_tokens_delete(tokens);
   st_delete(&code);
 
   // test escape string
@@ -54,17 +54,17 @@ TASK_IMPL(tokenizer) {
 
   ASSERT(tokens->size == 16, "escape string test");
 
-  fl_tokens_delete(tokens);
+  tk_tokens_delete(tokens);
   st_delete(&code);
 
-  // fl_tokens_debug(tokens);
+  // tk_dump(tokens);
 
   code = st_newc("1567", st_enc_utf8);
   tokens = fl_tokenize(code);
 
   ASSERT(tokens->size == 3, "just a number");
 
-  fl_tokens_delete(tokens);
+  tk_tokens_delete(tokens);
   st_delete(&code);
 
   code = st_newc("var x;", st_enc_utf8);
@@ -72,7 +72,7 @@ TASK_IMPL(tokenizer) {
 
   ASSERT(tokens->size == 6, "var space x semicolon new-line eof");
 
-  fl_tokens_delete(tokens);
+  tk_tokens_delete(tokens);
   st_delete(&code);
 
   return 0;

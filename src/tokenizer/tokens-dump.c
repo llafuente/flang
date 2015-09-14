@@ -25,4 +25,15 @@
 
 #include "flang.h"
 
-int log_debug_level = 4;
+void tk_dump(tk_token_list_t* tokens) {
+  if (log_debug_level >= 4) {
+    size_t i = 0;
+    for (; i < tokens->size; ++i) {
+      tk_token_t* token = &tokens->tokens[i];
+      // print debug tokens
+      fprintf(stderr, "%6zu|%3d[%3zu:%3zu - %3zu:%3zu] %s\n", i, token->type,
+              token->start.line, token->start.column, token->end.line,
+              token->end.column, token->string->value);
+    }
+  }
+}

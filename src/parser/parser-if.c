@@ -25,20 +25,51 @@
 
 #include "flang.h"
 
-PSR_READ_IMPL(pp_load) {
-  if (PSR_ACCEPT_TOKEN(FL_TK_LOAD)) {
-    PSR_SKIPWS();
-
-    PSR_READ_OR_DIE(file_lit, lit_string, {}, "expected literal (filename)");
-
-    log_debug("load %s", file_lit->string.value->value);
-
-    fl_ast_t* ret = fl_parse_file(file_lit->string.value->value, false);
-    // TODO we should save filename somewhere!
-    fl_ast_delete(file_lit);
-
-    return ret;
+PSR_READ_IMPL(stmt_if) {
+  if (!PSR_TEST_TOKEN(FL_TK_IF)) {
+    return 0;
   }
 
-  return 0;
+  PSR_START(stmt, FL_AST_STMT_IF);
+
+  PSR_ACCEPT_TOKEN(FL_TK_IF);
+  PSR_SKIPWS();
+
+  ast_t* t = PSR_READ(expression);
+  ast_dump(t);
+
+  if (!t) {
+    PSR_RET_SYNTAX_ERROR(stmt, "expected an expression");
+  }
+  PSR_RET_IF_ERROR(t, { ast_delete(stmt); });
+
+  PSR_READ_OR_DIE(body, block, {
+    ast_delete(t);
+    ast_delete(stmt);
+  }, "expected block of code");
+
+  stmt->if_stmt.test = t;
+  stmt->if_stmt.block = body;
+
+  PSR_SKIPWS();
+  if (PSR_ACCEPT_TOKEN(FL_TK_ELSE)) {
+    PSR_SKIPWS();
+    // test if
+    if (PSR_TEST_TOKEN(FL_TK_IF)) {
+      // read full if
+      PSR_READ_OR_DIE(else_block, stmt_if, { ast_delete(stmt); },
+                      "expected else if statement");
+
+      stmt->if_stmt.alternate = else_block;
+
+    } else {
+      // read block
+      PSR_READ_OR_DIE(else_block, block, { ast_delete(stmt); },
+                      "expected else block");
+
+      stmt->if_stmt.alternate = else_block;
+    }
+  }
+
+  PSR_RET_OK(stmt);
 }

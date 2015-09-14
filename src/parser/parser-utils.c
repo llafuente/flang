@@ -25,8 +25,8 @@
 
 #include "flang.h"
 
-bool fl_parser_next(fl_token_list_t* tokens, fl_psrstate_t* state) {
-  if (fl_parser_eof(tokens, state)) {
+bool psr_next(tk_token_list_t* tokens, fl_psrstate_t* state) {
+  if (psr_eof(tokens, state)) {
     return false;
   }
 
@@ -38,7 +38,7 @@ bool fl_parser_next(fl_token_list_t* tokens, fl_psrstate_t* state) {
   return true;
 }
 
-bool fl_parser_prev(fl_token_list_t* tokens, fl_psrstate_t* state) {
+bool psr_prev(tk_token_list_t* tokens, fl_psrstate_t* state) {
   if (state->current > 0) {
     state->next_token = state->token;
     --state->current;
@@ -54,46 +54,46 @@ bool fl_parser_prev(fl_token_list_t* tokens, fl_psrstate_t* state) {
   return false;
 }
 
-bool fl_parser_eof(fl_token_list_t* tokens, fl_psrstate_t* state) {
+bool psr_eof(tk_token_list_t* tokens, fl_psrstate_t* state) {
   return state->next_token->type == FL_TK_EOF;
 }
 
-bool fl_parser_accept(fl_token_list_t* tokens, fl_psrstate_t* state,
+bool psr_accept(tk_token_list_t* tokens, fl_psrstate_t* state,
                       char* text) {
   if (strcmp(state->token->string->value, text) == 0) {
-    fl_parser_next(tokens, state);
+    psr_next(tokens, state);
     return true;
   }
   return false;
 }
 
-bool fl_parser_accept_list(fl_token_list_t* tokens, fl_psrstate_t* state,
+bool psr_accept_list(tk_token_list_t* tokens, fl_psrstate_t* state,
                            char* text[], size_t text_count) {
   size_t i = 0;
   for (; i < text_count; ++i) {
     if (strcmp(state->token->string->value, text[i]) == 0) {
-      fl_parser_next(tokens, state);
+      psr_next(tokens, state);
       return true;
     }
   }
   return false;
 }
 
-bool fl_parser_accept_token(fl_token_list_t* tokens, fl_psrstate_t* state,
-                            fl_tokens_t token_type) {
+bool psr_accept_token(tk_token_list_t* tokens, fl_psrstate_t* state,
+                            tk_tokens_t token_type) {
   if (state->token->type == token_type) {
-    fl_parser_next(tokens, state);
+    psr_next(tokens, state);
     return true;
   }
   return false;
 }
 
-bool fl_parser_accept_token_list(fl_token_list_t* tokens, fl_psrstate_t* state,
-                                 fl_tokens_t token_type[], size_t tk_count) {
+bool psr_accept_token_list(tk_token_list_t* tokens, fl_psrstate_t* state,
+                                 tk_tokens_t token_type[], size_t tk_count) {
   size_t i = 0;
   for (; i < tk_count; ++i) {
     if (state->token->type == token_type[i]) {
-      fl_parser_next(tokens, state);
+      psr_next(tokens, state);
       return true;
     }
   }
@@ -101,7 +101,7 @@ bool fl_parser_accept_token_list(fl_token_list_t* tokens, fl_psrstate_t* state,
 }
 
 // maybe: 00A0 FEFF
-void fl_parser_skipws(fl_token_list_t* tokens, fl_psrstate_t* state) {
+void psr_skipws(tk_token_list_t* tokens, fl_psrstate_t* state) {
   char* itr;
   char c;
   do {
@@ -112,9 +112,9 @@ void fl_parser_skipws(fl_token_list_t* tokens, fl_psrstate_t* state) {
     };
 
     if (*itr == '\0') {
-      fl_parser_next(tokens, state);
+      psr_next(tokens, state);
 
-      if (fl_parser_eof(tokens, state)) {
+      if (psr_eof(tokens, state)) {
         return;
       }
       continue;
@@ -123,20 +123,20 @@ void fl_parser_skipws(fl_token_list_t* tokens, fl_psrstate_t* state) {
   } while (true);
 }
 
-fl_ast_t* psr_read_list(psr_read_t* arr, size_t length, PSR_READ_HEADER) {
-  fl_ast_t* target;
+ast_t* psr_read_list(psr_read_t* arr, size_t length, PSR_READ_HEADER) {
+  ast_t* target;
 
   size_t i;
   for (i = 0; i < length; ++i) {
 
-    fl_parser_look_ahead(stack, state);
+    psr_look_ahead(stack, state);
     target = arr[i](tokens, stack, state);
-    log_debug("psr_read_list: %d [%p]\n", i, target);
+    log_debug("psr_read_list: %zu [%p]\n", i, target);
     if (!target || target->type == FL_AST_ERROR) {
-      fl_parser_rollback(stack, state);
+      psr_rollback(stack, state);
       continue;
     } else {
-      fl_parser_commit(stack, state);
+      psr_commit(stack, state);
       return target;
     }
   }

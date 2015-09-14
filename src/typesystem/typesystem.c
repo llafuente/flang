@@ -25,113 +25,113 @@
 
 #include "flang.h"
 
-fl_type_t* fl_type_table = 0;
-size_t fl_type_size = 0;
-fl_type_cg_t* ts_hashtable = 0;
+ty_t* ts_type_table = 0;
+size_t ts_type_size_s = 0;
+ts_typeh_t* ts_hashtable = 0;
 
 // 0 infer
 // 1-12 built-in
 // 13-x core
 // x... user
 void ts_init() {
-  if (!fl_type_table) {
-    fl_type_table = calloc(sizeof(fl_type_t), 100);
+  if (!ts_type_table) {
+    ts_type_table = calloc(sizeof(ty_t), 100);
 
     // 0 means infer!
-    fl_type_table[0].of = FL_INFER;
+    ts_type_table[0].of = FL_INFER;
     // [1] void
-    fl_type_table[1].of = FL_VOID;
-    fl_type_table[1].id = st_newc("void", st_enc_ascii);
+    ts_type_table[1].of = FL_VOID;
+    ts_type_table[1].id = st_newc("void", st_enc_ascii);
 
     size_t id = 2;
     // [2] bool
-    fl_type_table[id].of = FL_NUMBER;
-    fl_type_table[id].id = st_newc("bool", st_enc_ascii);
-    fl_type_table[id].number.bits = 1;
-    fl_type_table[id].number.fp = false;
-    fl_type_table[id].number.sign = false;
+    ts_type_table[id].of = FL_NUMBER;
+    ts_type_table[id].id = st_newc("bool", st_enc_ascii);
+    ts_type_table[id].number.bits = 1;
+    ts_type_table[id].number.fp = false;
+    ts_type_table[id].number.sign = false;
     // [3-10] i8,u8,i16,u16,i32,u32,i64,u64
     size_t i = 3;
     char buffer[20];
     for (; i < 7; i++) {
       size_t bits = pow(2, i);
-      fl_type_table[++id].of = FL_NUMBER;
-      fl_type_table[id].number.bits = bits;
-      fl_type_table[id].number.fp = false;
-      fl_type_table[id].number.sign = false;
+      ts_type_table[++id].of = FL_NUMBER;
+      ts_type_table[id].number.bits = bits;
+      ts_type_table[id].number.fp = false;
+      ts_type_table[id].number.sign = false;
       sprintf(buffer, "u%zu", bits);
-      fl_type_table[id].id = st_newc(buffer, st_enc_ascii);
+      ts_type_table[id].id = st_newc(buffer, st_enc_ascii);
 
-      fl_type_table[++id].of = FL_NUMBER;
-      fl_type_table[id].number.bits = bits;
-      fl_type_table[id].number.fp = false;
-      fl_type_table[id].number.sign = true;
+      ts_type_table[++id].of = FL_NUMBER;
+      ts_type_table[id].number.bits = bits;
+      ts_type_table[id].number.fp = false;
+      ts_type_table[id].number.sign = true;
       sprintf(buffer, "i%zu", bits);
-      fl_type_table[id].id = st_newc(buffer, st_enc_ascii);
+      ts_type_table[id].id = st_newc(buffer, st_enc_ascii);
     }
 
     // [11] f32
-    fl_type_table[++id].of = FL_NUMBER;
-    fl_type_table[id].id = st_newc("f32", st_enc_ascii);
-    fl_type_table[id].number.bits = 32;
-    fl_type_table[id].number.fp = true;
-    fl_type_table[id].number.sign = true;
+    ts_type_table[++id].of = FL_NUMBER;
+    ts_type_table[id].id = st_newc("f32", st_enc_ascii);
+    ts_type_table[id].number.bits = 32;
+    ts_type_table[id].number.fp = true;
+    ts_type_table[id].number.sign = true;
 
     // [12] f64
-    fl_type_table[++id].of = FL_NUMBER;
-    fl_type_table[id].id = st_newc("f64", st_enc_ascii);
-    fl_type_table[id].number.bits = 64;
-    fl_type_table[id].number.fp = true;
-    fl_type_table[id].number.sign = true;
+    ts_type_table[++id].of = FL_NUMBER;
+    ts_type_table[id].id = st_newc("f64", st_enc_ascii);
+    ts_type_table[id].number.bits = 64;
+    ts_type_table[id].number.fp = true;
+    ts_type_table[id].number.sign = true;
 
     // [13] pointer address
-    fl_type_table[++id].of = FL_NUMBER;
-    fl_type_table[id].id = st_newc("addr", st_enc_ascii);
-    fl_type_table[id].number.bits = 64;
-    fl_type_table[id].number.fp = false;
-    fl_type_table[id].number.sign = false;
+    ts_type_table[++id].of = FL_NUMBER;
+    ts_type_table[id].id = st_newc("addr", st_enc_ascii);
+    ts_type_table[id].number.bits = 64;
+    ts_type_table[id].number.fp = false;
+    ts_type_table[id].number.sign = false;
 
     // adding types here, affects typesystem pass
     // because some are hardcoded atm!
 
     // [14+] core + user
-    fl_type_size = ++id;
+    ts_type_size_s = ++id;
   }
 }
 
 bool ts_is_struct(size_t id) {
-  fl_type_t t = fl_type_table[id];
+  ty_t t = ts_type_table[id];
   return t.of == FL_STRUCT;
 }
 
 bool ts_is_pointer(size_t id) {
-  fl_type_t t = fl_type_table[id];
+  ty_t t = ts_type_table[id];
   return t.of == FL_POINTER;
 }
 
 bool ts_is_vector(size_t id) {
-  fl_type_t t = fl_type_table[id];
+  ty_t t = ts_type_table[id];
   return t.of == FL_VECTOR;
 }
 
 bool ts_is_number(size_t id) {
-  fl_type_t t = fl_type_table[id];
+  ty_t t = ts_type_table[id];
   return t.of == FL_NUMBER;
 }
 
 bool ts_is_fp(size_t id) {
-  fl_type_t t = fl_type_table[id];
+  ty_t t = ts_type_table[id];
   return t.of == FL_NUMBER ? t.number.fp : false;
 }
 
 bool ts_is_int(size_t id) {
-  fl_type_t t = fl_type_table[id];
+  ty_t t = ts_type_table[id];
   return t.of == FL_NUMBER ? !t.number.fp : false;
 }
 
 size_t ts_get_bigger_typeid(size_t a, size_t b) {
-  fl_type_t t_a = fl_type_table[a];
-  fl_type_t t_b = fl_type_table[b];
+  ty_t t_a = ts_type_table[a];
+  ty_t t_b = ts_type_table[b];
 
   if (t_a.of == FL_NUMBER && t_b.of == FL_NUMBER) {
     // check floating point
@@ -158,10 +158,9 @@ size_t ts_get_bigger_typeid(size_t a, size_t b) {
   return a;
 }
 
-bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
-                void* userdata) {
+bool ts_pass_cb(ast_t* node, ast_t* parent, size_t level, void* userdata) {
 #define CREATE_CAST(cast, node, type_id)                                       \
-  fl_ast_t* cast = (fl_ast_t*)calloc(1, sizeof(fl_ast_t));                     \
+  ast_t* cast = (ast_t*)calloc(1, sizeof(ast_t));                              \
   cast->token_start = 0;                                                       \
   cast->token_end = 0;                                                         \
   cast->type = FL_AST_CAST;                                                    \
@@ -188,8 +187,8 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     }
   } break;
   case FL_AST_EXPR_MEMBER: {
-    fl_ast_t* l = node->member.left;
-    fl_ast_t* p = node->member.property;
+    ast_t* l = node->member.left;
+    ast_t* p = node->member.property;
 
     size_t l_typeid;
     if (l->type == FL_AST_LIT_IDENTIFIER) {
@@ -201,7 +200,7 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     // now we should know left type
     // get poperty index -> typeid
     // TODO perf
-    fl_type_t* type = &fl_type_table[l->ty_id];
+    ty_t* type = &ts_type_table[l->ty_id];
     switch (type->of) {
     case FL_STRUCT: {
       node->ty_id = ts_struct_property_type(l->ty_id, p->identifier.string);
@@ -239,10 +238,10 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
     }
   } break;
   case FL_AST_EXPR_ASSIGNAMENT: {
-    // fl_ast_debug(node);
+    // ast_dump(node);
 
-    fl_ast_t* l = node->assignament.left;
-    fl_ast_t* r = node->assignament.right;
+    ast_t* l = node->assignament.left;
+    ast_t* r = node->assignament.right;
 
     if (l->type == FL_AST_LIT_IDENTIFIER) {
       l->ty_id = ts_var_typeid(l);
@@ -266,8 +265,8 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
   } break;
   case FL_AST_EXPR_CALL: {
     size_t i;
-    fl_ast_t* args = node->call.arguments;
-    fl_ast_t* arg;
+    ast_t* args = node->call.arguments;
+    ast_t* arg;
     size_t count = args->list.count;
 
     if (!node->ty_id) {
@@ -279,14 +278,14 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
       // search for a compatible function
       string* callee = node->call.callee->identifier.string;
 
-      fl_ast_t* decl = ts_find_fn_decl(callee, args);
+      ast_t* decl = ts_find_fn_decl(callee, args);
       if (!decl) {
         log_error("cannot find compatible function");
       }
       node->call.decl = decl;
 
       size_t cty_id = decl->ty_id;
-      node->ty_id = fl_type_table[cty_id].func.ret;
+      node->ty_id = ts_type_table[cty_id].func.ret;
       node->call.callee->ty_id = cty_id;
     }
 
@@ -295,10 +294,10 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
       break; // TODO passthought printf atm
     }
 
-    fl_type_t* t = &fl_type_table[node->call.callee->ty_id];
+    ty_t* t = &ts_type_table[node->call.callee->ty_id];
     assert(t->of != FL_FUNCTION);
 
-    fl_ast_debug(node);
+    ast_dump(node);
 
     // cast arguments
     for (i = 0; i < count; ++i) {
@@ -322,19 +321,19 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
   } break;
   case FL_AST_EXPR_BINOP: {
     log_debug("binop found %d", node->binop.operator);
-    fl_ast_debug(node);
+    ast_dump(node);
     // cast if necessary
-    fl_ast_t* l = node->binop.left;
-    fl_ast_t* r = node->binop.right;
+    ast_t* l = node->binop.left;
+    ast_t* r = node->binop.right;
 
     // operation that need casting or fp/int
-    size_t l_type = fl_ast_get_typeid(l);
+    size_t l_type = ast_get_typeid(l);
     if (!l_type) {
       ts_pass(l);
       l_type = l->ty_id;
     }
 
-    size_t r_type = fl_ast_get_typeid(r);
+    size_t r_type = ast_get_typeid(r);
     if (!r_type) {
       ts_pass(r);
       r_type = r->ty_id;
@@ -403,36 +402,36 @@ bool ts_pass_cb(fl_ast_t* node, fl_ast_t* parent, size_t level,
   return true;
 }
 
-fl_ast_t* ts_pass(fl_ast_t* node) {
+ast_t* ts_pass(ast_t* node) {
   log_debug("pass start!");
 
-  fl_ast_traverse(node, ts_pass_cb, 0, 0, 0);
+  ast_traverse(node, ts_pass_cb, 0, 0, 0);
 }
 
 // wrapper types are
 // * FL_POINTER
 // * FL_VECTOR
-size_t ts_wapper_typeid(fl_types_t wrapper, size_t child) {
+size_t ts_wapper_typeid(ts_types_t wrapper, size_t child) {
   size_t i;
 
-  for (i = 0; i < fl_type_size; ++i) {
+  for (i = 0; i < ts_type_size_s; ++i) {
     // TODO check length?!
-    if (fl_type_table[i].of == wrapper && fl_type_table[i].ptr.to == child) {
-      // if (wrapper != FL_VECTOR && fl_type_table[i].vector.length != 0)
+    if (ts_type_table[i].of == wrapper && ts_type_table[i].ptr.to == child) {
+      // if (wrapper != FL_VECTOR && ts_type_table[i].vector.length != 0)
       return i;
     }
   }
   // add it!
-  i = fl_type_size++;
+  i = ts_type_size_s++;
   switch (wrapper) {
   case FL_POINTER:
-    fl_type_table[i].of = wrapper;
-    fl_type_table[i].ptr.to = child;
+    ts_type_table[i].of = wrapper;
+    ts_type_table[i].ptr.to = child;
     break;
   case FL_VECTOR:
-    fl_type_table[i].of = wrapper;
-    fl_type_table[i].vector.length = 0;
-    fl_type_table[i].vector.to = child;
+    ts_type_table[i].of = wrapper;
+    ts_type_table[i].vector.length = 0;
+    ts_type_table[i].vector.to = child;
     break;
   default: { log_error("ts_wapper_typeid unhandled"); }
   }
@@ -441,11 +440,11 @@ size_t ts_wapper_typeid(fl_types_t wrapper, size_t child) {
 }
 
 size_t ts_struct_property_idx(size_t id, string* property) {
-  if (fl_type_table[id].of != FL_STRUCT) {
+  if (ts_type_table[id].of != FL_STRUCT) {
     log_error("type [%zu] is not an struct", id);
   }
 
-  fl_ast_t* list = fl_type_table[id].structure.decl->structure.fields;
+  ast_t* list = ts_type_table[id].structure.decl->structure.fields;
 
   size_t i;
   for (i = 0; i < list->list.count; ++i) {
@@ -461,27 +460,27 @@ size_t ts_struct_property_idx(size_t id, string* property) {
 size_t ts_struct_property_type(size_t id, string* property) {
   log_debug("ts_struct_property_type [%zu] '%s'", id, property->value);
 
-  if (fl_type_table[id].of != FL_STRUCT) {
+  if (ts_type_table[id].of != FL_STRUCT) {
     log_error("type [%zu] is not an struct", id);
   }
 
-  fl_ast_t* list = fl_type_table[id].structure.decl->structure.fields;
+  ast_t* list = ts_type_table[id].structure.decl->structure.fields;
 
   size_t i;
   for (i = 0; i < list->list.count; ++i) {
     if (st_cmp(list->list.elements[i]->field.id->identifier.string, property) ==
         0) {
-      return fl_type_table[id].structure.fields[i];
+      return ts_type_table[id].structure.fields[i];
     }
   }
 
   return 0;
 }
 
-void ts_named_set(string* id, fl_ast_t* decl, size_t type_id) {
-  fl_type_cg_t* t = ts_named_type(id);
+void ts_named_set(string* id, ast_t* decl, size_t type_id) {
+  ts_typeh_t* t = ts_named_type(id);
   if (!t) {
-    t = (fl_type_cg_t*)calloc(1, sizeof(fl_type_cg_t));
+    t = (ts_typeh_t*)calloc(1, sizeof(ts_typeh_t));
     array_new(&t->list);
 
     strncpy(t->name, id->value, 64);
@@ -494,10 +493,10 @@ void ts_named_set(string* id, fl_ast_t* decl, size_t type_id) {
 }
 
 // transfer list ownership
-size_t ts_struct_create(fl_ast_t* decl) {
+size_t ts_struct_create(ast_t* decl) {
   size_t i;
   size_t j;
-  fl_ast_t* list = decl->structure.fields;
+  ast_t* list = decl->structure.fields;
   size_t length = list->list.count;
   size_t* fields = calloc(length, sizeof(size_t));
   string* id = decl->structure.id->identifier.string;
@@ -506,11 +505,11 @@ size_t ts_struct_create(fl_ast_t* decl) {
     fields[i] = list->list.elements[i]->field.type->ty_id;
   }
 
-  for (i = 0; i < fl_type_size; ++i) {
+  for (i = 0; i < ts_type_size_s; ++i) {
     // struct and same length?
-    if (fl_type_table[i].of == FL_STRUCT &&
-        fl_type_table[i].structure.nfields == length) {
-      if (0 == memcmp(fields, fl_type_table[i].structure.fields,
+    if (ts_type_table[i].of == FL_STRUCT &&
+        ts_type_table[i].structure.nfields == length) {
+      if (0 == memcmp(fields, ts_type_table[i].structure.fields,
                       sizeof(size_t) * length)) {
         free(fields);
 
@@ -522,22 +521,22 @@ size_t ts_struct_create(fl_ast_t* decl) {
   }
 
   // add it!
-  i = fl_type_size++;
-  fl_type_table[i].of = FL_STRUCT;
-  fl_type_table[i].id = id;
-  fl_type_table[i].structure.decl = decl;
-  fl_type_table[i].structure.fields = fields;
-  fl_type_table[i].structure.nfields = length;
+  i = ts_type_size_s++;
+  ts_type_table[i].of = FL_STRUCT;
+  ts_type_table[i].id = id;
+  ts_type_table[i].structure.decl = decl;
+  ts_type_table[i].structure.fields = fields;
+  ts_type_table[i].structure.nfields = length;
 
   log_debug("SET type [%zu] = '%s'", i, id->value);
   ts_named_set(id, decl, i);
   return i;
 }
 
-FL_EXTERN size_t ts_struct_idx(fl_ast_t* decl, string* id) {
+FL_EXTERN size_t ts_struct_idx(ast_t* decl, string* id) {
   size_t i;
-  fl_ast_t* list = decl->structure.fields;
-  fl_ast_t** elements = list->list.elements;
+  ast_t* list = decl->structure.fields;
+  ast_t** elements = list->list.elements;
   size_t length = list->list.count;
 
   for (i = 0; i < length; ++i) {
@@ -548,7 +547,7 @@ FL_EXTERN size_t ts_struct_idx(fl_ast_t* decl, string* id) {
   return -1;
 }
 
-size_t ts_fn_create(fl_ast_t* decl) {
+size_t ts_fn_create(ast_t* decl) {
   string* id = decl->func.id->identifier.string;
   string* uid;
 
@@ -571,7 +570,7 @@ size_t ts_fn_create(fl_ast_t* decl) {
     decl->func.uid = st_clone(id);
   }
 
-  fl_ast_t* params = decl->func.params;
+  ast_t* params = decl->func.params;
   size_t length = params->list.count;
   size_t* tparams = calloc(length, sizeof(size_t));
   size_t ret = decl->func.ret_type->ty_id;
@@ -581,13 +580,13 @@ size_t ts_fn_create(fl_ast_t* decl) {
     tparams[i] = params->list.elements[i]->ty_id;
   }
 
-  for (i = 0; i < fl_type_size; ++i) {
+  for (i = 0; i < ts_type_size_s; ++i) {
     // function, same parameters length return type and varargs?
-    if (fl_type_table[i].of == FL_FUNCTION &&
-        fl_type_table[i].func.nparams == length &&
-        ret == fl_type_table[i].func.ret &&
-        fl_type_table[i].func.varargs == decl->func.varargs) {
-      if (0 == memcmp(tparams, fl_type_table[i].func.params,
+    if (ts_type_table[i].of == FL_FUNCTION &&
+        ts_type_table[i].func.nparams == length &&
+        ret == ts_type_table[i].func.ret &&
+        ts_type_table[i].func.varargs == decl->func.varargs) {
+      if (0 == memcmp(tparams, ts_type_table[i].func.params,
                       sizeof(size_t) * length)) {
         free(tparams);
 
@@ -599,14 +598,14 @@ size_t ts_fn_create(fl_ast_t* decl) {
   }
 
   // add it!
-  i = fl_type_size++;
-  fl_type_table[i].of = FL_FUNCTION;
-  fl_type_table[i].id = id;
-  fl_type_table[i].func.decl = decl;
-  fl_type_table[i].func.params = tparams;
-  fl_type_table[i].func.nparams = length;
-  fl_type_table[i].func.ret = ret;
-  fl_type_table[i].func.varargs = decl->func.varargs;
+  i = ts_type_size_s++;
+  ts_type_table[i].of = FL_FUNCTION;
+  ts_type_table[i].id = id;
+  ts_type_table[i].func.decl = decl;
+  ts_type_table[i].func.params = tparams;
+  ts_type_table[i].func.nparams = length;
+  ts_type_table[i].func.ret = ret;
+  ts_type_table[i].func.varargs = decl->func.varargs;
 
   log_debug("SET fn type [%zu] = '%s'", i, id->value);
   ts_named_set(id, decl, i);
@@ -618,10 +617,10 @@ size_t ts_fn_create(fl_ast_t* decl) {
 }
 
 // TODO global functions!
-size_t ts_fn_typeid(fl_ast_t* id) {
+size_t ts_fn_typeid(ast_t* id) {
   assert(id->type != FL_AST_LIT_IDENTIFIER);
 
-  fl_ast_t* fdecl = fl_ast_find_fn_decl(id);
+  ast_t* fdecl = ast_find_fn_decl(id);
 
   // TODO search globals and assert!
   if (fdecl) {
@@ -632,12 +631,12 @@ size_t ts_fn_typeid(fl_ast_t* id) {
 }
 
 // TODO handle args
-fl_ast_t* ts_find_fn_decl(string* id, fl_ast_t* args) {
+ast_t* ts_find_fn_decl(string* id, ast_t* args) {
   array* arr = ast_find_fn_decls(args->parent, id);
-  log_verbose("declarations with same name = %zu\n", arr->size);
+  log_verbose("declarations with same name = %d\n", arr->size);
 
   if (arr->size == 1) {
-    fl_ast_t* ret = array_get(arr, 0);
+    ast_t* ret = array_get(arr, 0);
     array_delete(arr);
     free(arr);
     return ret;
@@ -648,28 +647,28 @@ fl_ast_t* ts_find_fn_decl(string* id, fl_ast_t* args) {
 }
 
 // TODO global vars!
-size_t ts_var_typeid(fl_ast_t* id) {
+size_t ts_var_typeid(ast_t* id) {
   assert(id->type != FL_AST_LIT_IDENTIFIER);
 
-  fl_ast_t* decl = fl_ast_search_decl_var(id, id->identifier.string);
+  ast_t* decl = ast_search_decl_var(id, id->identifier.string);
 
   if (!decl) {
     log_error("(ts) cannot find var declaration %s",
               id->identifier.string->value);
   }
 
-  return fl_ast_get_typeid(decl);
+  return ast_get_typeid(decl);
 }
 
-fl_type_cg_t* ts_named_type(string* id) {
-  fl_type_cg_t* s;
+ts_typeh_t* ts_named_type(string* id) {
+  ts_typeh_t* s;
   HASH_FIND_STR(ts_hashtable, id->value, s);
 
   return s;
 }
 
 size_t ts_named_typeid(string* id) {
-  fl_type_cg_t* s;
+  ts_typeh_t* s;
   HASH_FIND_STR(ts_hashtable, id->value, s);
 
   // TODO raise something ?!
@@ -680,30 +679,30 @@ size_t ts_named_typeid(string* id) {
     log_error("not allowed?!");
   }
 
-  fl_ast_t* ast = (fl_ast_t*)array_get(&s->list, 0);
+  ast_t* ast = (ast_t*)array_get(&s->list, 0);
   return ast->ty_id;
 }
 
 void ts_exit() {
   size_t i;
 
-  for (i = 0; i < fl_type_size; ++i) {
+  for (i = 0; i < ts_type_size_s; ++i) {
     if (i < 13) {
-      st_delete(&fl_type_table[i].id);
+      st_delete(&ts_type_table[i].id);
     }
     // struct and same length?
-    if (fl_type_table[i].of == FL_STRUCT) {
-      free(fl_type_table[i].structure.fields);
-    } else if (fl_type_table[i].of == FL_FUNCTION) {
-      free(fl_type_table[i].func.params);
+    if (ts_type_table[i].of == FL_STRUCT) {
+      free(ts_type_table[i].structure.fields);
+    } else if (ts_type_table[i].of == FL_FUNCTION) {
+      free(ts_type_table[i].func.params);
     }
   }
 
-  free(fl_type_table);
-  fl_type_table = 0;
+  free(ts_type_table);
+  ts_type_table = 0;
 
-  fl_type_cg_t* s;
-  fl_type_cg_t* tmp;
+  ts_typeh_t* s;
+  ts_typeh_t* tmp;
   HASH_ITER(hh, ts_hashtable, s, tmp) {
     HASH_DEL(ts_hashtable, s);
     array_delete(&s->list);

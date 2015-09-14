@@ -26,7 +26,7 @@
 #include "flang.h"
 
 PSR_READ_IMPL(expression) {
-  fl_ast_t* ast;
+  ast_t* ast;
 
   FL_TRY_READ(expr_assignment);
 
@@ -34,7 +34,7 @@ PSR_READ_IMPL(expression) {
 }
 
 PSR_READ_IMPL(expr_assignment) {
-  fl_ast_t* ast;
+  ast_t* ast;
 
   FL_TRY_READ(expr_assignment_full);
   FL_TRY_READ(cast);
@@ -101,7 +101,7 @@ PSR_READ_IMPL(expr_assignment_full) {
 }
 
 PSR_READ_IMPL(expr_lhs) {
-  fl_ast_t* ast;
+  ast_t* ast;
 
   // printf("**expr_lhs %s", state->token->string->value);
 
@@ -133,7 +133,7 @@ PSR_READ_IMPL(expr_primary) {
 
   log_silly("parenthesis");
 
-  fl_ast_t* inside = PSR_READ(expr_logical_or); // TODO expression
+  ast_t* inside = PSR_READ(expr_logical_or); // TODO expression
   PSR_RET_IF_ERROR(inside, {});
 
   PSR_EXPECT_TOKEN(FL_TK_RPARENTHESIS, inside, {}, "expected ')'");
@@ -165,13 +165,13 @@ PSR_READ_IMPL(expr_member) {
 
   psr_read_t left[] = {PSR_READ_NAME(expr_primary),
                        PSR_READ_NAME(expr_new_full)};
-  fl_ast_t* member_left = psr_read_list(left, 2, PSR_READ_HEADER_SEND);
+  ast_t* member_left = psr_read_list(left, 2, PSR_READ_HEADER_SEND);
   if (!member_left) {
     log_silly("invalid member.left");
     return 0;
   }
 
-  fl_ast_t* last = member_left;
+  ast_t* last = member_left;
 
   PSR_SKIPWS();
 
@@ -189,8 +189,8 @@ PSR_READ_IMPL(expr_member) {
       log_silly("dot accesss");
       PSR_SKIPWS();
       PSR_READ_OR_DIE(property, lit_identifier, {
-        fl_ast_delete(last);
-        fl_ast_delete(property);
+        ast_delete(last);
+        ast_delete(property);
       }, "expected expression");
       log_silly("dot accesss - ok");
       last->member.property = property;
@@ -201,8 +201,8 @@ PSR_READ_IMPL(expr_member) {
       PSR_SKIPWS();
       log_silly("\n\n**********************************");
       PSR_READ_OR_DIE(property, expression, {
-        fl_ast_delete(last);
-        fl_ast_delete(property);
+        ast_delete(last);
+        ast_delete(property);
       }, "expected identifier");
       log_silly("\n\n**********************************");
       log_silly("close bracket access: '%s'", state->token->string->value);
@@ -217,7 +217,7 @@ PSR_READ_IMPL(expr_member) {
     }
   } while (PSR_TEST_TOKEN(FL_TK_DOT) || PSR_TEST_TOKEN(FL_TK_LBRACKET));
 
-  fl_ast_debug(last);
+  ast_dump(last);
 
   PSR_RET_OK(last);
 }
@@ -229,15 +229,15 @@ PSR_READ_IMPL(expr_new) { return PSR_READ(expr_member); }
 PSR_READ_IMPL(expr_conditional) {
   // PSR_START(ast, FL_AST_EXPR_CONDITIONAL);
 
-  fl_ast_t* left = PSR_READ(expr_logical_or);
+  ast_t* left = PSR_READ(expr_logical_or);
 
   return left ? left : 0;
 }
 
-fl_ast_t* PSR_READ_binop(PSR_READ_HEADER, fl_tokens_t operators[], size_t n_ops,
-                         psr_read_t next) {
+ast_t* PSR_READ_binop(PSR_READ_HEADER, tk_tokens_t operators[], size_t n_ops,
+                      psr_read_t next) {
   // TODO resizable
-  fl_ast_t** leafs = malloc(sizeof(fl_ast_t*) * 10);
+  ast_t** leafs = malloc(sizeof(ast_t*) * 10);
   size_t leafs_s = 0;
 
   bool err_left = false;
@@ -261,7 +261,7 @@ fl_ast_t* PSR_READ_binop(PSR_READ_HEADER, fl_tokens_t operators[], size_t n_ops,
 
     if (!ast->binop.left) {
       err_left = true;
-      fl_ast_delete(ast);
+      ast_delete(ast);
     } else {
       // try to read the operator
       leafs[leafs_s++] = ast;
@@ -293,7 +293,7 @@ fl_ast_t* PSR_READ_binop(PSR_READ_HEADER, fl_tokens_t operators[], size_t n_ops,
   }
 
   if (leafs_s == 1) {
-    fl_ast_t* tmp = leafs[0]->binop.left;
+    ast_t* tmp = leafs[0]->binop.left;
     free(leafs[0]);
     free(leafs);
     return tmp;
@@ -305,8 +305,8 @@ fl_ast_t* PSR_READ_binop(PSR_READ_HEADER, fl_tokens_t operators[], size_t n_ops,
   size_t i = 0;
 
   // last-left is previous right
-  fl_ast_t* tmp = leafs[leafs_s - 1]->binop.left;
-  fl_ast_t* tmp2; // last
+  ast_t* tmp = leafs[leafs_s - 1]->binop.left;
+  ast_t* tmp2; // last
   for (; i < leafs_s - 2; ++i) {
     leafs[i]->binop.right = leafs[i + 1];
   }
@@ -321,67 +321,67 @@ fl_ast_t* PSR_READ_binop(PSR_READ_HEADER, fl_tokens_t operators[], size_t n_ops,
 }
 
 PSR_READ_IMPL(expr_logical_or) {
-  fl_tokens_t operators[] = {FL_TK_OR2};
+  tk_tokens_t operators[] = {FL_TK_OR2};
   return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 1,
                         PSR_READ_NAME(expr_logical_and));
 }
 
 PSR_READ_IMPL(expr_logical_and) {
-  fl_tokens_t operators[] = {FL_TK_AND2};
+  tk_tokens_t operators[] = {FL_TK_AND2};
   return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 1,
                         PSR_READ_NAME(expr_bitwise_or));
 }
 
 PSR_READ_IMPL(expr_bitwise_or) {
-  fl_tokens_t operators[] = {FL_TK_OR};
+  tk_tokens_t operators[] = {FL_TK_OR};
   return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 1,
                         PSR_READ_NAME(expr_bitwise_xor));
 }
 
 PSR_READ_IMPL(expr_bitwise_xor) {
-  fl_tokens_t operators[] = {FL_TK_CARET};
+  tk_tokens_t operators[] = {FL_TK_CARET};
   return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 1,
                         PSR_READ_NAME(expr_bitwise_and));
 }
 
 PSR_READ_IMPL(expr_bitwise_and) {
-  fl_tokens_t operators[] = {FL_TK_AND};
+  tk_tokens_t operators[] = {FL_TK_AND};
   return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 1,
                         PSR_READ_NAME(expr_equality));
 }
 
 PSR_READ_IMPL(expr_equality) {
-  fl_tokens_t operators[] = {FL_TK_EEQUAL, FL_TK_EQUAL2};
+  tk_tokens_t operators[] = {FL_TK_EEQUAL, FL_TK_EQUAL2};
   return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 2,
                         PSR_READ_NAME(expr_relational));
 }
 
 PSR_READ_IMPL(expr_relational) {
-  fl_tokens_t operators[] = {FL_TK_LTE, FL_TK_LT, FL_TK_GTE, FL_TK_GT};
+  tk_tokens_t operators[] = {FL_TK_LTE, FL_TK_LT, FL_TK_GTE, FL_TK_GT};
   return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 4,
                         PSR_READ_NAME(expr_shift));
 }
 
 PSR_READ_IMPL(expr_shift) {
-  fl_tokens_t operators[] = {FL_TK_LT2, FL_TK_GT2};
+  tk_tokens_t operators[] = {FL_TK_LT2, FL_TK_GT2};
   return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 2,
                         PSR_READ_NAME(expr_additive));
 }
 
 PSR_READ_IMPL(expr_additive) {
-  fl_tokens_t operators[] = {FL_TK_PLUS, FL_TK_MINUS};
+  tk_tokens_t operators[] = {FL_TK_PLUS, FL_TK_MINUS};
   return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 2,
                         PSR_READ_NAME(expr_multiplicative));
 }
 
 PSR_READ_IMPL(expr_multiplicative) {
-  fl_tokens_t operators[] = {FL_TK_ASTERISK, FL_TK_SLASH, FL_TK_MOD};
+  tk_tokens_t operators[] = {FL_TK_ASTERISK, FL_TK_SLASH, FL_TK_MOD};
   return PSR_READ_binop(PSR_READ_HEADER_SEND, operators, 3,
                         PSR_READ_NAME(expr_unary));
 }
 
 PSR_READ_IMPL(expr_unary) {
-  fl_ast_t* ast;
+  ast_t* ast;
 
   FL_TRY_READ(expr_unary_left);
 
@@ -444,7 +444,7 @@ PSR_READ_IMPL(expr_unary_right) {
     break;
   default: {
     // lhs is valid, send up!
-    fl_ast_t* tmp = ast->runary.element;
+    ast_t* tmp = ast->runary.element;
     free(ast);
     return tmp;
   }
@@ -471,7 +471,7 @@ PSR_READ_IMPL(expr_call) {
   if (!PSR_ACCEPT_TOKEN(FL_TK_LPARENTHESIS)) {
     log_verbose("return callee, there is no '(' '%s'",
                 state->token->string->value);
-    fl_ast_delete(ecall);
+    ast_delete(ecall);
     return callee;
   }
 
@@ -485,7 +485,7 @@ PSR_READ_IMPL(expr_call) {
   do {
     PSR_SKIPWS();
 
-    PSR_READ_OR_DIE(argument, expr_argument, { fl_ast_delete(ecall); },
+    PSR_READ_OR_DIE(argument, expr_argument, { ast_delete(ecall); },
                     "expected function argument");
 
     list->list.elements[list->list.count++] = argument;

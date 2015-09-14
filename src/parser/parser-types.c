@@ -46,8 +46,8 @@ PSR_READ_IMPL(type) {
   PSR_START(type_node, FL_AST_TYPE);
 
   // primitives
-  fl_tokens_t tk = state->token->type;
-  fl_tokens_t tks[] = {FL_TK_VOID, FL_TK_BOOL,
+  tk_tokens_t tk = state->token->type;
+  tk_tokens_t tks[] = {FL_TK_VOID, FL_TK_BOOL,
 
                        FL_TK_I8,   FL_TK_U8,   FL_TK_I16, FL_TK_U16,
                        FL_TK_I32,  FL_TK_U32,  FL_TK_I64, FL_TK_U64,
@@ -67,7 +67,7 @@ PSR_READ_IMPL(type) {
   log_silly("no built-in -> identifier");
 
   // primitive fail, try wrapper
-  PSR_READ_OR_DIE(id, lit_identifier, { fl_ast_delete(type_node); }, 0);
+  PSR_READ_OR_DIE(id, lit_identifier, { ast_delete(type_node); }, 0);
 
   PSR_SKIPWS();
 
@@ -78,15 +78,15 @@ PSR_READ_IMPL(type) {
     PSR_SKIPWS();
 
     PSR_READ_OR_DIE(child, type, {
-      fl_ast_delete(type_node);
-      fl_ast_delete(id);
+      ast_delete(type_node);
+      ast_delete(id);
     }, "type expected");
 
     PSR_SKIPWS();
 
     PSR_EXPECT_TOKEN(FL_TK_GT, type_node, {
-      fl_ast_delete(id);
-      fl_ast_delete(child);
+      ast_delete(id);
+      ast_delete(child);
     }, "expected '>'");
 
     // unroll recursion, creating new types
@@ -103,8 +103,8 @@ PSR_READ_IMPL(type) {
     // TODO handle builtin defined wrappers
 
     // void is a primitive will never reach here, it's safe to check != 0
-    fl_ast_delete(child);
-    fl_ast_delete(id);
+    ast_delete(child);
+    ast_delete(id);
 
     if (type_node->ty_id) {
       log_verbose("wrapped type");
@@ -117,7 +117,7 @@ PSR_READ_IMPL(type) {
 
   size_t ty_id = ts_named_typeid(id->identifier.string);
   log_debug("**TYPE [%zu] = '%s'", ty_id, id->identifier.string->value);
-  fl_ast_delete(id);
+  ast_delete(id);
 
   if (!ty_id) {
     log_verbose("type not found");
@@ -135,13 +135,13 @@ PSR_READ_IMPL(decl_struct) {
   }
 
   PSR_START(structure, FL_AST_DECL_STRUCT);
-  fl_type_t st_type;
+  ty_t st_type;
   st_type.of = FL_STRUCT;
 
   PSR_ACCEPT_TOKEN(FL_TK_STRUCT);
   PSR_SKIPWS();
 
-  PSR_READ_OR_DIE(id, lit_identifier_rw, { fl_ast_delete(structure); },
+  PSR_READ_OR_DIE(id, lit_identifier_rw, { ast_delete(structure); },
                   "expected identifier"); // no anonymous structs!
   PSR_SKIPWS();
 
@@ -160,15 +160,15 @@ PSR_READ_IMPL(decl_struct) {
       PSR_START(field, FL_AST_DECL_STRUCT_FIELD);
 
       PSR_READ_OR_DIE(type, type, {
-        fl_ast_delete(structure);
-        fl_ast_delete(field);
+        ast_delete(structure);
+        ast_delete(field);
       }, "expected type");
       PSR_SKIPWS();
       field->field.type = type;
 
       PSR_READ_OR_DIE(id_field, lit_identifier, {
-        fl_ast_delete(structure);
-        fl_ast_delete(field);
+        ast_delete(structure);
+        ast_delete(field);
       }, "expected identifier");
       PSR_SKIPWS();
       field->field.id = id_field;
@@ -190,7 +190,7 @@ PSR_READ_IMPL(cast) {
   PSR_START(cast, FL_AST_CAST);
 
   if (!PSR_ACCEPT_TOKEN(FL_TK_CAST)) {
-    fl_ast_delete(cast);
+    ast_delete(cast);
     cast = 0;
 
     PSR_RET_READED(cast, expr_conditional);
@@ -202,20 +202,20 @@ PSR_READ_IMPL(cast) {
   PSR_EXPECT_TOKEN(FL_TK_LPARENTHESIS, cast, {}, "expected '('");
 
   PSR_SKIPWS();
-  PSR_READ_OR_DIE(ty, type, { fl_ast_delete(cast); }, "expected expression");
+  PSR_READ_OR_DIE(ty, type, { ast_delete(cast); }, "expected expression");
 
   PSR_SKIPWS();
-  PSR_EXPECT_TOKEN(FL_TK_RPARENTHESIS, cast, { fl_ast_delete(ty); },
+  PSR_EXPECT_TOKEN(FL_TK_RPARENTHESIS, cast, { ast_delete(ty); },
                    "expected ')'");
 
   PSR_SKIPWS();
   PSR_READ_OR_DIE(element, expr_conditional, {
-    fl_ast_delete(cast);
-    fl_ast_delete(ty);
+    ast_delete(cast);
+    ast_delete(ty);
   }, "expected expression");
 
   cast->ty_id = ty->ty_id;
-  fl_ast_delete(ty);
+  ast_delete(ty);
   cast->cast.element = element;
 
   PSR_RET_OK(cast);

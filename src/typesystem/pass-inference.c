@@ -26,12 +26,12 @@
 #include "flang.h"
 struct id_search {
   string* needle;
-  fl_ast_t** list;
+  ast_t** list;
   size_t length;
 };
 typedef struct id_search id_search_t;
 
-bool fl_ast_find_identifier(fl_ast_t* node, fl_ast_t* parent, size_t level,
+bool fl_ast_find_identifier(ast_t* node, ast_t* parent, size_t level,
                             void* userdata) {
   if (node->type == FL_AST_LIT_IDENTIFIER) {
     id_search_t* data = (id_search_t*)userdata;
@@ -43,30 +43,29 @@ bool fl_ast_find_identifier(fl_ast_t* node, fl_ast_t* parent, size_t level,
   return true;
 }
 
-bool dtors_var_infer(fl_ast_t* node, fl_ast_t* parent, size_t level,
-                     void* userdata) {
+bool dtors_var_infer(ast_t* node, ast_t* parent, size_t level, void* userdata) {
   if (node->type == FL_AST_DTOR_VAR) {
     if (node->var.type->ty_id == 0) {
       // search all ocurrences of this identifier
       id_search_t data;
-      data.list = calloc(sizeof(fl_ast_t*), 100); // TODO resizable
+      data.list = calloc(sizeof(ast_t*), 100); // TODO resizable
       data.needle = node->var.id->identifier.string;
       data.length = 0;
 
-      fl_ast_traverse(node->parent, fl_ast_find_identifier, 0, 0, (void*)&data);
+      ast_traverse(node->parent, fl_ast_find_identifier, 0, 0, (void*)&data);
 
       if (data.length) {
         // TODO REVIEW
         // right now if the first apparence is not a dtor -> undefined var
         size_t i = 0;
         for (; i < data.length; ++i) {
-          fl_ast_t* fnod = data.list[i];
+          ast_t* fnod = data.list[i];
 
           // lhs of an expression
           if (fnod->parent->type == FL_AST_EXPR_ASSIGNAMENT &&
               fnod->parent->assignament.left == fnod) {
             // type is the right one
-            // size_t t = fl_ast_ret_type(fnod->parent->assignament.right);
+            // size_t t = ast_ret_type(fnod->parent->assignament.right);
             size_t t = fnod->parent->assignament.right->ty_id;
             if (t) {
               node->var.type->ty_id = t;
@@ -84,14 +83,14 @@ bool dtors_var_infer(fl_ast_t* node, fl_ast_t* parent, size_t level,
 }
 
 // return error
-fl_ast_t* fl_pass_inference(fl_ast_t* node) {
-  fl_ast_parent(node);
+ast_t* ts_pass_inference(ast_t* node) {
+  ast_parent(node);
   // var x = 10; <- double
   // var x = ""; <- string*
   // var x = []; <- look usage
   // var x = [10]; <- array<double>
 
   // var i64 x = 10; <- cast 10 to i64
-  fl_ast_traverse(node, dtors_var_infer, 0, 0, 0);
+  ast_traverse(node, dtors_var_infer, 0, 0, 0);
   return 0;
 }

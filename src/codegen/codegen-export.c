@@ -25,33 +25,22 @@
 
 #include "flang.h"
 
-void fl_parser_stack_init(fl_psrstack_t* stack, fl_token_list_t* tokens,
-                          fl_psrstate_t* state) {
-  stack->current = 0;
-  state->look_ahead_idx = 0;
-  state->current = 0;
-  state->token = &tokens->tokens[0];
-  state->next_token = &tokens->tokens[1];
-  state->prev_token = 0;
+bool fl_to_bitcode(LLVMModuleRef module, const char* filename) {
+  // Write out bitcode to file
+  if (LLVMWriteBitcodeToFile(module, filename) != 0) {
+    fprintf(stderr, "error writing bitcode to file '%s'\n", filename);
+    return false;
+  }
+  return true;
 }
 
-void fl_parser_look_ahead(fl_psrstack_t* stack, fl_psrstate_t* state) {
-  // printf("- fl_parser_look_ahead [%ld]\n", state->current);
+// TODO check file, return false!
+bool fl_to_ir(LLVMModuleRef module, const char* filename) {
+  char* irstr = LLVMPrintModuleToString(module);
+  FILE* f = fopen(filename, "w");
+  fputs(irstr, f);
+  fclose(f);
+  LLVMDisposeMessage(irstr);
 
-  memcpy(&stack->states[stack->current++], state, sizeof(fl_psrstate_t));
-  ++state->look_ahead_idx;
-}
-
-void fl_parser_commit(fl_psrstack_t* stack, fl_psrstate_t* state) {
-  // printf("- fl_parser_commit [%ld]\n", state->current);
-  --stack->current;
-  --state->look_ahead_idx;
-}
-
-void fl_parser_rollback(fl_psrstack_t* stack, fl_psrstate_t* state) {
-  // printf("- fl_parser_rollback [%ld]\n", state->current);
-
-  --stack->current;
-  memcpy(state, &stack->states[stack->current], sizeof(fl_psrstate_t));
-  // printf("- fl_parser_rollback end [%ld]\n", state->current);
+  return true;
 }

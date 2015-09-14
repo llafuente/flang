@@ -33,18 +33,18 @@ PSR_READ_IMPL(block) {
 
   PSR_SKIPWS();
 
-  fl_parser_look_ahead(stack, state);
+  psr_look_ahead(stack, state);
 
   PSR_EXTEND(block, block_body);
 
-  PSR_RET_IF_ERROR(block, { fl_parser_rollback(stack, state); });
+  PSR_RET_IF_ERROR(block, { psr_rollback(stack, state); });
 
   PSR_EXPECT_TOKEN(FL_TK_RCBRACKET, block,
-                   { fl_parser_rollback(stack, state); }, "expected '}'");
+                   { psr_rollback(stack, state); }, "expected '}'");
 
   PSR_SKIPWS();
 
-  fl_parser_commit(stack, state);
+  psr_commit(stack, state);
 
   log_debug("end block ok");
 
@@ -66,42 +66,42 @@ psr_read_t block_stmts[] = {
     PSR_READ_NAME(stmt_dowhile),  PSR_READ_NAME(decl_struct),
     PSR_READ_NAME(pp_load)};
 
-void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend) {
-  fl_ast_t* stmt;
-  fl_ast_t** list = calloc(100, sizeof(fl_ast_t*));
+void PSR_READ_NAME(block_body)(PSR_READ_HEADER, ast_t** extend) {
+  ast_t* stmt;
+  ast_t** list = calloc(100, sizeof(ast_t*));
   (*extend)->block.body = list;
   size_t i = 0;
   size_t last;
   size_t j = 0;
 
-  while (!fl_parser_eof(tokens, state)) {
+  while (!psr_eof(tokens, state)) {
     last = i;
 
     for (j = 0; j < 11; ++j) {
       log_verbose("read block id: %zu", j);
-      fl_parser_look_ahead(stack, state);
+      psr_look_ahead(stack, state);
       stmt = block_stmts[j](PSR_READ_HEADER_SEND);
 
       // soft error
       if (!stmt) {
-        fl_parser_rollback(stack, state);
+        psr_rollback(stack, state);
         continue;
       }
 
-      fl_ast_debug(stmt);
+      ast_dump(stmt);
 
       // hard error
       if (stmt->type == FL_AST_ERROR) {
-        fl_parser_rollback(stack, state);
+        psr_rollback(stack, state);
 
         // free extended node, and "return" current stmt error
-        fl_ast_delete(*extend);
+        ast_delete(*extend);
         *extend = stmt;
 
         return;
       }
 
-      fl_parser_commit(stack, state);
+      psr_commit(stack, state);
       list[i++] = stmt;
 
       break;
@@ -118,7 +118,7 @@ void PSR_READ_NAME(block_body)(PSR_READ_HEADER, fl_ast_t** extend) {
 
     // nothing readed!
     if (last == i) {
-      fl_ast_delete_list(list);
+      ast_delete_list(list);
       (*extend)->block.body = 0;
       PSR_SET_SYNTAX_ERROR((*extend), "invalid statement");
       return;

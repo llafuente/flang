@@ -26,7 +26,7 @@
 #include "flang.h"
 // TODO declaration - declarator list
 PSR_READ_IMPL(decl_variable) {
-  fl_ast_t* ast;
+  ast_t* ast;
   FL_TRY_READ(decl_variable_with_type);
   FL_TRY_READ(decl_variable_no_type);
 
@@ -36,9 +36,9 @@ PSR_READ_IMPL(decl_variable) {
 PSR_READ_IMPL(decl_variable_no_type) {
   PSR_START(ast, FL_AST_DTOR_VAR);
 
-  fl_tokens_t tks[] = {FL_TK_VAR, FL_TK_UNVAR, FL_TK_CONST, FL_TK_STATIC,
+  tk_tokens_t tks[] = {FL_TK_VAR, FL_TK_UNVAR, FL_TK_CONST, FL_TK_STATIC,
                        FL_TK_GLOBAL};
-  if (!fl_parser_accept_token_list(tokens, state, tks, 5)) {
+  if (!psr_accept_token_list(tokens, state, tks, 5)) {
     PSR_RET_KO(ast);
   }
 
@@ -61,15 +61,15 @@ PSR_READ_IMPL(decl_variable_with_type) {
   log_silly("has var, unvar, const, static, global?");
   PSR_START(ast, FL_AST_DTOR_VAR);
 
-  fl_tokens_t tks[] = {FL_TK_VAR, FL_TK_UNVAR, FL_TK_CONST, FL_TK_STATIC,
+  tk_tokens_t tks[] = {FL_TK_VAR, FL_TK_UNVAR, FL_TK_CONST, FL_TK_STATIC,
                        FL_TK_GLOBAL};
-  if (!fl_parser_accept_token_list(tokens, state, tks, 5)) {
+  if (!psr_accept_token_list(tokens, state, tks, 5)) {
     PSR_RET_KO(ast);
   }
 
   PSR_SKIPWS();
   PSR_READ_OK(type, type);
-  fl_ast_debug(type);
+  ast_dump(type);
 
   if (!type) {
     log_silly("no type...");

@@ -25,25 +25,13 @@
 
 #include "flang.h"
 
-void fl_state_debug(fl_psrstate_t* state) {
-  printf("[%s] current: %zu | look_ahead_idx: %zu\n",
-         state->token->string->value, state->current, state->look_ahead_idx);
-  /*
-  size_t ;
-  fl_token_t* token;
-  fl_token_t* prev_token;
-  fl_token_t* next_token;
-  size_t ;
-  */
-}
-
-fl_ast_t* fl_parser(fl_token_list_t* tokens, bool attach_core) {
+ast_t* fl_parser(tk_token_list_t* tokens, bool attach_core) {
   ts_init();
 
   fl_psrstack_t* stack = malloc(sizeof(fl_psrstack_t));
   fl_psrstate_t* state = malloc(sizeof(fl_psrstate_t));
 
-  fl_parser_stack_init(stack, tokens, state);
+  psr_stack_init(stack, tokens, state);
 
   PSR_START(root, FL_AST_PROGRAM);
 
@@ -67,30 +55,30 @@ fl_ast_t* fl_parser(fl_token_list_t* tokens, bool attach_core) {
   return root;
 }
 
-fl_ast_t* fl_parse(string* code, bool attach_core) {
-  fl_token_list_t* tokens;
+ast_t* fl_parse(string* code, bool attach_core) {
+  tk_token_list_t* tokens;
 
   tokens = fl_tokenize(code);
 
-  fl_ast_t* root = fl_parser(tokens, attach_core);
+  ast_t* root = fl_parser(tokens, attach_core);
   root->program.code = code;
 
   // do inference
-  fl_ast_debug(root);
+  ast_dump(root);
   log_debug("(parser) first inference");
-  fl_pass_inference(root);
+  ts_pass_inference(root);
   log_debug("(parser) typesystem");
   ts_pass(root);
   log_debug("(parser) second inference");
-  fl_pass_inference(root);
+  ts_pass_inference(root);
 
   // TODO remove this, just for debugging purpose
-  fl_ast_debug(root);
+  ast_dump(root);
 
   return root;
 }
 
-fl_ast_t* fl_parse_utf8(char* str) {
+ast_t* fl_parse_utf8(char* str) {
   string* code;
 
   code = st_newc(str, st_enc_utf8);
@@ -98,7 +86,7 @@ fl_ast_t* fl_parse_utf8(char* str) {
   return fl_parse(code, true);
 }
 
-fl_ast_t* fl_parse_file(char* filename, bool attach_core) {
+ast_t* fl_parse_file(char* filename, bool attach_core) {
   FILE* f = fopen(filename, "r");
   if (!f) {
     fprintf(stderr, "file cannot be opened: %s\n", filename);
@@ -121,7 +109,7 @@ fl_ast_t* fl_parse_file(char* filename, bool attach_core) {
   code->length = st_utf8_length(code->value, 0);
   st__zeronull(code->value, result, st_enc_utf8);
 
-  fl_ast_t* r = fl_parse(code, attach_core);
+  ast_t* r = fl_parse(code, attach_core);
 
   return r;
 }

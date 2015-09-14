@@ -1,25 +1,34 @@
 ACLOCAL_AMFLAGS = -I m4
 
-COMPILER_SOURCES = src/tokenizer.c \
-                src/tokens.c \
-                src/typesystem.c \
-                src/parser.c \
-                src/parser-utils.c \
-                src/parser-stack.c \
-                src/parser-block.c \
-                src/parser-literal.c \
-                src/parser-expression.c \
-                src/parser-variable.c \
-                src/parser-function.c \
-                src/parser-type.c \
-                src/parser-comment.c \
-                src/parser-if.c \
-                src/parser-loops.c \
-                src/parser-load.c \
-                src/pass-inference.c \
-                src/codegen.c \
-                src/codegen-type.c \
-                src/ast.c \
+COMPILER_SOURCES = src/tokenizer/tokenizer.c \
+                src/tokenizer/tokens.c \
+                src/tokenizer/tokens-dump.c \
+                src/parser/parser.c \
+                src/parser/parser-dump.c \
+                src/parser/parser-utils.c \
+                src/parser/parser-stack.c \
+                src/parser/parser-block.c \
+                src/parser/parser-literal.c \
+                src/parser/parser-expression.c \
+                src/parser/parser-variable.c \
+                src/parser/parser-function.c \
+                src/parser/parser-types.c \
+                src/parser/parser-comment.c \
+                src/parser/parser-if.c \
+                src/parser/parser-loops.c \
+                src/parser/parser-load.c \
+                src/ast/ast.c \
+                src/ast/ast-alloc.c \
+                src/ast/ast-dump.c \
+                src/ast/ast-traverse.c \
+                src/ast/ast-reverse.c \
+                src/codegen/codegen.c \
+                src/codegen/codegen-export.c \
+                src/codegen/codegen-interpreter.c \
+                src/codegen/types.c \
+                src/typesystem/pass-inference.c \
+                src/typesystem/typesystem.c \
+                src/typesystem/type-dump.c \
                 src/debug.c \
                 ext/array.c
 

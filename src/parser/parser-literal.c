@@ -26,7 +26,7 @@
 #include "flang.h"
 
 PSR_READ_IMPL(literal) {
-  fl_ast_t* ast;
+  ast_t* ast;
 
   // null must be above, because if numeric found null
   // will be parsed as 0
@@ -109,7 +109,7 @@ PSR_READ_IMPL(lit_string_dq) {
 }
 
 PSR_READ_IMPL(lit_string) {
-  fl_ast_t* str_node;
+  ast_t* str_node;
 
   str_node = PSR_READ(lit_string_sq);
   if (str_node) {

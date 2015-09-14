@@ -25,4 +25,20 @@
 
 #include "flang.h"
 
-int log_debug_level = 4;
+PSR_READ_IMPL(pp_load) {
+  if (PSR_ACCEPT_TOKEN(FL_TK_LOAD)) {
+    PSR_SKIPWS();
+
+    PSR_READ_OR_DIE(file_lit, lit_string, {}, "expected literal (filename)");
+
+    log_debug("load %s", file_lit->string.value->value);
+
+    ast_t* ret = fl_parse_file(file_lit->string.value->value, false);
+    // TODO we should save filename somewhere!
+    ast_delete(file_lit);
+
+    return ret;
+  }
+
+  return 0;
+}

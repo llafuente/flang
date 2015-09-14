@@ -53,36 +53,36 @@
 #define TEST_PARSER_OK(name, code, code_block)                                 \
   {                                                                            \
     fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
-    fl_ast_t* root = fl_parse_utf8(code);                                      \
+    ast_t* root = fl_parse_utf8(code);                                         \
     CHK_BODY(root);                                                            \
-    fl_ast_t** body = root->program.body->block.body;                          \
+    ast_t** body = root->program.body->block.body;                             \
     code_block;                                                                \
     ts_exit();                                                                 \
-    fl_ast_delete(root);                                                       \
+    ast_delete(root);                                                          \
   }
 
 #define TEST_PARSER_ERROR(name, code, msg, code_block)                         \
   {                                                                            \
     fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
-    fl_ast_t* root = fl_parse_utf8(code);                                      \
+    ast_t* root = fl_parse_utf8(code);                                         \
     ASSERT(root != 0, "root is not null");                                     \
     ASSERT(root->type == FL_AST_PROGRAM, "root is a program");                 \
-    fl_ast_t* err = root->program.body;                                        \
+    ast_t* err = root->program.body;                                           \
     ASSERT(err->type == FL_AST_ERROR, "body is an error");                     \
     ASSERT(strcmp(err->err.str, msg) == 0, "error message match");             \
     code_block;                                                                \
     ts_exit();                                                                 \
-    fl_ast_delete(root);                                                       \
+    ast_delete(root);                                                          \
   }
 
 #define TEST_CODEGEN_OK(name, code, code_block)                                \
   {                                                                            \
     fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
-    fl_ast_t* root = fl_parse_utf8(code);                                      \
+    ast_t* root = fl_parse_utf8(code);                                         \
     CHK_BODY(root);                                                            \
-    fl_ast_t** body = root->program.body->block.body;                          \
+    ast_t** body = root->program.body->block.body;                             \
     LLVMModuleRef module = fl_codegen(root, "test");                           \
     code_block;                                                                \
     ts_exit();                                                                 \
-    fl_ast_delete(root);                                                       \
+    ast_delete(root);                                                          \
   }

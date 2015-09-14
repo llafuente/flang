@@ -37,7 +37,7 @@ PSR_READ_IMPL(stmt_for) {
   PSR_ACCEPT_TOKEN(FL_TK_FOR);
   PSR_SKIPWS();
 
-  PSR_READ_OR_DIE(init, expression, { fl_ast_delete(stmt); },
+  PSR_READ_OR_DIE(init, expression, { ast_delete(stmt); },
                   "expected initialization expression");
 
   stmt->loop.init = init;
@@ -46,7 +46,7 @@ PSR_READ_IMPL(stmt_for) {
   PSR_EXPECT_TOKEN(FL_TK_SEMICOLON, stmt, {}, "expected semicolon");
   PSR_SKIPWS();
 
-  PSR_READ_OR_DIE(pre_cond, expression, { fl_ast_delete(stmt); },
+  PSR_READ_OR_DIE(pre_cond, expression, { ast_delete(stmt); },
                   "expected condition expression");
 
   stmt->loop.pre_cond = pre_cond;
@@ -55,14 +55,14 @@ PSR_READ_IMPL(stmt_for) {
   PSR_EXPECT_TOKEN(FL_TK_SEMICOLON, stmt, {}, "expected semicolon");
   PSR_SKIPWS();
 
-  PSR_READ_OR_DIE(update, expression, { fl_ast_delete(stmt); },
+  PSR_READ_OR_DIE(update, expression, { ast_delete(stmt); },
                   "expected update expression");
 
   stmt->loop.update = update;
 
   PSR_SKIPWS();
 
-  PSR_READ_OR_DIE(block, block, { fl_ast_delete(stmt); },
+  PSR_READ_OR_DIE(block, block, { ast_delete(stmt); },
                   "expected block of code");
 
   stmt->loop.block = block;
@@ -82,12 +82,12 @@ PSR_READ_IMPL(stmt_while) {
   PSR_ACCEPT_TOKEN(FL_TK_WHILE);
   PSR_SKIPWS();
 
-  PSR_READ_OR_DIE(pre_cond, expression, { fl_ast_delete(stmt); },
+  PSR_READ_OR_DIE(pre_cond, expression, { ast_delete(stmt); },
                   "expected condition expression");
 
   stmt->loop.pre_cond = pre_cond;
 
-  PSR_READ_OR_DIE(block, block, { fl_ast_delete(stmt); },
+  PSR_READ_OR_DIE(block, block, { ast_delete(stmt); },
                   "expected block of code");
 
   stmt->loop.block = block;
@@ -107,7 +107,7 @@ PSR_READ_IMPL(stmt_dowhile) {
   PSR_ACCEPT_TOKEN(FL_TK_DO);
   PSR_SKIPWS();
 
-  PSR_READ_OR_DIE(block, block, { fl_ast_delete(stmt); },
+  PSR_READ_OR_DIE(block, block, { ast_delete(stmt); },
                   "expected block of code");
 
   stmt->loop.block = block;
@@ -116,7 +116,7 @@ PSR_READ_IMPL(stmt_dowhile) {
   PSR_EXPECT_TOKEN(FL_TK_WHILE, stmt, {}, "expected 'while'");
   PSR_SKIPWS();
 
-  PSR_READ_OR_DIE(post_cond, expression, { fl_ast_delete(stmt); },
+  PSR_READ_OR_DIE(post_cond, expression, { ast_delete(stmt); },
                   "expected condition expression");
 
   stmt->loop.post_cond = post_cond;

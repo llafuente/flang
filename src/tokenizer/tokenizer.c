@@ -25,15 +25,15 @@
 
 #include "flang.h"
 
-fl_tokens_cfg_t* fl_get_token(char* itr, size_t len) {
+tk_token_cfg_t* tk_get_token(char* itr, size_t len) {
   size_t tidx = 0;
   size_t tk_size;
 
-  while (tidx < fl_token_list_count) {
-    tk_size = fl_token_list[tidx].text_s;
+  while (tidx < tk_token_list_s) {
+    tk_size = tk_token_list[tidx].text_s;
 
-    if (tk_size < len && memcmp(fl_token_list[tidx].text, itr, tk_size) == 0) {
-      return &fl_token_list[tidx];
+    if (tk_size < len && memcmp(tk_token_list[tidx].text, itr, tk_size) == 0) {
+      return &tk_token_list[tidx];
     }
     ++tidx;
   }
@@ -41,7 +41,7 @@ fl_tokens_cfg_t* fl_get_token(char* itr, size_t len) {
   return 0;
 }
 
-size_t fl_get_escape_count(char* itr, char* start) {
+size_t tk_get_escape_count(char* itr, char* start) {
   size_t count = 0;
 
   --itr;
@@ -53,7 +53,7 @@ size_t fl_get_escape_count(char* itr, char* start) {
   return count;
 }
 
-void fl_tokenize_push(fl_token_list_t* tokens, fl_tokens_t type, char* p,
+void tk_push(tk_token_list_t* tokens, tk_tokens_t type, char* p,
                       size_t p_s, size_t ltoken_line, size_t ltoken_column,
                       size_t line, size_t column) {
   size_t tokens_s = tokens->size;
@@ -67,12 +67,12 @@ void fl_tokenize_push(fl_token_list_t* tokens, fl_tokens_t type, char* p,
   tokens->tokens[tokens_s].end.column = column;
   ++tokens->size;
 
-  log_silly("[%zu:%zu] fl_tokenize_push(%s)", line, column,
+  log_silly("[%zu:%zu] tk_push(%s)", line, column,
             tokens->tokens[tokens_s].string->value);
 }
 
-void fl_tokenize_flush(fl_token_list_t* tokens, fl_tokens_t type,
-                       fl_tk_state_t* lstate, fl_tk_state_t* state) {
+void tk_flush(tk_token_list_t* tokens, tk_tokens_t type,
+                       tk_state_t* lstate, tk_state_t* state) {
   size_t tokens_s = tokens->size;
 
   tokens->tokens[tokens_s].type = type;
@@ -85,17 +85,17 @@ void fl_tokenize_flush(fl_token_list_t* tokens, fl_tokens_t type,
   tokens->tokens[tokens_s].end.column = state->column;
   ++tokens->size;
 
-  log_silly("[%zu:%zu] fl_tokenize_flush(%s)", lstate->line, lstate->column,
+  log_silly("[%zu:%zu] tk_flush(%s)", lstate->line, lstate->column,
             tokens->tokens[tokens_s].string->value);
 
-  fl_tokenize_cp_state(state, lstate);
+  tk_cp_state(state, lstate);
 }
 
-void fl_token_process(fl_token_list_t* tokens, fl_tokens_cfg_t* tk,
-                      fl_tk_state_t* state, fl_tk_state_t* lstate) {
+void tk_token_process(tk_token_list_t* tokens, tk_token_cfg_t* tk,
+                      tk_state_t* state, tk_state_t* lstate) {
   size_t size = (state->itr - lstate->itr);
   if (size) {
-    fl_tokenize_flush(tokens, FL_TK_UNKOWN, lstate, state);
+    tk_flush(tokens, FL_TK_UNKOWN, lstate, state);
   }
 
   if (tk->type == FL_TK_NEWLINE) {
@@ -107,37 +107,24 @@ void fl_token_process(fl_token_list_t* tokens, fl_tokens_cfg_t* tk,
 
   // add a fake new line at the end, will help the parser
   if (tk->type == FL_TK_EOF) {
-    fl_tokenize_push(tokens, FL_TK_NEWLINE, lstate->itr, tk->text_s,
+    tk_push(tokens, FL_TK_NEWLINE, lstate->itr, tk->text_s,
                      lstate->line, lstate->column, state->line, state->column);
   }
 
   state->itr += tk->text_s;
-  fl_tokenize_flush(tokens, tk->type, lstate, state);
+  tk_flush(tokens, tk->type, lstate, state);
 }
 
-void fl_tokenize_cp_state(fl_tk_state_t* src, fl_tk_state_t* dst) {
+void tk_cp_state(tk_state_t* src, tk_state_t* dst) {
   dst->itr = src->itr;
   dst->line = src->line;
   dst->column = src->column;
 }
 
-void fl_tokens_debug(fl_token_list_t* tokens) {
-  if (log_debug_level >= 4) {
-    size_t i = 0;
-    for (; i < tokens->size; ++i) {
-      fl_token_t* token = &tokens->tokens[i];
-      // print debug tokens
-      fprintf(stderr, "%6zu|%3d[%3zu:%3zu - %3zu:%3zu] %s\n", i, token->type,
-              token->start.line, token->start.column, token->end.line,
-              token->end.column, token->string->value);
-    }
-  }
-}
-
-fl_token_list_t* fl_tokenize(string* file) {
+tk_token_list_t* fl_tokenize(string* file) {
   // TODO resize!
-  fl_token_list_t* tokens = (fl_token_list_t*)malloc(sizeof(fl_token_list_t) +
-                                                     sizeof(fl_token_t) * 750);
+  tk_token_list_t* tokens = (tk_token_list_t*)malloc(sizeof(tk_token_list_t) +
+                                                     sizeof(tk_token_t) * 750);
 
   tokens->size = 0;
 
@@ -145,18 +132,18 @@ fl_token_list_t* fl_tokenize(string* file) {
   char* tend;
   st_enc_t enc = file->encoding;
   st_len_t jump;
-  fl_tokens_cfg_t* tk = 0;
+  tk_token_cfg_t* tk = 0;
 
   size_t tokens_size = 0;
   size_t zone = 0;
 
-  fl_tk_state_t state;
+  tk_state_t state;
   state.line = 1;
   state.column = 1;
   state.itr = start;
   state.end = start + file->used + 1; // include zeronull
 
-  fl_tk_state_t lstate;
+  tk_state_t lstate;
   lstate.line = 1;
   lstate.column = 1;
   lstate.itr = start;
@@ -172,20 +159,20 @@ fl_token_list_t* fl_tokenize(string* file) {
     if (!last_space && *(state.itr) == ' ') {
       log_silly("[%zu:%zu] space start", state.line, state.column);
       if (state.itr != lstate.itr) {
-        fl_tokenize_flush(tokens, FL_TK_UNKOWN, &lstate, &state);
+        tk_flush(tokens, FL_TK_UNKOWN, &lstate, &state);
       }
 
       last_space = state.itr;
     }
     if (last_space && *(state.itr) != ' ') {
       log_silly("[%zu:%zu] space end", state.line, state.column);
-      fl_tokenize_flush(tokens, FL_TK_WHITESPACE, &lstate, &state);
+      tk_flush(tokens, FL_TK_WHITESPACE, &lstate, &state);
       last_space = 0;
     }
 
     // TODO optimize, split tokens + strings
     size_t diff = state.end - state.itr;
-    tk = fl_get_token(state.itr, diff + 1);
+    tk = tk_get_token(state.itr, diff + 1);
     // check next char, allow 'for*'
     if (tk && !tk->is_punctuation) {
       if (diff > tk->text_s &&
@@ -206,7 +193,7 @@ fl_token_list_t* fl_tokenize(string* file) {
     }
 
     if (tk) {
-      fl_token_process(tokens, tk, &state, &lstate);
+      tk_token_process(tokens, tk, &state, &lstate);
 
       // continue until close_text
       if (tk->close_text) {
@@ -214,8 +201,8 @@ fl_token_list_t* fl_tokenize(string* file) {
         while (state.itr < tend) {
           if (memcmp(tk->close_text, state.itr, tk->close_text_s) == 0) {
             if (tk->escapable) {
-              if (fl_get_escape_count(state.itr, start) % 2 == 0) {
-                fl_token_process(tokens, tk, &state, &lstate);
+              if (tk_get_escape_count(state.itr, start) % 2 == 0) {
+                tk_token_process(tokens, tk, &state, &lstate);
                 break;
               }
             } else {
@@ -232,14 +219,14 @@ fl_token_list_t* fl_tokenize(string* file) {
     }
   }
 
-  fl_tokens_debug(tokens);
+  tk_dump(tokens);
 #ifdef FL_VERBOSE
 #endif
 
   return tokens;
 }
 
-void fl_tokens_delete(fl_token_list_t* tokens) {
+void tk_tokens_delete(tk_token_list_t* tokens) {
   size_t i = 0;
   for (; i < tokens->size; ++i) {
     st_delete(&tokens->tokens[i].string);

@@ -38,7 +38,7 @@ PSR_READ_IMPL(decl_function) {
   }
   PSR_SKIPWS();
 
-  PSR_READ_OR_DIE(id, lit_identifier, { fl_ast_delete(fn_node); },
+  PSR_READ_OR_DIE(id, lit_identifier, { ast_delete(fn_node); },
                   "cannot parse function identifier");
 
   fn_node->func.id = id;
@@ -62,7 +62,7 @@ PSR_READ_IMPL(decl_function) {
         break;
       }
 
-      PSR_READ_OR_DIE(param, parameter, { fl_ast_delete(fn_node); }, 0);
+      PSR_READ_OR_DIE(param, parameter, { ast_delete(fn_node); }, 0);
 
       list->list.elements[list->list.count++] = param;
 
@@ -82,7 +82,7 @@ PSR_READ_IMPL(decl_function) {
   if (PSR_ACCEPT_TOKEN(FL_TK_COLON)) {
     PSR_SKIPWS();
 
-    PSR_READ_OR_DIE(ret_type, type, { fl_ast_delete(fn_node); }, 0);
+    PSR_READ_OR_DIE(ret_type, type, { ast_delete(fn_node); }, 0);
 
     fn_node->func.ret_type = ret_type;
 
@@ -102,7 +102,7 @@ PSR_READ_IMPL(decl_function) {
     PSR_RET_OK(fn_node);
   }
 
-  PSR_READ_OR_DIE(body, block, { fl_ast_delete(fn_node); },
+  PSR_READ_OR_DIE(body, block, { ast_delete(fn_node); },
                   "expected block of code");
 
   fn_node->func.body = body;
@@ -119,10 +119,10 @@ PSR_READ_IMPL(stmt_return) {
 
   PSR_SKIPWS();
 
-  fl_ast_t* argument = PSR_READ(expression);
+  ast_t* argument = PSR_READ(expression);
 
   if (argument->type == FL_AST_ERROR) { // hard error error
-    fl_ast_delete(ast);
+    ast_delete(ast);
     return argument;
   }
 
@@ -134,19 +134,19 @@ PSR_READ_IMPL(stmt_return) {
 PSR_READ_IMPL(parameter_typed) {
   PSR_START(ast, FL_AST_PARAMETER);
 
-  fl_ast_t* type = PSR_READ(type);
+  ast_t* type = PSR_READ(type);
   // soft error
   if (!type) {
     PSR_RET_KO(ast);
   }
   if (type->type == FL_AST_ERROR) {
-    fl_ast_delete(type);
+    ast_delete(type);
     PSR_RET_KO(ast);
   }
 
   PSR_SKIPWS();
 
-  PSR_READ_OR_DIE(id, lit_identifier, { fl_ast_delete(ast); },
+  PSR_READ_OR_DIE(id, lit_identifier, { ast_delete(ast); },
                   "expected identifier");
 
   // set type of the identifier
@@ -176,7 +176,7 @@ PSR_READ_IMPL(parameter_notyped) {
 }
 
 PSR_READ_IMPL(parameter) {
-  fl_ast_t* ast;
+  ast_t* ast;
 
   FL_TRY_READ(parameter_typed);
   FL_TRY_READ(parameter_notyped);

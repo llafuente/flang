@@ -25,4 +25,14 @@
 
 #include "flang.h"
 
-int log_debug_level = 4;
+void psr_state_dump(fl_psrstate_t* state) {
+  printf("[%s] current: %zu | look_ahead_idx: %zu\n",
+         state->token->string->value, state->current, state->look_ahead_idx);
+  /*
+  size_t ;
+  tk_token_t* token;
+  tk_token_t* prev_token;
+  tk_token_t* next_token;
+  size_t ;
+  */
+}

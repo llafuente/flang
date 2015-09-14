@@ -27,8 +27,8 @@
 #include "tasks.h"
 #include "test.h"
 
-void test_parser_type(fl_ast_t* body, size_t typeid) {
-  fl_ast_t* var_type;
+void test_parser_type(ast_t* body, size_t typeid) {
+  ast_t* var_type;
 
   ASSERT(body->type == FL_AST_DTOR_VAR, "first in body: FL_AST_DTOR_VAR");
 
@@ -65,7 +65,7 @@ TASK_IMPL(parser_types) {
     test_parser_type(*body, 12);
 
     // this must be tested inside, test macro clean types
-    fl_type_t ty = fl_type_table[12];
+    ty_t ty = ts_type_table[12];
     ASSERTE(ty.number.fp, true, "%d == %d", "type if fp");
     ASSERTE(ty.number.bits, 64, "%d == %d", "type is 64 bits");
   });

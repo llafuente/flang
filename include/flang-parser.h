@@ -27,19 +27,35 @@
 //- MACROS
 //-
 
+//- types
+
+struct psr_state {
+  size_t current;
+  tk_token_t* token;
+  tk_token_t* prev_token;
+  tk_token_t* next_token;
+  size_t look_ahead_idx;
+};
+
+// TODO resize support
+struct psr_stack {
+  size_t current;
+  fl_psrstate_t states[500];
+};
+
 //- declaration, parameter, calling, arguments...
 
 #define PSR_READ_NAME(name) psr_##name
 
 #define PSR_READ_DECL(name)                                                    \
-  FL_EXTERN fl_ast_t* PSR_READ_NAME(name)(PSR_READ_HEADER)
+  FL_EXTERN ast_t* PSR_READ_NAME(name)(PSR_READ_HEADER)
 
 #define PSR_READ_HEADER                                                        \
-  fl_token_list_t* tokens, fl_psrstack_t* stack, fl_psrstate_t* state
+  tk_token_list_t* tokens, fl_psrstack_t* stack, fl_psrstate_t* state
 
 #define PSR_READ_HEADER_SEND tokens, stack, state
 
-#define PSR_READ_IMPL(name) fl_ast_t* PSR_READ_NAME(name)(PSR_READ_HEADER)
+#define PSR_READ_IMPL(name) ast_t* PSR_READ_NAME(name)(PSR_READ_HEADER)
 
 // printf(#name "\n");
 #define PSR_READ(name) PSR_READ_NAME(name)(tokens, stack, state);
@@ -47,19 +63,19 @@
 //- parser implementation helpers
 
 //- accept
-#define PSR_ACCEPT(string) fl_parser_accept(tokens, state, string)
+#define PSR_ACCEPT(string) psr_accept(tokens, state, string)
 
 #define PSR_TEST_TOKEN(token_type) (state->token->type == token_type)
 
 #define PSR_ACCEPT_TOKEN(token_type)                                           \
-  fl_parser_accept_token(tokens, state, token_type)
+  psr_accept_token(tokens, state, token_type)
 
 //- expect
 
 #define PSR_EXPECT_TOKEN(token_type, target, err_block, err_str)               \
   if (!PSR_ACCEPT_TOKEN(token_type)) {                                         \
     err_block;                                                                 \
-    fl_ast_delete_props(target);                                               \
+    ast_delete_props(target);                                                  \
     PSR_SET_SYNTAX_ERROR(target, err_str);                                     \
     target->token_start = state->token;                                        \
     return target;                                                             \
@@ -67,13 +83,13 @@
 
 //- move
 
-#define PSR_NEXT() fl_parser_next(tokens, state)
-#define PSR_SKIPWS() fl_parser_skipws(tokens, state)
+#define PSR_NEXT() psr_next(tokens, state)
+#define PSR_SKIPWS() psr_skipws(tokens, state)
 
 //- ast
 
 #define PSR_CREATE(target, ast_type)                                           \
-  fl_ast_t* target = (fl_ast_t*)calloc(1, sizeof(fl_ast_t));                   \
+  ast_t* target = (ast_t*)calloc(1, sizeof(ast_t));                            \
   target->type = ast_type;
 
 #define PSR_START(target, ast_type)                                            \
@@ -88,7 +104,7 @@
 #define PSR_START_LIST(target)                                                 \
   PSR_START(target, FL_AST_LIST);                                              \
   target->list.count = 0;                                                      \
-  target->list.elements = calloc(100, sizeof(fl_ast_t*));
+  target->list.elements = calloc(100, sizeof(ast_t*));
 
 #define PSR_END(target)                                                        \
   if (target->type != FL_AST_ERROR) {                                          \
@@ -100,41 +116,41 @@
 
 // read that can raise errors but 'dont throw'
 #define PSR_SOFT_READ(target, name)                                            \
-  fl_parser_look_ahead(stack, state);                                          \
+  psr_look_ahead(stack, state);                                          \
   target = PSR_READ(name);                                                     \
   if (target) {                                                                \
     /*has errors?*/                                                            \
     if (target->type != FL_AST_ERROR) {                                        \
-      fl_parser_commit(stack, state);                                          \
+      psr_commit(stack, state);                                          \
       return target;                                                           \
     }                                                                          \
-    fl_ast_delete(target);                                                     \
+    ast_delete(target);                                                        \
     target = 0;                                                                \
   }                                                                            \
-  fl_parser_rollback(stack, state);
+  psr_rollback(stack, state);
 
 #define PSR_MUST_READ(name, target, block_err, err_ast, err_str)               \
-  fl_parser_look_ahead(stack, state);                                          \
-  fl_ast_t* target = PSR_READ_NAME(name)(tokens, stack, state);                \
+  psr_look_ahead(stack, state);                                          \
+  ast_t* target = PSR_READ_NAME(name)(tokens, stack, state);                   \
   if (!target) {                                                               \
-    fl_parser_rollback(stack, state);                                          \
+    psr_rollback(stack, state);                                          \
     block_err PSR_RET_SYNTAX_ERROR(err_ast, err_str);                          \
   }                                                                            \
   if (target->type != FL_AST_ERROR) {                                          \
-    fl_parser_rollback(stack, state);                                          \
+    psr_rollback(stack, state);                                          \
     block_err return target;                                                   \
   }
 
 // read that can raise errors but 'dont throw'
 #define PSR_RET_READED(target, name)                                           \
-  fl_parser_look_ahead(stack, state);                                          \
+  psr_look_ahead(stack, state);                                          \
   target = PSR_READ(name);                                                     \
   if (target) {                                                                \
     /*has errors?*/                                                            \
-    fl_parser_commit(stack, state);                                            \
+    psr_commit(stack, state);                                            \
     return target;                                                             \
   }                                                                            \
-  fl_parser_rollback(stack, state);
+  psr_rollback(stack, state);
 
 #define PSR_RET_IF_ERROR(target, block)                                        \
   if (target->type == FL_AST_ERROR) {                                          \
@@ -152,7 +168,7 @@
 
 #define PSR_RET_KO(target)                                                     \
   if (target) {                                                                \
-    fl_ast_delete(target);                                                     \
+    ast_delete(target);                                                        \
   }                                                                            \
   return 0;
 
@@ -171,50 +187,50 @@
 // printf("%s %p type %d\n", __FUNCTION__, ast, ast->type);
 // TODO handle errors when done :)
 #define FL_TRY_READ(name)                                                      \
-  fl_parser_look_ahead(stack, state);                                          \
+  psr_look_ahead(stack, state);                                          \
   ast = PSR_READ(name);                                                        \
   if (ast) {                                                                   \
     /*handle errors*/                                                          \
     if (ast->type == FL_AST_ERROR) {                                           \
-      fl_parser_rollback(stack, state);                                        \
+      psr_rollback(stack, state);                                        \
       return ast;                                                              \
     }                                                                          \
-    fl_parser_commit(stack, state);                                            \
+    psr_commit(stack, state);                                            \
     return ast;                                                                \
   }                                                                            \
-  fl_parser_rollback(stack, state);
+  psr_rollback(stack, state);
 
 #define PSR_READ_OR_DIE(target, name, err_block, syntax_err)                   \
-  fl_parser_look_ahead(stack, state);                                          \
-  fl_ast_t* target = PSR_READ(name);                                           \
+  psr_look_ahead(stack, state);                                          \
+  ast_t* target = PSR_READ(name);                                              \
   if (!target) {                                                               \
     if (syntax_err) {                                                          \
       PSR_START(err_node, FL_AST_ERROR);                                       \
-      fl_parser_rollback(stack, state);                                        \
+      psr_rollback(stack, state);                                        \
       err_block;                                                               \
       PSR_RET_SYNTAX_ERROR(err_node, (char*)syntax_err);                       \
     }                                                                          \
-    fl_parser_rollback(stack, state);                                          \
+    psr_rollback(stack, state);                                          \
     err_block;                                                                 \
     return 0;                                                                  \
   } else if (target->type == FL_AST_ERROR) {                                   \
-    fl_parser_rollback(stack, state);                                          \
+    psr_rollback(stack, state);                                          \
     err_block;                                                                 \
     return target;                                                             \
   } else {                                                                     \
-    fl_parser_commit(stack, state);                                            \
+    psr_commit(stack, state);                                            \
   }
 
 // ignore error (target = 0)
 #define PSR_READ_OK(target, name)                                              \
-  fl_parser_look_ahead(stack, state);                                          \
-  fl_ast_t* target = PSR_READ(name);                                           \
+  psr_look_ahead(stack, state);                                          \
+  ast_t* target = PSR_READ(name);                                              \
   if (!target) {                                                               \
-    fl_parser_rollback(stack, state);                                          \
+    psr_rollback(stack, state);                                          \
   } else if (target->type == FL_AST_ERROR) {                                   \
-    fl_parser_rollback(stack, state);                                          \
-    fl_ast_delete(target);                                                     \
+    psr_rollback(stack, state);                                          \
+    ast_delete(target);                                                        \
     target = 0;                                                                \
   } else {                                                                     \
-    fl_parser_commit(stack, state);                                            \
+    psr_commit(stack, state);                                            \
   }

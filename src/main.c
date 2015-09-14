@@ -60,16 +60,16 @@ int main(int argc, const char* argv[]) {
 
   printf("read\n%s\n\ntokenize:\n", file->value);
 
-  fl_token_list_t* tokens = fl_tokenize(file);
+  tk_token_list_t* tokens = fl_tokenize(file);
 
-  fl_ast_t* root = fl_parser(tokens, false);
-  fl_ast_traverse(root, fl_ast_debug_cb, 0, 0, 0);
+  ast_t* root = fl_parser(tokens, false);
+  ast_dump(root);
 
   LLVMModuleRef module = fl_codegen(root, "test");
 
   fl_to_ir(module, argv[2]);
 
-  fl_ast_delete(root);
+  ast_delete(root);
 
   fclose(f);
   st_delete(&file);
