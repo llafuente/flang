@@ -131,7 +131,7 @@ FL_EXTERN tk_token_list_t* fl_tokenize(string* file);
 
 /* cldoc:end-category() */
 
-/* cldoc:begin-category(typesystem.c) */
+/* cldoc:begin-category(typesystem/typesystem.c) */
 
 extern ty_t* ts_type_table;
 extern size_t ts_type_size_s;
@@ -164,6 +164,10 @@ FL_EXTERN size_t ts_var_typeid(ast_t* id);
 FL_EXTERN void ts_init();
 FL_EXTERN void ts_exit();
 
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(typesystem/cast.c) */
+FL_EXTERN bool ts_castable(size_t aty_id, size_t bty_id);
 /* cldoc:end-category() */
 
 typedef ast_t* (*psr_read_t)(PSR_READ_HEADER);
@@ -410,6 +414,6 @@ extern int log_debug_level;
 /* cldoc:end-category() */
 
 
-FL_EXTERN void ty_dump(size_t ty_id, int indent);
+FL_EXTERN void ty_dump(size_t ty_id);
 FL_EXTERN void ty_dump_table();
 FL_EXTERN void ast_dump(ast_t* node);

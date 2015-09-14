@@ -37,12 +37,16 @@ extern int log_debug_level;
 // 3 - debug
 // 4 - verbose
 // 5 - silly
-#define dbg(level, ...)                                                        \
+#define dbg(trace, level, ...)                                                        \
   if (log_debug_level >= level) {                                              \
     char buf[] = __FILE__;                                                     \
+    if (trace)                                              { \
     fprintf(stderr, "%20s:%3d[%s] ", basename(buf), __LINE__, __FUNCTION__);   \
-    fprintf(stderr, __VA_ARGS__);                                              \
+  } \
+    fprintf(stderr, __VA_ARGS__); \
+    if (trace)                                              { \
     fprintf(stderr, "\n");                                                     \
+  } \
     if (level == 0) {                                                          \
       void* array[10];                                                         \
       size_t size;                                                             \
@@ -64,9 +68,16 @@ extern int log_debug_level;
     }                                                                          \
   }
 
-#define log_error(...) dbg(0, __VA_ARGS__)
-#define log_warning(...) dbg(1, __VA_ARGS__)
-#define log_info(...) dbg(2, __VA_ARGS__)
-#define log_debug(...) dbg(3, __VA_ARGS__)
-#define log_verbose(...) dbg(4, __VA_ARGS__)
-#define log_silly(...) dbg(5, __VA_ARGS__)
+#define log_error(...) dbg(true, 0, __VA_ARGS__)
+#define log_warning(...) dbg(true, 1, __VA_ARGS__)
+#define log_info(...) dbg(true, 2, __VA_ARGS__)
+#define log_debug(...) dbg(true, 3, __VA_ARGS__)
+#define log_verbose(...) dbg(true, 4, __VA_ARGS__)
+#define log_silly(...) dbg(true, 5, __VA_ARGS__)
+
+#define log_error2(...) dbg(false, 0, __VA_ARGS__)
+#define log_warning2(...) dbg(false, 1, __VA_ARGS__)
+#define log_info2(...) dbg(false, 2, __VA_ARGS__)
+#define log_debug2(...) dbg(false, 3, __VA_ARGS__)
+#define log_verbose2(...) dbg(false, 4, __VA_ARGS__)
+#define log_silly2(...) dbg(false, 5, __VA_ARGS__)

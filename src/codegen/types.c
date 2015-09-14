@@ -84,7 +84,7 @@ LLVMTypeRef cg_get_typeid(size_t id, LLVMContextRef context) {
                                t->vector.length);
   } break;
   default: {
-    ty_dump(id, 0);
+    ty_dump(id);
     log_error("type not handled yet [%zu]", id);
   }
   }

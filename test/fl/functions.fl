@@ -1,16 +1,18 @@
+/* polymorphism */
 function print(ptr<i8> str) : i32 {
-  return printf("%s", str);
+  return printf("as string = %s\n", str);
 }
 
 function print(i32 num) : i32 {
-  return printf("%d", num);
+  return printf("as i32 %d\n", num);
 }
 
 function print(f32 f) : i32 {
-  return printf("%f", f);
+  return printf("as f32 %f\n", f);
 }
 
 
 print(10);
+/* TODO fix value! */
 print(10.5);
 print("nuse!");

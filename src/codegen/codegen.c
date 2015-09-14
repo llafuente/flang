@@ -745,7 +745,7 @@ LLVMValueRef cg_left_member(FL_CODEGEN_HEADER) {
   log_verbose("***********************");
   ast_dump(node);
   log_verbose("left is %zu", node->member.left->ty_id);
-  ty_dump(node->member.left->ty_id, 0);
+  ty_dump(node->member.left->ty_id);
 
   switch (type->of) {
   case FL_STRUCT: {

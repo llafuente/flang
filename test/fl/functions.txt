@@ -1,0 +1,3 @@
+as i32 10
+as f32 0.000000
+as string = nuse!

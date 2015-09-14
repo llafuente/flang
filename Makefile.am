@@ -29,6 +29,7 @@ COMPILER_SOURCES = src/tokenizer/tokenizer.c \
                 src/typesystem/pass-inference.c \
                 src/typesystem/typesystem.c \
                 src/typesystem/type-dump.c \
+                src/typesystem/type-cast.c \
                 src/debug.c \
                 ext/array.c
 

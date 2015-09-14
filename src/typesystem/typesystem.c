@@ -479,17 +479,17 @@ size_t ts_struct_property_type(size_t id, string* property) {
 
 void ts_named_set(string* id, ast_t* decl, size_t type_id) {
   ts_typeh_t* t = ts_named_type(id);
+
   if (!t) {
     t = (ts_typeh_t*)calloc(1, sizeof(ts_typeh_t));
     array_new(&t->list);
 
     strncpy(t->name, id->value, 64);
+
+    HASH_ADD_STR(ts_hashtable, name, t);
   }
 
   array_append(&t->list, decl);
-  //! t->list[t->length].id = type_id;
-
-  HASH_ADD_STR(ts_hashtable, name, t);
 }
 
 // transfer list ownership
@@ -631,8 +631,8 @@ size_t ts_fn_typeid(ast_t* id) {
 }
 
 // TODO handle args
-ast_t* ts_find_fn_decl(string* id, ast_t* args) {
-  array* arr = ast_find_fn_decls(args->parent, id);
+ast_t* ts_find_fn_decl(string* id, ast_t* args_call) {
+  array* arr = ast_find_fn_decls(args_call->parent, id);
   log_verbose("declarations with same name = %d\n", arr->size);
 
   if (arr->size == 1) {
@@ -641,9 +641,49 @@ ast_t* ts_find_fn_decl(string* id, ast_t* args) {
     free(arr);
     return ret;
   }
+
+  ast_t* decl;
+  ast_t* params;
+  ast_t* param;
+  ast_t* ret_decl = 0;
+
+  ast_t* arg_call;
+
+  size_t i, j;
+  size_t imax = args_call->list.count;
+  size_t jmax = arr->size;
+
+
+  for (j = 0; j < jmax; ++j) {
+    decl = array_get(arr, j);
+    params = decl->func.params;
+    ast_dump(decl);
+    // get types from arguments first
+
+    for (i = 0; i < imax; ++i) {
+      arg_call = args_call->list.elements[i];
+      param = params->list.elements[i];
+      ast_dump(arg_call);
+
+      if (!arg_call->ty_id) {
+        log_error("cannot find type of argument %zu", i);
+      }
+
+      if (!ts_castable(arg_call->ty_id, param->ty_id)) {
+        break;
+      }
+      if (i == imax - 1) {
+        // we reach the end all is ok!
+        // this is compatible!
+        ret_decl = decl;
+      }
+    }
+  }
+
   array_delete(arr);
   free(arr);
-  return 0;
+
+  return ret_decl;
 }
 
 // TODO global vars!
