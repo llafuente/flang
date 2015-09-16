@@ -39,8 +39,8 @@ PSR_READ_IMPL(block) {
 
   PSR_RET_IF_ERROR(block, { psr_rollback(stack, state); });
 
-  PSR_EXPECT_TOKEN(FL_TK_RCBRACKET, block,
-                   { psr_rollback(stack, state); }, "expected '}'");
+  PSR_EXPECT_TOKEN(FL_TK_RCBRACKET, block, { psr_rollback(stack, state); },
+                   "expected '}'");
 
   PSR_SKIPWS();
 
@@ -87,8 +87,6 @@ void PSR_READ_NAME(block_body)(PSR_READ_HEADER, ast_t** extend) {
         psr_rollback(stack, state);
         continue;
       }
-
-      ast_dump(stmt);
 
       // hard error
       if (stmt->type == FL_AST_ERROR) {

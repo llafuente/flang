@@ -37,16 +37,16 @@ extern int log_debug_level;
 // 3 - debug
 // 4 - verbose
 // 5 - silly
-#define dbg(trace, level, ...)                                                        \
+#define dbg(trace, level, ...)                                                 \
   if (log_debug_level >= level) {                                              \
     char buf[] = __FILE__;                                                     \
-    if (trace)                                              { \
-    fprintf(stderr, "%20s:%3d[%s] ", basename(buf), __LINE__, __FUNCTION__);   \
-  } \
-    fprintf(stderr, __VA_ARGS__); \
-    if (trace)                                              { \
-    fprintf(stderr, "\n");                                                     \
-  } \
+    if (trace) {                                                               \
+      fprintf(stderr, "%20s:%3d[%s] ", basename(buf), __LINE__, __FUNCTION__); \
+    }                                                                          \
+    fprintf(stderr, __VA_ARGS__);                                              \
+    if (trace) {                                                               \
+      fprintf(stderr, "\n");                                                   \
+    }                                                                          \
     if (level == 0) {                                                          \
       void* array[10];                                                         \
       size_t size;                                                             \

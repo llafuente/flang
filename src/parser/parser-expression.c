@@ -217,8 +217,6 @@ PSR_READ_IMPL(expr_member) {
     }
   } while (PSR_TEST_TOKEN(FL_TK_DOT) || PSR_TEST_TOKEN(FL_TK_LBRACKET));
 
-  ast_dump(last);
-
   PSR_RET_OK(last);
 }
 

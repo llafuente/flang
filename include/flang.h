@@ -193,18 +193,15 @@ FL_EXTERN bool psr_prev(tk_token_list_t* tokens, fl_psrstate_t* state);
 FL_EXTERN bool psr_eof(tk_token_list_t* tokens, fl_psrstate_t* state);
 
 FL_EXTERN bool psr_accept(tk_token_list_t* tokens, fl_psrstate_t* state,
-                                char* text);
-FL_EXTERN bool psr_accept_list(tk_token_list_t* tokens,
-                                     fl_psrstate_t* state, char* text[],
-                                     size_t text_count);
+                          char* text);
+FL_EXTERN bool psr_accept_list(tk_token_list_t* tokens, fl_psrstate_t* state,
+                               char* text[], size_t text_count);
 
-FL_EXTERN bool psr_accept_token(tk_token_list_t* tokens,
-                                      fl_psrstate_t* state,
-                                      tk_tokens_t token_type);
+FL_EXTERN bool psr_accept_token(tk_token_list_t* tokens, fl_psrstate_t* state,
+                                tk_tokens_t token_type);
 FL_EXTERN bool psr_accept_token_list(tk_token_list_t* tokens,
-                                           fl_psrstate_t* state,
-                                           tk_tokens_t token_type[],
-                                           size_t tk_count);
+                                     fl_psrstate_t* state,
+                                     tk_tokens_t token_type[], size_t tk_count);
 FL_EXTERN ast_t* psr_read_list(psr_read_t* arr, size_t length, PSR_READ_HEADER);
 /* cldoc:end-category() */
 
@@ -322,11 +319,11 @@ PSR_READ_DECL(comment);
 
 /* cldoc:begin-category(ast/ast.c) */
 
-typedef bool (*fl_ast_cb_t)(ast_t* node, ast_t* parent, size_t level,
-                            void* userdata);
-
-typedef bool (*fl_ast_ret_cb_t)(ast_t* node, ast_t* parent, size_t level,
-                                void* userdata, void** ret);
+/**
+ * @returns if the iteration must stop
+ */
+typedef bool (*ast_cb_t)(ast_t* node, ast_t* parent, size_t level,
+                         void* userdata_in, void* userdata_out);
 
 FL_EXTERN void ast_parent(ast_t* root);
 
@@ -345,13 +342,14 @@ FL_EXTERN array* ast_find_fn_decls(ast_t* node, string* id);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(ast/traverse.c) */
-FL_EXTERN void ast_traverse(ast_t* ast, fl_ast_cb_t cb, ast_t* parent,
-                            size_t level, void* userdata);
+FL_EXTERN void ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
+                            size_t level, void* userdata_in,
+                            void* userdata_out);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(ast/reverse.c) */
-FL_EXTERN void* ast_reverse(ast_t* ast, fl_ast_ret_cb_t cb, ast_t* parent,
-                            size_t level, void* userdata);
+FL_EXTERN void ast_reverse(ast_t* ast, ast_cb_t cb, ast_t* parent, size_t level,
+                           void* userdata_in, void* userdata_out);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(ast/alloc.c) */
@@ -403,9 +401,9 @@ FL_EXTERN LLVMValueRef cg_lhs(FL_CODEGEN_HEADER);
 /* cldoc:begin-category(codegen-type.c) */
 FL_EXTERN LLVMTypeRef cg_get_type(ast_t* node, LLVMContextRef context);
 FL_EXTERN LLVMTypeRef cg_get_typeid(size_t id, LLVMContextRef context);
-FL_EXTERN LLVMValueRef
-cg_cast_op(LLVMBuilderRef builder, size_t current, size_t expected,
-                   LLVMValueRef value, LLVMContextRef context);
+FL_EXTERN LLVMValueRef cg_cast_op(LLVMBuilderRef builder, size_t current,
+                                  size_t expected, LLVMValueRef value,
+                                  LLVMContextRef context);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(debug.c) */
@@ -413,7 +411,7 @@ cg_cast_op(LLVMBuilderRef builder, size_t current, size_t expected,
 extern int log_debug_level;
 /* cldoc:end-category() */
 
-
 FL_EXTERN void ty_dump(size_t ty_id);
 FL_EXTERN void ty_dump_table();
 FL_EXTERN void ast_dump(ast_t* node);
+FL_EXTERN void ast_dump_one(ast_t* node);

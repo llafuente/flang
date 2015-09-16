@@ -38,12 +38,11 @@ bool ts_castable(size_t aty_id, size_t bty_id) {
     case FL_NUMBER:
       // a is bigger & both floating/number
       if (atype.number.bits >= btype.number.bits &&
-        btype.number.fp == atype.number.fp) {
+          btype.number.fp == atype.number.fp) {
         return true; // both numbers
       }
       break;
-    default: {
-    }
+    default: {}
     }
   }
 

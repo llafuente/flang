@@ -32,9 +32,9 @@ struct id_search {
 typedef struct id_search id_search_t;
 
 bool fl_ast_find_identifier(ast_t* node, ast_t* parent, size_t level,
-                            void* userdata) {
+                            void* userdata_in, void* userdata_out) {
   if (node->type == FL_AST_LIT_IDENTIFIER) {
-    id_search_t* data = (id_search_t*)userdata;
+    id_search_t* data = (id_search_t*)userdata_in;
     string* str = data->needle;
     if (st_cmp(str, node->identifier.string) == 0) {
       data->list[data->length++] = node;
@@ -43,7 +43,8 @@ bool fl_ast_find_identifier(ast_t* node, ast_t* parent, size_t level,
   return true;
 }
 
-bool dtors_var_infer(ast_t* node, ast_t* parent, size_t level, void* userdata) {
+bool dtors_var_infer(ast_t* node, ast_t* parent, size_t level,
+                     void* userdata_in, void* userdata_out) {
   if (node->type == FL_AST_DTOR_VAR) {
     if (node->var.type->ty_id == 0) {
       // search all ocurrences of this identifier
@@ -52,7 +53,7 @@ bool dtors_var_infer(ast_t* node, ast_t* parent, size_t level, void* userdata) {
       data.needle = node->var.id->identifier.string;
       data.length = 0;
 
-      ast_traverse(node->parent, fl_ast_find_identifier, 0, 0, (void*)&data);
+      ast_traverse(node->parent, fl_ast_find_identifier, 0, 0, (void*)&data, 0);
 
       if (data.length) {
         // TODO REVIEW
@@ -91,6 +92,6 @@ ast_t* ts_pass_inference(ast_t* node) {
   // var x = [10]; <- array<double>
 
   // var i64 x = 10; <- cast 10 to i64
-  ast_traverse(node, dtors_var_infer, 0, 0, 0);
+  ast_traverse(node, dtors_var_infer, 0, 0, 0, 0);
   return 0;
 }

@@ -25,23 +25,19 @@
 
 #include "flang.h"
 
-bool ast_dump_cb(ast_t* node, ast_t* parent, size_t level, void* userdata) {
-  if (!node) {
-    log_warning("ast_dump: null\n");
-    return true;
+void ast_dump_one(ast_t* node) {
+  if (log_debug_level < 2) {
+    return;
   }
-  level = level * 2;
-
-  // indent
-  printf("%*s• \x1B[32m", (int)level, " ");
 
   switch (node->type) {
   case FL_AST_PROGRAM:
-    printf("program [core=@%p]\n", node->program.core);
-    printf("%s\n", node->program.code->value);
+    printf("program [core=@%p]", node->program.core);
+    // too much??
+    // printf("\n%s\n", node->program.code->value);
     break;
   case FL_AST_MODULE:
-    printf("module [path=@%s]\n", node->program.path->value);
+    printf("module [path='%s']", node->program.path->value);
     break;
   case FL_AST_BLOCK:
     printf("block");
@@ -121,20 +117,36 @@ bool ast_dump_cb(ast_t* node, ast_t* parent, size_t level, void* userdata) {
     break;
   default: {}
   }
+}
 
-  if (node->token_start && node->token_end) {
-    printf("\x1B[36m(%d)[@%p][%3zu:%3zu - %3zu:%3zu]\x1B[39m\n", node->type,
-           node, node->token_start->start.column, node->token_start->start.line,
-           node->token_end->end.column, node->token_end->end.line);
-  } else {
-    printf("\x1B[36m(%d)[@%p]\x1B[39m\n", node->type, node);
+bool ast_dump_cb(ast_t* node, ast_t* parent, size_t level, void* userdata_in,
+                 void* userdata_out) {
+  if (!node) {
+    log_warning("ast_dump: null\n");
+    return true;
   }
+  level = level * 2;
 
+  // indent
+  printf("%*s• \x1B[32m", (int)level, " ");
+
+  ast_dump_one(node);
+  printf("\x1B[39m\n");
+  /*
+    if (node->token_start && node->token_end) {
+      printf("\x1B[36m(%d)[@%p][%3zu:%3zu - %3zu:%3zu]\x1B[39m\n", node->type,
+             node, node->token_start->start.column,
+    node->token_start->start.line,
+             node->token_end->end.column, node->token_end->end.line);
+    } else {
+      printf("\x1B[36m(%d)[@%p]\x1B[39m\n", node->type, node);
+    }
+  */
   return true;
 }
 
 void ast_dump(ast_t* node) {
-  if (log_debug_level >= 4) {
-    ast_traverse(node, ast_dump_cb, 0, 0, 0);
+  if (log_debug_level > 2) {
+    ast_traverse(node, ast_dump_cb, 0, 0, 0, 0);
   }
 }

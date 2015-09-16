@@ -47,7 +47,8 @@ void ty_dump(size_t ty_id) {
     log_debug2(">");
     break;
   case FL_STRUCT: {
-    log_debug2("struct %s {", ty.structure.decl->structure.id->identifier.string->value);
+    log_debug2("struct %s {",
+               ty.structure.decl->structure.id->identifier.string->value);
     size_t i;
     for (i = 0; i < ty.structure.nfields; ++i) {
       ty_dump(ty.structure.fields[i]);
@@ -56,8 +57,7 @@ void ty_dump(size_t ty_id) {
     log_debug2("}");
   } break;
   case FL_FUNCTION: {
-    log_debug2("fn %s(",
-              ty.id ? ty.id->value : "Anonymous");
+    log_debug2("fn %s(", ty.id ? ty.id->value : "Anonymous");
     size_t i;
     for (i = 0; i < ty.func.nparams; ++i) {
       ty_dump(ty.func.params[i]);

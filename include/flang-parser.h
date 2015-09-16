@@ -67,8 +67,7 @@ struct psr_stack {
 
 #define PSR_TEST_TOKEN(token_type) (state->token->type == token_type)
 
-#define PSR_ACCEPT_TOKEN(token_type)                                           \
-  psr_accept_token(tokens, state, token_type)
+#define PSR_ACCEPT_TOKEN(token_type) psr_accept_token(tokens, state, token_type)
 
 //- expect
 
@@ -116,12 +115,12 @@ struct psr_stack {
 
 // read that can raise errors but 'dont throw'
 #define PSR_SOFT_READ(target, name)                                            \
-  psr_look_ahead(stack, state);                                          \
+  psr_look_ahead(stack, state);                                                \
   target = PSR_READ(name);                                                     \
   if (target) {                                                                \
     /*has errors?*/                                                            \
     if (target->type != FL_AST_ERROR) {                                        \
-      psr_commit(stack, state);                                          \
+      psr_commit(stack, state);                                                \
       return target;                                                           \
     }                                                                          \
     ast_delete(target);                                                        \
@@ -130,24 +129,24 @@ struct psr_stack {
   psr_rollback(stack, state);
 
 #define PSR_MUST_READ(name, target, block_err, err_ast, err_str)               \
-  psr_look_ahead(stack, state);                                          \
+  psr_look_ahead(stack, state);                                                \
   ast_t* target = PSR_READ_NAME(name)(tokens, stack, state);                   \
   if (!target) {                                                               \
-    psr_rollback(stack, state);                                          \
+    psr_rollback(stack, state);                                                \
     block_err PSR_RET_SYNTAX_ERROR(err_ast, err_str);                          \
   }                                                                            \
   if (target->type != FL_AST_ERROR) {                                          \
-    psr_rollback(stack, state);                                          \
+    psr_rollback(stack, state);                                                \
     block_err return target;                                                   \
   }
 
 // read that can raise errors but 'dont throw'
 #define PSR_RET_READED(target, name)                                           \
-  psr_look_ahead(stack, state);                                          \
+  psr_look_ahead(stack, state);                                                \
   target = PSR_READ(name);                                                     \
   if (target) {                                                                \
     /*has errors?*/                                                            \
-    psr_commit(stack, state);                                            \
+    psr_commit(stack, state);                                                  \
     return target;                                                             \
   }                                                                            \
   psr_rollback(stack, state);
@@ -187,50 +186,50 @@ struct psr_stack {
 // printf("%s %p type %d\n", __FUNCTION__, ast, ast->type);
 // TODO handle errors when done :)
 #define FL_TRY_READ(name)                                                      \
-  psr_look_ahead(stack, state);                                          \
+  psr_look_ahead(stack, state);                                                \
   ast = PSR_READ(name);                                                        \
   if (ast) {                                                                   \
     /*handle errors*/                                                          \
     if (ast->type == FL_AST_ERROR) {                                           \
-      psr_rollback(stack, state);                                        \
+      psr_rollback(stack, state);                                              \
       return ast;                                                              \
     }                                                                          \
-    psr_commit(stack, state);                                            \
+    psr_commit(stack, state);                                                  \
     return ast;                                                                \
   }                                                                            \
   psr_rollback(stack, state);
 
 #define PSR_READ_OR_DIE(target, name, err_block, syntax_err)                   \
-  psr_look_ahead(stack, state);                                          \
+  psr_look_ahead(stack, state);                                                \
   ast_t* target = PSR_READ(name);                                              \
   if (!target) {                                                               \
     if (syntax_err) {                                                          \
       PSR_START(err_node, FL_AST_ERROR);                                       \
-      psr_rollback(stack, state);                                        \
+      psr_rollback(stack, state);                                              \
       err_block;                                                               \
       PSR_RET_SYNTAX_ERROR(err_node, (char*)syntax_err);                       \
     }                                                                          \
-    psr_rollback(stack, state);                                          \
+    psr_rollback(stack, state);                                                \
     err_block;                                                                 \
     return 0;                                                                  \
   } else if (target->type == FL_AST_ERROR) {                                   \
-    psr_rollback(stack, state);                                          \
+    psr_rollback(stack, state);                                                \
     err_block;                                                                 \
     return target;                                                             \
   } else {                                                                     \
-    psr_commit(stack, state);                                            \
+    psr_commit(stack, state);                                                  \
   }
 
 // ignore error (target = 0)
 #define PSR_READ_OK(target, name)                                              \
-  psr_look_ahead(stack, state);                                          \
+  psr_look_ahead(stack, state);                                                \
   ast_t* target = PSR_READ(name);                                              \
   if (!target) {                                                               \
-    psr_rollback(stack, state);                                          \
+    psr_rollback(stack, state);                                                \
   } else if (target->type == FL_AST_ERROR) {                                   \
-    psr_rollback(stack, state);                                          \
+    psr_rollback(stack, state);                                                \
     ast_delete(target);                                                        \
     target = 0;                                                                \
   } else {                                                                     \
-    psr_commit(stack, state);                                            \
+    psr_commit(stack, state);                                                  \
   }

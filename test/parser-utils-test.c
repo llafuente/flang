@@ -96,8 +96,7 @@ TASK_IMPL(parser_utils) {
   psr_commit(&stack, &state);
   ASSERT(state.current == 3, "4th token id");
 
-  ASSERT(psr_accept(tokens, &state, "hello:\\\"world") == true,
-         "accept text");
+  ASSERT(psr_accept(tokens, &state, "hello:\\\"world") == true, "accept text");
   ASSERT(state.current == 4, "5th token id");
   ASSERT(psr_accept(tokens, &state, "hello:\\\"world") == false,
          "no accept text");

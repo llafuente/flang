@@ -41,7 +41,9 @@ LLVMTypeRef cg_get_typeid(size_t id, LLVMContextRef context) {
 
   switch (t->of) {
   case FL_VOID:
-    t->codegen = (void*)LLVMVoidType();
+    // t->codegen = (void*)LLVMVoidType();
+    // by recomendation of llvm use i8
+    t->codegen = (void*)LLVMIntType(8);
     break;
   case FL_NUMBER:
     if (t->number.fp) {
@@ -60,8 +62,7 @@ LLVMTypeRef cg_get_typeid(size_t id, LLVMContextRef context) {
     }
     break;
   case FL_POINTER:
-    t->codegen =
-        (void*)LLVMPointerType(cg_get_typeid(t->ptr.to, context), 0);
+    t->codegen = (void*)LLVMPointerType(cg_get_typeid(t->ptr.to, context), 0);
     break;
   case FL_STRUCT: {
     log_verbose("codegen struct '%s'", t->id->value);
@@ -80,8 +81,8 @@ LLVMTypeRef cg_get_typeid(size_t id, LLVMContextRef context) {
     free(types);
   } break;
   case FL_VECTOR: {
-    t->codegen = LLVMArrayType(cg_get_typeid(t->vector.to, context),
-                               t->vector.length);
+    t->codegen =
+        LLVMArrayType(cg_get_typeid(t->vector.to, context), t->vector.length);
   } break;
   default: {
     ty_dump(id);
@@ -96,9 +97,8 @@ LLVMTypeRef cg_get_typeid(size_t id, LLVMContextRef context) {
   return (LLVMTypeRef)t->codegen;
 }
 
-LLVMValueRef cg_cast_op(LLVMBuilderRef builder, size_t current,
-                                size_t expected, LLVMValueRef value,
-                                LLVMContextRef context) {
+LLVMValueRef cg_cast_op(LLVMBuilderRef builder, size_t current, size_t expected,
+                        LLVMValueRef value, LLVMContextRef context) {
   log_debug("cast [%zu == %zu] [%p]", expected, current, value);
 
   if (expected == current) {
@@ -116,24 +116,24 @@ LLVMValueRef cg_cast_op(LLVMBuilderRef builder, size_t current,
         log_verbose("fptosi");
 
         if (ex_type.number.sign) {
-          return LLVMBuildFPToSI(
-              builder, value, cg_get_typeid(expected, context), "cast");
+          return LLVMBuildFPToSI(builder, value,
+                                 cg_get_typeid(expected, context), "cast");
         }
 
-        return LLVMBuildFPToUI(
-            builder, value, cg_get_typeid(expected, context), "cast");
+        return LLVMBuildFPToUI(builder, value, cg_get_typeid(expected, context),
+                               "cast");
       }
       // *itofp
       if (!cu_type.number.fp && ex_type.number.fp) {
         log_verbose("sitofp");
 
         if (ex_type.number.sign) {
-          return LLVMBuildSIToFP(
-              builder, value, cg_get_typeid(expected, context), "cast");
+          return LLVMBuildSIToFP(builder, value,
+                                 cg_get_typeid(expected, context), "cast");
         }
 
-        return LLVMBuildUIToFP(
-            builder, value, cg_get_typeid(expected, context), "cast");
+        return LLVMBuildUIToFP(builder, value, cg_get_typeid(expected, context),
+                               "cast");
       }
 
       // LLVMBuildFPTrunc
@@ -145,19 +145,19 @@ LLVMValueRef cg_cast_op(LLVMBuilderRef builder, size_t current,
         log_verbose("upcast");
 
         if (fp) {
-          return LLVMBuildFPExt(
-              builder, value, cg_get_typeid(expected, context), "cast");
+          return LLVMBuildFPExt(builder, value,
+                                cg_get_typeid(expected, context), "cast");
         }
 
         // sign -> sign
         if ((cu_type.number.sign && ex_type.number.sign) ||
             (!cu_type.number.sign && ex_type.number.sign)) {
-          return LLVMBuildSExt(
-              builder, value, cg_get_typeid(expected, context), "cast");
+          return LLVMBuildSExt(builder, value, cg_get_typeid(expected, context),
+                               "cast");
         }
 
-        return LLVMBuildZExt(builder, value,
-                             cg_get_typeid(expected, context), "cast");
+        return LLVMBuildZExt(builder, value, cg_get_typeid(expected, context),
+                             "cast");
       }
 
       // downcast / truncate
@@ -165,11 +165,11 @@ LLVMValueRef cg_cast_op(LLVMBuilderRef builder, size_t current,
         log_verbose("downcast");
 
         if (fp) {
-          return LLVMBuildFPTrunc(
-              builder, value, cg_get_typeid(expected, context), "cast");
+          return LLVMBuildFPTrunc(builder, value,
+                                  cg_get_typeid(expected, context), "cast");
         }
-        return LLVMBuildTrunc(builder, value,
-                              cg_get_typeid(expected, context), "cast");
+        return LLVMBuildTrunc(builder, value, cg_get_typeid(expected, context),
+                              "cast");
       }
       break;
     default: {

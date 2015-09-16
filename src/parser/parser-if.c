@@ -36,7 +36,6 @@ PSR_READ_IMPL(stmt_if) {
   PSR_SKIPWS();
 
   ast_t* t = PSR_READ(expression);
-  ast_dump(t);
 
   if (!t) {
     PSR_RET_SYNTAX_ERROR(stmt, "expected an expression");

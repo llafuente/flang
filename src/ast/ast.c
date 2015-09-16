@@ -25,16 +25,14 @@
 
 #include "flang.h"
 
-bool ast_parent_cb(ast_t* node, ast_t* parent, size_t level,
-                      void* userdata) {
+bool ast_parent_cb(ast_t* node, ast_t* parent, size_t level, void* userdata_in,
+                   void* userdata_out) {
   node->parent = parent;
 
   return true;
 }
 
-void ast_parent(ast_t* root) {
-  ast_traverse(root, ast_parent_cb, 0, 0, 0);
-}
+void ast_parent(ast_t* root) { ast_traverse(root, ast_parent_cb, 0, 0, 0, 0); }
 
 ast_t* ast_search_decl_var(ast_t* node, string* name) {
   while ((node = node->parent) != 0) {
@@ -124,6 +122,7 @@ size_t ast_get_typeid(ast_t* node) {
   default: {}
   }
   log_error("ast_get_typeid: node is not type related! %d", node->type);
+  return 0;
 }
 
 bool ast_is_pointer(ast_t* node) {
@@ -144,12 +143,13 @@ size_t ast_ret_type(ast_t* node) {
 }
 
 bool ast_find_fn_decl_cb(ast_t* node, ast_t* parent, size_t level,
-                            void* userdata, void** ret) {
+                         void* userdata_in, void* userdata_out) {
 
   if (node->type == FL_AST_DECL_FUNCTION) {
-    string* id = (string*)userdata;
+    string* id = (string*)userdata_in;
 
     if (st_cmp(id, node->func.id->identifier.string) == 0) {
+      void** ret = (void**)userdata_out;
       *ret = node;
       return false;
     }
@@ -162,35 +162,37 @@ ast_t* ast_find_fn_decl(ast_t* identifier) {
   if (identifier->type != FL_AST_LIT_IDENTIFIER) {
     log_error("(ast_find_fn_decl) must be an identifier!");
   }
+  ast_t** ret;
 
-  return (ast_t*)ast_reverse(identifier, ast_find_fn_decl_cb, 0, 0,
-                             (void*)identifier->identifier.string);
+  ast_reverse(identifier, ast_find_fn_decl_cb, 0, 0,
+              (void*)identifier->identifier.string, (void*)ret);
+
+  return *ret;
 }
 
 // nasty hack to be fast
-string* ast_search_id = 0;
 bool ast_find_fn_decls_cb(ast_t* node, ast_t* parent, size_t level,
-                          void* userdata, void** ret) {
-  log_debug("???? %d", node->type == FL_AST_DECL_FUNCTION);
+                          void* userdata_in, void* userdata_out) {
 
   if (node->type == FL_AST_DECL_FUNCTION) {
-    ast_dump(node);
+    string* ast_search_id = (string*)userdata_in;
     log_verbose("'%s' == '%s'", ast_search_id->value,
                 node->func.id->identifier.string->value);
     if (st_cmp(ast_search_id, node->func.id->identifier.string) == 0) {
-      log_verbose("function found push!");
-      array_append((array*)userdata, node);
+      log_verbose("function found push  !");
+      array_append((array*)userdata_out, node);
     }
   }
 
   return true;
 }
 array* ast_find_fn_decls(ast_t* node, string* id) {
-  ast_search_id = id;
   array* userdata = malloc(sizeof(array));
   array_new(userdata);
 
-  ast_reverse(node, ast_find_fn_decls_cb, 0, 0, (void*)userdata);
+  log_verbose("ast_find_fn_decls %s %p", id->value, node);
+
+  ast_reverse(node, ast_find_fn_decls_cb, 0, 0, (void*)id, (void*)userdata);
 
   if (userdata->size) {
     return userdata;

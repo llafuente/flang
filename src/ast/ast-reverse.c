@@ -25,59 +25,70 @@
 
 #include "flang.h"
 
-void* ast_reverse(ast_t* ast, fl_ast_ret_cb_t cb, ast_t* parent, size_t level,
-                  void* userdata) {
-  void* ret;
-#define REVERSE(node)                                                          \
-  if (node) {                                                                  \
-    ret = ast_reverse(node, cb, ast, level, userdata);                         \
-    if (ret)                                                                   \
-      return ret;                                                              \
+bool __ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent, size_t level,
+                   void* userdata_in, void* userdata_out) {
+
+#define REVERSE(child)                                                         \
+  if (child) {                                                                 \
+    if (!__ast_reverse(child, cb, node, level, userdata_in, userdata_out)) {   \
+      return false;                                                            \
+    }                                                                          \
   }
 
-#define REVERSE_LIST(node)                                                     \
+#define REVERSE_LIST(child)                                                    \
   {                                                                            \
     size_t i = 0;                                                              \
     ast_t* tmp;                                                                \
                                                                                \
-    if (node) {                                                                \
-      while ((tmp = node[i++]) != 0) {                                         \
+    if (child) {                                                               \
+      while ((tmp = child[i++]) != 0) {                                        \
         /* do not reverse list, just call cb*/                                 \
-        if (!cb(tmp, parent, level, userdata, &ret)) {                         \
-          return ret;                                                          \
+        if (tmp->type == FL_AST_MODULE) {                                      \
+          __ast_traverse(tmp, cb, 0, node, userdata_in, userdata_out);         \
+        } else if (!cb(tmp, parent, level, userdata_in, userdata_out)) {       \
+          return false;                                                        \
         }                                                                      \
       }                                                                        \
     }                                                                          \
   }
 
-  if (!ast) {
+  if (!node) {
     log_warning("ast_reverse: (nil)");
-    return 0;
+    return true;
   }
 
   ++level;
   // stop if callback is false
-  if (!cb(ast, parent, level, userdata, &ret)) {
-    return ret;
+  if (!cb(node, parent, level, userdata_in, userdata_out)) {
+    return false;
   }
 
-  switch (ast->type) {
+  switch (node->type) {
   case FL_AST_MODULE:
+    ast_traverse(node, cb, 0, parent, userdata_in, userdata_out);
+    break;
   case FL_AST_PROGRAM:
-    if (ast->program.core) {
-      log_verbose("reverse core -> traverse");
-      ast_traverse(ast->program.core, cb, 0, 0, userdata);
+    if (node->program.core) {
+      ast_traverse(node->program.core, cb, 0, node, userdata_in, userdata_out);
     }
     break;
   case FL_AST_BLOCK: {
-    REVERSE_LIST(ast->block.body);
+    if (node->parent->type == FL_AST_PROGRAM && node->parent->parent) {
+      // do not traverse current program
+      ast_traverse(node, cb, 0, parent, userdata_in, userdata_out);
+    } else {
+      REVERSE_LIST(node->block.body);
+    }
   } break;
   case FL_AST_LIST: {
-    REVERSE_LIST(ast->list.elements);
-    if (ast->parent->type == FL_AST_DECL_FUNCTION ||
-        ast->parent->type == FL_AST_EXPR_CALL) {
-      // recursion!
-      return 0;
+    if (parent) { // do not reverse current-first node
+      switch (node->parent->type) {
+      case FL_AST_DECL_FUNCTION:
+      case FL_AST_EXPR_CALL:
+        REVERSE_LIST(node->list.elements);
+        return true;
+      }
+      log_error("WTF!!!?!");
     }
   }; break;
   case FL_AST_EXPR_ASSIGNAMENT:
@@ -89,12 +100,12 @@ void* ast_reverse(ast_t* ast, fl_ast_ret_cb_t cb, ast_t* parent, size_t level,
   case FL_AST_EXPR_RUNARY:
     break;
   case FL_AST_EXPR_CALL: {
-    REVERSE(ast->call.arguments);
+    REVERSE(node->call.arguments);
   } break;
   case FL_AST_DTOR_VAR:
     break;
   case FL_AST_DECL_FUNCTION: {
-    REVERSE(ast->func.params);
+    REVERSE(node->func.params);
   } break;
   case FL_AST_PARAMETER:
     break;
@@ -105,6 +116,11 @@ void* ast_reverse(ast_t* ast, fl_ast_ret_cb_t cb, ast_t* parent, size_t level,
   default: {}
   }
 
-  REVERSE(ast->parent);
-  return 0;
+  REVERSE(node->parent);
+  return true;
+}
+
+void ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent, size_t level,
+                 void* userdata_in, void* userdata_out) {
+  __ast_reverse(node, cb, parent, level, userdata_in, userdata_out);
 }

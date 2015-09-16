@@ -58,8 +58,7 @@ bool psr_eof(tk_token_list_t* tokens, fl_psrstate_t* state) {
   return state->next_token->type == FL_TK_EOF;
 }
 
-bool psr_accept(tk_token_list_t* tokens, fl_psrstate_t* state,
-                      char* text) {
+bool psr_accept(tk_token_list_t* tokens, fl_psrstate_t* state, char* text) {
   if (strcmp(state->token->string->value, text) == 0) {
     psr_next(tokens, state);
     return true;
@@ -68,7 +67,7 @@ bool psr_accept(tk_token_list_t* tokens, fl_psrstate_t* state,
 }
 
 bool psr_accept_list(tk_token_list_t* tokens, fl_psrstate_t* state,
-                           char* text[], size_t text_count) {
+                     char* text[], size_t text_count) {
   size_t i = 0;
   for (; i < text_count; ++i) {
     if (strcmp(state->token->string->value, text[i]) == 0) {
@@ -80,7 +79,7 @@ bool psr_accept_list(tk_token_list_t* tokens, fl_psrstate_t* state,
 }
 
 bool psr_accept_token(tk_token_list_t* tokens, fl_psrstate_t* state,
-                            tk_tokens_t token_type) {
+                      tk_tokens_t token_type) {
   if (state->token->type == token_type) {
     psr_next(tokens, state);
     return true;
@@ -89,7 +88,7 @@ bool psr_accept_token(tk_token_list_t* tokens, fl_psrstate_t* state,
 }
 
 bool psr_accept_token_list(tk_token_list_t* tokens, fl_psrstate_t* state,
-                                 tk_tokens_t token_type[], size_t tk_count) {
+                           tk_tokens_t token_type[], size_t tk_count) {
   size_t i = 0;
   for (; i < tk_count; ++i) {
     if (state->token->type == token_type[i]) {

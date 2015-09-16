@@ -158,7 +158,8 @@ size_t ts_get_bigger_typeid(size_t a, size_t b) {
   return a;
 }
 
-bool ts_pass_cb(ast_t* node, ast_t* parent, size_t level, void* userdata) {
+bool ts_pass_cb(ast_t* node, ast_t* parent, size_t level, void* userdata_in,
+                void* userdata_out) {
 #define CREATE_CAST(cast, node, type_id)                                       \
   ast_t* cast = (ast_t*)calloc(1, sizeof(ast_t));                              \
   cast->token_start = 0;                                                       \
@@ -405,7 +406,7 @@ bool ts_pass_cb(ast_t* node, ast_t* parent, size_t level, void* userdata) {
 ast_t* ts_pass(ast_t* node) {
   log_debug("pass start!");
 
-  ast_traverse(node, ts_pass_cb, 0, 0, 0);
+  ast_traverse(node, ts_pass_cb, 0, 0, 0, 0);
 }
 
 // wrapper types are
@@ -633,6 +634,9 @@ size_t ts_fn_typeid(ast_t* id) {
 // TODO handle args
 ast_t* ts_find_fn_decl(string* id, ast_t* args_call) {
   array* arr = ast_find_fn_decls(args_call->parent, id);
+  if (!arr) {
+    log_error("undefined function: %s", id->value);
+  }
   log_verbose("declarations with same name = %d\n", arr->size);
 
   if (arr->size == 1) {
@@ -652,7 +656,6 @@ ast_t* ts_find_fn_decl(string* id, ast_t* args_call) {
   size_t i, j;
   size_t imax = args_call->list.count;
   size_t jmax = arr->size;
-
 
   for (j = 0; j < jmax; ++j) {
     decl = array_get(arr, j);

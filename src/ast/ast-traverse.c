@@ -25,11 +25,13 @@
 
 #include "flang.h"
 
-void ast_traverse(ast_t* ast, fl_ast_cb_t cb, ast_t* parent, size_t level,
-                  void* userdata) {
+bool __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, size_t level,
+                    void* userdata_in, void* userdata_out) {
 #define TRAVERSE(node)                                                         \
   if (node) {                                                                  \
-    ast_traverse(node, cb, ast, level, userdata);                              \
+    if (!__ast_traverse(node, cb, ast, level, userdata_in, userdata_out)) {    \
+      return false;                                                            \
+    }                                                                          \
   }
 
 #define TRAVERSE_LIST(node)                                                    \
@@ -46,13 +48,13 @@ void ast_traverse(ast_t* ast, fl_ast_cb_t cb, ast_t* parent, size_t level,
 
   if (!ast) {
     log_warning("ast_traverse: (nil)");
-    return;
+    return true; // is null but continue... its not an error
   }
 
   ++level;
   // stop if callback is false
-  if (!cb(ast, parent, level, userdata)) {
-    return;
+  if (!cb(ast, parent, level, userdata_in, userdata_out)) {
+    return false;
   }
 
   switch (ast->type) {
@@ -130,4 +132,11 @@ void ast_traverse(ast_t* ast, fl_ast_cb_t cb, ast_t* parent, size_t level,
   } break;
   default: {}
   }
+
+  return true;
+}
+
+void ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, size_t level,
+                  void* userdata_in, void* userdata_out) {
+  __ast_traverse(ast, cb, parent, level, userdata_in, userdata_out);
 }

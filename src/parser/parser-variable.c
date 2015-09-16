@@ -69,7 +69,6 @@ PSR_READ_IMPL(decl_variable_with_type) {
 
   PSR_SKIPWS();
   PSR_READ_OK(type, type);
-  ast_dump(type);
 
   if (!type) {
     log_silly("no type...");

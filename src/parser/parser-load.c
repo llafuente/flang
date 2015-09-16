@@ -34,10 +34,12 @@ PSR_READ_IMPL(pp_load) {
     log_debug("load %s", file_lit->string.value->value);
 
     ast_t* ret = fl_parse_file(file_lit->string.value->value, false);
+    ret->program.path = st_clone(file_lit->string.value);
+    ret->type = FL_AST_MODULE;
+
     // TODO we should save filename somewhere!
     ast_delete(file_lit);
 
-    ret->type = FL_AST_MODULE;
     return ret;
   }
 

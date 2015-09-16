@@ -2,3 +2,7 @@
 #load "./../core/string.fl"
 
 #load "./../core/ffi-c.fl"
+
+fn alloc(u64 amount_of_bytes) : ptr<void> {
+  return malloc(amount_of_bytes);
+}

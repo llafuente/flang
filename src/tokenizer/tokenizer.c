@@ -53,9 +53,9 @@ size_t tk_get_escape_count(char* itr, char* start) {
   return count;
 }
 
-void tk_push(tk_token_list_t* tokens, tk_tokens_t type, char* p,
-                      size_t p_s, size_t ltoken_line, size_t ltoken_column,
-                      size_t line, size_t column) {
+void tk_push(tk_token_list_t* tokens, tk_tokens_t type, char* p, size_t p_s,
+             size_t ltoken_line, size_t ltoken_column, size_t line,
+             size_t column) {
   size_t tokens_s = tokens->size;
 
   tokens->tokens[tokens_s].type = type;
@@ -71,8 +71,8 @@ void tk_push(tk_token_list_t* tokens, tk_tokens_t type, char* p,
             tokens->tokens[tokens_s].string->value);
 }
 
-void tk_flush(tk_token_list_t* tokens, tk_tokens_t type,
-                       tk_state_t* lstate, tk_state_t* state) {
+void tk_flush(tk_token_list_t* tokens, tk_tokens_t type, tk_state_t* lstate,
+              tk_state_t* state) {
   size_t tokens_s = tokens->size;
 
   tokens->tokens[tokens_s].type = type;
@@ -107,8 +107,8 @@ void tk_token_process(tk_token_list_t* tokens, tk_token_cfg_t* tk,
 
   // add a fake new line at the end, will help the parser
   if (tk->type == FL_TK_EOF) {
-    tk_push(tokens, FL_TK_NEWLINE, lstate->itr, tk->text_s,
-                     lstate->line, lstate->column, state->line, state->column);
+    tk_push(tokens, FL_TK_NEWLINE, lstate->itr, tk->text_s, lstate->line,
+            lstate->column, state->line, state->column);
   }
 
   state->itr += tk->text_s;

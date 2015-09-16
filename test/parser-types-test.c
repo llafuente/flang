@@ -130,6 +130,12 @@ TASK_IMPL(parser_types) {
                                         "  vector<i8> value"
                                         "};",
                  { ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid struct"); });
+  TEST_PARSER_OK("void*", "var ptr<void> a",
+                 { ASSERT(body[0]->ty_id == 18, "typeid ptr<void>"); });
+
+  TEST_PARSER_OK("alloc", "fn alloc(u64 amount_of_bytes) : ptr<void> { return "
+                          "malloc(amount_of_bytes); }",
+                 { ASSERT(body[0]->ty_id == 19, "typeid struct"); });
 
   return 0;
 }
