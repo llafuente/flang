@@ -25,8 +25,9 @@
 
 enum ast_types {
   FL_AST_PROGRAM = 1,
-  FL_AST_BLOCK = 2,
-  FL_AST_LIST = 3, // TODO block->list, arguments->list, parameter->list etc.
+  FL_AST_MODULE = 2,
+  FL_AST_BLOCK = 3,
+  FL_AST_LIST = 4, // TODO block->list, arguments->list, parameter->list etc.
 
   FL_AST_LIT_ARRAY = 10,
   FL_AST_LIT_OBJECT = 11,
@@ -89,6 +90,7 @@ struct ast {
     } err;
 
     struct ast_program {
+      string* path;
       // code as string
       string* code;
       // tokenizer result

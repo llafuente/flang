@@ -37,6 +37,7 @@ PSR_READ_IMPL(pp_load) {
     // TODO we should save filename somewhere!
     ast_delete(file_lit);
 
+    ret->type = FL_AST_MODULE;
     return ret;
   }
 

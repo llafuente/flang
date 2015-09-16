@@ -40,6 +40,9 @@ bool ast_dump_cb(ast_t* node, ast_t* parent, size_t level, void* userdata) {
     printf("program [core=@%p]\n", node->program.core);
     printf("%s\n", node->program.code->value);
     break;
+  case FL_AST_MODULE:
+    printf("module [path=@%s]\n", node->program.path->value);
+    break;
   case FL_AST_BLOCK:
     printf("block");
     break;

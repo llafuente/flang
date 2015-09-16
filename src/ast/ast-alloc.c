@@ -64,6 +64,7 @@ void ast_delete_props(ast_t* ast) {
   }
 
   switch (ast->type) {
+  case FL_AST_MODULE: 
   case FL_AST_PROGRAM: {
     SAFE_DEL(ast->program.body);
     SAFE_DEL(ast->program.core);

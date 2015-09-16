@@ -62,6 +62,7 @@ void* ast_reverse(ast_t* ast, fl_ast_ret_cb_t cb, ast_t* parent, size_t level,
   }
 
   switch (ast->type) {
+  case FL_AST_MODULE:
   case FL_AST_PROGRAM:
     if (ast->program.core) {
       log_verbose("reverse core -> traverse");

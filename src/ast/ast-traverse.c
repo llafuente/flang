@@ -56,6 +56,7 @@ void ast_traverse(ast_t* ast, fl_ast_cb_t cb, ast_t* parent, size_t level,
   }
 
   switch (ast->type) {
+  case FL_AST_MODULE:
   case FL_AST_PROGRAM:
     TRAVERSE(ast->program.body);
     break;
