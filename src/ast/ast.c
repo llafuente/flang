@@ -170,7 +170,6 @@ ast_t* ast_find_fn_decl(ast_t* identifier) {
   return *ret;
 }
 
-// nasty hack to be fast
 bool ast_find_fn_decls_cb(ast_t* node, ast_t* parent, size_t level,
                           void* userdata_in, void* userdata_out) {
 

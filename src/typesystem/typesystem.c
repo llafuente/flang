@@ -129,6 +129,7 @@ bool ts_is_int(size_t id) {
   return t.of == FL_NUMBER ? !t.number.fp : false;
 }
 
+// TODO how to handle signed/unsigned, how's 'bigger'?
 size_t ts_get_bigger_typeid(size_t a, size_t b) {
   ty_t t_a = ts_type_table[a];
   ty_t t_b = ts_type_table[b];
@@ -158,19 +159,70 @@ size_t ts_get_bigger_typeid(size_t a, size_t b) {
   return a;
 }
 
-bool ts_pass_cb(ast_t* node, ast_t* parent, size_t level, void* userdata_in,
-                void* userdata_out) {
-#define CREATE_CAST(cast, node, type_id)                                       \
-  ast_t* cast = (ast_t*)calloc(1, sizeof(ast_t));                              \
-  cast->token_start = 0;                                                       \
-  cast->token_end = 0;                                                         \
-  cast->type = FL_AST_CAST;                                                    \
-  cast->parent = node->parent;                                                 \
-  node->parent = cast;                                                         \
-  cast->cast.element = node;                                                   \
+// TODO check for LIT_NUMERIC, and modify ty_id
+// remove codegen side that do this right now
+ast_t* ts_create_cast(ast_t* node, size_t type_id) {
+  ast_t* cast = (ast_t*)calloc(1, sizeof(ast_t));
+  cast->token_start = 0;
+  cast->token_end = 0;
+  cast->type = FL_AST_CAST;
+  cast->parent = node->parent;
+  node->parent = cast;
+  cast->cast.element = node;
   cast->ty_id = type_id;
 
+  return cast;
+}
+ast_t* ts_create_left_cast(ast_t* parent, ast_t* left) {
+  assert(parent->type == FL_AST_EXPR_BINOP);
+  ast_t* cast = ts_create_cast(left, parent->ty_id);
+  parent->binop.left = cast;
+
+  return cast;
+}
+
+ast_t* ts_create_right_cast(ast_t* parent, ast_t* right) {
+  assert(parent->type == FL_AST_EXPR_BINOP);
+  ast_t* cast = ts_create_cast(right, parent->ty_id);
+  parent->binop.right = cast;
+
+  return cast;
+}
+void ts_cast_binop(ast_t* bo) {
+  assert(bo->type == FL_AST_EXPR_BINOP);
+
+  ast_t* l = bo->binop.left;
+  ast_t* r = bo->binop.right;
+
+  if (bo->ty_id != l->ty_id) {
+    // cast left side
+    ts_create_left_cast(bo, l);
+  }
+
+  if (bo->ty_id != r->ty_id) {
+    ts_create_right_cast(bo, r);
+  }
+}
+
+bool ts_pass_cb(ast_t* node, ast_t* parent, size_t level, void* userdata_in,
+                void* userdata_out) {
   switch (node->type) {
+  case FL_AST_STMT_RETURN: {
+    ast_t* decl = node->parent;
+    while (decl->parent && decl->type != FL_AST_DECL_FUNCTION) {
+      decl = decl->parent;
+    }
+
+    if (decl->type != FL_AST_DECL_FUNCTION) {
+      log_error("return statement found outside function scope");
+    }
+
+    size_t t = decl->func.ret_type->ty_id;
+    if (t != node->ret.argument->ty_id) {
+      ast_t* cast = ts_create_cast(node->ret.argument, t);
+      node->ret.argument = cast;
+    }
+  } break;
   case FL_AST_LIT_STRING: {
     // TODO ptr<i8> atm -> string in the future
     node->ty_id = 16;
@@ -258,7 +310,7 @@ bool ts_pass_cb(ast_t* node, ast_t* parent, size_t level, void* userdata_in,
       log_debug("assignament cast [%zu - %zu]", l_type, r_type);
       // TODO check cast if valid!
 
-      CREATE_CAST(cast, r, l_type);
+      ast_t* cast = ts_create_cast(r, l_type);
 
       node->assignament.right = cast;
     }
@@ -314,7 +366,7 @@ bool ts_pass_cb(ast_t* node, ast_t* parent, size_t level, void* userdata_in,
 
       if (arg->ty_id != t->func.params[i]) {
         // cast right side
-        CREATE_CAST(cast, arg, t->func.params[i]);
+        ast_t* cast = ts_create_cast(arg, t->func.params[i]);
         args->list.elements[i] = cast;
       }
     }
@@ -354,6 +406,20 @@ bool ts_pass_cb(ast_t* node, ast_t* parent, size_t level, void* userdata_in,
       if (l_fp || r_fp) {
         log_error("invalid operants");
       }
+
+      bool l_static = ast_is_static(l);
+      bool r_static = ast_is_static(r);
+
+      if ((l_static && r_static) || (!l_static && !r_static)) {
+        // TODO bigger!
+      } else if (l_static) {
+        node->ty_id = r_type;
+        ts_create_left_cast(node, l);
+      } else if (r_static) {
+        node->ty_id = l_type;
+        ts_create_right_cast(node, r);
+      }
+
       break;
     case FL_TK_EQUAL2:
     case FL_TK_EEQUAL: // !=
@@ -366,36 +432,11 @@ bool ts_pass_cb(ast_t* node, ast_t* parent, size_t level, void* userdata_in,
 
       // both sides must be the same! the bigger one
       node->ty_id = ts_get_bigger_typeid(l_type, r_type);
-      if (node->ty_id != l_type) {
-        // cast left side
-        CREATE_CAST(cast, l, node->ty_id);
-        node->binop.left = cast;
-      }
-
-      if (node->ty_id != r_type) {
-        // cast right side
-        CREATE_CAST(cast, r, node->ty_id);
-        node->binop.right = cast;
-      }
-
+      ts_cast_binop(node);
     } break;
     default: {
-      // TODO check fp-vs-int -> cast
       node->ty_id = ts_get_bigger_typeid(l_type, r_type);
-
-      if (!l_fp && !r_fp) {
-        // TODO handle sign
-      } else if (l_fp && r_fp) {
-      } else if (l_fp && !r_fp) {
-        // upcast right
-        CREATE_CAST(cast, node->binop.right, l_type);
-        node->binop.right = cast;
-        node->ty_id = l_type;
-      } else {
-        CREATE_CAST(cast, node->binop.left, r_type);
-        node->binop.left = cast;
-        node->ty_id = r_type;
-      }
+      ts_cast_binop(node);
     }
     }
   }

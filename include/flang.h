@@ -364,6 +364,10 @@ FL_EXTERN void ast_delete_list(ast_t** list);
 
 /* cldoc:end-category() */
 
+/* cldoc:begin-category(ast/ast-static.c) */
+FL_EXTERN bool ast_is_static(ast_t* node);
+/* cldoc:end-category() */
+
 /* cldoc:begin-category(pass-inference.c) */
 
 FL_EXTERN ast_t* ts_pass_inference(ast_t* node);

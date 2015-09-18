@@ -24,39 +24,21 @@
 */
 
 #include "flang.h"
-#include "tasks.h"
-#include "test.h"
 
-TASK_IMPL(codegen_functions) {
-  log_debug_level = 0;
+bool ast_is_static_cb(ast_t* node, ast_t* parent, size_t level,
+                      void* userdata_in, void* userdata_out) {
+  switch (node->type) {
+  case FL_AST_LIT_STRING:
+  case FL_AST_LIT_NUMERIC:
+    return true;
+  }
+  bool* ret = (bool*)userdata_out;
+  *ret = false;
+  return false;
+}
 
-  TEST_CODEGEN_OK("cg function 01", "fn x(f64 arg1, f64 arg2) : f64 {"
-                                    "  return arg1 + arg2;"
-                                    "}",
-                  {});
-
-  TEST_CODEGEN_OK("cg function 02", "fn x(f64 arg1, f64 arg2) : f64 {"
-                                    "  return arg1 + arg2;"
-                                    "}"
-                                    "var f64 sum; "
-                                    "sum = x(1, 2);",
-                  {});
-
-  TEST_CODEGEN_OK("cg function 03", "printf('%s\\n', 'hello');",
-                  { fl_to_bitcode(module, "hello-world.bc"); });
-
-  // fl_interpreter(module);
-  TEST_CODEGEN_OK("cg function 04",
-                  "var ptr<i8> str; str = 'hello'; printf('%s\\n', str);",
-                  { fl_to_bitcode(module, "hello-world.bc"); });
-
-  TEST_CODEGEN_OK("function 05", "fn x( i8 arg1 , i8 arg2 ) : i8 ;"
-                                 "fn printf2( ptr<i8> format, ... ) ;",
-                  {});
-log_debug_level = 10;
-  TEST_CODEGEN_OK("function 06", "fn x() : i8 {"
-                                 "return 0; }",
-                  {});
-
-  return 0;
+bool ast_is_static(ast_t* node) {
+  bool b = true; // starts true, if find something not static -> false
+  ast_traverse(node, ast_is_static_cb, 0, 0, 0, (void*)&b);
+  return b;
 }

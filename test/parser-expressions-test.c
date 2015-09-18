@@ -130,6 +130,8 @@ TASK_IMPL(parser_expressions) {
 
   TEST_PARSER_OK("left shift", "5 << 6", {
     ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "parsed");
+    ASSERT(ast_is_static(body[0]->binop.left) == true, "left is static");
+    ASSERT(ast_is_static(body[0]->binop.right) == true, "right is static");
     ASSERT(body[0]->binop.left->type == FL_AST_LIT_NUMERIC, "left numeric");
     ASSERT(body[0]->binop.right->type == FL_AST_LIT_NUMERIC, "right numeric");
   });
