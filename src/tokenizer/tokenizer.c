@@ -85,8 +85,8 @@ void tk_flush(tk_token_list_t* tokens, tk_tokens_t type, tk_state_t* lstate,
   tokens->tokens[tokens_s].end.column = state->column;
   ++tokens->size;
 
-  log_silly("[%zu:%zu] tk_flush(%s)", lstate->line, lstate->column,
-            tokens->tokens[tokens_s].string->value);
+  log_silly("[%zu:%zu] [%zu:%zu] tk_flush(%s)", lstate->line, lstate->column,
+            state->line, state->column, tokens->tokens[tokens_s].string->value);
 
   tk_cp_state(state, lstate);
 }
@@ -94,14 +94,26 @@ void tk_flush(tk_token_list_t* tokens, tk_tokens_t type, tk_state_t* lstate,
 void tk_token_process(tk_token_list_t* tokens, tk_token_cfg_t* tk,
                       tk_state_t* state, tk_state_t* lstate) {
   size_t size = (state->itr - lstate->itr);
-  if (size) {
-    tk_flush(tokens, FL_TK_UNKOWN, lstate, state);
-  }
 
   if (tk->type == FL_TK_NEWLINE) {
     ++state->line;
     state->column = 1;
   } else {
+    state->column += tk->text_s;
+    char* p = lstate->itr;
+    while (p < state->itr) {
+      if (*p == '\n') {
+        ++state->line;
+        state->column = 1;
+      } else {
+        ++state->column;
+      }
+      ++p;
+    }
+  }
+
+  if (size) {
+    tk_flush(tokens, FL_TK_UNKOWN, lstate, state);
     state->column += tk->text_s;
   }
 
@@ -154,10 +166,10 @@ tk_token_list_t* fl_tokenize(string* file) {
     // log_silly("[%p] - [%p]\n", state.itr, state.end);
     // log_silly("[%c]\n", *(state.itr));
 
-    log_silly("[%zu:%zu] read [%c]", state.line, state.column, *state.itr);
+    dbg(true, 11, "[%zu:%zu] read [%c]", state.line, state.column, *state.itr);
     // push spaces as independent tokens
     if (!last_space && *(state.itr) == ' ') {
-      log_silly("[%zu:%zu] space start", state.line, state.column);
+      dbg(true, 11, "[%zu:%zu] space start", state.line, state.column);
       if (state.itr != lstate.itr) {
         tk_flush(tokens, FL_TK_UNKOWN, &lstate, &state);
       }
@@ -165,7 +177,7 @@ tk_token_list_t* fl_tokenize(string* file) {
       last_space = state.itr;
     }
     if (last_space && *(state.itr) != ' ') {
-      log_silly("[%zu:%zu] space end", state.line, state.column);
+      dbg(true, 11, "[%zu:%zu] space end", state.line, state.column);
       tk_flush(tokens, FL_TK_WHITESPACE, &lstate, &state);
       last_space = 0;
     }
