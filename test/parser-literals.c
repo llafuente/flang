@@ -87,5 +87,15 @@ TASK_IMPL(parser_literals) {
     // st_delete(&body[0]->identifier.string);
   });
 
+  TEST_PARSER_OK("comments", "/* hello */ var wtf;", {
+    ASSERT(body[0]->type == FL_AST_STMT_COMMENT, "FL_AST_COMMENT");
+    ASSERT(body[1]->type == FL_AST_DTOR_VAR, "FL_AST_DTOR_VAR");
+  });
+
+  TEST_PARSER_OK("comments", "// hello\nvar wtf;", {
+    ASSERT(body[0]->type == FL_AST_STMT_COMMENT, "FL_AST_COMMENT");
+    ASSERT(body[1]->type == FL_AST_DTOR_VAR, "FL_AST_DTOR_VAR");
+  });
+
   return 0;
 }

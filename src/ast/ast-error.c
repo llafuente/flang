@@ -24,39 +24,19 @@
 */
 
 #include "flang.h"
-#include "tasks.h"
-#include "test.h"
 
-TASK_IMPL(codegen_functions) {
-  log_debug_level = 0;
+bool ast_print_error(ast_t* node) {
+  assert(node->type == FL_AST_PROGRAM);
+  ast_t* err = node->program.body;
 
-  TEST_CODEGEN_OK("cg function 01", "fn x(f64 arg1, f64 arg2) : f64 {"
-                                    "  return arg1 + arg2;"
-                                    "}",
-                  {});
+  if (err->type == FL_AST_ERROR) {
+    fprintf(stderr, "Parse error: %s\n", err->err.str);
+    fprintf(stderr, "On line: %zu:%zu - %zu:%zu\n",
+            err->token_start->start.line, err->token_start->start.column,
+            err->token_end->end.line, err->token_end->end.column);
+    ast_dump(node);
+    return true;
+  }
 
-  TEST_CODEGEN_OK("cg function 02", "fn x(f64 arg1, f64 arg2) : f64 {"
-                                    "  return arg1 + arg2;"
-                                    "}"
-                                    "var f64 sum; "
-                                    "sum = x(1, 2);",
-                  {});
-
-  TEST_CODEGEN_OK("cg function 03", "printf('%s\\n', 'hello');",
-                  { fl_to_bitcode(module, "hello-world.bc"); });
-
-  // fl_interpreter(module);
-  TEST_CODEGEN_OK("cg function 04",
-                  "var ptr<i8> str; str = 'hello'; printf('%s\\n', str);",
-                  { fl_to_bitcode(module, "hello-world.bc"); });
-
-  TEST_CODEGEN_OK("function 05", "fn x( i8 arg1 , i8 arg2 ) : i8 ;"
-                                 "fn printf2( ptr<i8> format, ... ) ;",
-                  {});
-
-  TEST_CODEGEN_OK("function 06", "fn x() : i8 {"
-                                 "return 0; }",
-                  {});
-
-  return 0;
+  return false;
 }

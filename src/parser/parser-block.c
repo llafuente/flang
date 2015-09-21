@@ -61,10 +61,10 @@ PSR_READ_IMPL(program_block) {
 psr_read_t block_stmts[] = {
     PSR_READ_NAME(decl_variable), PSR_READ_NAME(decl_function),
     PSR_READ_NAME(stmt_return),   PSR_READ_NAME(expression),
-    PSR_READ_NAME(stmt_if),       PSR_READ_NAME(comment),
-    PSR_READ_NAME(stmt_for),      PSR_READ_NAME(stmt_while),
-    PSR_READ_NAME(stmt_dowhile),  PSR_READ_NAME(decl_struct),
-    PSR_READ_NAME(pp_load)};
+    PSR_READ_NAME(stmt_if),       PSR_READ_NAME(comment_single),
+    PSR_READ_NAME(comment_multi), PSR_READ_NAME(stmt_for),
+    PSR_READ_NAME(stmt_while),    PSR_READ_NAME(stmt_dowhile),
+    PSR_READ_NAME(decl_struct),   PSR_READ_NAME(pp_load)};
 
 void PSR_READ_NAME(block_body)(PSR_READ_HEADER, ast_t** extend) {
   ast_t* stmt;
@@ -77,7 +77,7 @@ void PSR_READ_NAME(block_body)(PSR_READ_HEADER, ast_t** extend) {
   while (!psr_eof(tokens, state)) {
     last = i;
 
-    for (j = 0; j < 11; ++j) {
+    for (j = 0; j < 12; ++j) {
       log_verbose("read block id: %zu", j);
       psr_look_ahead(stack, state);
       stmt = block_stmts[j](PSR_READ_HEADER_SEND);

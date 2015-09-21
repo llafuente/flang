@@ -25,7 +25,7 @@
 
 #include "flang.h"
 
-PSR_READ_IMPL(comment) {
+PSR_READ_IMPL(comment_multi) {
   if (!PSR_TEST_TOKEN(FL_TK_MCOMMENT)) {
     return 0;
   }
@@ -39,6 +39,24 @@ PSR_READ_IMPL(comment) {
   PSR_NEXT();
 
   PSR_EXPECT_TOKEN(FL_TK_MCOMMENT, com_node, {}, "expected '*/'");
+
+  PSR_RET_OK(com_node);
+}
+
+PSR_READ_IMPL(comment_single) {
+  if (!PSR_TEST_TOKEN(FL_TK_SCOMMENT)) {
+    return 0;
+  }
+
+  PSR_START(com_node, FL_AST_STMT_COMMENT);
+
+  PSR_ACCEPT_TOKEN(FL_TK_SCOMMENT);
+
+  com_node->comment.text = state->token->string;
+
+  PSR_NEXT();
+
+  PSR_EXPECT_TOKEN(FL_TK_NEWLINE, com_node, {}, "expected new line");
 
   PSR_RET_OK(com_node);
 }

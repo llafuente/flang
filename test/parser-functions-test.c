@@ -45,7 +45,7 @@ TASK_IMPL(parser_functions) {
     ASSERT(body[0]->func.params != 0, "no args");
   });
 
-  TEST_PARSER_ERROR("function err 01", "fn {}",
+  TEST_PARSER_ERROR("function err 01", "fn {} /* xxx\n yyy */ var x;",
                     "cannot parse function identifier",
                     { CHK_ERROR_RANGE(err, 4, 1, 5, 1); });
 
@@ -53,7 +53,7 @@ TASK_IMPL(parser_functions) {
                     {});
 
   TEST_PARSER_ERROR("function err 01", "fn x a", "expected '('",
-                    { CHK_ERROR_RANGE(err, 6, 1, 7, 1); });
+                    { CHK_ERROR_RANGE(err, 6, 1, 9, 1); });
 
   TEST_PARSER_ERROR("function err 01", "fn (){};",
                     "cannot parse function identifier",

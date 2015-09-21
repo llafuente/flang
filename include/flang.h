@@ -313,7 +313,8 @@ PSR_READ_IMPL(pp_load);
 
 /* cldoc:begin-category(parser-comment.c) */
 
-PSR_READ_DECL(comment);
+PSR_READ_DECL(comment_multi);
+PSR_READ_DECL(comment_single);
 
 /* cldoc:end-category() */
 
@@ -366,6 +367,10 @@ FL_EXTERN void ast_delete_list(ast_t** list);
 
 /* cldoc:begin-category(ast/ast-static.c) */
 FL_EXTERN bool ast_is_static(ast_t* node);
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast/ast-error.c) */
+FL_EXTERN bool ast_print_error(ast_t* node);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(pass-inference.c) */
