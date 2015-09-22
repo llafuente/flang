@@ -137,5 +137,10 @@ TASK_IMPL(parser_types) {
                           "malloc(amount_of_bytes); }",
                  { ASSERT(body[0]->ty_id == 19, "typeid struct"); });
 
+  // TODO this is a bug in tokenizer-parser: 'ptr<ptr<void>>' should be valid!
+  TEST_PARSER_OK("void*", "var ptr<ptr<void> > a", {
+    ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid ptr<void>");
+  });
+
   return 0;
 }

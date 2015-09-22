@@ -109,6 +109,16 @@ bool ts_is_pointer(size_t id) {
   return t.of == FL_POINTER;
 }
 
+size_t ts_get_pointer_level(size_t id) {
+  size_t count = 0;
+  ty_t t = ts_type_table[id];
+  while (t.of == FL_POINTER) {
+    t = ts_type_table[t.ptr.to];
+    ++count;
+  }
+  return count;
+}
+
 bool ts_is_vector(size_t id) {
   ty_t t = ts_type_table[id];
   return t.of == FL_VECTOR;
@@ -229,13 +239,15 @@ bool ts_pass_cb(ast_t* node, ast_t* parent, size_t level, void* userdata_in,
   } break;
   case FL_AST_LIT_IDENTIFIER: {
     if (node->identifier.resolve) {
+      node->identifier.decl = ast_search_decl_var(node, node->identifier.string);
+
       if (node->parent->type == FL_AST_EXPR_CALL) {
         // see EXPR_CALL below
       } else if (node->parent->type == FL_AST_EXPR_MEMBER) {
         // it's handled below, but maybe can be optimized at this level...
       } else {
-        // it's a var
-        node->ty_id = ts_var_typeid(node);
+        // it's a var, copy type
+        node->ty_id = ast_get_typeid(node->identifier.decl);
       }
     }
   } break;
@@ -278,13 +290,11 @@ bool ts_pass_cb(ast_t* node, ast_t* parent, size_t level, void* userdata_in,
       node->ty_id = 2; // bool
       break;
     case FL_TK_AND: {
-      size_t el_ty_id = node->lunary.element->ty_id;
-      if (!ts_is_pointer(el_ty_id)) {
-        // TODO error
-      }
-      // create new type if needed
-      // node->ty_id = ts_wapper_typeid(FL_POINTER, el_ty_id);
-      node->ty_id = 13;
+      ast_t* el = node->lunary.element;
+      ts_pass(el);
+      node->ty_id = ts_wapper_typeid(FL_POINTER, el->ty_id);
+
+      // ?node->ty_id = 13;
     } break;
     default:
       node->ty_id = node->lunary.element->ty_id;

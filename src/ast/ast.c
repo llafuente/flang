@@ -74,6 +74,7 @@ ast_t* ast_search_decl_var(ast_t* node, string* name) {
 }
 
 size_t ast_get_typeid(ast_t* node) {
+  assert(node == 0);
   // check AST is somewhat "type-related"
   switch (node->type) {
   case FL_AST_DTOR_VAR:

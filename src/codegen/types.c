@@ -161,7 +161,7 @@ LLVMValueRef cg_cast_op(LLVMBuilderRef builder, size_t current, size_t expected,
       }
 
       // downcast / truncate
-      if (cu_type.number.bits > ex_type.number.bits) {
+      if (cu_type.number.bits >= ex_type.number.bits) {
         log_verbose("downcast");
 
         if (fp) {
@@ -171,13 +171,26 @@ LLVMValueRef cg_cast_op(LLVMBuilderRef builder, size_t current, size_t expected,
         return LLVMBuildTrunc(builder, value, cg_get_typeid(expected, context),
                               "cast");
       }
-      break;
+    case FL_POINTER:
+      return LLVMBuildBitCast(builder, value, cg_get_typeid(expected, context),
+                              "bitcast");
+
     default: {
       // TODO more friendly
+      ty_dump(current);
+      printf("\n");
+      ty_dump(expected);
+      printf("\n");
+
       log_error("invalid cast of type %zu to %zu", current, expected);
     }
     }
   }
+
+  ty_dump(current);
+  printf("\n");
+  ty_dump(expected);
+  printf("\n");
 
   log_error("invalid casting");
   return 0;

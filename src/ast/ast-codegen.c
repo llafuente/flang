@@ -23,35 +23,31 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/// @file
+#include "flang.h"
 
-#include "tasks.h"
-#include "fixtures.h"
+bool ast_require_load(ast_t* node) {
+  switch (node->type) {
+  case FL_AST_LIT_IDENTIFIER:
+    if (node->identifier.decl->type == FL_AST_PARAMETER) {
+      return false;
+    }
 
-int main(int argc, const char* argv[]) {
-
-  printf("    ###############\n");
-  printf("    ## unit test ##\n");
-  printf("    ###############\n");
-
-  TASK_RUN(tokenizer);
-
-  TASK_RUN(parser_utils);
-  TASK_RUN(parser_literals);
-  TASK_RUN(parser_expressions);
-  TASK_RUN(parser_variables);
-  TASK_RUN(parser_functions);
-  TASK_RUN(parser_types);
-  TASK_RUN(parser_if);
-  TASK_RUN(parser_loops);
-
-  TASK_RUN(codegen_expressions);
-  TASK_RUN(codegen_functions);
-  TASK_RUN(flang_files);
-
-  printf("\nOK\n");
-
-  st_cleanup();
-
-  return 0;
+    return true;
+  case FL_AST_EXPR_LUNARY:
+  switch (node->lunary.operator) {
+    case FL_TK_AND:
+    case FL_TK_EXCLAMATION:
+    case FL_TK_MINUS:
+      return false;
+  }
+    return true;
+  case FL_AST_EXPR_ASSIGNAMENT:
+    return true;
+    break;
+  // node i'm sure right now
+  case FL_AST_LIT_NUMERIC: // static type
+  case FL_AST_CAST: // load before cast
+    return false;
+  }
+  return false;
 }

@@ -32,10 +32,11 @@ TASK_IMPL(codegen_expressions) {
   log_debug_level = 0;
 
   TEST_CODEGEN_OK("expr 01", "var i64 c; c = 1 + 2;", {});
-  // TODO make it work, core should be parsed before
   TEST_CODEGEN_OK("expr 02", "var string hello;", {});
   TEST_CODEGEN_OK("expr 03", "var i64 c; var i64 d; d=1+2; c = 1;", {});
   TEST_CODEGEN_OK("expr 04", "var i64 c; c = 1; c = 1;", {});
+  TEST_CODEGEN_OK("expr 05", "var i64 a; var i64 b; a = b = 1;", {});
+  TEST_CODEGEN_OK("expr 06", "var i64 a; var i64 b; a = 1; b = a + 1;", {});
   // TEST_CODEGEN_OK("expr 04", "printf(\"%f\", 1 + 2);", {});
 
   return 0;

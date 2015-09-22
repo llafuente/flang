@@ -101,6 +101,17 @@ LLVMModuleRef fl_codegen(ast_t* root, char* module_name) {
   return module;
 }
 
+LLVMValueRef cg_ast_loaded(char* dbg, FL_CODEGEN_HEADER) {
+  LLVMValueRef element = cg_ast(node, FL_CODEGEN_PASSTHROUGH);
+  assert(element == 0);
+
+  if (ast_require_load(node)) {
+    return LLVMBuildLoad(builder, element, dbg);
+  }
+
+  return element;
+}
+
 LLVMValueRef cg_ast(FL_CODEGEN_HEADER) {
 
   switch (node->type) {
@@ -109,7 +120,7 @@ LLVMValueRef cg_ast(FL_CODEGEN_HEADER) {
     if (node->program.core) {
       log_verbose("** program.core **");
       int olog_debug_level = log_debug_level;
-      log_debug_level = 0;
+      //log_debug_level = 0; // debug core
       cg_ast(node->program.core, FL_CODEGEN_PASSTHROUGH);
       log_debug_level = olog_debug_level;
     } else {
@@ -188,10 +199,9 @@ LLVMValueRef cg_do_block(LLVMBasicBlockRef block, LLVMBasicBlockRef fall_block,
 LLVMValueRef cg_cast(FL_CODEGEN_HEADER) {
   // check if rigt side is a constant
   ast_t* el = node->cast.element;
-
-  ast_dump(node);
   log_debug("%d - %d", el->type, FL_AST_LIT_NUMERIC);
 
+  // TODO MOVE THIS LOGIC TO A PASS O TYPESYSTEM!!!
   if (el->type == FL_AST_LIT_NUMERIC) {
     log_debug("cast: override numeric type T(%zu)", node->ty_id);
     node->cast.element->ty_id = node->ty_id;
@@ -199,7 +209,7 @@ LLVMValueRef cg_cast(FL_CODEGEN_HEADER) {
     return cg_ast(el, FL_CODEGEN_PASSTHROUGH);
   }
 
-  LLVMValueRef element = cg_ast(el, FL_CODEGEN_PASSTHROUGH);
+  LLVMValueRef element = cg_ast_loaded("load_cast_el", el, FL_CODEGEN_PASSTHROUGH);
 
   return cg_cast_op(builder, ast_get_typeid(el), node->ty_id, element, context);
 }
@@ -236,7 +246,9 @@ LLVMValueRef cg_lit_string(FL_CODEGEN_HEADER) {
 
 LLVMValueRef cg_assignament(FL_CODEGEN_HEADER) {
   log_debug("right");
-  LLVMValueRef right = cg_ast(node->assignament.right, FL_CODEGEN_PASSTHROUGH);
+  ast_t* r = node->assignament.right;
+
+  LLVMValueRef right = cg_ast_loaded("load_assignament", r, FL_CODEGEN_PASSTHROUGH);
 
   log_debug("left");
   ast_t* l = node->assignament.left;
@@ -247,7 +259,6 @@ LLVMValueRef cg_assignament(FL_CODEGEN_HEADER) {
 
   LLVMValueRef assign = LLVMBuildStore(builder, right, left);
 
-  left = LLVMBuildLoad(builder, left, "load_l_ass");
   // if left is an identifier, set
   // if (l->type == FL_AST_LIT_IDENTIFIER) {
   //  ast_t* id = ast_search_decl_var(node, l->identifier.string);
@@ -265,16 +276,10 @@ LLVMValueRef cg_binop(FL_CODEGEN_HEADER) {
 
   // retrieve left/right side
   ast_dump(l);
-  LLVMValueRef lhs = cg_ast(l, FL_CODEGEN_PASSTHROUGH);
-  if (!lhs) {
-    log_error("invalid lhs");
-  }
+  LLVMValueRef lhs = cg_ast_loaded("load_lhs", l, FL_CODEGEN_PASSTHROUGH);
 
   ast_dump(r);
-  LLVMValueRef rhs = cg_ast(r, FL_CODEGEN_PASSTHROUGH);
-  if (!rhs) {
-    log_error("invalid rhs");
-  }
+  LLVMValueRef rhs = cg_ast_loaded("load_rhs", r, FL_CODEGEN_PASSTHROUGH);
 
   log_verbose("using binop %d", node->binop.operator);
 
@@ -493,12 +498,8 @@ LLVMValueRef cg_expr_call(FL_CODEGEN_HEADER) {
     ast_t* list = node->call.arguments;
 
     while ((tmp = list->list.elements[i]) != 0) {
-      log_verbose("argument! %zu", i);
-      value = cg_ast(tmp, FL_CODEGEN_PASSTHROUGH);
-      if (!value) {
-        log_error("argument fail! %zu", i);
-      }
-      arguments[i++] = value;
+      log_verbose("argument idx [%zu]", i);
+      arguments[i++] = cg_ast_loaded("arg_load", tmp, FL_CODEGEN_PASSTHROUGH);
     }
 
     return LLVMBuildCall(builder, fn, arguments, node->call.narguments, "");
@@ -532,7 +533,12 @@ LLVMValueRef cg_expr_call(FL_CODEGEN_HEADER) {
 LLVMValueRef cg_lunary(FL_CODEGEN_HEADER) {
   log_debug("cg_lunary");
 
-  LLVMValueRef element = cg_ast(node->lunary.element, FL_CODEGEN_PASSTHROUGH);
+  // raw: DO NOT LOAD!
+  if (node->lunary.operator == FL_TK_AND) {
+    return cg_ast(node->lunary.element, FL_CODEGEN_PASSTHROUGH);
+  }
+
+  LLVMValueRef element = cg_ast_loaded("load_lunary", node->lunary.element, FL_CODEGEN_PASSTHROUGH);
 
   switch (node->lunary.operator) {
   case FL_TK_MINUS:
@@ -557,9 +563,6 @@ LLVMValueRef cg_lunary(FL_CODEGEN_HEADER) {
     LLVMValueRef one = LLVMConstInt(type, 1, false);
     LLVMValueRef one_substracted = LLVMBuildSub(builder, element, one, "");
     return LLVMBuildStore(builder, element, one_substracted);
-  }
-  case FL_TK_AND: {
-    return element; // this should no be loaded!
   }
   default: {}
   }
@@ -592,7 +595,9 @@ LLVMValueRef cg_if(FL_CODEGEN_HEADER) {
   LLVMMoveBasicBlockAfter(if_then_block, *current_block);
 
   // test expression
-  LLVMValueRef test = cg_ast(node->if_stmt.test, FL_CODEGEN_PASSTHROUGH);
+  ast_t* test_node = node->if_stmt.test;
+  LLVMValueRef test = cg_ast_loaded("load_test", test_node, FL_CODEGEN_PASSTHROUGH);
+
   LLVMBuildCondBr(builder, test, if_then_block,
                   has_else ? if_else_block : end_block);
 
@@ -710,18 +715,16 @@ LLVMValueRef cg_left_identifier(FL_CODEGEN_HEADER) {
 }
 
 LLVMValueRef cg_right_identifier(FL_CODEGEN_HEADER) {
-  ast_t* decl = ast_search_decl_var(node, node->identifier.string);
+  ast_t* decl = node->identifier.decl;
 
   if (!decl) {
     log_error("identifier not found: '%s'", node->identifier.string->value);
   }
 
   if (decl->type == FL_AST_DTOR_VAR) {
-    if (ts_is_pointer(node->ty_id)) {
-      return (LLVMValueRef)decl->var.alloca;
-    }
-    return LLVMBuildLoad(builder, (LLVMValueRef)decl->var.alloca, "load_dtor");
+    return (LLVMValueRef)decl->var.alloca;
   }
+
   if (decl->type == FL_AST_PARAMETER) {
     return (LLVMValueRef)decl->param.alloca;
   }
@@ -752,7 +755,7 @@ LLVMValueRef cg_left_member(FL_CODEGEN_HEADER) {
     left = LLVMBuildLoad(builder, left, "load_ptr");
 
     if (node->member.expression) {
-      index[0] = cg_ast(node->member.property, FL_CODEGEN_PASSTHROUGH);
+      index[0] = cg_ast_loaded("left_expr_loaded", node->member.property, FL_CODEGEN_PASSTHROUGH);
     }
 
     return LLVMBuildGEP(builder, left, index, 1, "");

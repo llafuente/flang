@@ -67,6 +67,8 @@ PSR_READ_IMPL(decl_variable_with_type) {
     PSR_RET_KO(ast);
   }
 
+  log_silly("read type");
+
   PSR_SKIPWS();
   PSR_READ_OK(type, type);
 

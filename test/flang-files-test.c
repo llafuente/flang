@@ -54,7 +54,7 @@ string* file_to_string(char* filename) {
 // _popen and _pclose for Windows.
 // 2>&1
 string* execute(char* cmd) {
-  printf("execute: %s\n", cmd);
+  printf("# execute: %s\n", cmd);
 
   FILE* pipe = popen(cmd, "r");
   if (!pipe) {
@@ -82,13 +82,12 @@ string* execute(char* cmd) {
 }
 
 TASK_IMPL(flang_files) {
-  log_debug_level = 10;
-
   char* files[] = {"../test/fl/expressions", "../test/fl/casting",
                    "../test/fl/if",          "../test/fl/loops",
                    "../test/fl/types",       "../test/fl/pointers",
-                   "../test/fl/string",      "../test/fl/functions"};
-  size_t nfiles = 8;
+                   "../test/fl/pointers2",   "../test/fl/string",
+                   "../test/fl/functions",   "../test/perf/array-reverse"};
+  size_t nfiles = 9;
   char* fl_file = malloc(sizeof(char) * 100);
   char* txt_file = malloc(sizeof(char) * 100);
   char* bc_file = malloc(sizeof(char) * 100);
@@ -101,9 +100,14 @@ TASK_IMPL(flang_files) {
   size_t i;
 
   for (i = 0; i < nfiles; ++i) {
+    printf("# file to test %zu '%s'\n", i, files[i]); // "clear screen"
     if (log_debug_level >= 4) {
       printf("\033[2J"); // "clear screen"
     }
+
+//  if (i == 6 || i == 9) {
+//      log_debug_level = 10;
+//  }
 
     fl_file[0] = '\0';
     strcat(fl_file, files[i]);
@@ -119,6 +123,10 @@ TASK_IMPL(flang_files) {
     strcat(ir_file, ".ir");
 
     root = fl_parse_file(fl_file, true);
+
+    if (ast_print_error(root)) {
+      exit(1);
+    }
 
     ty_dump_table();
 

@@ -138,6 +138,8 @@ struct ast {
       // typesystem must search what this identifier means
       // variable, function, member
       bool resolve;
+
+      ast_t* decl; // for codegen
     } identifier;
 
     struct ast_expr_assignament {

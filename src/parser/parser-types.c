@@ -41,8 +41,6 @@ format
 
 */
 PSR_READ_IMPL(type) {
-  log_silly("start with built-in types");
-
   PSR_START(type_node, FL_AST_TYPE);
 
   // primitives
@@ -59,12 +57,12 @@ PSR_READ_IMPL(type) {
     if (tk == tks[i]) {
       type_node->ty_id = i + 1;
       PSR_NEXT();
-      log_verbose("built-in");
+      log_verbose("type is built-in [%zu]", type_node->ty_id);
       PSR_RET_OK(type_node);
     }
   }
 
-  log_silly("no built-in -> identifier");
+  log_silly("read identifier %s", state->token->string->value);
 
   // primitive fail, try wrapper
   PSR_READ_OR_DIE(id, lit_identifier, { ast_delete(type_node); }, 0);
@@ -82,9 +80,12 @@ PSR_READ_IMPL(type) {
       ast_delete(id);
     }, "type expected");
 
+    ast_dump(child);
+
     PSR_SKIPWS();
 
     PSR_EXPECT_TOKEN(FL_TK_GT, type_node, {
+      log_silly("token fail! %s", state->token->string->value);
       ast_delete(id);
       ast_delete(child);
     }, "expected '>'");
@@ -98,6 +99,8 @@ PSR_READ_IMPL(type) {
     if (strcmp(id->identifier.string->value, "vector") == 0) {
       type_node->ty_id = ts_wapper_typeid(FL_VECTOR, child->ty_id);
     }
+
+    log_silly("ty_id [%zu]", type_node->ty_id);
 
     // TODO handle user defined wrappers
     // TODO handle builtin defined wrappers

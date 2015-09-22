@@ -138,6 +138,7 @@ extern size_t ts_type_size_s;
 extern ts_typeh_t* ts_hashtable;
 
 FL_EXTERN bool ts_is_pointer(size_t id);
+FL_EXTERN size_t ts_get_pointer_level(size_t id);
 FL_EXTERN bool ts_is_struct(size_t id);
 FL_EXTERN bool ts_is_number(size_t id);
 FL_EXTERN bool ts_is_fp(size_t id);
@@ -367,6 +368,10 @@ FL_EXTERN void ast_delete_list(ast_t** list);
 
 /* cldoc:begin-category(ast/ast-static.c) */
 FL_EXTERN bool ast_is_static(ast_t* node);
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast/ast-codegen.c) */
+FL_EXTERN bool ast_require_load(ast_t* node);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(ast/ast-error.c) */
