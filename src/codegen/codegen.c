@@ -120,7 +120,7 @@ LLVMValueRef cg_ast(FL_CODEGEN_HEADER) {
     if (node->program.core) {
       log_verbose("** program.core **");
       int olog_debug_level = log_debug_level;
-      //log_debug_level = 0; // debug core
+      // log_debug_level = 0; // debug core
       cg_ast(node->program.core, FL_CODEGEN_PASSTHROUGH);
       log_debug_level = olog_debug_level;
     } else {
@@ -209,7 +209,8 @@ LLVMValueRef cg_cast(FL_CODEGEN_HEADER) {
     return cg_ast(el, FL_CODEGEN_PASSTHROUGH);
   }
 
-  LLVMValueRef element = cg_ast_loaded("load_cast_el", el, FL_CODEGEN_PASSTHROUGH);
+  LLVMValueRef element =
+      cg_ast_loaded("load_cast_el", el, FL_CODEGEN_PASSTHROUGH);
 
   return cg_cast_op(builder, ast_get_typeid(el), node->ty_id, element, context);
 }
@@ -248,7 +249,8 @@ LLVMValueRef cg_assignament(FL_CODEGEN_HEADER) {
   log_debug("right");
   ast_t* r = node->assignament.right;
 
-  LLVMValueRef right = cg_ast_loaded("load_assignament", r, FL_CODEGEN_PASSTHROUGH);
+  LLVMValueRef right =
+      cg_ast_loaded("load_assignament", r, FL_CODEGEN_PASSTHROUGH);
 
   log_debug("left");
   ast_t* l = node->assignament.left;
@@ -534,11 +536,12 @@ LLVMValueRef cg_lunary(FL_CODEGEN_HEADER) {
   log_debug("cg_lunary");
 
   // raw: DO NOT LOAD!
-  if (node->lunary.operator == FL_TK_AND) {
+  if (node->lunary.operator== FL_TK_AND) {
     return cg_ast(node->lunary.element, FL_CODEGEN_PASSTHROUGH);
   }
 
-  LLVMValueRef element = cg_ast_loaded("load_lunary", node->lunary.element, FL_CODEGEN_PASSTHROUGH);
+  LLVMValueRef element = cg_ast_loaded("load_lunary", node->lunary.element,
+                                       FL_CODEGEN_PASSTHROUGH);
 
   switch (node->lunary.operator) {
   case FL_TK_MINUS:
@@ -596,7 +599,8 @@ LLVMValueRef cg_if(FL_CODEGEN_HEADER) {
 
   // test expression
   ast_t* test_node = node->if_stmt.test;
-  LLVMValueRef test = cg_ast_loaded("load_test", test_node, FL_CODEGEN_PASSTHROUGH);
+  LLVMValueRef test =
+      cg_ast_loaded("load_test", test_node, FL_CODEGEN_PASSTHROUGH);
 
   LLVMBuildCondBr(builder, test, if_then_block,
                   has_else ? if_else_block : end_block);
@@ -750,15 +754,17 @@ LLVMValueRef cg_left_member(FL_CODEGEN_HEADER) {
     return LLVMBuildStructGEP(builder, left, node->member.idx, "");
   }
   case FL_POINTER: {
-    LLVMValueRef left = cg_ast(node->member.left, FL_CODEGEN_PASSTHROUGH);
+    LLVMValueRef left =
+        cg_ast_loaded("load_ptr", node->member.left, FL_CODEGEN_PASSTHROUGH);
     LLVMValueRef index[1];
-    left = LLVMBuildLoad(builder, left, "load_ptr");
 
     if (node->member.expression) {
-      index[0] = cg_ast_loaded("left_expr_loaded", node->member.property, FL_CODEGEN_PASSTHROUGH);
+      index[0] = cg_ast_loaded("left_expr_loaded", node->member.property,
+                               FL_CODEGEN_PASSTHROUGH);
     }
 
-    return LLVMBuildGEP(builder, left, index, 1, "");
+    return LLVMBuildGEP(builder, left, index, 1, "ptr");
+    // return LLVMBuildInBoundsGEP(builder, left, index, 1, "");
   }
   default: { log_error("wtf?!"); }
   }

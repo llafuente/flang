@@ -194,5 +194,23 @@ TASK_IMPL(parser_expressions) {
                    ASSERT(body[1]->ty_id == 9, "dereference type 9");
                  });
 
+  TEST_PARSER_OK("fix unnecesary castings", "var i32 x;"
+                                            "x = x + 1;",
+                 {
+                   ASSERT(body[1]->ty_id == 7, "dereference type 9");
+                   ASSERT(body[1]->type == FL_AST_EXPR_ASSIGNAMENT,
+                          "1st FL_AST_EXPR_ASSIGNAMENT");
+                   ASSERT(body[1]->assignament.left->type ==
+                              FL_AST_LIT_IDENTIFIER,
+                          "left FL_AST_LIT_IDENTIFIER");
+                   ASSERT(body[1]->assignament.right->type == FL_AST_EXPR_BINOP,
+                          "right FL_AST_EXPR_BINOP");
+                   ASSERT(body[1]->assignament.right->binop.left->type ==
+                              FL_AST_LIT_IDENTIFIER,
+                          "right.left FL_AST_LIT_IDENTIFIER");
+                   ASSERT(body[1]->assignament.right->binop.right->type ==
+                              FL_AST_LIT_NUMERIC,
+                          "right.left FL_AST_LIT_NUMERIC");
+                 });
   return 0;
 }

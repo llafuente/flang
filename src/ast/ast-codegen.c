@@ -34,19 +34,19 @@ bool ast_require_load(ast_t* node) {
 
     return true;
   case FL_AST_EXPR_LUNARY:
-  switch (node->lunary.operator) {
+    switch (node->lunary.operator) {
     case FL_TK_AND:
     case FL_TK_EXCLAMATION:
     case FL_TK_MINUS:
       return false;
-  }
+    }
     return true;
   case FL_AST_EXPR_ASSIGNAMENT:
     return true;
     break;
   // node i'm sure right now
   case FL_AST_LIT_NUMERIC: // static type
-  case FL_AST_CAST: // load before cast
+  case FL_AST_CAST:        // load before cast
     return false;
   }
   return false;
