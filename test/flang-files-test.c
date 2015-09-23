@@ -62,12 +62,12 @@ string* execute(char* cmd) {
     exit(1);
   }
 
-  string* output = st_new(1024, st_enc_utf8);
+  string* output = st_new(2048, st_enc_utf8);
 
   char* pos = output->value;
 
   while (!feof(pipe)) {
-    if (fgets(pos, 1024, pipe) != NULL) {
+    if (fgets(pos, 2048, pipe) != NULL) {
       pos = pos + strlen(pos);
     }
   }
@@ -82,12 +82,13 @@ string* execute(char* cmd) {
 }
 
 TASK_IMPL(flang_files) {
-  char* files[] = {"../test/fl/expressions", "../test/fl/casting",
-                   "../test/fl/if",          "../test/fl/loops",
-                   "../test/fl/types",       "../test/fl/pointers",
-                   "../test/fl/pointers2",   "../test/fl/string",
-                   "../test/fl/functions",   "../test/perf/array-reverse"};
-  size_t nfiles = 9;
+  char* files[] = {"../test/fl/expressions",    "../test/fl/casting",
+                   "../test/fl/if",             "../test/fl/loops",
+                   "../test/fl/loops2",         "../test/fl/types",
+                   "../test/fl/pointers",       "../test/fl/pointers2",
+                   "../test/fl/string",         "../test/fl/functions",
+                   "../test/perf/array-reverse"};
+  size_t nfiles = 11;
   char* fl_file = malloc(sizeof(char) * 100);
   char* txt_file = malloc(sizeof(char) * 100);
   char* bc_file = malloc(sizeof(char) * 100);
@@ -105,9 +106,9 @@ TASK_IMPL(flang_files) {
       printf("\033[2J"); // "clear screen"
     }
 
-//  if (i == 6 || i == 9) {
-//      log_debug_level = 10;
-//  }
+    if (i == 4) {
+      log_debug_level = 10;
+    }
 
     fl_file[0] = '\0';
     strcat(fl_file, files[i]);
@@ -149,7 +150,7 @@ TASK_IMPL(flang_files) {
 
     if (strcmp(output->value, output_cmp->value) != 0) {
       // save output to diff!
-      printf("output \n--\n%s\n--\n", output->value);
+      printf("lli output \n--\n%s\n--\nexpected output \n--\n%s\n--\n", output->value, output_cmp->value);
 
       ASSERT(false, files[i]);
       assert(false);

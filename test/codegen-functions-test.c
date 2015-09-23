@@ -57,6 +57,16 @@ TASK_IMPL(codegen_functions) {
   TEST_CODEGEN_OK("function 06", "fn x() : i8 {"
                                  "return 0; }",
                   {});
+  /*
+    log_debug_level = 10;
+    TEST_CODEGEN_OK("function 06", "fn reverseArray(i32 count) : bool {"
+                                   "var i32 i;"
+                                   "i = 0;"
+                                   "return i < count >> 1;"
+                                   "}",
+                    {});
 
+  exit(1);
+  */
   return 0;
 }

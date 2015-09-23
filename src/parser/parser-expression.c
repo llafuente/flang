@@ -302,20 +302,19 @@ ast_t* PSR_READ_binop(PSR_READ_HEADER, tk_tokens_t operators[], size_t n_ops,
 
   size_t i = 0;
 
-  // last-left is previous right
-  ast_t* tmp = leafs[leafs_s - 1]->binop.left;
-  ast_t* tmp2; // last
-  for (; i < leafs_s - 2; ++i) {
-    leafs[i]->binop.right = leafs[i + 1];
+  for (; i < leafs_s - 1; ++i) {
+    leafs[i]->binop.right = leafs[i + 1]->binop.left;
+    leafs[i + 1]->binop.left = leafs[i];
   }
-  tmp2 = leafs[leafs_s - 2];
-  tmp2->binop.right = tmp;
-  free(leafs[leafs_s - 1]); // no recursive, just remove last binop
 
-  tmp = leafs[0];
+  ast_t* ret = leafs[leafs_s - 2];
+
+  free(leafs[leafs_s - 1]); // no recursive, just remove last binop
   free(leafs);
 
-  return tmp;
+  ast_dump(ret);
+
+  return ret;
 }
 
 PSR_READ_IMPL(expr_logical_or) {

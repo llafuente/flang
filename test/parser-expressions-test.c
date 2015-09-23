@@ -31,6 +31,12 @@
 TASK_IMPL(parser_expressions) {
   log_debug_level = 0;
 
+  TEST_PARSER_OK("fix left recursion", "1 + 2 + 3 + 4;", {
+    ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+    ASSERT(body[0]->binop.left->type == FL_AST_EXPR_BINOP,
+           "left is FL_AST_EXPR_BINOP");
+  });
+
   TEST_PARSER_OK("expressions 01", "1+2", {
     ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
     ASSERT(body[0]->binop.left->type == FL_AST_LIT_NUMERIC,
@@ -40,13 +46,13 @@ TASK_IMPL(parser_expressions) {
   });
   TEST_PARSER_OK("expressions 02", "1+2+3", {
     ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
-    ASSERT(body[0]->binop.left->type == FL_AST_LIT_NUMERIC,
+    ASSERT(body[0]->binop.right->type == FL_AST_LIT_NUMERIC,
            "FL_AST_LIT_NUMERIC");
-    ASSERT(body[0]->binop.right->type == FL_AST_EXPR_BINOP,
+    ASSERT(body[0]->binop.left->type == FL_AST_EXPR_BINOP,
            "FL_AST_EXPR_BINOP");
-    ASSERT(body[0]->binop.right->binop.left->type == FL_AST_LIT_NUMERIC,
+    ASSERT(body[0]->binop.left->binop.left->type == FL_AST_LIT_NUMERIC,
            "FL_AST_LIT_NUMERIC");
-    ASSERT(body[0]->binop.right->binop.right->type == FL_AST_LIT_NUMERIC,
+    ASSERT(body[0]->binop.left->binop.right->type == FL_AST_LIT_NUMERIC,
            "FL_AST_LIT_NUMERIC");
   });
 
