@@ -130,7 +130,12 @@ struct ast {
     } string;
 
     struct ast_lit_numeric {
-      double value;
+      // internal type, where the value is stored d_value, li_value, lui_value
+      size_t ty_id;
+
+      double d_value;
+      long int li_value;
+      long unsigned int lui_value;
     } numeric;
 
     struct ast_lit_identifier {

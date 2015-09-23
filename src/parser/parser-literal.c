@@ -24,6 +24,8 @@
 */
 
 #include "flang.h"
+#include <limits.h>
+#include <errno.h>
 
 PSR_READ_IMPL(literal) {
   ast_t* ast;
@@ -136,7 +138,6 @@ PSR_READ_IMPL(lit_numeric) {
   // null is and alias of 0
 
   if (PSR_ACCEPT_TOKEN(FL_TK_NULL)) {
-    ast->numeric.value = 0;
     ast->ty_id = 10; // u64
     PSR_NEXT();
     PSR_RET_OK(ast);
@@ -145,13 +146,13 @@ PSR_READ_IMPL(lit_numeric) {
   string* str = state->token->string;
   char* start = str->value;
   if (isdigit(start[0])) {
+    bool integer = true;
     char* endp = start + (str->used);
     char* buffer = 0;
 
     // check next token if "."
     PSR_NEXT();
     if (PSR_TEST_TOKEN(FL_TK_DOT)) {
-      // exit(1);
       PSR_NEXT();
       char* decimal = state->token->string->value;
       if (isdigit(start[0])) {
@@ -167,27 +168,75 @@ PSR_READ_IMPL(lit_numeric) {
       }
     }
 
-    // must be a number and error will be final!
-    double result = strtod(start, &endp);
-    if (errno) {
-      if ((result == HUGE_VAL || result == -HUGE_VAL) && errno == ERANGE) {
-        fprintf(stderr, "ERROR! overflow\n");
-      } else if (errno == ERANGE) {
-        fprintf(stderr, "ERROR! underflow\n");
+    char* p = start;
+    while (p < endp) {
+      // anything non number / '-', cannot be parsed by strod/l
+      if (!isdigit(*p) && *p != '-') {
+        integer = false;
+        break;
+      }
+      ++p;
+    }
+
+    if (integer) {
+      log_verbose("try to read long int");
+      // try to parse a long int
+      long val = strtol(start, &endp, 10);
+      ast->numeric.ty_id = 9;
+
+      log_verbose("read [%ld] [%d == %d]", val, errno, ERANGE);
+
+      if (errno == ERANGE ||
+          (errno == ERANGE && (val == LONG_MAX || val == LONG_MIN)) ||
+          (errno != 0 && val == 0)) {
+        log_verbose("ERANGE: try to read long unsigned int");
+        ast->numeric.li_value = 0;
+        ast->numeric.lui_value = strtoul(start, &endp, 10);
+        ast->numeric.ty_id = 10;
+        if (errno == ERANGE) {
+          log_verbose("ERANGE: double");
+          ast->numeric.lui_value = 0;
+        }
+      } else {
+        ast->numeric.li_value = val;
       }
     }
 
-    ast->numeric.value = result;
+    // if integer fail... double!
+    if (ast->numeric.li_value == 0 && ast->numeric.lui_value == 0) {
+      log_verbose("double");
 
-    if ((double)((long int)result) == result) {
-      ast->ty_id = 9; // bigger possible i64
-    } else {
-      ast->ty_id = 12; // bigger possible f64
+      // must be a number and error will be final!
+      double result = strtod(start, &endp);
+      if (errno) {
+        if ((result == HUGE_VAL || result == -HUGE_VAL) && errno == ERANGE) {
+          fprintf(stderr, "ERROR! overflow\n");
+        } else if (errno == ERANGE) {
+          fprintf(stderr, "ERROR! underflow\n");
+        }
+      }
+      ast->numeric.d_value = result;
+
+      // even if the initial parting fail, this could work...
+      if ((double)((long int)result) == result) {
+        log_verbose("long int");
+        ast->numeric.ty_id = 9;
+        ast->numeric.li_value = ast->numeric.d_value;
+      } else if ((double)((long unsigned int)result) == result) {
+        log_verbose("long unsigned int");
+        ast->numeric.ty_id = 10;
+        ast->numeric.lui_value = ast->numeric.d_value;
+      } else {
+        log_verbose("double");
+        ast->numeric.ty_id = 12; // bigger possible f64
+      }
     }
+    ast->ty_id = ast->numeric.ty_id;
 
     if (buffer) {
       free(buffer);
     }
+
     PSR_RET_OK(ast);
   }
 

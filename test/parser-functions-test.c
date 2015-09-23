@@ -74,5 +74,7 @@ TASK_IMPL(parser_functions) {
                                 "fn printf2( ptr<i8> format, ... ) ;",
                  {});
 
+  TEST_PARSER_OK("function 04", "function test_i32() {}", {});
+
   return 0;
 }

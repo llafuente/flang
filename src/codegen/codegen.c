@@ -223,12 +223,25 @@ LLVMValueRef cg_lit_number(FL_CODEGEN_HEADER) {
   // size_t ty = node->numeric.ty_id;
   ty_t t = ts_type_table[ty];
 
+  LLVMTypeRef tref = cg_get_typeid(ty, context);
+
   if (t.number.fp) {
-    return LLVMConstReal(cg_get_typeid(ty, context), node->numeric.value);
+    if (node->numeric.ty_id == 9) {
+      return LLVMConstReal(tref, node->numeric.li_value);
+    } else if (node->numeric.ty_id == 10) {
+      return LLVMConstReal(tref, node->numeric.lui_value);
+    } else {
+      return LLVMConstReal(tref, node->numeric.d_value);
+    }
   }
 
-  return LLVMConstInt(cg_get_typeid(ty, context), node->numeric.value,
-                      t.number.sign);
+  if (node->numeric.ty_id == 9) {
+    return LLVMConstInt(tref, node->numeric.li_value, t.number.sign);
+  } else if (node->numeric.ty_id == 10) {
+    return LLVMConstInt(tref, node->numeric.lui_value, t.number.sign);
+  } else {
+    return LLVMConstInt(tref, node->numeric.d_value, t.number.sign);
+  }
 }
 
 LLVMValueRef cg_lit_boolean(FL_CODEGEN_HEADER) {
@@ -507,8 +520,7 @@ LLVMValueRef cg_expr_call(FL_CODEGEN_HEADER) {
     return LLVMBuildCall(builder, fn, arguments, node->call.narguments, "");
   }
 
-  LLVMValueRef* empty_args;
-  *empty_args = 0;
+  LLVMValueRef empty_args[1];
   return LLVMBuildCall(builder, fn, empty_args, 0, "");
 
   /*

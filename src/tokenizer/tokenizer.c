@@ -198,7 +198,8 @@ tk_token_list_t* fl_tokenize(string* file) {
       // check that token position valid
       if (isalpha(*state.itr)) {
         // if current is alpha, previous must not be.
-        if (isalpha(*(state.itr - 1))) {
+        char c = *(state.itr - 1);
+        if (isalpha(c) || c == '_') {
           tk = 0; // like a not found token
         }
       }

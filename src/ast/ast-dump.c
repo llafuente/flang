@@ -52,7 +52,18 @@ void ast_dump_one(ast_t* node) {
     printf("binop T(%zu) [operator=%d]", node->ty_id, node->binop.operator);
     break;
   case FL_AST_LIT_NUMERIC:
-    printf("number T(%zu) [value=%f]", node->ty_id, node->numeric.value);
+    printf("number T(%zu) [u=%ld] [zu=%zu] [f=%f]", node->ty_id,
+           node->numeric.li_value, node->numeric.lui_value,
+           node->numeric.d_value);
+    /*
+    if (node->ty_id == 9) {
+      printf("number T(9) [value=%u]", node->numeric.li_value);
+    } else if (node->ty_id == 10) {
+      printf("number T(10) [value=%zu]", node->numeric.lui_value);
+    } else {
+      printf("number T(%zu) [value=%f]", node->ty_id, node->numeric.d_value);
+    }
+    */
     break;
   case FL_AST_LIT_IDENTIFIER:
     printf("identifier T(%zu) [resolve=%d string=%s]", node->ty_id,

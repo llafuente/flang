@@ -479,19 +479,22 @@ PSR_READ_IMPL(expr_call) {
 
   PSR_START_LIST(list);
   ecall->call.arguments = list;
-  do {
-    PSR_SKIPWS();
+  log_verbose("read arguments '%s'", state->token->string->value);
+  if (!PSR_ACCEPT_TOKEN(FL_TK_RPARENTHESIS)) {
+    do {
+      PSR_SKIPWS();
 
-    PSR_READ_OR_DIE(argument, expr_argument, { ast_delete(ecall); },
-                    "expected function argument");
+      PSR_READ_OR_DIE(argument, expr_argument, { ast_delete(ecall); },
+                      "expected function argument");
 
-    list->list.elements[list->list.count++] = argument;
+      list->list.elements[list->list.count++] = argument;
 
-    PSR_SKIPWS();
-  } while (PSR_ACCEPT_TOKEN(FL_TK_COMMA));
-  ecall->call.narguments = list->list.count;
+      PSR_SKIPWS();
+    } while (PSR_ACCEPT_TOKEN(FL_TK_COMMA));
+    ecall->call.narguments = list->list.count;
 
-  PSR_EXPECT_TOKEN(FL_TK_RPARENTHESIS, callee, {}, "expected ')'");
+    PSR_EXPECT_TOKEN(FL_TK_RPARENTHESIS, callee, {}, "expected ')'");
+  }
 
   PSR_RET_OK(ecall);
 }

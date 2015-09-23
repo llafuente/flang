@@ -48,8 +48,7 @@ TASK_IMPL(parser_expressions) {
     ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
     ASSERT(body[0]->binop.right->type == FL_AST_LIT_NUMERIC,
            "FL_AST_LIT_NUMERIC");
-    ASSERT(body[0]->binop.left->type == FL_AST_EXPR_BINOP,
-           "FL_AST_EXPR_BINOP");
+    ASSERT(body[0]->binop.left->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
     ASSERT(body[0]->binop.left->binop.left->type == FL_AST_LIT_NUMERIC,
            "FL_AST_LIT_NUMERIC");
     ASSERT(body[0]->binop.left->binop.right->type == FL_AST_LIT_NUMERIC,
