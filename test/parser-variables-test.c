@@ -42,5 +42,13 @@ TASK_IMPL(parser_variables) {
     ASSERTE(body[0]->var.type->ty_id, 3, "%zu == %d", "typeid i8 is 3");
   });
 
+  TEST_PARSER_OK("var decl 03", "var i8 hello = 1;", {
+    ASSERT(body[0]->type == FL_AST_LIST, "type: FL_AST_LIST");
+  });
+
+  TEST_PARSER_OK("var decl 04", "var hello = \"world!\";", {
+    ASSERT(body[0]->type == FL_AST_LIST, "type: FL_AST_LIST");
+  });
+
   return 0;
 }

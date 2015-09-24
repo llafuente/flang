@@ -364,6 +364,8 @@ FL_EXTERN void ast_delete_props(ast_t* ast);
 
 FL_EXTERN void ast_delete_list(ast_t** list);
 
+FL_EXTERN ast_t* ast_clone(ast_t* node);
+
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(ast/ast-static.c) */

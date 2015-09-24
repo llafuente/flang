@@ -154,3 +154,13 @@ void ast_delete_props(ast_t* ast) {
   default: {}
   }
 }
+ast_t* ast_clone(ast_t* node) {
+  ast_t* t = (ast_t*)malloc(sizeof(ast_t));
+  memcpy(t, node, sizeof(ast_t));
+  switch (t->type) {
+  case FL_AST_LIT_IDENTIFIER:
+    t->identifier.string = st_clone(node->identifier.string);
+    break;
+  }
+  return t;
+}

@@ -80,6 +80,8 @@ bool psr_accept_list(tk_token_list_t* tokens, fl_psrstate_t* state,
 
 bool psr_accept_token(tk_token_list_t* tokens, fl_psrstate_t* state,
                       tk_tokens_t token_type) {
+  dbg(true, 11, "[%u == %u]", state->token->type, token_type);
+
   if (state->token->type == token_type) {
     psr_next(tokens, state);
     return true;

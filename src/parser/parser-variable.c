@@ -26,10 +26,49 @@
 #include "flang.h"
 // TODO declaration - declarator list
 PSR_READ_IMPL(decl_variable) {
-  ast_t* ast;
-  FL_TRY_READ(decl_variable_with_type);
-  FL_TRY_READ(decl_variable_no_type);
+  PSR_START_LIST(list);
+  ast_t* dtor = 0;
+  {
+    PSR_READ_OK(dtor_wt, decl_variable_with_type);
+    if (!dtor_wt) {
+      PSR_READ_OK(dtor_nt, decl_variable_no_type);
+      if (dtor_nt) {
+        dtor = dtor_nt;
+      }
+    } else {
+      dtor = dtor_wt;
+    }
+  }
 
+  if (dtor) {
+    // read equals
+    PSR_SKIPWS();
+
+    if (PSR_ACCEPT_TOKEN(FL_TK_EQUAL)) {
+      PSR_START(assgin, FL_AST_EXPR_ASSIGNAMENT);
+      assgin->assignament.left = ast_clone(dtor->var.id);
+
+      PSR_SKIPWS();
+
+      PSR_READ_OR_DIE(expr, expression, {
+        ast_delete(assgin);
+        ast_delete(list);
+        ast_delete(dtor);
+      }, "expected expression");
+
+      assgin->assignament.right = expr;
+
+      list->list.elements[0] = dtor;
+      list->list.elements[1] = assgin;
+      list->list.count = 2;
+
+      PSR_RET_OK(list);
+    } else {
+      ast_delete(list);
+      return dtor;
+    }
+  }
+  ast_delete(list);
   return 0;
 }
 
