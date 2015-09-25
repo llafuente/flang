@@ -41,7 +41,7 @@ TASK_IMPL(codegen_functions) {
                                     "var f64 sum; "
                                     "sum = x(1, 2);",
                   {});
-
+  log_debug_level = 10;
   TEST_CODEGEN_OK("cg function 03", "printf('%s\\n', 'hello');",
                   { fl_to_bitcode(module, "hello-world.bc"); });
 

@@ -47,8 +47,8 @@ PSR_READ_IMPL(type) {
   tk_tokens_t tk = state->token->type;
   tk_tokens_t tks[] = {FL_TK_VOID, FL_TK_BOOL,
 
-                       FL_TK_I8,   FL_TK_U8,   FL_TK_I16, FL_TK_U16,
-                       FL_TK_I32,  FL_TK_U32,  FL_TK_I64, FL_TK_U64,
+                       FL_TK_U8,   FL_TK_I8,   FL_TK_U16, FL_TK_I16,
+                       FL_TK_U32,  FL_TK_I32,  FL_TK_U64, FL_TK_I64,
 
                        FL_TK_F32,  FL_TK_F64 /*FL_TK_STRING*/};
 

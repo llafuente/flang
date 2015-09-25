@@ -36,10 +36,9 @@ TASK_IMPL(parser_variables) {
   });
 
   TEST_PARSER_OK("var decl 02", "var i8 hello;", {
-
     ASSERT(body[0]->type == FL_AST_DTOR_VAR, "type: FL_AST_DTOR_VAR");
     ASSERT(body[0]->var.type->type == FL_AST_TYPE, "type.type: FL_AST_TYPE");
-    ASSERTE(body[0]->var.type->ty_id, 3, "%zu == %d", "typeid i8 is 3");
+    ASSERTE(body[0]->var.type->ty_id, TS_I8, "%zu == %d", "typeid i8 is TS_I8");
   });
 
   TEST_PARSER_OK("var decl 03", "var i8 hello = 1;", {

@@ -38,34 +38,36 @@ void test_parser_type(ast_t* body, size_t typeid) {
   ASSERTE(var_type->ty_id, typeid, "%zu != %zu", "typeid ?");
 }
 
-// TODO review if ";" is required
+// TODO more robust test... some values will change when core grow
 TASK_IMPL(parser_types) {
   log_debug_level = 0;
 
   TEST_PARSER_OK("bool type=2", "var bool hello;",
                  { test_parser_type(*body, 2); });
 
-  TEST_PARSER_OK("i8 type=3", "var i8 hello;", { test_parser_type(*body, 3); });
+  TEST_PARSER_OK("i8 type=3", "var i8 hello;",
+                 { test_parser_type(*body, TS_I8); });
 
-  TEST_PARSER_OK("u8 type=4", "var u8 hello;", { test_parser_type(*body, 4); });
+  TEST_PARSER_OK("u8 type=4", "var u8 hello;",
+                 { test_parser_type(*body, TS_U8); });
 
   TEST_PARSER_OK("i16 type=5", "var i16 hello;",
-                 { test_parser_type(*body, 5); });
+                 { test_parser_type(*body, TS_I16); });
 
   TEST_PARSER_OK("i32 type=7", "var i32 hello;",
-                 { test_parser_type(*body, 7); });
+                 { test_parser_type(*body, TS_I32); });
 
   TEST_PARSER_OK("i64 type=9", "var i64 hello;",
-                 { test_parser_type(*body, 9); });
+                 { test_parser_type(*body, TS_I64); });
 
   TEST_PARSER_OK("f32 type=11", "var f32 hello;",
-                 { test_parser_type(*body, 11); });
+                 { test_parser_type(*body, TS_F32); });
 
   TEST_PARSER_OK("f64 type=12", "var f64 hello;", {
-    test_parser_type(*body, 12);
+    test_parser_type(*body, TS_F64);
 
     // this must be tested inside, test macro clean types
-    ty_t ty = ts_type_table[12];
+    ty_t ty = ts_type_table[TS_F64];
     ASSERTE(ty.number.fp, true, "%d == %d", "type if fp");
     ASSERTE(ty.number.bits, 64, "%d == %d", "type is 64 bits");
   });
@@ -131,16 +133,19 @@ TASK_IMPL(parser_types) {
                                         "};",
                  { ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid struct"); });
   TEST_PARSER_OK("void*", "var ptr<void> a",
-                 { ASSERT(body[0]->ty_id == 18, "typeid ptr<void>"); });
+                 { ASSERT(body[0]->ty_id == TS_PVOID, "typeid ptr<void>"); });
 
   TEST_PARSER_OK("alloc", "fn alloc(u64 amount_of_bytes) : ptr<void> { return "
                           "malloc(amount_of_bytes); }",
-                 { ASSERT(body[0]->ty_id == 19, "typeid struct"); });
+                 { ASSERT(body[0]->ty_id == 18, "typeid struct"); });
 
   // TODO this is a bug in tokenizer-parser: 'ptr<ptr<void>>' should be valid!
   TEST_PARSER_OK("void*", "var ptr<ptr<void> > a", {
     ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid ptr<void>");
   });
+
+  TEST_PARSER_OK("string", "var string x;",
+                 { ASSERT(body[0]->ty_id == TS_STRING, "typeid string"); });
 
   return 0;
 }

@@ -29,6 +29,8 @@
 void ty_dump(size_t ty_id) {
   ty_t ty = ts_type_table[ty_id];
 
+  log_debug2("[%zu]", ty_id);
+
   switch (ty.of) {
   case FL_VOID:
     log_debug2("void");

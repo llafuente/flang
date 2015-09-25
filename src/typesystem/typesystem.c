@@ -40,17 +40,17 @@ void ts_init() {
     // 0 means infer!
     ts_type_table[0].of = FL_INFER;
     // [1] void
-    ts_type_table[1].of = FL_VOID;
-    ts_type_table[1].id = st_newc("void", st_enc_ascii);
+    ts_type_table[TS_VOID].of = FL_VOID;
+    ts_type_table[TS_VOID].id = st_newc("void", st_enc_ascii);
 
-    size_t id = 2;
     // [2] bool
-    ts_type_table[id].of = FL_NUMBER;
-    ts_type_table[id].id = st_newc("bool", st_enc_ascii);
-    ts_type_table[id].number.bits = 1;
-    ts_type_table[id].number.fp = false;
-    ts_type_table[id].number.sign = false;
+    ts_type_table[TS_BOOL].of = FL_NUMBER;
+    ts_type_table[TS_BOOL].id = st_newc("bool", st_enc_ascii);
+    ts_type_table[TS_BOOL].number.bits = 1;
+    ts_type_table[TS_BOOL].number.fp = false;
+    ts_type_table[TS_BOOL].number.sign = false;
     // [3-10] i8,u8,i16,u16,i32,u32,i64,u64
+    size_t id = 2;
     size_t i = 3;
     char buffer[20];
     for (; i < 7; i++) {
@@ -84,17 +84,20 @@ void ts_init() {
     ts_type_table[id].number.fp = true;
     ts_type_table[id].number.sign = true;
 
-    // [13] pointer address
-    ts_type_table[++id].of = FL_NUMBER;
-    ts_type_table[id].id = st_newc("addr", st_enc_ascii);
-    ts_type_table[id].number.bits = 64;
-    ts_type_table[id].number.fp = false;
-    ts_type_table[id].number.sign = false;
+    // [13] C-str (null-terminated)
+    ts_type_table[++id].of = FL_POINTER;
+    ts_type_table[id].id = st_newc("cstr", st_enc_ascii);
+    ts_type_table[id].ptr.to = TS_I8;
+
+    // [14] ptr void
+    ts_type_table[++id].of = FL_POINTER;
+    ts_type_table[id].id = st_newc("ptr<void>", st_enc_ascii);
+    ts_type_table[id].ptr.to = TS_VOID;
 
     // adding types here, affects typesystem pass
     // because some are hardcoded atm!
 
-    // [14+] core + user
+    // [15+] core + user
     ts_type_size_s = ++id;
   }
 }

@@ -23,6 +23,22 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#define TS_VOID 1
+#define TS_BOOL 2
+#define TS_U8 3
+#define TS_I8 4
+#define TS_U16 5
+#define TS_I16 6
+#define TS_U32 7
+#define TS_I32 8
+#define TS_U64 9
+#define TS_I64 10
+#define TS_F32 11
+#define TS_F64 12
+#define TS_CSTR 13
+#define TS_PVOID 14
+#define TS_STRING 16
+
 enum ts_types {
   FL_VOID = 1,
   FL_NUMBER = 2,

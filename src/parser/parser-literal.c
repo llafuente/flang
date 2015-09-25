@@ -86,6 +86,7 @@ PSR_READ_IMPL(lit_string_sq) {
     PSR_RET_KO(str_node);
   }
 
+  str_node->ty_id = TS_CSTR;
   PSR_RET_OK(str_node);
 }
 
@@ -106,7 +107,7 @@ PSR_READ_IMPL(lit_string_dq) {
     PSR_RET_KO(str_node);
   }
 
-  str_node->ty_id = 15; // TODO ptr<i8> atm -> string in the future
+  str_node->ty_id = TS_CSTR;
   PSR_RET_OK(str_node);
 }
 

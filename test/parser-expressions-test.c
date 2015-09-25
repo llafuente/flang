@@ -180,9 +180,8 @@ TASK_IMPL(parser_expressions) {
                                   "var yyy s;"
                                   "s.hello = 1;",
                  {
-                   ASSERT(body[0]->ty_id == TEST_TYPEID, "struct type");
                    ASSERT(body[1]->ty_id == TEST_TYPEID, "variable type");
-                   ASSERT(body[2]->ty_id == 9, "assignament type 9");
+                   ASSERT(body[2]->ty_id == TS_I64, "assignament type TS_I64");
                  });
   /*
     TEST_PARSER_OK("member access", "var h; h = s.hello.world();", {});
@@ -196,13 +195,13 @@ TASK_IMPL(parser_expressions) {
                                  "&x;",
                  {
                    ASSERT(body[0]->ty_id == TEST_TYPEID, "struct type");
-                   ASSERT(body[1]->ty_id == 9, "dereference type 9");
+                   ASSERT(body[1]->ty_id == TS_I64, "dereference type TS_I64");
                  });
 
   TEST_PARSER_OK("fix unnecesary castings", "var i32 x;"
                                             "x = x + 1;",
                  {
-                   ASSERT(body[1]->ty_id == 7, "dereference type 9");
+                   ASSERT(body[1]->ty_id == TS_I32, "assignament type TS_I32");
                    ASSERT(body[1]->type == FL_AST_EXPR_ASSIGNAMENT,
                           "1st FL_AST_EXPR_ASSIGNAMENT");
                    ASSERT(body[1]->assignament.left->type ==

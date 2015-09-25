@@ -30,6 +30,12 @@ bool ts_castable(size_t aty_id, size_t bty_id) {
     return true;
   }
 
+  // TODO special cases atm
+  if ((aty_id == TS_STRING && bty_id == TS_CSTR) ||
+      (aty_id == TS_CSTR && bty_id == TS_STRING)) {
+    return true;
+  }
+
   ty_t atype = ts_type_table[aty_id];
   ty_t btype = ts_type_table[bty_id];
 
@@ -46,7 +52,9 @@ bool ts_castable(size_t aty_id, size_t bty_id) {
     }
   }
 
+  printf("\n");
   ty_dump(aty_id);
+  printf("\n");
   ty_dump(bty_id);
 
   log_verbose("invalid cast [%zu] to [%zu]", aty_id, bty_id);
