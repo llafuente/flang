@@ -25,11 +25,11 @@
 
 #include "flang.h"
 
-bool ast_parent_cb(ast_t* node, ast_t* parent, size_t level, void* userdata_in,
-                   void* userdata_out) {
+ast_action_t ast_parent_cb(ast_t* node, ast_t* parent, size_t level,
+                           void* userdata_in, void* userdata_out) {
   node->parent = parent;
 
-  return true;
+  return FL_AC_CONTINUE;
 }
 
 void ast_parent(ast_t* root) { ast_traverse(root, ast_parent_cb, 0, 0, 0, 0); }
@@ -105,8 +105,8 @@ size_t ast_ret_type(ast_t* node) {
   return 0;
 }
 
-bool ast_find_fn_decl_cb(ast_t* node, ast_t* parent, size_t level,
-                         void* userdata_in, void* userdata_out) {
+ast_action_t ast_find_fn_decl_cb(ast_t* node, ast_t* parent, size_t level,
+                                 void* userdata_in, void* userdata_out) {
 
   if (node->type == FL_AST_DECL_FUNCTION) {
     string* id = (string*)userdata_in;
@@ -114,11 +114,11 @@ bool ast_find_fn_decl_cb(ast_t* node, ast_t* parent, size_t level,
     if (st_cmp(id, node->func.id->identifier.string) == 0) {
       void** ret = (void**)userdata_out;
       *ret = node;
-      return false;
+      return FL_AC_STOP;
     }
   }
 
-  return true;
+  return FL_AC_CONTINUE;
 }
 
 ast_t* ast_find_fn_decl(ast_t* identifier) {
@@ -133,8 +133,8 @@ ast_t* ast_find_fn_decl(ast_t* identifier) {
   return *ret;
 }
 
-bool ast_find_fn_decls_cb(ast_t* node, ast_t* parent, size_t level,
-                          void* userdata_in, void* userdata_out) {
+ast_action_t ast_find_fn_decls_cb(ast_t* node, ast_t* parent, size_t level,
+                                  void* userdata_in, void* userdata_out) {
 
   if (node->type == FL_AST_DECL_FUNCTION) {
     string* ast_search_id = (string*)userdata_in;
@@ -144,9 +144,11 @@ bool ast_find_fn_decls_cb(ast_t* node, ast_t* parent, size_t level,
       log_verbose("function found push  !");
       array_append((array*)userdata_out, node);
     }
+    // TODO retrive functions inside functions ?
+    // it's not out of your scope?!
   }
 
-  return true;
+  return FL_AC_CONTINUE;
 }
 array* ast_find_fn_decls(ast_t* node, string* id) {
   array* userdata = malloc(sizeof(array));

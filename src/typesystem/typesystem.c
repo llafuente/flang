@@ -222,8 +222,8 @@ void ts_cast_binop(ast_t* bo) {
   }
 }
 
-bool ts_pass_cb(ast_t* node, ast_t* parent, size_t level, void* userdata_in,
-                void* userdata_out) {
+ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
+                        void* userdata_in, void* userdata_out) {
   switch (node->type) {
   case FL_AST_STMT_RETURN: {
     ast_t* decl = node->parent;
@@ -445,7 +445,7 @@ bool ts_pass_cb(ast_t* node, ast_t* parent, size_t level, void* userdata_in,
     }
   }
   }
-  return true;
+  return FL_AC_CONTINUE;
 }
 
 ast_t* ts_pass(ast_t* node) {
@@ -739,7 +739,7 @@ ast_t* ts_find_fn_decl(string* id, ast_t* args_call) {
 // TODO global vars!
 size_t ts_var_typeid(ast_t* id) {
   assert(id->type != FL_AST_LIT_IDENTIFIER);
-  log_verbose("%d", id->identifier.string->value)
+  log_verbose("%s", id->identifier.string->value)
 
       ast_t* decl = ast_search_id_decl(id, id->identifier.string);
 

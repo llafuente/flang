@@ -25,19 +25,24 @@
 
 #include "flang.h"
 
-bool ast_search_id_decl_cb(ast_t* node, ast_t* parent, size_t level,
-                           void* userdata_in, void* userdata_out) {
-  // printf("** ast_search_id_decl_cb **\n");
-  // ast_dump(node);
+ast_action_t ast_search_id_decl_cb(ast_t* node, ast_t* parent, size_t level,
+                                   void* userdata_in, void* userdata_out) {
+  // printf("\n** ");
+  // ast_dump_one(node);
+  // printf("\n");
 
   switch (node->type) {
+  case FL_AST_DECL_FUNCTION: {
+    // printf("FUNCTION!**** must be skipped!!!");
+    return FL_AC_SKIP;
+  }
   case FL_AST_PARAMETER: {
     string* id = (string*)userdata_in;
 
     if (st_cmp(id, node->func.id->identifier.string) == 0) {
       void** ret = (void**)userdata_out;
       *ret = node;
-      return false;
+      return FL_AC_STOP;
     }
   }
   case FL_AST_DTOR_VAR: {
@@ -46,60 +51,21 @@ bool ast_search_id_decl_cb(ast_t* node, ast_t* parent, size_t level,
     if (st_cmp(id, node->var.id->identifier.string) == 0) {
       void** ret = (void**)userdata_out;
       *ret = node;
-      return false;
+      return FL_AC_STOP;
     }
   }
   }
 
-  return true;
+  return FL_AC_CONTINUE;
 }
 
 ast_t* ast_search_id_decl(ast_t* node, string* identifier) {
   ast_t* ret = 0;
+
+  // printf("\nsearching '%s'\n", identifier->value);
 
   ast_reverse(node, ast_search_id_decl_cb, 0, 0, (void*)identifier,
               (void*)&ret);
 
   return ret;
 }
-
-/*
-ast_t* ast_search_id_decl(ast_t* node, string* name) {
-  while ((node = node->parent) != 0) {
-    switch (node->type) {
-    case FL_AST_DECL_FUNCTION: {
-
-      if (node->func.nparams) {
-        size_t i = 0;
-        ast_t* tmp;
-        ast_t* list = node->func.params;
-        while ((tmp = list->list.elements[i++]) != 0) {
-          if (st_cmp(name, tmp->param.id->identifier.string) == 0) {
-            log_verbose("found parameter @ [%zu]", i);
-            return tmp;
-          }
-        }
-      }
-    } break;
-    case FL_AST_BLOCK: {
-      // search in the list
-      size_t i = 0;
-      ast_t* tmp;
-
-      if (node->block.body) {
-        while ((tmp = node->block.body[i++]) != 0) {
-          if (tmp->type == FL_AST_DTOR_VAR &&
-              st_cmp(name, tmp->var.id->identifier.string) == 0) {
-            log_verbose("found var decl @ [%zu]", i);
-            return tmp;
-          }
-        }
-      }
-    }
-    default: {} // remove warn
-    }
-  }
-
-  return 0;
-}
-*/

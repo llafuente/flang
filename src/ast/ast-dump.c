@@ -130,8 +130,8 @@ void ast_dump_one(ast_t* node) {
   }
 }
 
-bool ast_dump_cb(ast_t* node, ast_t* parent, size_t level, void* userdata_in,
-                 void* userdata_out) {
+ast_action_t ast_dump_cb(ast_t* node, ast_t* parent, size_t level,
+                         void* userdata_in, void* userdata_out) {
   if (!node) {
     log_warning("ast_dump: null\n");
     return true;
@@ -153,7 +153,7 @@ bool ast_dump_cb(ast_t* node, ast_t* parent, size_t level, void* userdata_in,
       printf("\x1B[36m(%d)[@%p]\x1B[39m\n", node->type, node);
     }
   */
-  return true;
+  return FL_AC_CONTINUE;
 }
 
 void ast_dump(ast_t* node) {

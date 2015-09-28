@@ -54,6 +54,8 @@ typedef enum fl_error_zone fl_error_zone_t;
 enum ast_types;
 typedef enum ast_types ast_types_t;
 
+enum ast_action;
+typedef enum ast_action ast_action_t;
 struct ast;
 typedef struct ast ast_t;
 
@@ -324,8 +326,8 @@ PSR_READ_DECL(comment_single);
 /**
  * @returns if the iteration must stop
  */
-typedef bool (*ast_cb_t)(ast_t* node, ast_t* parent, size_t level,
-                         void* userdata_in, void* userdata_out);
+typedef ast_action_t (*ast_cb_t)(ast_t* node, ast_t* parent, size_t level,
+                                 void* userdata_in, void* userdata_out);
 
 FL_EXTERN void ast_parent(ast_t* root);
 

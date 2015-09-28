@@ -25,12 +25,16 @@
 
 #include "flang.h"
 
-bool __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, size_t level,
-                    void* userdata_in, void* userdata_out) {
+ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
+                            size_t level, void* userdata_in,
+                            void* userdata_out) {
 #define TRAVERSE(node)                                                         \
   if (node) {                                                                  \
-    if (!__ast_traverse(node, cb, ast, level, userdata_in, userdata_out)) {    \
-      return false;                                                            \
+    switch (__ast_traverse(node, cb, ast, level, userdata_in, userdata_out)) { \
+    case FL_AC_STOP:                                                           \
+      return FL_AC_STOP;                                                       \
+    case FL_AC_SKIP:                                                           \
+      return FL_AC_CONTINUE;                                                   \
     }                                                                          \
   }
 
@@ -41,7 +45,16 @@ bool __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, size_t level,
                                                                                \
     if (node) {                                                                \
       while ((tmp = node[i++]) != 0) {                                         \
-        TRAVERSE(tmp);                                                         \
+        if (tmp) {                                                             \
+          switch (__ast_traverse(tmp, cb, ast, level, userdata_in,             \
+                                 userdata_out)) {                              \
+          case FL_AC_SKIP:                                                     \
+          case FL_AC_CONTINUE:                                                 \
+            continue;                                                          \
+          case FL_AC_STOP:                                                     \
+            return FL_AC_STOP;                                                 \
+          }                                                                    \
+        }                                                                      \
       }                                                                        \
     }                                                                          \
   }
@@ -53,8 +66,11 @@ bool __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, size_t level,
 
   ++level;
   // stop if callback is false
-  if (!cb(ast, parent, level, userdata_in, userdata_out)) {
-    return false;
+  switch (cb(ast, parent, level, userdata_in, userdata_out)) {
+  case FL_AC_STOP:
+    return FL_AC_STOP;
+  case FL_AC_SKIP:
+    return FL_AC_SKIP;
   }
 
   switch (ast->type) {
@@ -133,7 +149,7 @@ bool __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, size_t level,
   default: {}
   }
 
-  return true;
+  return FL_AC_CONTINUE;
 }
 
 void ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, size_t level,
@@ -153,8 +169,12 @@ void ast_traverse_list(ast_t* node, ast_cb_t cb, ast_t* until, size_t level,
       return;
     }
 
-    if (!__ast_traverse(node->list.elements[i], cb, node, level + 1,
-                        userdata_in, userdata_out)) {
+    switch (__ast_traverse(node->list.elements[i], cb, node, level + 1,
+                           userdata_in, userdata_out)) {
+    case FL_AC_SKIP:
+    case FL_AC_CONTINUE:
+      continue;
+    case FL_AC_STOP:
       return;
     }
   }

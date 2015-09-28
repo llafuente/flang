@@ -48,17 +48,17 @@ bool __ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent, size_t level,
 
   switch (node->type) {
   case FL_AST_MODULE:
-    ast_traverse(node, cb, 0, parent, userdata_in, userdata_out);
+    ast_traverse(node, cb, parent, 0, userdata_in, userdata_out);
     break;
   case FL_AST_PROGRAM:
     if (node->program.core) {
-      ast_traverse(node->program.core, cb, 0, node, userdata_in, userdata_out);
+      ast_traverse(node->program.core, cb, node, 0, userdata_in, userdata_out);
     }
     break;
   case FL_AST_BLOCK: {
     if (node->parent->type == FL_AST_PROGRAM && node->parent->parent) {
       // do not traverse current program
-      ast_traverse(node, cb, 0, parent, userdata_in, userdata_out);
+      ast_traverse(node, cb, parent, 0, userdata_in, userdata_out);
     }
   } break;
   case FL_AST_LIST: {

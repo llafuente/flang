@@ -76,5 +76,9 @@ TASK_IMPL(parser_functions) {
 
   TEST_PARSER_OK("function 04", "function test_i32() {}", {});
 
+  TEST_PARSER_OK("function 05", "function t(i8 i) {} var i32 i; i = 0;", {
+    ASSERT(body[2]->assignament.left->ty_id == TS_I32, "i is i32");
+  });
+
   return 0;
 }

@@ -25,17 +25,17 @@
 
 #include "flang.h"
 
-bool ast_is_static_cb(ast_t* node, ast_t* parent, size_t level,
-                      void* userdata_in, void* userdata_out) {
+ast_action_t ast_is_static_cb(ast_t* node, ast_t* parent, size_t level,
+                              void* userdata_in, void* userdata_out) {
   switch (node->type) {
   case FL_AST_EXPR_BINOP: // 1 + 3 is static... continue
   case FL_AST_LIT_STRING:
   case FL_AST_LIT_NUMERIC:
-    return true;
+    return FL_AC_CONTINUE;
   }
   bool* ret = (bool*)userdata_out;
   *ret = false;
-  return false;
+  return FL_AC_STOP;
 }
 
 bool ast_is_static(ast_t* node) {

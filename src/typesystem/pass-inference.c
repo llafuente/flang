@@ -31,8 +31,8 @@ struct id_search {
 };
 typedef struct id_search id_search_t;
 
-bool fl_ast_find_identifier(ast_t* node, ast_t* parent, size_t level,
-                            void* userdata_in, void* userdata_out) {
+ast_action_t fl_ast_find_identifier(ast_t* node, ast_t* parent, size_t level,
+                                    void* userdata_in, void* userdata_out) {
   if (node->type == FL_AST_LIT_IDENTIFIER) {
     id_search_t* data = (id_search_t*)userdata_in;
     string* str = data->needle;
@@ -40,11 +40,11 @@ bool fl_ast_find_identifier(ast_t* node, ast_t* parent, size_t level,
       data->list[data->length++] = node;
     }
   }
-  return true;
+  return FL_AC_CONTINUE;
 }
 
-bool dtors_var_infer(ast_t* node, ast_t* parent, size_t level,
-                     void* userdata_in, void* userdata_out) {
+ast_action_t dtors_var_infer(ast_t* node, ast_t* parent, size_t level,
+                             void* userdata_in, void* userdata_out) {
   if (node->type == FL_AST_DTOR_VAR) {
     if (node->var.type->ty_id == 0) {
       // search all ocurrences of this identifier
@@ -80,7 +80,7 @@ bool dtors_var_infer(ast_t* node, ast_t* parent, size_t level,
     }
   }
 
-  return true;
+  return FL_AC_CONTINUE;
 }
 
 // return error
