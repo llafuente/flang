@@ -34,47 +34,9 @@ bool ast_parent_cb(ast_t* node, ast_t* parent, size_t level, void* userdata_in,
 
 void ast_parent(ast_t* root) { ast_traverse(root, ast_parent_cb, 0, 0, 0, 0); }
 
-ast_t* ast_search_decl_var(ast_t* node, string* name) {
-  while ((node = node->parent) != 0) {
-    switch (node->type) {
-    case FL_AST_DECL_FUNCTION: {
-
-      if (node->func.nparams) {
-        size_t i = 0;
-        ast_t* tmp;
-        ast_t* list = node->func.params;
-        while ((tmp = list->list.elements[i++]) != 0) {
-          if (st_cmp(name, tmp->param.id->identifier.string) == 0) {
-            log_verbose("found parameter @ [%zu]", i);
-            return tmp;
-          }
-        }
-      }
-    } break;
-    case FL_AST_BLOCK: {
-      // search in the list
-      size_t i = 0;
-      ast_t* tmp;
-
-      if (node->block.body) {
-        while ((tmp = node->block.body[i++]) != 0) {
-          if (tmp->type == FL_AST_DTOR_VAR &&
-              st_cmp(name, tmp->var.id->identifier.string) == 0) {
-            log_verbose("found var decl @ [%zu]", i);
-            return tmp;
-          }
-        }
-      }
-    }
-    default: {} // remove warn
-    }
-  }
-
-  return 0;
-}
-
 size_t ast_get_typeid(ast_t* node) {
   assert(node == 0);
+  ast_dump(node);
   // check AST is somewhat "type-related"
   switch (node->type) {
   case FL_AST_DTOR_VAR:
@@ -101,7 +63,7 @@ size_t ast_get_typeid(ast_t* node) {
 
     log_verbose("identifier T(%s)", node->identifier.string->value);
     // search var-dtor and return it
-    ast_t* dtor = ast_search_decl_var(node, node->identifier.string);
+    ast_t* dtor = ast_search_id_decl(node, node->identifier.string);
     if (dtor) {
       return ast_get_typeid(dtor);
     }

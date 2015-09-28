@@ -129,14 +129,17 @@ LLVMValueRef cg_ast(FL_CODEGEN_HEADER) {
     log_verbose("** program.body **");
     return cg_ast(node->program.body, FL_CODEGEN_PASSTHROUGH);
   case FL_AST_BLOCK: {
-    size_t i = 0;
-    ast_t* tmp;
+    cg_ast(node->block.body, FL_CODEGEN_PASSTHROUGH);
+    return 0;
+  }
+  case FL_AST_LIST: {
+    assert(node->parent->type == FL_AST_BLOCK);
 
-    while ((tmp = node->block.body[i++])) {
+    size_t i;
+    for (i = 0; i < node->list.count; ++i) {
       log_debug("block %zu", i);
-      cg_ast(tmp, FL_CODEGEN_PASSTHROUGH);
+      cg_ast(node->list.elements[i], FL_CODEGEN_PASSTHROUGH);
     }
-
     return 0;
   }
   case FL_AST_EXPR_ASSIGNAMENT:
@@ -276,7 +279,7 @@ LLVMValueRef cg_assignament(FL_CODEGEN_HEADER) {
 
   // if left is an identifier, set
   // if (l->type == FL_AST_LIT_IDENTIFIER) {
-  //  ast_t* id = ast_search_decl_var(node, l->identifier.string);
+  //  ast_t* id = ast_search_id_decl(node, l->identifier.string);
   //  id->last_codegen = left;
   //}
   return left;
@@ -711,7 +714,7 @@ LLVMValueRef cg_loop(FL_CODEGEN_HEADER) {
 LLVMValueRef cg_left_identifier(FL_CODEGEN_HEADER) {
   log_debug("identifier");
   ast_dump(node);
-  ast_t* decl = ast_search_decl_var(node, node->identifier.string);
+  ast_t* decl = ast_search_id_decl(node, node->identifier.string);
   ast_dump(decl);
 
   if (!decl) {

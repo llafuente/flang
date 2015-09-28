@@ -28,7 +28,7 @@
 #include "test.h"
 
 TASK_IMPL(parser_loops) {
-  log_debug_level = 0;
+  log_debug_level = 10;
 
   TEST_PARSER_OK("loop 01", "var i32 x; for x = 1; x < 10; ++x {"
                             "printf(\"%d\", x);"

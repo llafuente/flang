@@ -27,7 +27,7 @@ enum ast_types {
   FL_AST_PROGRAM = 1,
   FL_AST_MODULE = 2,
   FL_AST_BLOCK = 3,
-  FL_AST_LIST = 4, // TODO block->list, arguments->list, parameter->list etc.
+  FL_AST_LIST = 4,
 
   FL_AST_LIT_ARRAY = 10,
   FL_AST_LIT_OBJECT = 11,
@@ -106,9 +106,7 @@ struct ast {
 
     struct ast_block {
       // list of statements
-      ast_t** body;
-      // count
-      size_t nbody;
+      ast_t* body;
     } block;
 
     struct ast_list {

@@ -25,6 +25,7 @@ COMPILER_SOURCES = src/tokenizer/tokenizer.c \
                 src/ast/ast-static.c \
                 src/ast/ast-error.c \
                 src/ast/ast-codegen.c \
+                src/ast/ast-search.c \
                 src/codegen/codegen.c \
                 src/codegen/codegen-export.c \
                 src/codegen/codegen-interpreter.c \

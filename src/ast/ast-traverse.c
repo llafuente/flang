@@ -63,7 +63,7 @@ bool __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, size_t level,
     TRAVERSE(ast->program.body);
     break;
   case FL_AST_BLOCK: {
-    TRAVERSE_LIST(ast->block.body);
+    TRAVERSE(ast->block.body);
   } break;
   case FL_AST_LIST: {
     TRAVERSE_LIST(ast->list.elements);
@@ -139,4 +139,23 @@ bool __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, size_t level,
 void ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, size_t level,
                   void* userdata_in, void* userdata_out) {
   __ast_traverse(ast, cb, parent, level, userdata_in, userdata_out);
+}
+
+void ast_traverse_list(ast_t* node, ast_cb_t cb, ast_t* until, size_t level,
+                       void* userdata_in, void* userdata_out) {
+  assert(node->type == FL_AST_LIST);
+
+  size_t i;
+  for (i = 0; i < node->list.count; ++i) {
+    // exit when reach parent
+    if (node->list.elements[i] == until) {
+      printf("leave [%zu]!!\n", i);
+      return;
+    }
+
+    if (!__ast_traverse(node->list.elements[i], cb, node, level + 1,
+                        userdata_in, userdata_out)) {
+      return;
+    }
+  }
 }

@@ -95,28 +95,27 @@ TASK_IMPL(parser_expressions) {
     ASSERT(body[1]->lunary.operator== FL_TK_PLUS2, "operator FL_TK_PLUS2");
   });
 
-  // TODO nice hack for testing, but declaration first!
-  TEST_PARSER_OK("assignament 01", "a=b; var i8 a; var i8 b;", {
-    ASSERT(body[0]->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
-    ASSERT(body[0]->assignament.operator== FL_TK_EQUAL,
+  TEST_PARSER_OK("assignament 01", "var i8 a; var i8 b; a=b;", {
+    ASSERT(body[2]->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
+    ASSERT(body[2]->assignament.operator== FL_TK_EQUAL,
            "operator: FL_TK_EQUAL");
 
-    ASSERT(body[0]->assignament.left->type == FL_AST_LIT_IDENTIFIER,
+    ASSERT(body[2]->assignament.left->type == FL_AST_LIT_IDENTIFIER,
            "left: FL_AST_LIT_IDENTIFIER");
-    ASSERT(body[0]->assignament.right->type == FL_AST_LIT_IDENTIFIER,
+    ASSERT(body[2]->assignament.right->type == FL_AST_LIT_IDENTIFIER,
            "right: FL_AST_LIT_IDENTIFIER");
   });
 
-  TEST_PARSER_OK("assignament 01", "a =b; var i8 a; var i8 b;", {
-    ASSERT(body[0]->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
+  TEST_PARSER_OK("assignament 01", "var i8 a; var i8 b; a =b;", {
+    ASSERT(body[2]->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
   });
 
-  TEST_PARSER_OK("assignament 02", "a = b; var i8 a; var i8 b;", {
-    ASSERT(body[0]->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
+  TEST_PARSER_OK("assignament 02", "var i8 a; var i8 b; a = b;", {
+    ASSERT(body[2]->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
   });
 
-  TEST_PARSER_OK("assignament 03", "a= b; var i8 a; var i8 b;", {
-    ASSERT(body[0]->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
+  TEST_PARSER_OK("assignament 03", "var i8 a; var i8 b; a= b;", {
+    ASSERT(body[2]->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
   });
 
   TEST_PARSER_OK("binop 01", "1 +2", {

@@ -247,8 +247,8 @@ bool ts_pass_cb(ast_t* node, ast_t* parent, size_t level, void* userdata_in,
   } break;
   case FL_AST_LIT_IDENTIFIER: {
     if (node->identifier.resolve) {
-      node->identifier.decl =
-          ast_search_decl_var(node, node->identifier.string);
+      node->identifier.decl = ast_search_id_decl(node, node->identifier.string);
+      assert(node->identifier.decl == 0);
 
       if (node->parent->type == FL_AST_EXPR_CALL) {
         // see EXPR_CALL below
@@ -704,6 +704,8 @@ ast_t* ts_find_fn_decl(string* id, ast_t* args_call) {
 
   for (j = 0; j < jmax; ++j) {
     decl = array_get(arr, j);
+    assert(decl->type == FL_AST_DECL_FUNCTION);
+
     params = decl->func.params;
     ast_dump(decl);
     // get types from arguments first
@@ -737,8 +739,9 @@ ast_t* ts_find_fn_decl(string* id, ast_t* args_call) {
 // TODO global vars!
 size_t ts_var_typeid(ast_t* id) {
   assert(id->type != FL_AST_LIT_IDENTIFIER);
+  log_verbose("%d", id->identifier.string->value)
 
-  ast_t* decl = ast_search_decl_var(id, id->identifier.string);
+      ast_t* decl = ast_search_id_decl(id, id->identifier.string);
 
   if (!decl) {
     log_error("(ts) cannot find var declaration %s",

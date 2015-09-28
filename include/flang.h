@@ -329,7 +329,7 @@ typedef bool (*ast_cb_t)(ast_t* node, ast_t* parent, size_t level,
 
 FL_EXTERN void ast_parent(ast_t* root);
 
-FL_EXTERN ast_t* ast_search_decl_var(ast_t* node, string* name);
+FL_EXTERN ast_t* ast_search_id_decl(ast_t* node, string* name);
 
 FL_EXTERN size_t ast_get_typeid(ast_t* node);
 
@@ -347,6 +347,9 @@ FL_EXTERN array* ast_find_fn_decls(ast_t* node, string* id);
 FL_EXTERN void ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
                             size_t level, void* userdata_in,
                             void* userdata_out);
+FL_EXTERN void ast_traverse_list(ast_t* node, ast_cb_t cb, ast_t* until,
+                                 size_t level, void* userdata_in,
+                                 void* userdata_out);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(ast/reverse.c) */

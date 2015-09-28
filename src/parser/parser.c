@@ -40,7 +40,7 @@ ast_t* fl_parser(tk_token_list_t* tokens, bool attach_core) {
   // read core
   if (attach_core) {
     int olog_debug_level = log_debug_level;
-    log_debug_level = 0; // remove to debug core parsing
+    // log_debug_level = 0; // remove to debug core parsing
     root->program.core = fl_parse_file("./../core/core.fl", false);
     log_debug_level = olog_debug_level;
   }

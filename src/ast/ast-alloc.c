@@ -73,7 +73,7 @@ void ast_delete_props(ast_t* ast) {
     SAFE_DEL_STR(ast->program.path);
   } break;
   case FL_AST_BLOCK: {
-    SAFE_DEL_LIST(ast->block.body);
+    SAFE_DEL(ast->block.body);
   } break;
   case FL_AST_LIST: {
     SAFE_DEL_LIST(ast->list.elements);

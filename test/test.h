@@ -31,7 +31,8 @@
   ASSERT(root != 0, "root is not null");                                       \
   ASSERT(root->type == FL_AST_PROGRAM, "root is a program");                   \
   ASSERT(root->program.body->type == FL_AST_BLOCK, "program has body");        \
-  ASSERT(root->program.body->block.nbody > 0, "body has statements");
+  ASSERT(root->program.body->block.body->list.count > 0, "body has "           \
+                                                         "statements");
 
 #define CHK_GET_BODY(root, target)                                             \
   CHK_BODY(root);                                                              \
@@ -55,7 +56,7 @@
     fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
     ast_t* root = fl_parse_utf8(code);                                         \
     CHK_BODY(root);                                                            \
-    ast_t** body = root->program.body->block.body;                             \
+    ast_t** body = root->program.body->block.body->list.elements;              \
     code_block;                                                                \
     ts_exit();                                                                 \
     ast_delete(root);                                                          \

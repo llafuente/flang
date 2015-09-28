@@ -68,14 +68,13 @@ psr_read_t block_stmts[] = {
 
 void PSR_READ_NAME(block_body)(PSR_READ_HEADER, ast_t** extend) {
   ast_t* stmt;
-  ast_t** list = calloc(100, sizeof(ast_t*));
+  PSR_START_LIST(list);
   (*extend)->block.body = list;
-  size_t i = 0;
   size_t last;
   size_t j = 0;
 
   while (!psr_eof(tokens, state)) {
-    last = i;
+    last = list->list.count;
 
     for (j = 0; j < 12; ++j) {
       log_verbose("read block id: %zu", j);
@@ -100,7 +99,7 @@ void PSR_READ_NAME(block_body)(PSR_READ_HEADER, ast_t** extend) {
       }
 
       psr_commit(stack, state);
-      list[i++] = stmt;
+      list->list.elements[list->list.count++] = stmt;
 
       break;
     }
@@ -115,13 +114,11 @@ void PSR_READ_NAME(block_body)(PSR_READ_HEADER, ast_t** extend) {
     }
 
     // nothing readed!
-    if (last == i) {
-      ast_delete_list(list);
+    if (last == list->list.count) {
+      ast_delete(list);
       (*extend)->block.body = 0;
       PSR_SET_SYNTAX_ERROR((*extend), "invalid statement");
       return;
     }
   }
-
-  (*extend)->block.nbody = i;
 }
