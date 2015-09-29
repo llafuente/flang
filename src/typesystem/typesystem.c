@@ -94,8 +94,9 @@ void ts_init() {
     ts_type_table[id].id = st_newc("ptr<void>", st_enc_ascii);
     ts_type_table[id].ptr.to = TS_VOID;
 
-    // adding types here, affects typesystem pass
-    // because some are hardcoded atm!
+    // adding types here
+    // affects: typesystem pass (some are hardcoded)
+    // also affects: ts_exit st_delete(xx.id)
 
     // [15+] core + user
     ts_type_size_s = ++id;
@@ -140,6 +141,11 @@ bool ts_is_fp(size_t id) {
 bool ts_is_int(size_t id) {
   ty_t t = ts_type_table[id];
   return t.of == FL_NUMBER ? !t.number.fp : false;
+}
+
+bool ts_is_function(size_t id) {
+  ty_t t = ts_type_table[id];
+  return t.of == FL_FUNCTION;
 }
 
 // TODO how to handle signed/unsigned, how's 'bigger'?
@@ -257,6 +263,18 @@ ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
       } else {
         // it's a var, copy type
         node->ty_id = ast_get_typeid(node->identifier.decl);
+      }
+    }
+
+    // if type is a function, in fact what we want is a
+    // function pointer, so do it for easy to type
+    if (node->parent->type == FL_AST_DTOR_VAR) {
+      if (ts_is_function(node->ty_id)) {
+        node->ty_id = ts_wapper_typeid(FL_POINTER, node->ty_id);
+        node->parent->ty_id = node->ty_id;
+        if (node->parent->var.type) {
+          node->parent->var.type->ty_id = node->ty_id;
+        }
       }
     }
   } break;
@@ -613,7 +631,7 @@ size_t ts_fn_create(ast_t* decl) {
     }
     decl->func.uid = uid;
   } else {
-    decl->func.uid = st_clone(id);
+    decl->func.uid = st_clone(id); // TODO this should be uid ?
   }
 
   ast_t* params = decl->func.params;
@@ -680,8 +698,17 @@ size_t ts_fn_typeid(ast_t* id) {
 ast_t* ts_find_fn_decl(string* id, ast_t* args_call) {
   array* arr = ast_find_fn_decls(args_call->parent, id);
   if (!arr) {
-    log_error("undefined function: %s", id->value);
+    log_verbose("undefined function: '%s' must be a variable", id->value);
+    ast_t* decl = ast_search_id_decl(args_call->parent, id);
+    if (!decl) {
+      log_error("no function/var: '%s'", id->value);
+    }
+    // now search any function that has that ty_id
+    // type is pointer to function so
+    size_t fn_ty = ts_type_table[decl->ty_id].ptr.to;
+    return ts_type_table[fn_ty].func.decl;
   }
+
   log_verbose("declarations with same name = %d\n", arr->size);
 
   if (arr->size == 1) {
@@ -707,13 +734,11 @@ ast_t* ts_find_fn_decl(string* id, ast_t* args_call) {
     assert(decl->type == FL_AST_DECL_FUNCTION);
 
     params = decl->func.params;
-    ast_dump(decl);
     // get types from arguments first
 
     for (i = 0; i < imax; ++i) {
       arg_call = args_call->list.elements[i];
       param = params->list.elements[i];
-      ast_dump(arg_call);
 
       if (!arg_call->ty_id) {
         log_error("cannot find type of argument %zu", i);
@@ -778,7 +803,7 @@ void ts_exit() {
   size_t i;
 
   for (i = 0; i < ts_type_size_s; ++i) {
-    if (i < 13) {
+    if (i < 15) {
       st_delete(&ts_type_table[i].id);
     }
     // struct and same length?

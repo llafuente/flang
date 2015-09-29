@@ -1,0 +1,9 @@
+fn x() : i8 {
+  printf("x called\n");
+  return 0;
+}
+
+var x y;
+y = &x;
+
+y();

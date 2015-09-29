@@ -120,7 +120,7 @@ LLVMValueRef cg_ast(FL_CODEGEN_HEADER) {
     if (node->program.core) {
       log_verbose("** program.core **");
       int olog_debug_level = log_debug_level;
-      // log_debug_level = 0; // debug core
+      log_debug_level = 0; // debug core
       cg_ast(node->program.core, FL_CODEGEN_PASSTHROUGH);
       log_debug_level = olog_debug_level;
     } else {
@@ -485,6 +485,8 @@ LLVMValueRef cg_function(FL_CODEGEN_HEADER) {
     cg_do_block(block, 0, node->func.body, FL_CODEGEN_PASSTHROUGH);
   }
 
+  node->func.cg_decl = func;
+
   return func;
 }
 
@@ -728,6 +730,10 @@ LLVMValueRef cg_left_identifier(FL_CODEGEN_HEADER) {
     return (LLVMValueRef)decl->param.alloca;
   }
 
+  if (decl->type == FL_AST_DECL_FUNCTION) {
+    return (LLVMValueRef)decl->func.cg_decl;
+  }
+
   log_error("unhandled identifier decl %d", decl->type);
 
   return 0;
@@ -746,6 +752,10 @@ LLVMValueRef cg_right_identifier(FL_CODEGEN_HEADER) {
 
   if (decl->type == FL_AST_PARAMETER) {
     return (LLVMValueRef)decl->param.alloca;
+  }
+
+  if (decl->type == FL_AST_DECL_FUNCTION) {
+    return (LLVMValueRef)decl->func.cg_decl;
   }
 
   log_error("unhandled identifier decl %d", decl->type);

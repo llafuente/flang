@@ -82,6 +82,8 @@ size_t ast_get_typeid(ast_t* node) {
     return ast_get_typeid(node->parent);
   case FL_AST_LIT_STRING:
     return 13;
+  case FL_AST_DECL_FUNCTION:
+    return node->ty_id;
   default: {}
   }
   log_error("ast_get_typeid: node is not type related! %d", node->type);

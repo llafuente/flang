@@ -84,6 +84,16 @@ LLVMTypeRef cg_get_typeid(size_t id, LLVMContextRef context) {
     t->codegen =
         LLVMArrayType(cg_get_typeid(t->vector.to, context), t->vector.length);
   } break;
+  case FL_FUNCTION: {
+    LLVMTypeRef params[t->func.nparams];
+    size_t i;
+    for (i = 0; i < t->func.nparams; ++i) {
+      params[i] = cg_get_typeid(t->func.params[i], context);
+    }
+
+    return LLVMFunctionType(cg_get_typeid(t->func.ret, context), params,
+                            t->func.nparams, t->func.varargs);
+  }
   default: {
     ty_dump(id);
     log_error("type not handled yet [%zu]", id);

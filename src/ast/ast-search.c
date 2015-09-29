@@ -27,32 +27,27 @@
 
 ast_action_t ast_search_id_decl_cb(ast_t* node, ast_t* parent, size_t level,
                                    void* userdata_in, void* userdata_out) {
-  // printf("\n** ");
-  // ast_dump_one(node);
-  // printf("\n");
+#define COMPARE(x)                                                             \
+  {                                                                            \
+    string* id = (string*)userdata_in;                                         \
+    if (st_cmp(id, x) == 0) {                                                  \
+      void** ret = (void**)userdata_out;                                       \
+      *ret = node;                                                             \
+      return FL_AC_STOP;                                                       \
+    }                                                                          \
+  }
 
   switch (node->type) {
   case FL_AST_DECL_FUNCTION: {
-    // printf("FUNCTION!**** must be skipped!!!");
+    COMPARE(node->func.id->identifier.string);
+    // skip function body / parameters
     return FL_AC_SKIP;
   }
   case FL_AST_PARAMETER: {
-    string* id = (string*)userdata_in;
-
-    if (st_cmp(id, node->func.id->identifier.string) == 0) {
-      void** ret = (void**)userdata_out;
-      *ret = node;
-      return FL_AC_STOP;
-    }
+    COMPARE(node->param.id->identifier.string);
   }
   case FL_AST_DTOR_VAR: {
-    string* id = (string*)userdata_in;
-
-    if (st_cmp(id, node->var.id->identifier.string) == 0) {
-      void** ret = (void**)userdata_out;
-      *ret = node;
-      return FL_AC_STOP;
-    }
+    COMPARE(node->var.id->identifier.string);
   }
   }
 
@@ -61,8 +56,6 @@ ast_action_t ast_search_id_decl_cb(ast_t* node, ast_t* parent, size_t level,
 
 ast_t* ast_search_id_decl(ast_t* node, string* identifier) {
   ast_t* ret = 0;
-
-  // printf("\nsearching '%s'\n", identifier->value);
 
   ast_reverse(node, ast_search_id_decl_cb, 0, 0, (void*)identifier,
               (void*)&ret);

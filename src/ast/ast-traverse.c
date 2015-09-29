@@ -165,7 +165,6 @@ void ast_traverse_list(ast_t* node, ast_cb_t cb, ast_t* until, size_t level,
   for (i = 0; i < node->list.count; ++i) {
     // exit when reach parent
     if (node->list.elements[i] == until) {
-      printf("leave [%zu]!!\n", i);
       return;
     }
 

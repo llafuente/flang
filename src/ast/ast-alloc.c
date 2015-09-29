@@ -151,6 +151,9 @@ void ast_delete_props(ast_t* ast) {
     SAFE_DEL(ast->field.id);
     SAFE_DEL(ast->field.type);
   } break;
+  case FL_AST_STMT_COMMENT: {
+    // SAFE_DEL_STR(ast->comment.text);
+  } break;
   default: {}
   }
 }
