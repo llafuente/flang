@@ -254,7 +254,7 @@ ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
   case FL_AST_LIT_IDENTIFIER: {
     if (node->identifier.resolve) {
       node->identifier.decl = ast_search_id_decl(node, node->identifier.string);
-      assert(node->identifier.decl == 0);
+      assert(node->identifier.decl != 0);
 
       if (node->parent->type == FL_AST_EXPR_CALL) {
         // see EXPR_CALL below
@@ -380,7 +380,7 @@ ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
     }
 
     ty_t* t = &ts_type_table[node->call.callee->ty_id];
-    assert(t->of != FL_FUNCTION);
+    assert(t->of == FL_FUNCTION);
 
     ast_dump(node);
 
@@ -763,7 +763,7 @@ ast_t* ts_find_fn_decl(string* id, ast_t* args_call) {
 
 // TODO global vars!
 size_t ts_var_typeid(ast_t* id) {
-  assert(id->type != FL_AST_LIT_IDENTIFIER);
+  assert(id->type == FL_AST_LIT_IDENTIFIER);
   log_verbose("%s", id->identifier.string->value)
 
       ast_t* decl = ast_search_id_decl(id, id->identifier.string);

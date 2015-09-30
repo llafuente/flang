@@ -23,6 +23,9 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#undef NDEBUG
+#include <assert.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>

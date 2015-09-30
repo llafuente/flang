@@ -103,7 +103,7 @@ LLVMModuleRef fl_codegen(ast_t* root, char* module_name) {
 
 LLVMValueRef cg_ast_loaded(char* dbg, FL_CODEGEN_HEADER) {
   LLVMValueRef element = cg_ast(node, FL_CODEGEN_PASSTHROUGH);
-  assert(element == 0);
+  assert(element != 0);
 
   if (ast_require_load(node)) {
     return LLVMBuildLoad(builder, element, dbg);
@@ -133,7 +133,8 @@ LLVMValueRef cg_ast(FL_CODEGEN_HEADER) {
     return 0;
   }
   case FL_AST_LIST: {
-    assert(node->parent->type == FL_AST_BLOCK);
+    assert(node->parent->type == FL_AST_BLOCK ||
+           node->parent->type == FL_AST_LIST);
 
     size_t i;
     for (i = 0; i < node->list.count; ++i) {

@@ -6,6 +6,8 @@ ffi fn st_debug(ptr<string> str);
 var ptr<string> s;
 
 s = st_newc("hi!", 0);
-printf("string='%s'\n", s[0].value);
+printf("string = '%s'\n", s[0].value);
 
+var ptr<i8> z = s[0].value;
+printf("string as ptr = '%s'\n", s[0].value);
 /* st_delete(&s); */

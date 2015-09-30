@@ -25,6 +25,11 @@
 
 #include "flang.h"
 
+// helpers class, call it twice swaping args!
+bool cg_bitcast(ty_t a, ty_t b) {
+  return a.of == FL_VECTOR && b.of == FL_POINTER && a.vector.to == b.ptr.to;
+}
+
 LLVMTypeRef cg_get_type(ast_t* node, LLVMContextRef context) {
   return cg_get_typeid(node->ty_id, context);
 }
@@ -195,6 +200,17 @@ LLVMValueRef cg_cast_op(LLVMBuilderRef builder, size_t current, size_t expected,
       log_error("invalid cast of type %zu to %zu", current, expected);
     }
     }
+  }
+
+  if (cg_bitcast(ex_type, cu_type) || cg_bitcast(cu_type, ex_type)) {
+    return LLVMBuildBitCast(builder, value, cg_get_typeid(expected, context),
+                            "bitcast");
+  }
+
+  if ((ex_type.of == FL_VECTOR && cu_type.of == FL_POINTER) ||
+      (ex_type.of == FL_POINTER && cu_type.of == FL_VECTOR)) {
+
+    // TODO check ptr.to
   }
 
   ty_dump(current);

@@ -1,1 +1,2 @@
-string='hi!'
+string = 'hi!'
+string as ptr = 'hi!'

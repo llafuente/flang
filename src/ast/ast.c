@@ -35,8 +35,8 @@ ast_action_t ast_parent_cb(ast_t* node, ast_t* parent, size_t level,
 void ast_parent(ast_t* root) { ast_traverse(root, ast_parent_cb, 0, 0, 0, 0); }
 
 size_t ast_get_typeid(ast_t* node) {
-  assert(node == 0);
-  ast_dump(node);
+  assert(node != 0);
+
   // check AST is somewhat "type-related"
   switch (node->type) {
   case FL_AST_DTOR_VAR:
