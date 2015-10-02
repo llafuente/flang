@@ -469,7 +469,10 @@ ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
 ast_t* ts_pass(ast_t* node) {
   log_debug("pass start!");
 
+  // first create casting
   ast_traverse(node, ts_pass_cb, 0, 0, 0, 0);
+  // validate casting, and assign a valid operation
+  ast_traverse(node, ts_cast_operation_pass_cb, 0, 0, 0, 0);
 }
 
 // wrapper types are

@@ -187,9 +187,19 @@ LLVMValueRef cg_cast_op(LLVMBuilderRef builder, size_t current, size_t expected,
                               "cast");
       }
     case FL_POINTER:
-      return LLVMBuildBitCast(builder, value, cg_get_typeid(expected, context),
-                              "bitcast");
-
+      // only allow it if both are same type
+      if (ts_type_table[ex_type.ptr.to].of ==
+          ts_type_table[cu_type.ptr.to].of) {
+        return LLVMBuildBitCast(builder, value,
+                                cg_get_typeid(expected, context), "bitcast");
+      }
+      // TODO check autocast
+      log_warning("incompatible pointers");
+    /*
+    string* name = st_newc("autocast", st_enc_ascii);
+    ast_search_fn_wargs(name);
+    st_delete(&name);
+    */
     default: {
       // TODO more friendly
       ty_dump(current);
@@ -203,14 +213,9 @@ LLVMValueRef cg_cast_op(LLVMBuilderRef builder, size_t current, size_t expected,
   }
 
   if (cg_bitcast(ex_type, cu_type) || cg_bitcast(cu_type, ex_type)) {
+    log_verbose("WTF!");
     return LLVMBuildBitCast(builder, value, cg_get_typeid(expected, context),
                             "bitcast");
-  }
-
-  if ((ex_type.of == FL_VECTOR && cu_type.of == FL_POINTER) ||
-      (ex_type.of == FL_POINTER && cu_type.of == FL_VECTOR)) {
-
-    // TODO check ptr.to
   }
 
   ty_dump(current);

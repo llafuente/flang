@@ -25,6 +25,20 @@
 
 enum ast_action { FL_AC_STOP = 0, FL_AC_CONTINUE, FL_AC_SKIP };
 
+enum ast_cast_operations {
+  FL_CAST_FPTOSI,  // LLVMBuildFPToSI
+  FL_CAST_FPTOUI,  // LLVMBuildFPToUI
+  FL_CAST_SITOFP,  // LLVMBuildSIToFP
+  FL_CAST_UITOFP,  // LLVMBuildUIToFP
+  FL_CAST_FPEXT,   // LLVMBuildFPExt
+  FL_CAST_SEXT,    // LLVMBuildSExt
+  FL_CAST_ZEXT,    // LLVMBuildZExt
+  FL_CAST_FPTRUNC, // LLVMBuildFPTrunc
+  FL_CAST_TRUNC,   // LLVMBuildTrunc
+  FL_CAST_BITCAST, // LLVMBuildBitCast
+  FL_CAST_AUTO,    // Function call
+};
+
 enum ast_types {
   FL_AST_PROGRAM = 1,
   FL_AST_MODULE = 2,
@@ -170,6 +184,7 @@ struct ast {
     } runary;
 
     struct ast_cast {
+      ast_cast_operations_t operation;
       ast_t* element;
       // use ty_id as type
     } cast;

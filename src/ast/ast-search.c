@@ -62,3 +62,44 @@ ast_t* ast_search_id_decl(ast_t* node, string* identifier) {
 
   return ret;
 }
+
+ast_action_t ast_search_fn_wargs_cb(ast_t* node, ast_t* parent, size_t level,
+                                    void* userdata_in, void* userdata_out) {
+  switch (node->type) {
+  case FL_AST_DECL_FUNCTION: {
+    void** ui = (void**)userdata_in;
+    string* id = (string*)ui[0];
+
+    if (st_cmp(id, node->func.id->identifier.string) == 0) {
+      ty_t t = ts_type_table[node->ty_id];
+      assert(t.of == FL_FUNCTION);
+
+      size_t* args = (size_t*)ui[1];
+      size_t nargs = (size_t)ui[2];
+      if (t.func.nparams == nargs && memcmp(args, t.func.params, nargs) == 0) {
+        void** ret = (void**)userdata_out;
+        *ret = node;
+        // check arguments
+        return FL_AC_STOP;
+      }
+    }
+    return FL_AC_SKIP;
+  }
+  }
+
+  return FL_AC_CONTINUE;
+}
+
+ast_t* ast_search_fn_wargs(ast_t* node, string* identifier, size_t* args,
+                           size_t nargs) {
+  ast_t* ret = 0;
+
+  void* input[3];
+  input[0] = (void*)identifier;
+  input[1] = (void*)args;
+  input[2] = (void*)nargs;
+
+  ast_reverse(node, ast_search_fn_wargs_cb, 0, 0, (void*)input, (void*)&ret);
+
+  return ret;
+}

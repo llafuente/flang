@@ -201,22 +201,44 @@ LLVMValueRef cg_do_block(LLVMBasicBlockRef block, LLVMBasicBlockRef fall_block,
 }
 
 LLVMValueRef cg_cast(FL_CODEGEN_HEADER) {
-  // check if rigt side is a constant
-  ast_t* el = node->cast.element;
-  log_debug("%d - %d", el->type, FL_AST_LIT_NUMERIC);
+  LLVMValueRef element = cg_ast_loaded("loaded_cast_el", node->cast.element,
+                                       FL_CODEGEN_PASSTHROUGH);
 
-  // TODO MOVE THIS LOGIC TO A PASS O TYPESYSTEM!!!
-  if (el->type == FL_AST_LIT_NUMERIC) {
-    log_debug("cast: override numeric type T(%zu)", node->ty_id);
-    node->cast.element->ty_id = node->ty_id;
-
-    return cg_ast(el, FL_CODEGEN_PASSTHROUGH);
+  switch (node->cast.operation) {
+  case FL_CAST_FPTOSI:
+    return LLVMBuildFPToSI(builder, element,
+                           cg_get_typeid(node->ty_id, context), "cast");
+  case FL_CAST_FPTOUI:
+    return LLVMBuildFPToUI(builder, element,
+                           cg_get_typeid(node->ty_id, context), "cast");
+  case FL_CAST_SITOFP:
+    return LLVMBuildSIToFP(builder, element,
+                           cg_get_typeid(node->ty_id, context), "cast");
+  case FL_CAST_UITOFP:
+    return LLVMBuildUIToFP(builder, element,
+                           cg_get_typeid(node->ty_id, context), "cast");
+  case FL_CAST_FPEXT:
+    return LLVMBuildFPExt(builder, element, cg_get_typeid(node->ty_id, context),
+                          "cast");
+  case FL_CAST_SEXT:
+    return LLVMBuildSExt(builder, element, cg_get_typeid(node->ty_id, context),
+                         "cast");
+  case FL_CAST_ZEXT:
+    return LLVMBuildZExt(builder, element, cg_get_typeid(node->ty_id, context),
+                         "cast");
+  case FL_CAST_FPTRUNC:
+    return LLVMBuildFPTrunc(builder, element,
+                            cg_get_typeid(node->ty_id, context), "cast");
+  case FL_CAST_TRUNC:
+    return LLVMBuildTrunc(builder, element, cg_get_typeid(node->ty_id, context),
+                          "cast");
+  case FL_CAST_BITCAST:
+    return LLVMBuildBitCast(builder, element,
+                            cg_get_typeid(node->ty_id, context), "cast");
+  // remove warning!
+  case FL_CAST_AUTO: {
   }
-
-  LLVMValueRef element =
-      cg_ast_loaded("load_cast_el", el, FL_CODEGEN_PASSTHROUGH);
-
-  return cg_cast_op(builder, ast_get_typeid(el), node->ty_id, element, context);
+  }
 }
 
 LLVMValueRef cg_lit_number(FL_CODEGEN_HEADER) {
@@ -257,9 +279,7 @@ LLVMValueRef cg_lit_boolean(FL_CODEGEN_HEADER) {
 LLVMValueRef cg_lit_string(FL_CODEGEN_HEADER) {
   log_debug("cg_lit_string");
 
-  return LLVMBuildGlobalStringPtr(builder, node->string.value->value,
-                                  "string_val" // TODO must be unique!
-                                  );
+  return LLVMBuildGlobalStringPtr(builder, st_dump(node->string.value), "str");
 }
 
 LLVMValueRef cg_assignament(FL_CODEGEN_HEADER) {

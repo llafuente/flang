@@ -26,6 +26,8 @@
 #include "flang.h"
 
 void ast_dump_one(ast_t* node) {
+  assert(node != 0);
+
   if (log_debug_level < 2) {
     return;
   }
@@ -124,7 +126,7 @@ void ast_dump_one(ast_t* node) {
     printf("loop");
     break;
   case FL_AST_CAST:
-    printf("cast T(%zu)", node->ty_id);
+    printf("cast T(%zu) O(%u)", node->ty_id, node->cast.operation);
     break;
   default: {}
   }

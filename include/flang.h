@@ -57,6 +57,9 @@ typedef enum fl_error_zone fl_error_zone_t;
 enum ast_types;
 typedef enum ast_types ast_types_t;
 
+enum ast_cast_operations;
+typedef enum ast_cast_operations ast_cast_operations_t;
+
 enum ast_action;
 typedef enum ast_action ast_action_t;
 struct ast;
@@ -173,8 +176,12 @@ FL_EXTERN void ts_exit();
 
 /* cldoc:end-category() */
 
-/* cldoc:begin-category(typesystem/cast.c) */
+/* cldoc:begin-category(typesystem/type-cast.c) */
 FL_EXTERN bool ts_castable(size_t aty_id, size_t bty_id);
+FL_EXTERN ast_cast_operations_t ts_cast_operation(ast_t* node);
+FL_EXTERN ast_action_t
+ts_cast_operation_pass_cb(ast_t* node, ast_t* parent, size_t level,
+                          void* userdata_in, void* userdata_out);
 /* cldoc:end-category() */
 
 typedef ast_t* (*psr_read_t)(PSR_READ_HEADER);
@@ -335,8 +342,6 @@ typedef ast_action_t (*ast_cb_t)(ast_t* node, ast_t* parent, size_t level,
 
 FL_EXTERN void ast_parent(ast_t* root);
 
-FL_EXTERN ast_t* ast_search_id_decl(ast_t* node, string* name);
-
 FL_EXTERN size_t ast_get_typeid(ast_t* node);
 
 FL_EXTERN bool ast_is_pointer(ast_t* node);
@@ -347,6 +352,12 @@ FL_EXTERN ast_t* ast_find_fn_decl(ast_t* identifier);
 
 FL_EXTERN array* ast_find_fn_decls(ast_t* node, string* id);
 
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast/ast-search.c) */
+FL_EXTERN ast_t* ast_search_id_decl(ast_t* node, string* name);
+FL_EXTERN ast_t* ast_search_fn_wargs(ast_t* node, string* identifier,
+                                     size_t* args, size_t nargs);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(ast/traverse.c) */
