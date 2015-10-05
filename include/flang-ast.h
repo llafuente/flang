@@ -26,6 +26,7 @@
 enum ast_action { FL_AC_STOP = 0, FL_AC_CONTINUE, FL_AC_SKIP };
 
 enum ast_cast_operations {
+  FL_CAST_ERR = 0, // unkown
   FL_CAST_FPTOSI,  // LLVMBuildFPToSI
   FL_CAST_FPTOUI,  // LLVMBuildFPToUI
   FL_CAST_SITOFP,  // LLVMBuildSIToFP

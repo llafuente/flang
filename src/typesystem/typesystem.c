@@ -233,23 +233,26 @@ ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
   switch (node->type) {
   case FL_AST_STMT_RETURN: {
     ast_t* decl = node->parent;
+    ast_t* arg = node->ret.argument;
     while (decl->parent && decl->type != FL_AST_DECL_FUNCTION) {
       decl = decl->parent;
     }
 
-    if (decl->type != FL_AST_DECL_FUNCTION) {
+    if (!decl) {
       log_error("return statement found outside function scope");
     }
 
+    ts_pass_try(arg);
+
     size_t t = decl->func.ret_type->ty_id;
     if (t != node->ret.argument->ty_id) {
-      ast_t* cast = ts_create_cast(node->ret.argument, t);
+      ast_t* cast = ts_create_cast(arg, t);
       node->ret.argument = cast;
     }
   } break;
   case FL_AST_LIT_STRING: {
     // TODO ptr<i8> atm -> string in the future
-    node->ty_id = 16;
+    node->ty_id = TS_CSTR;
   } break;
   case FL_AST_LIT_IDENTIFIER: {
     if (node->identifier.resolve) {
@@ -417,6 +420,8 @@ ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
     size_t l_type = l->ty_id;
     size_t r_type = r->ty_id;
 
+    log_verbose("l_type %zu r_type %zu", l_type, r_type);
+
     bool l_fp = ts_is_fp(l_type);
     bool r_fp = ts_is_fp(r_type);
 
@@ -449,9 +454,15 @@ ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
       bool l_static = ast_is_static(l);
       bool r_static = ast_is_static(r);
 
+      log_verbose("static %d == %d", l_static, r_static);
+
       if ((l_static && r_static) || (!l_static && !r_static)) {
         node->ty_id = ts_get_bigger_typeid(l_type, r_type);
+        log_verbose("bigger! %zu", node->ty_id);
         ts_cast_binop(node);
+
+        log_verbose("*************");
+        ast_dump(node);
       } else if (l_static) {
         node->ty_id = r_type;
         ts_create_left_cast(node, l);
@@ -468,6 +479,17 @@ ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
 
 ast_t* ts_pass(ast_t* node) {
   log_debug("pass start!");
+
+  // first create casting
+  ast_traverse(node, ts_pass_cb, 0, 0, 0, 0);
+  // validate casting, and assign a valid operation
+  ast_traverse(node, ts_cast_operation_pass_cb, 0, 0, 0, 0);
+}
+
+void ts_pass_try(ast_t* node) {
+  if (node->ty_id) {
+    return;
+  }
 
   // first create casting
   ast_traverse(node, ts_pass_cb, 0, 0, 0, 0);

@@ -63,16 +63,20 @@ bool ts_castable(size_t aty_id, size_t bty_id) {
 }
 
 ast_cast_operations_t ts_cast_operation(ast_t* node) {
-  size_t current = node->ty_id;
-  size_t expected = node->cast.element->ty_id;
+  size_t expected = node->ty_id;
+  size_t current = node->cast.element->ty_id;
+  log_verbose("cast %zu to %zu", current, expected);
 
   ty_t cu_type = ts_type_table[current];
   ty_t ex_type = ts_type_table[expected];
+  log_verbose("same type %d", ex_type.of == cu_type.of);
 
   if (ex_type.of == cu_type.of) {
     switch (ex_type.of) {
     case FL_NUMBER:
       // fpto*i
+      log_verbose("%d && %d", cu_type.number.fp, ex_type.number.fp);
+
       if (cu_type.number.fp && !ex_type.number.fp) {
         if (ex_type.number.sign) {
           return FL_CAST_FPTOSI;
@@ -111,14 +115,16 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
       }
     case FL_POINTER:
       // only allow it if both are same type
+      // or one is void
       if (ts_type_table[ex_type.ptr.to].of ==
           ts_type_table[cu_type.ptr.to].of) {
         return FL_CAST_BITCAST;
       }
     }
   }
-
-  if (cg_bitcast(ex_type, cu_type) || cg_bitcast(cu_type, ex_type)) {
+  log_verbose("cg_bitcast: %zu == %zu", cg_bitcast(ex_type, cu_type),
+              cg_bitcast(cu_type, ex_type)) if (cg_bitcast(ex_type, cu_type) ||
+                                                cg_bitcast(cu_type, ex_type)) {
     return FL_CAST_BITCAST;
   }
 
@@ -174,7 +180,7 @@ ast_action_t ts_cast_operation_pass_cb(ast_t* node, ast_t* parent, size_t level,
                                        void* userdata_in, void* userdata_out) {
   switch (node->type) {
   case FL_AST_CAST: {
-    ts_cast_operation(node);
+    node->cast.operation = ts_cast_operation(node);
   }
   }
   return FL_AC_CONTINUE;

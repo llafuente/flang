@@ -59,10 +59,12 @@ PSR_READ_IMPL(lit_boolean) {
 
   if (PSR_ACCEPT_TOKEN(FL_TK_TRUE)) {
     ast->boolean.value = true;
+    ast->ty_id = TS_BOOL;
     PSR_RET_OK(ast);
   }
   if (PSR_ACCEPT_TOKEN(FL_TK_FALSE)) {
     ast->boolean.value = false;
+    ast->ty_id = TS_BOOL;
     PSR_RET_OK(ast);
   }
 

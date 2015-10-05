@@ -179,6 +179,8 @@ TASK_IMPL(parser_expressions) {
                                   "var yyy s;"
                                   "s.hello = 1;",
                  {
+                   fprintf(stderr, "# type: %zu\n", body[1]->ty_id);
+
                    ASSERT(body[1]->ty_id == TEST_TYPEID, "variable type");
                    ASSERT(body[2]->ty_id == TS_I64, "assignament type TS_I64");
                  });

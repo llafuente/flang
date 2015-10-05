@@ -28,10 +28,6 @@
 bool ast_require_load(ast_t* node) {
   switch (node->type) {
   case FL_AST_LIT_IDENTIFIER:
-    if (node->identifier.decl->type == FL_AST_PARAMETER) {
-      return false;
-    }
-
     return true;
   case FL_AST_EXPR_LUNARY:
     switch (node->lunary.operator) {

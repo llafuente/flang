@@ -64,7 +64,7 @@ TASK_IMPL(parser_functions) {
                     { CHK_ERROR_RANGE(err, 14, 1, 15, 1); });
 
   // TODO 'template'
-  TEST_PARSER_OK("function 03", "fn x(i8 arg1, i8 arg2) {"
+  TEST_PARSER_OK("function 03", "fn x(i8 arg1, i8 arg2) : i8 {"
                                 "return arg1 + arg2;"
                                 "}",
                  {});

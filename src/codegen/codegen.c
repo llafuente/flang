@@ -205,6 +205,11 @@ LLVMValueRef cg_cast(FL_CODEGEN_HEADER) {
                                        FL_CODEGEN_PASSTHROUGH);
 
   switch (node->cast.operation) {
+  case FL_CAST_ERR: {
+    ast_dump(node);
+    log_error("casting operation not set by typesystem!");
+    return 0;
+  }
   case FL_CAST_FPTOSI:
     return LLVMBuildFPToSI(builder, element,
                            cg_get_typeid(node->ty_id, context), "cast");
@@ -279,7 +284,9 @@ LLVMValueRef cg_lit_boolean(FL_CODEGEN_HEADER) {
 LLVMValueRef cg_lit_string(FL_CODEGEN_HEADER) {
   log_debug("cg_lit_string");
 
-  return LLVMBuildGlobalStringPtr(builder, st_dump(node->string.value), "str");
+  // TODO return LLVMBuildGlobalStringPtr(builder, st_dump(node->string.value),
+  // "str");
+  return LLVMBuildGlobalStringPtr(builder, node->string.value->value, "str");
 }
 
 LLVMValueRef cg_assignament(FL_CODEGEN_HEADER) {
@@ -475,6 +482,12 @@ LLVMValueRef cg_function(FL_CODEGEN_HEADER) {
   LLVMSetFunctionCallConv(func, LLVMCCallConv);
   LLVMSetLinkage(func, LLVMExternalLinkage);
 
+  LLVMBasicBlockRef block = 0;
+  if (node->func.body) {
+    block = LLVMAppendBasicBlock(func, "function-block");
+    LLVMPositionBuilderAtEnd(builder, block); // new block
+  }
+
   i = 0;
   if (node->func.params) {
     while ((tmp = params->list.elements[i]) != 0) {
@@ -482,27 +495,23 @@ LLVMValueRef cg_function(FL_CODEGEN_HEADER) {
                   tmp->param.id->identifier.string->value);
       LLVMValueRef param = LLVMGetParam(func, i);
       LLVMSetValueName(param, tmp->param.id->identifier.string->value);
-      /*
-      if (node->func.body) {
+
+      if (block) {
         LLVMValueRef ref =
             LLVMBuildAlloca(builder, LLVMTypeOf(param),
-    tmp->param.id->identifier.string->value);
-
-      LLVMBuildStore(builder, ref, param);
-      tmp->param.alloca = (void*)ref;
-    } else {
-      tmp->param.alloca = (void*)param;
-
-    }
-    */
-      tmp->param.alloca = (void*)param;
+                            tmp->param.id->identifier.string->value);
+        LLVMBuildStore(builder, param, ref);
+        tmp->param.alloca = (void*)ref;
+      } else {
+        tmp->param.alloca = (void*)param;
+      }
 
       ++i;
     }
   }
 
-  if (node->func.body) {
-    LLVMBasicBlockRef block = LLVMAppendBasicBlock(func, "function-block");
+  if (block) {
+    LLVMPositionBuilderAtEnd(builder, *current_block);
     cg_do_block(block, 0, node->func.body, FL_CODEGEN_PASSTHROUGH);
   }
 

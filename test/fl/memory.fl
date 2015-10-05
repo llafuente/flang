@@ -1,0 +1,84 @@
+struct abc {
+  i32 a,
+  i32 b,
+  i32 c
+};
+
+function allocated() {
+  printf("allocated\n");
+
+  var abc abc_i;
+
+  abc_i.a = 10;
+  abc_i.b = 11;
+  abc_i.c = 12;
+
+  printf("%d%d%d\n", abc_i.a, abc_i.b, abc_i.c); //101112
+
+  abc_i.a = abc_i.b + abc_i.c;
+  printf("%d%d%d\n", abc_i.a, abc_i.b, abc_i.c); //231112
+
+  abc_i.a = abc_i.b + 1;
+  printf("%d%d%d\n", abc_i.a, abc_i.b, abc_i.c); //121112
+
+  abc_i.a = 1 + abc_i.b;
+  printf("%d%d%d\n", abc_i.a, abc_i.b, abc_i.c); //121112
+
+  return 0;
+}
+
+allocated();
+
+function as_parameter(abc abc_i) {
+  printf("as_parameter\n");
+
+  printf("%d%d%d\n", abc_i.a, abc_i.b, abc_i.c); //101112
+
+  abc_i.a = abc_i.b + abc_i.c;
+  printf("%d%d%d\n", abc_i.a, abc_i.b, abc_i.c); //231112
+
+  abc_i.a = abc_i.b + 1;
+  printf("%d%d%d\n", abc_i.a, abc_i.b, abc_i.c); //121112
+
+  abc_i.a = 1 + abc_i.b;
+  printf("%d%d%d\n", abc_i.a, abc_i.b, abc_i.c); //121112
+
+
+  return 0;
+}
+
+var abc abc_param;
+// test param is pass with values
+abc_param.a = 10;
+abc_param.b = 11;
+abc_param.c = 12;
+as_parameter(abc_param);
+printf("return %d%d%d\n", abc_param.a, abc_param.b, abc_param.c); //101112
+
+
+function as_pointer(ptr<abc> abc_i) {
+
+  printf("as_pointer\n");
+
+  abc_i[0].a = 10;
+  abc_i[0].b = 11;
+  abc_i[0].c = 12;
+
+  printf("%d%d%d\n", abc_i[0].a, abc_i[0].b, abc_i[0].c); //101112
+
+  abc_i[0].a = abc_i[0].b + abc_i[0].c;
+  printf("%d%d%d\n", abc_i[0].a, abc_i[0].b, abc_i[0].c); //231112
+
+  abc_i[0].a = abc_i[0].b + 1;
+  printf("%d%d%d\n", abc_i[0].a, abc_i[0].b, abc_i[0].c); //121112
+
+  abc_i[0].a = 1 + abc_i[0].b;
+  printf("%d%d%d\n", abc_i[0].a, abc_i[0].b, abc_i[0].c); //121112
+
+  return 0;
+}
+
+var ptr<abc> abc_ptr_param;
+abc_ptr_param = malloc(50);
+as_pointer(abc_ptr_param);
+free(abc_ptr_param);

@@ -155,6 +155,7 @@ FL_EXTERN bool ts_is_function(size_t id);
 FL_EXTERN size_t ts_wapper_typeid(ts_types_t wrapper, size_t child);
 FL_EXTERN size_t ts_get_bigger_typeid(size_t a, size_t b);
 FL_EXTERN ast_t* ts_pass(ast_t* node);
+FL_EXTERN void ts_pass_try(ast_t* node);
 
 // return the unique typeid given ret + arguments
 FL_EXTERN size_t ts_fn_create(ast_t* decl);
@@ -437,9 +438,6 @@ FL_EXTERN LLVMValueRef cg_lhs(FL_CODEGEN_HEADER);
 /* cldoc:begin-category(codegen-type.c) */
 FL_EXTERN LLVMTypeRef cg_get_type(ast_t* node, LLVMContextRef context);
 FL_EXTERN LLVMTypeRef cg_get_typeid(size_t id, LLVMContextRef context);
-FL_EXTERN LLVMValueRef cg_cast_op(LLVMBuilderRef builder, size_t current,
-                                  size_t expected, LLVMValueRef value,
-                                  LLVMContextRef context);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(debug.c) */

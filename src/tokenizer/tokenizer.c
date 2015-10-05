@@ -136,7 +136,7 @@ void tk_cp_state(tk_state_t* src, tk_state_t* dst) {
 tk_token_list_t* fl_tokenize(string* file) {
   // TODO resize!
   tk_token_list_t* tokens = (tk_token_list_t*)malloc(sizeof(tk_token_list_t) +
-                                                     sizeof(tk_token_t) * 750);
+                                                     sizeof(tk_token_t) * 1500);
 
   tokens->size = 0;
 

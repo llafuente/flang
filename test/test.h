@@ -81,7 +81,7 @@
     fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
     ast_t* root = fl_parse_utf8(code);                                         \
     CHK_BODY(root);                                                            \
-    ast_t** body = root->program.body->block.body;                             \
+    ast_t** body = root->program.body->block.body->list.elements;              \
     LLVMModuleRef module = fl_codegen(root, "test");                           \
     code_block;                                                                \
     ts_exit();                                                                 \

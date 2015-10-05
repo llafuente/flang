@@ -62,7 +62,7 @@ ast_action_t dtors_var_infer(ast_t* node, ast_t* parent, size_t level,
         for (; i < data.length; ++i) {
           ast_t* fnod = data.list[i];
 
-          // lhs of an expression
+          // expression lhs
           if (fnod->parent->type == FL_AST_EXPR_ASSIGNAMENT &&
               fnod->parent->assignament.left == fnod) {
             // type is the right one
@@ -73,6 +73,8 @@ ast_action_t dtors_var_infer(ast_t* node, ast_t* parent, size_t level,
               break;
             }
           }
+
+          // as argument
         }
       }
 
@@ -85,7 +87,6 @@ ast_action_t dtors_var_infer(ast_t* node, ast_t* parent, size_t level,
 
 // return error
 ast_t* ts_pass_inference(ast_t* node) {
-  ast_parent(node);
   // var x = 10; <- double
   // var x = ""; <- string*
   // var x = []; <- look usage

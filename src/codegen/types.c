@@ -27,7 +27,20 @@
 
 // helpers class, call it twice swaping args!
 bool cg_bitcast(ty_t a, ty_t b) {
-  return a.of == FL_VECTOR && b.of == FL_POINTER && a.vector.to == b.ptr.to;
+  if (a.of == FL_VECTOR && b.of == FL_POINTER && a.vector.to == b.ptr.to) {
+    return true;
+  }
+
+  // both pointers, one is void
+  // TODO recursive ?
+  if (b.of == FL_POINTER && b.ptr.to == TS_VOID) {
+    return true;
+  }
+  if (a.of == FL_POINTER && a.ptr.to == TS_VOID) {
+    return true;
+  }
+
+  return false;
 }
 
 LLVMTypeRef cg_get_type(ast_t* node, LLVMContextRef context) {
@@ -110,119 +123,4 @@ LLVMTypeRef cg_get_typeid(size_t id, LLVMContextRef context) {
   }
 
   return (LLVMTypeRef)t->codegen;
-}
-
-LLVMValueRef cg_cast_op(LLVMBuilderRef builder, size_t current, size_t expected,
-                        LLVMValueRef value, LLVMContextRef context) {
-  log_debug("cast [%zu == %zu] [%p]", expected, current, value);
-
-  if (expected == current) {
-    return value;
-  }
-
-  ty_t cu_type = ts_type_table[current];
-  ty_t ex_type = ts_type_table[expected];
-
-  if (ex_type.of == cu_type.of) {
-    switch (ex_type.of) {
-    case FL_NUMBER:
-      // fpto*i
-      if (cu_type.number.fp && !ex_type.number.fp) {
-        log_verbose("fptosi");
-
-        if (ex_type.number.sign) {
-          return LLVMBuildFPToSI(builder, value,
-                                 cg_get_typeid(expected, context), "cast");
-        }
-
-        return LLVMBuildFPToUI(builder, value, cg_get_typeid(expected, context),
-                               "cast");
-      }
-      // *itofp
-      if (!cu_type.number.fp && ex_type.number.fp) {
-        log_verbose("sitofp");
-
-        if (ex_type.number.sign) {
-          return LLVMBuildSIToFP(builder, value,
-                                 cg_get_typeid(expected, context), "cast");
-        }
-
-        return LLVMBuildUIToFP(builder, value, cg_get_typeid(expected, context),
-                               "cast");
-      }
-
-      // LLVMBuildFPTrunc
-
-      bool fp = cu_type.number.fp;
-
-      // upcast
-      if (cu_type.number.bits < ex_type.number.bits) {
-        log_verbose("upcast");
-
-        if (fp) {
-          return LLVMBuildFPExt(builder, value,
-                                cg_get_typeid(expected, context), "cast");
-        }
-
-        // sign -> sign
-        if ((cu_type.number.sign && ex_type.number.sign) ||
-            (!cu_type.number.sign && ex_type.number.sign)) {
-          return LLVMBuildSExt(builder, value, cg_get_typeid(expected, context),
-                               "cast");
-        }
-
-        return LLVMBuildZExt(builder, value, cg_get_typeid(expected, context),
-                             "cast");
-      }
-
-      // downcast / truncate
-      if (cu_type.number.bits >= ex_type.number.bits) {
-        log_verbose("downcast");
-
-        if (fp) {
-          return LLVMBuildFPTrunc(builder, value,
-                                  cg_get_typeid(expected, context), "cast");
-        }
-        return LLVMBuildTrunc(builder, value, cg_get_typeid(expected, context),
-                              "cast");
-      }
-    case FL_POINTER:
-      // only allow it if both are same type
-      if (ts_type_table[ex_type.ptr.to].of ==
-          ts_type_table[cu_type.ptr.to].of) {
-        return LLVMBuildBitCast(builder, value,
-                                cg_get_typeid(expected, context), "bitcast");
-      }
-      // TODO check autocast
-      log_warning("incompatible pointers");
-    /*
-    string* name = st_newc("autocast", st_enc_ascii);
-    ast_search_fn_wargs(name);
-    st_delete(&name);
-    */
-    default: {
-      // TODO more friendly
-      ty_dump(current);
-      printf("\n");
-      ty_dump(expected);
-      printf("\n");
-
-      log_error("invalid cast of type %zu to %zu", current, expected);
-    }
-    }
-  }
-
-  if (cg_bitcast(ex_type, cu_type) || cg_bitcast(cu_type, ex_type)) {
-    log_verbose("WTF!");
-    return LLVMBuildBitCast(builder, value, cg_get_typeid(expected, context),
-                            "bitcast");
-  }
-
-  ty_dump(current);
-  printf("\n");
-  ty_dump(expected);
-  printf("\n");
-
-  log_error("invalid casting");
-  return 0;
 }

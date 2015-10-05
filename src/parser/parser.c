@@ -64,6 +64,8 @@ ast_t* fl_parse(string* code, bool attach_core) {
   root->program.code = code;
 
   // do inference
+  ast_parent(root); // set node->parent
+
   ast_dump(root);
   log_debug("(parser) first inference");
   ts_pass_inference(root);
