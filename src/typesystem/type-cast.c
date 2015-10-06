@@ -133,34 +133,38 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
 
   string* name = st_newc("autocast", st_enc_ascii);
   size_t args_ty[1];
-  args_ty[0] = expected;
-  ast_t* autocast = ast_search_fn_wargs(node, name, args_ty, 1);
-  if (autocast) {
-    // TODO change cast to expr-call
+  args_ty[0] = current;
+  ast_t* autocast = ast_search_fn(node, name, args_ty, 1, expected, false);
+  st_delete(&name);
 
-    ast_t* parent = node->parent;
+  if (autocast) {
+    log_verbose("cast to expr-call");
 
     PSR_CREATE(arguments, FL_AST_LIST);
     arguments->list.count = 1;
-    arguments->list.elements = calloc(1, sizeof(ast_t*));
+    arguments->list.elements = calloc(2, sizeof(ast_t*));
     arguments->list.elements[0] = node->cast.element;
     node->parent = arguments;
 
     PSR_CREATE(callee, FL_AST_LIT_IDENTIFIER);
-    callee->identifier.string = st_clone(autocast->func.id->identifier.string);
+    callee->identifier.string = st_clone(autocast->func.uid);
     callee->identifier.resolve = false;
     callee->identifier.decl = autocast;
 
     PSR_CREATE(ecall, FL_AST_EXPR_CALL);
     ecall->call.arguments = arguments;
+    ecall->call.narguments = 1;
     ecall->call.callee = callee;
+    ecall->call.decl = autocast;
 
     callee->parent = ecall;
     arguments->parent = ecall;
-    ecall->parent = parent;
+    ecall->parent = node;
+    ecall->ty_id = expected;
+    node->cast.element = ecall;
+
     return FL_CAST_AUTO;
   }
-  st_delete(&name);
 
   if (!current || !expected) {
     log_warning("inference is still needed!");

@@ -71,12 +71,24 @@ ast_action_t ast_search_fn_wargs_cb(ast_t* node, ast_t* parent, size_t level,
     string* id = (string*)ui[0];
 
     if (st_cmp(id, node->func.id->identifier.string) == 0) {
+      log_verbose("function name found");
       ty_t t = ts_type_table[node->ty_id];
       assert(t.of == FL_FUNCTION);
 
       size_t* args = (size_t*)ui[1];
       size_t nargs = (size_t)ui[2];
-      if (t.func.nparams == nargs && memcmp(args, t.func.params, nargs) == 0) {
+      size_t ret_ty = (size_t)ui[3];
+      bool var_args = (bool)ui[4];
+
+      log_verbose("varargs %d == %d", t.func.varargs, var_args);
+      log_verbose("nparams %zu == %zu", t.func.nparams, nargs);
+      log_verbose("params %d",
+                  memcmp(args, t.func.params, nargs * sizeof(size_t)));
+      log_verbose("ret %zu == %zu", t.func.ret, ret_ty);
+
+      if (t.func.nparams == nargs &&
+          memcmp(args, t.func.params, nargs * sizeof(size_t)) == 0 &&
+          t.func.varargs == var_args && t.func.ret == ret_ty) {
         void** ret = (void**)userdata_out;
         *ret = node;
         // check arguments
@@ -90,14 +102,16 @@ ast_action_t ast_search_fn_wargs_cb(ast_t* node, ast_t* parent, size_t level,
   return FL_AC_CONTINUE;
 }
 
-ast_t* ast_search_fn_wargs(ast_t* node, string* identifier, size_t* args,
-                           size_t nargs) {
+ast_t* ast_search_fn(ast_t* node, string* identifier, size_t* args,
+                     size_t nargs, size_t ret_ty, bool var_args) {
   ast_t* ret = 0;
 
-  void* input[3];
+  void* input[5];
   input[0] = (void*)identifier;
   input[1] = (void*)args;
   input[2] = (void*)nargs;
+  input[3] = (void*)ret_ty;
+  input[4] = (void*)var_args;
 
   ast_reverse(node, ast_search_fn_wargs_cb, 0, 0, (void*)input, (void*)&ret);
 

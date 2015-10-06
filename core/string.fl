@@ -13,10 +13,10 @@ struct string {
 
 /*
 fn autocast(ptr<i8> str) : string {
-  return st_newc()
+  return st_newc(str, st_enc_ascii)
 }
+*/
 
 fn autocast(string str) : ptr<i8> {
   return str.value;
 }
-*/

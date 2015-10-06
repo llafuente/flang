@@ -242,6 +242,7 @@ LLVMValueRef cg_cast(FL_CODEGEN_HEADER) {
                             cg_get_typeid(node->ty_id, context), "cast");
   // remove warning!
   case FL_CAST_AUTO: {
+    return element;
   }
   }
 }

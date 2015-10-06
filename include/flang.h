@@ -357,8 +357,8 @@ FL_EXTERN array* ast_find_fn_decls(ast_t* node, string* id);
 
 /* cldoc:begin-category(ast/ast-search.c) */
 FL_EXTERN ast_t* ast_search_id_decl(ast_t* node, string* name);
-FL_EXTERN ast_t* ast_search_fn_wargs(ast_t* node, string* identifier,
-                                     size_t* args, size_t nargs);
+FL_EXTERN ast_t* ast_search_fn(ast_t* node, string* identifier, size_t* args,
+                               size_t nargs, size_t ret, bool var_args);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(ast/traverse.c) */
