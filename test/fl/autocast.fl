@@ -1,0 +1,38 @@
+struct a_t {
+  i8 value
+};
+fn autocast(a_t t) : i8 {
+  return t.value;
+}
+
+struct b_t {
+  i8 value
+};
+fn autocast(b_t t) : i8 {
+  return t.value;
+}
+
+struct c_t {
+  i32 value
+};
+fn autocast(c_t t) : i8 {
+  return t.value;
+}
+
+var a_t a;
+a.value = 10;
+var b_t b;
+b.value = 11;
+var c_t c;
+c.value = 12;
+
+
+
+var i8 x = 0;
+
+x = a;
+printf("x(a_t) = %d\n", x);
+x = b;
+printf("x(b_t) = %d\n", x);
+x = c;
+printf("x(c_t) = %d\n", x);
