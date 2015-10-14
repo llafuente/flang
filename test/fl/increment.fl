@@ -1,0 +1,21 @@
+var i32 i;
+i = 0;
+
+printf("%d\n", ++i);
+printf("%d\n", ++i);
+printf("%d\n", ++i);
+
+printf("%d\n", --i);
+printf("%d\n", --i);
+printf("%d\n", --i);
+
+printf("%d\n", i++);
+printf("%d\n", i++);
+printf("%d\n", i++);
+printf("%d\n", i);
+
+
+printf("%d\n", i--);
+printf("%d\n", i--);
+printf("%d\n", i--);
+printf("%d\n", i);

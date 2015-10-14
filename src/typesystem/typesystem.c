@@ -324,10 +324,9 @@ ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
       ast_t* el = node->lunary.element;
       ts_pass(el);
       node->ty_id = ts_wapper_typeid(FL_POINTER, el->ty_id);
-
-      // ?node->ty_id = 13;
     } break;
     default:
+      ts_pass(node->lunary.element);
       node->ty_id = node->lunary.element->ty_id;
     }
   } break;

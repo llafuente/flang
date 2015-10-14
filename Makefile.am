@@ -29,6 +29,7 @@ COMPILER_SOURCES = src/tokenizer/tokenizer.c \
                 src/codegen/codegen.c \
                 src/codegen/codegen-export.c \
                 src/codegen/codegen-interpreter.c \
+                src/codegen/codegen-utils.c \
                 src/codegen/types.c \
                 src/typesystem/pass-inference.c \
                 src/typesystem/typesystem.c \

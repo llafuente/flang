@@ -425,6 +425,7 @@ FL_EXTERN LLVMValueRef cg_dtor_var(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef cg_function(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef cg_return(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef cg_expr_call(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_runary(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef cg_lunary(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef cg_if(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef cg_loop(FL_CODEGEN_HEADER);
@@ -438,6 +439,11 @@ FL_EXTERN LLVMValueRef cg_lhs(FL_CODEGEN_HEADER);
 /* cldoc:begin-category(codegen-type.c) */
 FL_EXTERN LLVMTypeRef cg_get_type(ast_t* node, LLVMContextRef context);
 FL_EXTERN LLVMTypeRef cg_get_typeid(size_t id, LLVMContextRef context);
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(codegen-utils.c) */
+FL_EXTERN void cg_utils_store(ast_t* identifier, LLVMValueRef value,
+                              LLVMBuilderRef builder);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(debug.c) */

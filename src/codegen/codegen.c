@@ -169,6 +169,8 @@ LLVMValueRef cg_ast(FL_CODEGEN_HEADER) {
     return cg_return(FL_CODEGEN_HEADER_SEND);
   case FL_AST_EXPR_LUNARY:
     return cg_lunary(FL_CODEGEN_HEADER_SEND);
+  case FL_AST_EXPR_RUNARY:
+    return cg_runary(FL_CODEGEN_HEADER_SEND);
   case FL_AST_STMT_IF:
     return cg_if(FL_CODEGEN_HEADER_SEND);
   case FL_AST_STMT_LOOP:
@@ -580,6 +582,31 @@ LLVMValueRef cg_expr_call(FL_CODEGEN_HEADER) {
   */
 }
 
+LLVMValueRef cg_runary(FL_CODEGEN_HEADER) {
+  LLVMValueRef element = cg_ast_loaded("load_lunary", node->lunary.element,
+                                       FL_CODEGEN_PASSTHROUGH);
+
+  switch (node->lunary.operator) {
+  case FL_TK_PLUS2:
+  case FL_TK_MINUS2: {
+    LLVMTypeRef type = LLVMTypeOf(element);
+    LLVMValueRef ret = LLVMBuildBinOp(
+        builder, ts_is_fp(node->ty_id) ? LLVMFAdd : LLVMAdd, element,
+        LLVMConstInt(type, node->lunary.operator== FL_TK_PLUS2 ? 1 : -1, false),
+        "radd");
+    ast_t* el = node->lunary.element;
+    if (el->type == FL_AST_LIT_IDENTIFIER) {
+      cg_utils_store(el, ret, builder);
+    }
+
+    return element;
+  }
+  default: {}
+  }
+  log_error("runary not handled %d", node->lunary.operator);
+  return 0;
+}
+
 LLVMValueRef cg_lunary(FL_CODEGEN_HEADER) {
   log_debug("cg_lunary");
 
@@ -596,24 +623,19 @@ LLVMValueRef cg_lunary(FL_CODEGEN_HEADER) {
     return LLVMBuildNeg(builder, element, "negate");
   case FL_TK_EXCLAMATION:
     return LLVMBuildNot(builder, element, "not");
-  // TODO buggy, need tests!
-  case FL_TK_PLUS2: {
-    LLVMTypeRef type = LLVMTypeOf(element);
-    LLVMValueRef one = LLVMConstInt(type, 1, false);
-    LLVMValueRef one_added = LLVMBuildAdd(builder, element, one, "");
-    // if can be stored do it
-    if (node->lunary.element->type == FL_AST_LIT_IDENTIFIER) {
-      node->lunary.element->dirty = true;
-      return LLVMBuildStore(builder, one_added,
-                            (LLVMValueRef)node->lunary.element->var.alloca);
-    }
-    return one_added;
-  }
+  case FL_TK_PLUS2:
   case FL_TK_MINUS2: {
     LLVMTypeRef type = LLVMTypeOf(element);
-    LLVMValueRef one = LLVMConstInt(type, 1, false);
-    LLVMValueRef one_substracted = LLVMBuildSub(builder, element, one, "");
-    return LLVMBuildStore(builder, element, one_substracted);
+    LLVMValueRef ret = LLVMBuildBinOp(
+        builder, ts_is_fp(node->ty_id) ? LLVMFAdd : LLVMAdd, element,
+        LLVMConstInt(type, node->lunary.operator== FL_TK_PLUS2 ? 1 : -1, false),
+        "ladd");
+    ast_t* el = node->lunary.element;
+    if (el->type == FL_AST_LIT_IDENTIFIER) {
+      cg_utils_store(el, ret, builder);
+    }
+
+    return ret;
   }
   default: {}
   }
