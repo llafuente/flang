@@ -5,7 +5,6 @@ fn reverseArray(ptr<i32> theList, i32 count) : void {
     var i32 lastIdx;
     var i32 lastValue;
     lastIdx = count - i - 1;
-    // TODO fail!
     lastValue = theList[lastIdx];
     printf("i = %d lastValue = %d lastIdx = %d\n", i, lastValue, lastIdx);
     theList[lastIdx] = theList[i];

@@ -148,34 +148,33 @@ bool ts_is_function(size_t id) {
   return t.of == FL_FUNCTION;
 }
 
-// TODO how to handle signed/unsigned, how's 'bigger'?
-size_t ts_get_bigger_typeid(size_t a, size_t b) {
+// only promote numbers
+size_t ts_promote_typeid(size_t a, size_t b) {
   ty_t t_a = ts_type_table[a];
   ty_t t_b = ts_type_table[b];
 
-  if (t_a.of == FL_NUMBER && t_b.of == FL_NUMBER) {
-    // check floating point
-    if (t_a.number.fp && !t_b.number.fp) {
-      return a;
-    }
+  assert(t_a.of == FL_NUMBER);
+  assert(t_b.of == FL_NUMBER);
 
-    if (t_b.number.fp && !t_a.number.fp) {
-      return b;
-    }
-    // check different sign
-    if (t_b.number.sign != t_a.number.sign) {
-      // TODO grow type ?
-      return b;
-    }
-
-    // check bits
-    return t_a.number.bits > t_b.number.bits ? a : b;
+  // check floating point
+  if (t_a.number.fp && !t_b.number.fp) {
+    return a;
   }
 
-  // only numbers?
-  log_debug("ts_get_bigger_typeid of %d & %d", t_a.of, t_b.of);
+  if (t_b.number.fp && !t_a.number.fp) {
+    return b;
+  }
+  // check different sign
+  if (!t_b.number.sign && t_a.number.sign) {
+    return a;
+  }
 
-  return a;
+  if (t_b.number.sign && !t_a.number.sign) {
+    return b;
+  }
+
+  // check bits
+  return t_a.number.bits > t_b.number.bits ? a : b;
 }
 
 // TODO check for LIT_NUMERIC, and modify ty_id
@@ -436,7 +435,7 @@ ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
       // TEST parser-expression-test.c:187
 
       // both sides must be the same! the bigger one
-      node->ty_id = ts_get_bigger_typeid(l_type, r_type);
+      node->ty_id = ts_promote_typeid(l_type, r_type);
       ts_cast_binop(node);
     } break;
     case FL_TK_AND:
@@ -456,7 +455,7 @@ ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
       log_verbose("static %d == %d", l_static, r_static);
 
       if ((l_static && r_static) || (!l_static && !r_static)) {
-        node->ty_id = ts_get_bigger_typeid(l_type, r_type);
+        node->ty_id = ts_promote_typeid(l_type, r_type);
         log_verbose("bigger! %zu", node->ty_id);
         ts_cast_binop(node);
 

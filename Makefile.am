@@ -60,6 +60,7 @@ flang_LDADD =
 
 SOURCES_TEST = test/tasks.c \
                test/tokenizer-test.c \
+               test/typesystem-test.c \
                test/parser-utils-test.c \
                test/parser-literals.c \
                test/parser-expressions-test.c \

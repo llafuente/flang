@@ -128,9 +128,6 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
     return FL_CAST_BITCAST;
   }
 
-  // TODO check autocast
-  log_warning("incompatible pointers");
-
   string* name = st_newc("autocast", st_enc_ascii);
   size_t args_ty[1];
   args_ty[0] = current;

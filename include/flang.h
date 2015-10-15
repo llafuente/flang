@@ -153,7 +153,7 @@ FL_EXTERN bool ts_is_fp(size_t id);
 FL_EXTERN bool ts_is_int(size_t id);
 FL_EXTERN bool ts_is_function(size_t id);
 FL_EXTERN size_t ts_wapper_typeid(ts_types_t wrapper, size_t child);
-FL_EXTERN size_t ts_get_bigger_typeid(size_t a, size_t b);
+FL_EXTERN size_t ts_promote_typeid(size_t a, size_t b);
 FL_EXTERN ast_t* ts_pass(ast_t* node);
 FL_EXTERN void ts_pass_try(ast_t* node);
 
