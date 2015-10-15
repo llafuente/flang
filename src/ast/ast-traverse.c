@@ -35,6 +35,8 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
       return FL_AC_STOP;                                                       \
     case FL_AC_SKIP:                                                           \
       return FL_AC_CONTINUE;                                                   \
+    case FL_AC_CONTINUE: {                                                     \
+    }                                                                          \
     }                                                                          \
   }
 
@@ -71,6 +73,8 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
     return FL_AC_STOP;
   case FL_AC_SKIP:
     return FL_AC_SKIP;
+  case FL_AC_CONTINUE: {
+  }
   }
 
   switch (ast->type) {

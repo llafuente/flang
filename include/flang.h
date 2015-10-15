@@ -436,7 +436,8 @@ FL_EXTERN LLVMValueRef cg_left_member(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef cg_lhs(FL_CODEGEN_HEADER);
 /* cldoc:end-category() */
 
-/* cldoc:begin-category(codegen-type.c) */
+/* cldoc:begin-category(codegen-types.c) */
+FL_EXTERN bool cg_bitcast(ty_t a, ty_t b);
 FL_EXTERN LLVMTypeRef cg_get_type(ast_t* node, LLVMContextRef context);
 FL_EXTERN LLVMTypeRef cg_get_typeid(size_t id, LLVMContextRef context);
 /* cldoc:end-category() */

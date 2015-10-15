@@ -88,7 +88,9 @@ TASK_IMPL(flang_files) {
       "../test/fl/types", "../test/fl/pointers", "../test/fl/pointers2",
       "../test/fl/string", "../test/fl/functions",
       "../test/fl/function-pointer", "../test/perf/array-reverse",
-      "../test/fl/arithmetic", "../test/fl/autocast", "../test/fl/increment"};
+      "../test/fl/arithmetic", "../test/fl/autocast", "../test/fl/increment"
+      //,"../test/fl/promotion"
+  };
   size_t nfiles = 16;
   char* fl_file = malloc(sizeof(char) * 100);
   char* txt_file = malloc(sizeof(char) * 100);
@@ -107,9 +109,9 @@ TASK_IMPL(flang_files) {
       printf("\033[2J"); // "clear screen"
     }
 
-    if (i == 14) {
-      log_debug_level = 10;
-    }
+    // if (i == 14) {
+    //  log_debug_level = 10;
+    //}
 
     fl_file[0] = '\0';
     strcat(fl_file, files[i]);

@@ -120,11 +120,12 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
           ts_type_table[cu_type.ptr.to].of) {
         return FL_CAST_BITCAST;
       }
+    default: {} // supress warning
     }
   }
-  log_verbose("cg_bitcast: %zu == %zu", cg_bitcast(ex_type, cu_type),
-              cg_bitcast(cu_type, ex_type)) if (cg_bitcast(ex_type, cu_type) ||
-                                                cg_bitcast(cu_type, ex_type)) {
+  log_verbose("cg_bitcast: %d == %d", cg_bitcast(ex_type, cu_type),
+              cg_bitcast(cu_type, ex_type));
+  if (cg_bitcast(ex_type, cu_type) || cg_bitcast(cu_type, ex_type)) {
     return FL_CAST_BITCAST;
   }
 
@@ -179,10 +180,9 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
 
 ast_action_t ts_cast_operation_pass_cb(ast_t* node, ast_t* parent, size_t level,
                                        void* userdata_in, void* userdata_out) {
-  switch (node->type) {
-  case FL_AST_CAST: {
+  if (node->type == FL_AST_CAST) {
     node->cast.operation = ts_cast_operation(node);
   }
-  }
+
   return FL_AC_CONTINUE;
 }

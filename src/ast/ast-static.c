@@ -32,6 +32,7 @@ ast_action_t ast_is_static_cb(ast_t* node, ast_t* parent, size_t level,
   case FL_AST_LIT_STRING:
   case FL_AST_LIT_NUMERIC:
     return FL_AC_CONTINUE;
+  default: {} // supress warning
   }
   bool* ret = (bool*)userdata_out;
   *ret = false;

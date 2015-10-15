@@ -70,7 +70,8 @@ ast_t* fl_parse(string* code, bool attach_core) {
   log_debug("(parser) first inference");
   ts_pass_inference(root);
   log_debug("(parser) typesystem");
-  ts_pass(root);
+  root = ts_pass(root);
+  // TODO check if root is an error, and return
   log_debug("(parser) second inference");
   ts_pass_inference(root);
 

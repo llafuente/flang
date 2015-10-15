@@ -471,6 +471,7 @@ ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
     }
     }
   }
+  default: {} // supress warning
   }
   return FL_AC_CONTINUE;
 }
@@ -482,6 +483,8 @@ ast_t* ts_pass(ast_t* node) {
   ast_traverse(node, ts_pass_cb, 0, 0, 0, 0);
   // validate casting, and assign a valid operation
   ast_traverse(node, ts_cast_operation_pass_cb, 0, 0, 0, 0);
+
+  return node; // TODO this should be the error
 }
 
 void ts_pass_try(ast_t* node) {

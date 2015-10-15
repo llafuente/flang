@@ -1,6 +1,7 @@
 AC_INIT([flang], [1.0], [llafuente@noboxout.com])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
+AM_SILENT_RULES([yes])
 AC_CANONICAL_HOST
 
 AC_PROG_CC

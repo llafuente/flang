@@ -45,10 +45,13 @@ ast_action_t ast_search_id_decl_cb(ast_t* node, ast_t* parent, size_t level,
   }
   case FL_AST_PARAMETER: {
     COMPARE(node->param.id->identifier.string);
+    break;
   }
   case FL_AST_DTOR_VAR: {
     COMPARE(node->var.id->identifier.string);
+    break;
   }
+  default: {} // supress warning
   }
 
   return FL_AC_CONTINUE;
@@ -65,8 +68,8 @@ ast_t* ast_search_id_decl(ast_t* node, string* identifier) {
 
 ast_action_t ast_search_fn_wargs_cb(ast_t* node, ast_t* parent, size_t level,
                                     void* userdata_in, void* userdata_out) {
-  switch (node->type) {
-  case FL_AST_DECL_FUNCTION: {
+
+  if (node->type == FL_AST_DECL_FUNCTION) {
     void** ui = (void**)userdata_in;
     string* id = (string*)ui[0];
 
@@ -96,7 +99,6 @@ ast_action_t ast_search_fn_wargs_cb(ast_t* node, ast_t* parent, size_t level,
       }
     }
     return FL_AC_SKIP;
-  }
   }
 
   return FL_AC_CONTINUE;

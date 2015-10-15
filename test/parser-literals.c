@@ -98,7 +98,6 @@ TASK_IMPL(parser_literals) {
   });
 
   TEST_PARSER_OK("comments", "var i64 a; a = 9223372036854775807;", {
-    ast_dump(body);
     ASSERT(body[0]->type == FL_AST_DTOR_VAR, "FL_AST_DTOR_VAR");
     ASSERT(body[1]->assignament.right->numeric.li_value == 9223372036854775807,
            "i64 max");

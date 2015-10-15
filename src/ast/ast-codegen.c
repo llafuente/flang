@@ -37,6 +37,7 @@ bool ast_require_load(ast_t* node) {
     case FL_TK_PLUS2:
     case FL_TK_MINUS2:
       return false;
+    default: { log_error("Unkown Lunary operator"); }
     }
     return true;
   case FL_AST_EXPR_ASSIGNAMENT:
@@ -46,6 +47,7 @@ bool ast_require_load(ast_t* node) {
   case FL_AST_LIT_NUMERIC: // static type
   case FL_AST_CAST:        // load before cast
     return false;
+  default: {} // supress warning
   }
   return false;
 }
