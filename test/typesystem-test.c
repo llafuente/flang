@@ -25,24 +25,27 @@
 
 #include "flang.h"
 #include "tasks.h"
-#include "test.h"
 
-// TODO review if ";" is required
-TASK_IMPL(codegen_expressions) {
-  log_debug_level = 0;
+TASK_IMPL(typesystem) {
 
-  TEST_CODEGEN_OK("expr 01", "var i64 c; c = 1 + 2;", {});
-  TEST_CODEGEN_OK("expr 02", "var string hello;", {});
-  TEST_CODEGEN_OK("expr 03", "var i64 c; var i64 d; d=1+2; c = 1;", {});
-  TEST_CODEGEN_OK("expr 04", "var i64 c; c = 1; c = 1;", {});
-  TEST_CODEGEN_OK("expr 05", "var i64 a; var i64 b; a = b = 1;", {});
-  TEST_CODEGEN_OK("expr 06", "var i64 a; var i64 b; a = 1; b = a + 1;", {});
+  ts_init();
 
-  // TEST_CODEGEN_OK("expr 04", "printf(\"%f\", 1 + 2);", {});
+  size_t t = ts_promote_typeid(TS_I8, TS_I16);
+  ASSERT(t == TS_I16, "TS_I8 + TS_I16 => TS_I16");
 
-  TEST_CODEGEN_OK("type infer 01", "var x; var y; x = y = 1;", {});
-  TEST_CODEGEN_OK("type infer 02", "var x; var y; x = 1; y = x + 1;", {});
-  TEST_CODEGEN_OK("type infer 03", "fn a(i8 b) { return 0; } var x; a(x);", {});
+  t = ts_promote_typeid(TS_I8, TS_U8);
+  ASSERT(t == TS_I8, "TS_I8 + TS_U8 => TS_I8");
+
+  t = ts_promote_typeid(TS_I8, TS_I8);
+  ASSERT(t == TS_I8, "TS_I8 + TS_I8 => TS_I8");
+
+  t = ts_promote_typeid(TS_F32, TS_I8);
+  ASSERT(t == TS_F32, "TS_I8 + TS_F32 => TS_F32");
+
+  t = ts_promote_typeid(TS_BOOL, TS_F32);
+  ASSERT(t == TS_F32, "TS_BOOL + TS_F32 => TS_F32");
+
+  ts_exit();
 
   return 0;
 }

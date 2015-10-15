@@ -180,6 +180,11 @@ size_t ts_promote_typeid(size_t a, size_t b) {
 // TODO check for LIT_NUMERIC, and modify ty_id
 // remove codegen side that do this right now
 ast_t* ts_create_cast(ast_t* node, size_t type_id) {
+  // try to cast to "inference" type, just wait...
+  if (!type_id) {
+    return node;
+  }
+
   if (node->type == FL_AST_LIT_NUMERIC) {
     node->ty_id = type_id;
     return node;

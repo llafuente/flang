@@ -45,41 +45,66 @@ ast_action_t fl_ast_find_identifier(ast_t* node, ast_t* parent, size_t level,
 
 ast_action_t dtors_var_infer(ast_t* node, ast_t* parent, size_t level,
                              void* userdata_in, void* userdata_out) {
-  if (node->type == FL_AST_DTOR_VAR) {
-    if (node->var.type->ty_id == 0) {
-      // search all ocurrences of this identifier
-      id_search_t data;
-      data.list = calloc(sizeof(ast_t*), 100); // TODO resizable
-      data.needle = node->var.id->identifier.string;
-      data.length = 0;
+  if (node->type == FL_AST_DTOR_VAR && node->var.type->ty_id == 0) {
+    // search all ocurrences of this identifier
+    id_search_t data;
+    data.list = calloc(sizeof(ast_t*), 100); // TODO resizable
+    data.needle = node->var.id->identifier.string;
+    data.length = 0;
 
-      ast_traverse(node->parent, fl_ast_find_identifier, 0, 0, (void*)&data, 0);
+    ast_traverse(node->parent, fl_ast_find_identifier, 0, 0, (void*)&data, 0);
 
-      if (data.length) {
-        // TODO REVIEW
-        // right now if the first apparence is not a dtor -> undefined var
-        size_t i = 0;
-        for (; i < data.length; ++i) {
-          ast_t* fnod = data.list[i];
+    if (data.length) {
+      // search from any aparience, if we can get the type
+      size_t i = 0;
+      for (; i < data.length; ++i) {
+        ast_t* fnod = data.list[i];
+        ast_t* parent = fnod->parent;
 
-          // expression lhs
-          if (fnod->parent->type == FL_AST_EXPR_ASSIGNAMENT &&
-              fnod->parent->assignament.left == fnod) {
-            // type is the right one
-            // size_t t = ast_ret_type(fnod->parent->assignament.right);
-            size_t t = fnod->parent->assignament.right->ty_id;
-            if (t) {
-              node->var.type->ty_id = t;
-              break;
-            }
+        // assignament at lhs
+        if (parent->type == FL_AST_EXPR_ASSIGNAMENT &&
+            parent->assignament.left == fnod) {
+          ast_t* rhs = parent->assignament.right;
+          ts_pass(rhs);
+
+          size_t t = rhs->ty_id;
+          if (t) {
+            // parent->ty_id = t; // assignament type
+            // parent->assignament.left->ty_id = t; // lhs type
+            // node->ty_id = t;
+            node->var.type->ty_id = t;
+
+            ((*(size_t*)userdata_out))++;
+            break;
           }
+        }
 
-          // as argument
+        // as argument
+        if (parent->type == FL_AST_LIST) {
+          ast_t* call = parent->parent;
+
+          if (parent->parent->type == FL_AST_EXPR_CALL) {
+            string* callee = call->call.callee->identifier.string;
+            ast_t* decl = ts_find_fn_decl(callee, fnod);
+            if (!decl) {
+              continue;
+            }
+            size_t idx = 0;
+            while (parent->list.elements[idx] != fnod) {
+              ++idx;
+            }
+
+            node->var.type->ty_id =
+                decl->func.params->list.elements[idx]->ty_id;
+
+            ((*(size_t*)userdata_out))++;
+            break;
+          }
         }
       }
-
-      free(data.list);
     }
+
+    free(data.list);
   }
 
   return FL_AC_CONTINUE;
@@ -93,6 +118,11 @@ ast_t* ts_pass_inference(ast_t* node) {
   // var x = [10]; <- array<double>
 
   // var i64 x = 10; <- cast 10 to i64
-  ast_traverse(node, dtors_var_infer, 0, 0, 0, 0);
+  size_t modified;
+  do {
+    modified = 0;
+    ast_traverse(node, dtors_var_infer, 0, 0, 0, (void*)&modified);
+  } while (modified);
+
   return 0;
 }
