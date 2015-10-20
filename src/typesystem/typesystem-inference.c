@@ -111,7 +111,7 @@ ast_action_t dtors_var_infer(ast_t* node, ast_t* parent, size_t level,
 }
 
 // return error
-ast_t* ts_pass_inference(ast_t* node) {
+ast_t* ts_inference(ast_t* node) {
   // var x = 10; <- double
   // var x = ""; <- string*
   // var x = []; <- look usage

@@ -53,6 +53,7 @@ LLVMExecutionEngineRef cg_jit(LLVMModuleRef M) {
 }
 
 void fl_interpreter(LLVMModuleRef module) {
+  fputs("Run module\n", stderr);
   char* err;
 
   LLVMExecutionEngineRef interp;
@@ -62,18 +63,20 @@ void fl_interpreter(LLVMModuleRef module) {
   if (LLVMCreateInterpreterForModule(&interp, module, &err) != 0) {
     fputs("LLVMCreateInterpreterForModule\n", stderr);
     fputs(err, stderr);
+    LLVMDisposeMessage(err);
   }
-
-  LLVMDisposeMessage(err);
 
   /*
     LLVMGenericValueRef main_args[] = {
         LLVMCreateGenericValueOfPointer(0),
         LLVMCreateGenericValueOfInt(LLVMInt32Type(), 0, false)};
+    int LLVMRunFunctionAsMain (LLVMExecutionEngineRef EE, LLVMValueRef F,
+      unsigned ArgC, const char *const *ArgV, const char *const *EnvP)
   */
   LLVMGenericValueRef res =
       LLVMRunFunction(interp, LLVMGetNamedFunction(module, "main"), 0, 0);
 
+  LLVMDisposeGenericValue(res);
   LLVMDisposeExecutionEngine(interp);
   LLVMDisposeModule(module);
 }

@@ -186,3 +186,277 @@ ast_action_t ts_cast_operation_pass_cb(ast_t* node, ast_t* parent, size_t level,
 
   return FL_AC_CONTINUE;
 }
+
+ast_t* ts_create_cast(ast_t* node, size_t type_id) {
+  // try to cast to "inference" type, just wait...
+  if (!type_id) {
+    return node;
+  }
+
+  if (node->type == FL_AST_LIT_NUMERIC) {
+    node->ty_id = type_id;
+    return node;
+  }
+
+  ast_t* cast = (ast_t*)calloc(1, sizeof(ast_t));
+  cast->token_start = 0;
+  cast->token_end = 0;
+  cast->type = FL_AST_CAST;
+  cast->parent = node->parent;
+  node->parent = cast;
+  cast->cast.element = node;
+  cast->ty_id = type_id;
+
+  return cast;
+}
+
+ast_t* ts_create_left_cast(ast_t* parent, ast_t* left) {
+  assert(parent->type == FL_AST_EXPR_BINOP);
+  ast_t* cast = ts_create_cast(left, parent->ty_id);
+  parent->binop.left = cast;
+
+  return cast;
+}
+
+ast_t* ts_create_right_cast(ast_t* parent, ast_t* right) {
+  assert(parent->type == FL_AST_EXPR_BINOP);
+  ast_t* cast = ts_create_cast(right, parent->ty_id);
+  parent->binop.right = cast;
+
+  return cast;
+}
+
+void ts_create_binop_cast(ast_t* bo) {
+  assert(bo->type == FL_AST_EXPR_BINOP);
+
+  ast_t* l = bo->binop.left;
+  ast_t* r = bo->binop.right;
+
+  if (bo->ty_id != l->ty_id) {
+    // cast left side
+    ts_create_left_cast(bo, l);
+  }
+
+  if (bo->ty_id != r->ty_id) {
+    ts_create_right_cast(bo, r);
+  }
+}
+
+void ts_cast_return(ast_t* node) {
+  assert(node->type == FL_AST_STMT_RETURN);
+
+  ast_t* decl = node->parent;
+  while (decl->parent && decl->type != FL_AST_DECL_FUNCTION) {
+    decl = decl->parent;
+  }
+
+  if (!decl) {
+    log_error("return statement found outside function scope");
+  }
+
+  ast_t* arg = node->ret.argument;
+  ts_pass(arg);
+
+  size_t t = decl->func.ret_type->ty_id;
+  if (t != node->ret.argument->ty_id) {
+    ast_t* cast = ts_create_cast(arg, t);
+    node->ret.argument = cast;
+  }
+}
+
+void ts_cast_lunary(ast_t* node) {
+  switch (node->lunary.operator) {
+  case FL_TK_EXCLAMATION:
+    node->ty_id = 2; // bool
+    break;
+  case FL_TK_AND: {
+    ast_t* el = node->lunary.element;
+    ts_pass(el);
+    node->ty_id = ts_wapper_typeid(FL_POINTER, el->ty_id);
+  } break;
+  default:
+    ts_pass(node->lunary.element);
+    node->ty_id = node->lunary.element->ty_id;
+  }
+}
+
+void ts_cast_assignament(ast_t* node) {
+  assert(node->type == FL_AST_EXPR_ASSIGNAMENT);
+
+  ast_t* l = node->assignament.left;
+  ast_t* r = node->assignament.right;
+
+  ts_pass(l);
+  ts_pass(r);
+
+  size_t l_type = l->ty_id;
+  size_t r_type = r->ty_id;
+
+  if (l_type != r_type) {
+    log_silly("assignament cast [%zu - %zu]", l_type, r_type);
+    // cast will be validated later if it's posible
+    node->assignament.right = ts_create_cast(r, l_type);
+  }
+
+  node->ty_id = l_type;
+}
+
+void ts_cast_call(ast_t* node) {
+  assert(node->type == FL_AST_EXPR_CALL);
+
+  size_t i;
+  ast_t* args = node->call.arguments;
+  ast_t* arg;
+  size_t count = args->list.count;
+
+  if (!node->ty_id) {
+    // get types from arguments first
+    for (i = 0; i < count; ++i) {
+      ts_pass(args->list.elements[i]);
+    }
+    // now that we have our desired type
+    // search for a compatible function
+    string* callee = node->call.callee->identifier.string;
+
+    ast_t* decl = ts_find_fn_decl(callee, args);
+    if (!decl) {
+      log_error("cannot find compatible function");
+    }
+    node->call.decl = decl;
+
+    size_t cty_id = decl->ty_id;
+    node->ty_id = ts_type_table[cty_id].func.ret;
+    node->call.callee->ty_id = cty_id;
+  }
+
+  if (!node->call.callee->ty_id) {
+    log_warning("ignore expr call type");
+    return; // TODO passthought printf atm
+  }
+
+  ty_t* t = &ts_type_table[node->call.callee->ty_id];
+  assert(t->of == FL_FUNCTION);
+
+  // cast arguments
+  log_verbose("varargs[%d] params[%zu] args[%zu]", t->func.varargs,
+              t->func.nparams, count);
+  for (i = 0; i < count; ++i) {
+    arg = args->list.elements[i];
+
+    // do not cast varags
+    if (t->func.varargs && t->func.nparams <= i) {
+      return;
+    }
+
+    if (arg->ty_id != t->func.params[i]) {
+      // cast right side
+      args->list.elements[i] = ts_create_cast(arg, t->func.params[i]);
+    }
+  }
+}
+
+void ts_cast_binop(ast_t* node) {
+  assert(node->type == FL_AST_EXPR_BINOP);
+
+  log_debug("binop found %d", node->binop.operator);
+  ast_dump(node);
+  // cast if necessary
+  ast_t* l = node->binop.left;
+  ast_t* r = node->binop.right;
+
+  // operation that need casting or fp/int
+  ts_pass(l);
+  ts_pass(r);
+
+  size_t l_type = l->ty_id;
+  size_t r_type = r->ty_id;
+
+  log_verbose("l_type %zu r_type %zu", l_type, r_type);
+
+  bool l_fp = ts_is_fp(l_type);
+  bool r_fp = ts_is_fp(r_type);
+
+  // binop
+  switch (node->binop.operator) {
+  case FL_TK_EQUAL2:
+  case FL_TK_EEQUAL: // !=
+  case FL_TK_LTE:
+  case FL_TK_LT:
+  case FL_TK_GTE:
+  case FL_TK_GT: {
+    // TODO this should test if any side is a literal
+    // TEST parser-expression-test.c:187
+
+    // both sides must be the same! the bigger one
+    node->ty_id = ts_promote_typeid(l_type, r_type);
+    ts_create_binop_cast(node);
+  } break;
+  case FL_TK_AND:
+  case FL_TK_OR:
+  case FL_TK_CARET:
+  case FL_TK_LT2:
+  case FL_TK_GT2:
+    // left and right must be Integers!
+    if (l_fp || r_fp) {
+      log_error("invalid operants");
+    }
+  // fallthrough
+  default: {
+    bool l_static = ast_is_static(l);
+    bool r_static = ast_is_static(r);
+
+    log_verbose("static %d == %d", l_static, r_static);
+
+    if ((l_static && r_static) || (!l_static && !r_static)) {
+      node->ty_id = ts_promote_typeid(l_type, r_type);
+      log_verbose("bigger! %zu", node->ty_id);
+      ts_create_binop_cast(node);
+
+      log_verbose("*************");
+      ast_dump(node);
+    } else if (l_static) {
+      node->ty_id = r_type;
+      ts_create_left_cast(node, l);
+    } else if (r_static) {
+      node->ty_id = l_type;
+      ts_create_right_cast(node, r);
+    }
+  }
+  }
+}
+
+void ts_cast_expr_member(ast_t* node) {
+  assert(node->type == FL_AST_EXPR_MEMBER);
+
+  ast_t* l = node->member.left;
+  ast_t* p = node->member.property;
+
+  size_t l_typeid;
+  if (l->type == FL_AST_LIT_IDENTIFIER) {
+    l->ty_id = ts_var_typeid(l);
+  } else {
+    ts_pass(l);
+  }
+
+  // now we should know left type
+  // get poperty index -> typeid
+  // TODO perf
+  ty_t* type = &ts_type_table[l->ty_id];
+  switch (type->of) {
+  case FL_STRUCT: {
+    node->ty_id = ts_struct_property_type(l->ty_id, p->identifier.string);
+    node->member.idx = ts_struct_property_idx(l->ty_id, p->identifier.string);
+  } break;
+  case FL_POINTER: {
+    node->ty_id = type->ptr.to;
+    node->member.property = ts_create_cast(p, 9);
+  } break;
+  case FL_VECTOR: {
+    node->ty_id = type->vector.to;
+  } break;
+  default: { log_error("invalid member access type"); }
+  }
+
+  if (ts_is_struct(l->ty_id)) {
+  }
+}

@@ -26,5 +26,6 @@ if [ "$1" = "--run" ]
   ./test/run-tests
 fi
 
-
+  #./flang ../test/fl/pointers.fl
+  #./flang ../test/fl/fibonacci.fl
 cd ..

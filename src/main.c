@@ -31,50 +31,33 @@
 #include "flang.h"
 
 int main(int argc, const char* argv[]) {
-  if (argc == 2) {
-    printf("Usage: flan file.fl output.ir\n");
+  log_debug_level = 0;
+
+  // TODO 0 means REPL
+  if (argc == 1 || argc > 3) {
+    printf("Usage: flan file.fl [output.ir]\n");
     exit(1);
   }
 
-  FILE* f = fopen(argv[1], "r");
-  if (!f) {
-    fprintf(stderr, "file cannot be opened: %s\n", argv[1]);
-    exit(3);
-  }
-
-  fseek(f, 0, SEEK_END);
-  size_t lSize = ftell(f);
-  rewind(f);
-
-  string* file = st_new(lSize, st_enc_utf8);
-
-  // copy the file into the buffer:
-  size_t result = fread(file->value, 1, lSize, f);
-  if (result != lSize) {
-    fprintf(stderr, "Reading error\n");
-    exit(3);
-  }
-  file->used = result;
-  file->length = st_utf8_length(file->value, 0);
-  st__zeronull(file->value, result, st_enc_utf8);
-
-  printf("read\n%s\n\ntokenize:\n", file->value);
-
-  tk_token_list_t* tokens = fl_tokenize(file);
-
-  ast_t* root = fl_parser(tokens, false);
+  ast_t* root = fl_parse_file(argv[1], true);
   if (ast_print_error(root)) {
     exit(1);
   }
 
   LLVMModuleRef module = fl_codegen(root, "test");
+  ts_exit();
 
-  fl_to_ir(module, argv[2]);
+  if (argc == 3) {
+    printf("export to ir %s\n", argv[2]);
+    fl_to_ir(module, argv[2]);
+  } else {
+    printf("Running\n");
+    // JIT has not been linked in.
+    // cg_jit(module);
+    fl_interpreter(module);
+  }
 
   ast_delete(root);
-
-  fclose(f);
-  st_delete(&file);
 
   return 0;
 }

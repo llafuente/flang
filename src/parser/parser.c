@@ -67,14 +67,7 @@ ast_t* fl_parse(string* code, bool attach_core) {
   ast_parent(root); // set node->parent
 
   ast_dump(root);
-  log_debug("(parser) first inference");
-  ts_pass_inference(root);
-  log_debug("(parser) typesystem");
   root = ts_pass(root);
-  // TODO check if root is an error, and return
-  log_debug("(parser) second inference");
-  ts_pass_inference(root);
-
   // TODO remove this, just for debugging purpose
   ast_dump(root);
 
@@ -89,7 +82,7 @@ ast_t* fl_parse_utf8(char* str) {
   return fl_parse(code, true);
 }
 
-ast_t* fl_parse_file(char* filename, bool attach_core) {
+ast_t* fl_parse_file(const char* filename, bool attach_core) {
   FILE* f = fopen(filename, "r");
   if (!f) {
     fprintf(stderr, "file cannot be opened: %s\n", filename);

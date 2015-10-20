@@ -526,7 +526,8 @@ LLVMValueRef cg_function(FL_CODEGEN_HEADER) {
 LLVMValueRef cg_return(FL_CODEGEN_HEADER) {
   log_debug("cg_return");
 
-  LLVMValueRef argument = cg_ast(node->ret.argument, FL_CODEGEN_PASSTHROUGH);
+  LLVMValueRef argument =
+      cg_ast_loaded("lret", node->ret.argument, FL_CODEGEN_PASSTHROUGH);
   LLVMBuildRet(builder, argument);
 
   return 0;

@@ -25,16 +25,39 @@
 
 #include "flang.h"
 
+ast_t* ast_err_node = 0;
+
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+
+void ast_print_error_lines(const string* line, st_len_t pos,
+                           const string* code) {
+  if (pos >= MAX(0, ast_err_node->token_start->start.line - 2) &&
+      pos <= ast_err_node->token_end->end.line + 2) {
+    fprintf(stderr, "%6d | %s\n", pos, line->value);
+    if (pos == ast_err_node->token_start->start.line - 1) {
+      fprintf(stderr, "%*s\x1B[32m^--%s\x1B[39m\n",
+              (int)(7 + ast_err_node->token_start->start.column), " ",
+              ast_err_node->err.str);
+    }
+  }
+}
+
 bool ast_print_error(ast_t* node) {
   assert(node->type == FL_AST_PROGRAM);
   ast_t* err = node->program.body;
 
   if (err->type == FL_AST_ERROR) {
     fprintf(stderr, "Parse error: %s\n", err->err.str);
-    fprintf(stderr, "On line: %zu:%zu - %zu:%zu\n",
+    fprintf(stderr, "On line: %zu:%zu - %zu:%zu\n\n",
             err->token_start->start.line, err->token_start->start.column,
             err->token_end->end.line, err->token_end->end.column);
-    ast_dump(node);
+
+    ast_err_node = err;
+
+    // TODO add context do not use global var
+    st_line_iterator(node->program.code, ast_print_error_lines);
+
+    // ast_dump(node);
     return true;
   }
 

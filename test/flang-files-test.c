@@ -88,10 +88,11 @@ TASK_IMPL(flang_files) {
       "../test/fl/types", "../test/fl/pointers", "../test/fl/pointers2",
       "../test/fl/string", "../test/fl/functions",
       "../test/fl/function-pointer", "../test/perf/array-reverse",
-      "../test/fl/arithmetic", "../test/fl/autocast", "../test/fl/increment"
+      "../test/fl/arithmetic", "../test/fl/autocast", "../test/fl/increment",
+      "../test/fl/fibonacci"
       //,"../test/fl/promotion"
   };
-  size_t nfiles = 16;
+  size_t nfiles = 17;
   char* fl_file = malloc(sizeof(char) * 100);
   char* txt_file = malloc(sizeof(char) * 100);
   char* bc_file = malloc(sizeof(char) * 100);
@@ -132,7 +133,7 @@ TASK_IMPL(flang_files) {
       exit(1);
     }
 
-    ty_dump_table();
+    // ty_dump_table();
 
     module = fl_codegen(root, "test");
 

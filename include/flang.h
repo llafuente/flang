@@ -183,6 +183,18 @@ FL_EXTERN ast_cast_operations_t ts_cast_operation(ast_t* node);
 FL_EXTERN ast_action_t
 ts_cast_operation_pass_cb(ast_t* node, ast_t* parent, size_t level,
                           void* userdata_in, void* userdata_out);
+
+FL_EXTERN ast_t* ts_create_cast(ast_t* node, size_t type_id);
+FL_EXTERN ast_t* ts_create_left_cast(ast_t* parent, ast_t* left);
+FL_EXTERN ast_t* ts_create_right_cast(ast_t* parent, ast_t* right);
+FL_EXTERN void ts_create_binop_cast(ast_t* bo);
+
+FL_EXTERN void ts_cast_return(ast_t* node);
+FL_EXTERN void ts_cast_lunary(ast_t* node);
+FL_EXTERN void ts_cast_assignament(ast_t* node);
+FL_EXTERN void ts_cast_call(ast_t* node);
+FL_EXTERN void ts_cast_binop(ast_t* node);
+FL_EXTERN void ts_cast_expr_member(ast_t* node);
 /* cldoc:end-category() */
 
 typedef ast_t* (*psr_read_t)(PSR_READ_HEADER);
@@ -195,7 +207,7 @@ FL_EXTERN ast_t* fl_parse(string* code, bool core);
 
 FL_EXTERN ast_t* fl_parse_utf8(char* str);
 
-FL_EXTERN ast_t* fl_parse_file(char* filename, bool core);
+FL_EXTERN ast_t* fl_parse_file(const char* filename, bool core);
 
 /* cldoc:end-category() */
 
@@ -403,7 +415,7 @@ FL_EXTERN bool ast_print_error(ast_t* node);
 
 /* cldoc:begin-category(pass-inference.c) */
 
-FL_EXTERN ast_t* ts_pass_inference(ast_t* node);
+FL_EXTERN ast_t* ts_inference(ast_t* node);
 
 /* cldoc:end-category() */
 
