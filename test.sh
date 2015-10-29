@@ -1,10 +1,10 @@
 #!/bin/sh -x
 
-mkdir build
+mkdir -p build
 cd build
 
 #always delete the test, so it will not run the previous compiled
-rm ./test/run-tests
+rm -f ./test/run-tests
 
 ASAN_SYMBOLIZER_PATH=$(which llvm-symbolizer)
 ASAN_OPTIONS=symbolize=1

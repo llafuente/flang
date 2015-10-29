@@ -25,50 +25,58 @@
 
 #include "flang.h"
 
-PSR_READ_IMPL(stmt_if) {
-  if (!PSR_TEST_TOKEN(FL_TK_IF)) {
-    return 0;
-  }
+// http://stackoverflow.com/questions/780676/string-input-to-flex-lexer
 
-  PSR_START(stmt, FL_AST_STMT_IF);
+/*
+char* args = "(1,2,3)(4,5)(6,7,8)"
+FILE *newstdin = fmemopen (args, strlen (args), "r");
+FILE *oldstdin = fdup(stdin);
 
-  PSR_ACCEPT_TOKEN(FL_TK_IF);
-  PSR_SKIPWS();
+stdin = newstdin;
 
-  ast_t* t = PSR_READ(expression);
+// do parsing
 
-  if (!t) {
-    PSR_RET_SYNTAX_ERROR(stmt, "expected an expression");
-  }
-  PSR_RET_IF_ERROR(t, { ast_delete(stmt); });
+stdin = oldstdin;
+*/
 
-  PSR_READ_OR_DIE(body, block, {
-    ast_delete(t);
-    ast_delete(stmt);
-  }, "expected block of code");
+extern int yylex(ast_t* root);
+extern int yy_scan_buffer(char* str, size_t size);
 
-  stmt->if_stmt.test = t;
-  stmt->if_stmt.block = body;
-
-  PSR_SKIPWS();
-  if (PSR_ACCEPT_TOKEN(FL_TK_ELSE)) {
-    PSR_SKIPWS();
-    // test if
-    if (PSR_TEST_TOKEN(FL_TK_IF)) {
-      // read full if
-      PSR_READ_OR_DIE(else_block, stmt_if, { ast_delete(stmt); },
-                      "expected else if statement");
-
-      stmt->if_stmt.alternate = else_block;
-
-    } else {
-      // read block
-      PSR_READ_OR_DIE(else_block, block, { ast_delete(stmt); },
-                      "expected else block");
-
-      stmt->if_stmt.alternate = else_block;
-    }
-  }
-
-  PSR_RET_OK(stmt);
+ast_t* fl_parse(string* code, bool core) {
+  ast_t* root;
+  printf("fl_parse INPUT: %s\n", code->value);
+  yy_scan_buffer(code->value, code->capacity);
+  yylex(root);
+  return root;
 }
+
+ast_t* fl_parse_utf8(char* str) {
+  st_size_t cap;
+  size_t len = st_utf8_length(str, &cap);
+
+  string* code = st_new(cap + 2, st_enc_utf8);
+  st_copyc(&code, str, st_enc_utf8);
+  st_append_char(&code, 0);
+
+  return fl_parse(code, true);
+}
+
+ast_t* fl_parse_file(const char* filename, bool core) {
+  assert(false); // TODO
+}
+
+
+  /*
+  tk_token_list_t* tokens;
+
+  ast_t* root = fl_parser(tokens, attach_core);
+  root->program.code = code;
+
+  // do inference
+  ast_parent(root); // set node->parent
+
+  ast_dump(root);
+  root = ts_pass(root);
+  // TODO remove this, just for debugging purpose
+  ast_dump(root);
+  */

@@ -1,22 +1,8 @@
 ACLOCAL_AMFLAGS = -I m4
 
-COMPILER_SOURCES = src/tokenizer/tokenizer.c \
-                src/tokenizer/tokens.c \
-                src/tokenizer/tokens-dump.c \
-                src/parser/parser.c \
-                src/parser/parser-dump.c \
-                src/parser/parser-utils.c \
-                src/parser/parser-stack.c \
-                src/parser/parser-block.c \
-                src/parser/parser-literal.c \
-                src/parser/parser-expression.c \
-                src/parser/parser-variable.c \
-                src/parser/parser-function.c \
-                src/parser/parser-types.c \
-                src/parser/parser-comment.c \
-                src/parser/parser-if.c \
-                src/parser/parser-loops.c \
-                src/parser/parser-load.c \
+COMPILER_SOURCES = src/grammar/parser.c \
+                src/grammar/tokens.c \
+                src/psr.c \
                 src/ast/ast.c \
                 src/ast/ast-alloc.c \
                 src/ast/ast-mk.c \
@@ -53,7 +39,7 @@ LLVM_LINK_FLAGS=`llvm-config --cxxflags --ldflags --system-libs --libs`
 
 
 bin_PROGRAMS = flang
-flang_SOURCES = src/main.c
+flang_SOURCES = src/main-bison.c
 flang_SOURCES += $(COMPILER_SOURCES)
 
 flang_CFLAGS = $(LLVM_CC_FLAGS)
@@ -61,9 +47,7 @@ flang_LDFLAGS = $(LLVM_LINK_FLAGS) -lstdc++ -Wl -L/usr/local/lib '-lstringc'
 flang_LDADD =
 
 SOURCES_TEST = test/tasks.c \
-               test/tokenizer-test.c \
                test/typesystem-test.c \
-               test/parser-utils-test.c \
                test/parser-literals.c \
                test/parser-expressions-test.c \
                test/parser-variables-test.c \

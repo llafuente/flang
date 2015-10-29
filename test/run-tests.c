@@ -34,10 +34,8 @@ int main(int argc, const char* argv[]) {
   printf("    ## unit test ##\n");
   printf("    ###############\n");
 
-  TASK_RUN(tokenizer);
   TASK_RUN(typesystem);
 
-  TASK_RUN(parser_utils);
   TASK_RUN(parser_literals);
   TASK_RUN(parser_expressions);
   TASK_RUN(parser_variables);

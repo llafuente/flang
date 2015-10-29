@@ -201,8 +201,6 @@ typedef ast_t* (*psr_read_t)(PSR_READ_HEADER);
 
 /* cldoc:begin-category(parser.c) */
 
-FL_EXTERN ast_t* fl_parser(tk_token_list_t* tokens, bool core);
-
 FL_EXTERN ast_t* fl_parse(string* code, bool core);
 
 FL_EXTERN ast_t* fl_parse_utf8(char* str);
