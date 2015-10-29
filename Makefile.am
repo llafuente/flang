@@ -19,6 +19,7 @@ COMPILER_SOURCES = src/tokenizer/tokenizer.c \
                 src/parser/parser-load.c \
                 src/ast/ast.c \
                 src/ast/ast-alloc.c \
+                src/ast/ast-mk.c \
                 src/ast/ast-dump.c \
                 src/ast/ast-traverse.c \
                 src/ast/ast-reverse.c \

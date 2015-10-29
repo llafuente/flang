@@ -257,9 +257,10 @@ struct ast {
 
     struct ast_expr_call {
       ast_t* callee;
-      ast_t* decl; // set by typesystem
       ast_t* arguments;
       size_t narguments;
+
+      ast_t* decl; // set by typesystem
     } call;
 
     struct ast_expr_member {
