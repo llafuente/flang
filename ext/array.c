@@ -29,6 +29,32 @@ ARRAY_T array_get(array *arr, int index) {
   return arr->data[index];
 }
 
+ARRAY_T array_pop(array *arr) {
+  if (arr->size == 0) {
+    printf("Cannot pop empty array\n");
+    exit(1);
+  }
+
+  return arr->data[--arr->size];
+}
+
+ARRAY_T array_unshift(array *arr) {
+  if (arr->size == 0) {
+    printf("Cannot unshift empty array\n");
+    exit(1);
+  }
+
+  ARRAY_T t = arr->data[0];
+
+  --arr->size;
+  if (arr->size) {
+    memmove(arr->data, arr->data + 1, sizeof(ARRAY_T) * arr->size);
+  }
+
+  return t;
+}
+
+
 void array_set(array *arr, int index, ARRAY_T value) {
   // zero fill the vector up to the desired index
   while (index >= arr->size) {

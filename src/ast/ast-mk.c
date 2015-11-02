@@ -28,16 +28,15 @@
 // TODO redefinition atm...
 // ast_t* ast_new() { return (ast_t*)calloc(1, sizeof(ast_t)); }
 
-ast_t* ast_mk_root() {
-  printf("ast_mk_root");
+ast_t* ast_mk_program(ast_t* block) {
   ast_t* node = ast_new();
   node->type = FL_AST_PROGRAM;
+  node->program.body = block;
 
   return node;
 }
-
 ast_t* ast_mk_list() {
-  printf("ast_mk_list");
+  printf("ast_mk_list\n");
   ast_t* node = ast_new();
   node->type = FL_AST_LIST;
   node->list.count = 0;
@@ -47,32 +46,34 @@ ast_t* ast_mk_list() {
 }
 
 ast_t* ast_mk_list_push(ast_t* list, ast_t* node) {
-  printf("ast_mk_list_push");
-  node->list.elements[list->list.count++] = node;
+  printf("ast_mk_list_push [%p]\n", list);
+  list->list.elements[list->list.count++] = node;
 
   return list;
 }
 
-ast_t* ast_mk_block() {
-  printf("ast_mk_block");
+ast_t* ast_mk_block(ast_t* body) {
+  printf("ast_mk_block\n");
   ast_t* node = ast_new();
   node->type = FL_AST_BLOCK;
+  node->block.body = body;
 
   return node;
 }
 
-ast_t* ast_mk_lit_id(char* str, bool resolve) {
-  printf("ast_mk_lit_id");
+ast_t* ast_mk_lit_id(string* str, bool resolve) {
+  printf("ast_mk_lit_id '%s'\n", str->value);
+
   ast_t* node = ast_new();
   node->type = FL_AST_LIT_IDENTIFIER;
-  node->identifier.string = st_newc(str, st_enc_utf8);
+  node->identifier.string = str;
   node->identifier.resolve = resolve;
 
   return node;
 }
 
 ast_t* ast_mk_lit_null() {
-  printf("ast_mk_lit_null");
+  printf("ast_mk_lit_null\n");
   ast_t* node = ast_new();
   node->type = FL_AST_LIT_NULL;
 
@@ -80,7 +81,7 @@ ast_t* ast_mk_lit_null() {
 }
 
 ast_t* ast_mk_lit_string(char* str, bool interpolate) {
-  printf("ast_mk_lit_string");
+  printf("ast_mk_lit_string\n");
   ast_t* node = ast_new();
   node->type = FL_AST_LIT_STRING;
   node->string.value = st_newc(str, st_enc_utf8);
@@ -90,16 +91,36 @@ ast_t* ast_mk_lit_string(char* str, bool interpolate) {
 }
 
 ast_t* ast_mk_lit_boolean(bool value) {
-  printf("ast_mk_lit_boolean");
+  printf("ast_mk_lit_boolean\n");
   ast_t* node = ast_new();
   node->type = FL_AST_LIT_BOOLEAN;
   node->boolean.value = value;
 
   return node;
 }
+// TODO do the parsing magic!
+ast_t* ast_mk_lit_integer(char* text) {
+  ast_t* node = ast_new();
+  node->type = FL_AST_LIT_NUMERIC;
+  node->numeric.d_value = 99;
+  node->numeric.li_value = 99;
+  node->numeric.lui_value = 99;
+
+  return node;
+}
+// TODO do the parsing magic!
+ast_t* ast_mk_lit_float(char* text) {
+  ast_t* node = ast_new();
+  node->type = FL_AST_LIT_NUMERIC;
+  node->numeric.d_value = 101;
+  node->numeric.li_value = 101;
+  node->numeric.lui_value = 101;
+
+  return node;
+}
 
 ast_t* ast_mk_return(ast_t* argument) {
-  printf("ast_mk_return");
+  printf("ast_mk_return\n");
   ast_t* node = ast_new();
   node->type = FL_AST_STMT_RETURN;
   node->ret.argument = argument;
@@ -108,6 +129,7 @@ ast_t* ast_mk_return(ast_t* argument) {
 }
 
 ast_t* ast_mk_var_decl(ast_t* type, ast_t* id) {
+  printf("ast_mk_var_decl\n");
   ast_t* node = ast_new();
   node->type = FL_AST_DTOR_VAR;
   node->var.id = id;
@@ -118,10 +140,13 @@ ast_t* ast_mk_var_decl(ast_t* type, ast_t* id) {
   return node;
 }
 
-ast_t* ast_mk_fn_decl(ast_t* id, ast_t* ret_type, ast_t* params, ast_t* body) {
+ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body) {
+  printf("ast_mk_fn_decl\n");
   ast_t* node = ast_new();
   node->type = FL_AST_DECL_FUNCTION;
   node->func.id = id;
+  node->func.uid =
+      st_clone(id->identifier.string); // TODO this could be removed
   node->func.ret_type = ret_type;
   node->func.params = params;
   node->func.body = body;
@@ -129,7 +154,22 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* ret_type, ast_t* params, ast_t* body) {
   return node;
 }
 
+ast_t* ast_mk_fn_param(ast_t* id, ast_t* type, ast_t* def) {
+  printf("ast_mk_fn_param\n");
+  ast_t* node = ast_new();
+  node->type = FL_AST_PARAMETER;
+
+  node->param.id = id;
+  node->param.type = type;
+  node->param.def = def;
+
+  // TODO assertions
+
+  return node;
+}
+
 ast_t* ast_mk_numeric(char* text) {
+  printf("ast_mk_numeric\n");
   ast_t* node = ast_new();
   node->type = FL_AST_LIT_NUMERIC;
   node->numeric.d_value = 10;
@@ -140,8 +180,9 @@ ast_t* ast_mk_numeric(char* text) {
 }
 
 ast_t* ast_mk_binop(ast_t* left, int op, ast_t* right) {
+  printf("ast_mk_binop\n");
   ast_t* node = ast_new();
-  node->type = FL_AST_LIT_NUMERIC;
+  node->type = FL_AST_EXPR_BINOP;
   node->binop.left = left;
   node->binop.right = right;
   node->binop.operator= op;
@@ -150,6 +191,7 @@ ast_t* ast_mk_binop(ast_t* left, int op, ast_t* right) {
 }
 
 ast_t* ast_mk_assignament(ast_t* left, int op, ast_t* right) {
+  printf("ast_mk_assignament\n");
   ast_t* node = ast_new();
   node->type = FL_AST_EXPR_ASSIGNAMENT;
   node->assignament.left = left;
@@ -160,12 +202,74 @@ ast_t* ast_mk_assignament(ast_t* left, int op, ast_t* right) {
 }
 
 ast_t* ast_mk_call_expr(ast_t* callee, ast_t* arguments) {
+  printf("ast_mk_call_expr\n");
   ast_t* node = ast_new();
 
   node->type = FL_AST_EXPR_CALL;
   node->call.callee = callee;
   node->call.arguments = arguments;
-  node->call.narguments = arguments->list.count;
+  node->call.narguments = arguments ? arguments->list.count : 0;
+
+  return node;
+}
+
+ast_t* ast_mk_type(string* id, ast_t* child) {
+  printf("ast_mk_type\n");
+  ast_t* node = ast_new();
+
+  node->type = FL_AST_TYPE;
+  node->ty.id = id ? ast_mk_lit_id(id, false) : 0;
+  node->ty.child = child;
+
+  return node;
+}
+
+ast_t* ast_mk_comment(string* text) {
+  printf("ast_mk_comment\n");
+  ast_t* node = ast_new();
+
+  node->type = FL_AST_STMT_COMMENT;
+  node->comment.text = text;
+
+  return node;
+}
+
+ast_t* ast_mk_lunary(ast_t* element, int operator) {
+  printf("ast_mk_lunary\n");
+  ast_t* node = ast_new();
+
+  node->type = FL_AST_EXPR_LUNARY;
+  node->lunary.element = element;
+  node->lunary.operator= operator;
+
+  return node;
+}
+
+ast_t* ast_mk_if(ast_t* test, ast_t* block, ast_t* alternate) {
+  printf("ast_mk_if\n");
+  ast_t* node = ast_new();
+
+  node->type = FL_AST_STMT_IF;
+  node->if_stmt.test = test;
+  node->if_stmt.block = block;
+  node->if_stmt.alternate = alternate;
+
+  return node;
+}
+
+ast_t* ast_mk_loop(ast_t* init, ast_t* pre_cond, ast_t* update, ast_t* block,
+                   ast_t* post_cond) {
+  printf("ast_mk_loop\n");
+  ast_t* node = ast_new();
+
+  node->type = FL_AST_STMT_LOOP;
+
+  node->loop.init = init;
+  node->loop.pre_cond = pre_cond;
+  node->loop.update = update;
+  node->loop.block = block;
+  node->loop.post_cond = post_cond;
+  // TODO node->loop.type = type;
 
   return node;
 }

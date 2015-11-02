@@ -68,7 +68,7 @@ void ast_delete_props(ast_t* ast) {
   case FL_AST_PROGRAM: {
     SAFE_DEL(ast->program.body);
     SAFE_DEL(ast->program.core);
-    //TODO remove! tk_tokens_delete(ast->program.tokens);
+    // TODO remove! tk_tokens_delete(ast->program.tokens);
     SAFE_DEL_STR(ast->program.code);
     SAFE_DEL_STR(ast->program.path);
   } break;
@@ -152,8 +152,12 @@ void ast_delete_props(ast_t* ast) {
     SAFE_DEL(ast->field.type);
   } break;
   case FL_AST_STMT_COMMENT: {
-    // SAFE_DEL_STR(ast->comment.text);
+    SAFE_DEL_STR(ast->comment.text);
   } break;
+  case FL_AST_TYPE: {
+    SAFE_DEL(ast->ty.id);
+    SAFE_DEL(ast->ty.child);
+  }
   default: {}
   }
 }

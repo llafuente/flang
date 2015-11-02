@@ -198,8 +198,9 @@ struct ast {
       LLVMValueRef alloca;
     } var;
 
-    // just for reference, but ty_id is used
     struct ast_idtype {
+      ast_t* id;
+      ast_t* child;
     } ty;
 
     struct ast_decl_struct {

@@ -65,18 +65,17 @@ ast_t* fl_parse_file(const char* filename, bool core) {
   assert(false); // TODO
 }
 
+/*
+tk_token_list_t* tokens;
 
-  /*
-  tk_token_list_t* tokens;
+ast_t* root = fl_parser(tokens, attach_core);
+root->program.code = code;
 
-  ast_t* root = fl_parser(tokens, attach_core);
-  root->program.code = code;
+// do inference
+ast_parent(root); // set node->parent
 
-  // do inference
-  ast_parent(root); // set node->parent
-
-  ast_dump(root);
-  root = ts_pass(root);
-  // TODO remove this, just for debugging purpose
-  ast_dump(root);
-  */
+ast_dump(root);
+root = ts_pass(root);
+// TODO remove this, just for debugging purpose
+ast_dump(root);
+*/

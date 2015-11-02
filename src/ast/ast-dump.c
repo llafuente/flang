@@ -117,8 +117,8 @@ void ast_dump_one(ast_t* node) {
     printf("ERROR [string=%s]", node->err.str);
     break;
   case FL_AST_STMT_COMMENT:
-    // printf("comment\n**\n%s\n**\n", node->comment.text->value);
-    printf("comment");
+    printf("comment\n**\n%s\n**\n", node->comment.text->value);
+    // printf("comment");
     break;
   case FL_AST_STMT_IF:
     printf("if");

@@ -16,6 +16,10 @@ void array_append(array *arr, ARRAY_T value);
 
 ARRAY_T array_get(array *arr, int index);
 
+ARRAY_T array_pop(array *arr);
+
+ARRAY_T array_unshift(array *arr);
+
 void array_set(array *arr, int index, ARRAY_T value);
 
 void array_double_capacity_if_full(array *arr);
