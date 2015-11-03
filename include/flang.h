@@ -263,9 +263,15 @@ FL_EXTERN bool ast_require_load(ast_t* node);
 FL_EXTERN bool ast_print_error(ast_t* node);
 /* cldoc:end-category() */
 
-/* cldoc:begin-category(pass-inference.c) */
+/* cldoc:begin-category(typesystem/typesystem-inference.c) */
 
 FL_EXTERN ast_t* ts_inference(ast_t* node);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(typesystem/typesystem-register.c) */
+
+FL_EXTERN ast_t* ts_register_types(ast_t* node);
 
 /* cldoc:end-category() */
 

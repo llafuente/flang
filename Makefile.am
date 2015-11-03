@@ -20,6 +20,7 @@ COMPILER_SOURCES = src/grammar/parser.c \
                 src/codegen/codegen-types.c \
                 src/typesystem/typesystem-inference.c \
                 src/typesystem/typesystem-pass.c \
+                src/typesystem/typesystem-register.c \
                 src/typesystem/typesystem.c \
                 src/typesystem/type-dump.c \
                 src/typesystem/type-cast.c \

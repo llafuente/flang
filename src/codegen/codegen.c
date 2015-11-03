@@ -120,7 +120,7 @@ LLVMValueRef cg_ast(FL_CODEGEN_HEADER) {
     if (node->program.core) {
       log_verbose("** program.core **");
       int olog_debug_level = log_debug_level;
-      log_debug_level = 0; // debug core
+      // log_debug_level = 0; // debug core
       cg_ast(node->program.core, FL_CODEGEN_PASSTHROUGH);
       log_debug_level = olog_debug_level;
     } else {

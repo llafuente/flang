@@ -41,7 +41,7 @@ stdin = newstdin;
 stdin = oldstdin;
 */
 
-ast_t* fl_parse(string* code, bool core) {
+ast_t* fl_parse(string* code, bool attach_core) {
   ts_init();
 
   ast_t* root;
@@ -50,6 +50,14 @@ ast_t* fl_parse(string* code, bool core) {
   yy_scan_string(code->value);
   yyparse(&root);
   // yy_delete_buffer( YY_CURRENT_BUFFER );
+
+  // read core
+  if (attach_core) {
+    int olog_debug_level = log_debug_level;
+    log_debug_level = 0; // remove to debug core parsing
+    root->program.core = fl_parse_file("./../core/core.fl", false);
+    log_debug_level = olog_debug_level;
+  }
 
   return root;
 }
@@ -65,8 +73,33 @@ ast_t* fl_parse_utf8(char* str) {
   return fl_parse(code, true);
 }
 
-ast_t* fl_parse_file(const char* filename, bool core) {
-  assert(false); // TODO
+ast_t* fl_parse_file(const char* filename, bool attach_core) {
+  FILE* f = fopen(filename, "r");
+  if (!f) {
+    fprintf(stderr, "file cannot be opened: %s\n", filename);
+    exit(3);
+  }
+
+  fseek(f, 0, SEEK_END);
+  size_t lSize = ftell(f);
+  rewind(f);
+
+  string* code = st_new(lSize + 1, st_enc_utf8);
+  // copy the file into the buffer:
+  size_t result = fread(code->value, 1, lSize, f);
+  if (result != lSize) {
+    fprintf(stderr, "Reading error\n");
+    exit(3);
+  }
+
+  code->used = result;
+  code->length = st_utf8_length(code->value, 0);
+  st__zeronull(code->value, result, st_enc_utf8);
+  st_append_char(&code, 0); // \0\0 EOF
+
+  ast_t* r = fl_parse(code, attach_core);
+
+  return r;
 }
 
 /*

@@ -123,9 +123,12 @@ ast_t* ast_mk_lit_integer(char* text) {
     if (errno == ERANGE) {
       log_verbose("ERANGE: double");
       // TODO ??
+    } else {
+      node->ty_id = TS_U64;
     }
   } else {
     node->integer.signed_value = val;
+    node->ty_id = TS_I64;
   }
 
   return node;
@@ -145,6 +148,7 @@ ast_t* ast_mk_lit_float(char* text) {
     }
   }
   node->decimal.value = result;
+  node->ty_id = TS_F64;
 
   return node;
 }

@@ -88,7 +88,7 @@ ast_t* ts_typeit(ast_t* node) {
 
 ast_t* ts_pass(ast_t* node) {
   log_debug("typesystem!");
-
+  ts_register_types(node);
   log_debug("(parser) inference");
   ts_inference(node);
   log_debug("(parser) type it");

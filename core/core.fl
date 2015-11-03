@@ -1,14 +1,14 @@
 /* string must be first atm */
-import core/string; // into global space
-import core/ffi-c; // into global space
+import "core/string"; // into global space
+import "core/ffi-c"; // into global space
 
-fn alloc(u64 amount_of_bytes) : ptr<void> {
+fn alloc(u64 amount_of_bytes) : ptr(void) {
   return malloc(amount_of_bytes);
 }
 
 /*
-ffi fn printf(ptr<i8> format, ...) : i32;
-fn log(ptr<string> str) {
+ffi fn printf(ptr(i8) format, ...) : i32;
+fn log(ptr(string) str) {
   printf("%s\n", str[0]->value);
 }
 */
