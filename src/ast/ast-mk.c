@@ -40,7 +40,7 @@ ast_t* ast_mk_list() {
   ast_t* node = ast_new();
   node->type = FL_AST_LIST;
   node->list.count = 0;
-  node->list.elements = calloc(100, sizeof(ast_t*));
+  node->list.elements = calloc(300, sizeof(ast_t*));
 
   return node;
 }
@@ -124,6 +124,24 @@ ast_t* ast_mk_return(ast_t* argument) {
   ast_t* node = ast_new();
   node->type = FL_AST_STMT_RETURN;
   node->ret.argument = argument;
+
+  return node;
+}
+
+ast_t* ast_mk_break(ast_t* argument) {
+  printf("ast_mk_break\n");
+  ast_t* node = ast_new();
+  node->type = FL_AST_STMT_BREAK;
+  node->brk.argument = argument;
+
+  return node;
+}
+
+ast_t* ast_mk_continue(ast_t* argument) {
+  printf("ast_mk_break\n");
+  ast_t* node = ast_new();
+  node->type = FL_AST_STMT_CONTINUE;
+  node->cont.argument = argument;
 
   return node;
 }
@@ -270,6 +288,43 @@ ast_t* ast_mk_loop(ast_t* init, ast_t* pre_cond, ast_t* update, ast_t* block,
   node->loop.block = block;
   node->loop.post_cond = post_cond;
   // TODO node->loop.type = type;
+
+  return node;
+}
+
+ast_t* ast_mk_struct_decl(ast_t* id, ast_t* fields) {
+  printf("ast_mk_struct_decl\n");
+  ast_t* node = ast_new();
+
+  node->type = FL_AST_DECL_STRUCT;
+
+  node->structure.id = id;
+  node->structure.fields = fields;
+
+  return node;
+}
+
+ast_t* ast_mk_struct_decl_field(ast_t* id, ast_t* type) {
+  printf("ast_mk_struct_decl_field\n");
+  ast_t* node = ast_new();
+
+  node->type = FL_AST_DECL_STRUCT_FIELD;
+
+  node->field.id = id;
+  node->field.type = type;
+
+  return node;
+}
+
+ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression) {
+  printf("ast_mk_member\n");
+  ast_t* node = ast_new();
+
+  node->type = FL_AST_EXPR_MEMBER;
+
+  node->member.left = left;
+  node->member.property = property;
+  node->member.expression = expression;
 
   return node;
 }

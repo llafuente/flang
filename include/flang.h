@@ -492,3 +492,8 @@ ast_t* ast_mk_lunary(ast_t* element, int operator);
 ast_t* ast_mk_if(ast_t* test, ast_t* block, ast_t* alternate);
 ast_t* ast_mk_loop(ast_t* init, ast_t* pre_cond, ast_t* update, ast_t* block,
                    ast_t* post_cond);
+ast_t* ast_mk_struct_decl(ast_t* id, ast_t* fields);
+ast_t* ast_mk_struct_decl_field(ast_t* id, ast_t* type);
+ast_t* ast_mk_break(ast_t* argument);
+ast_t* ast_mk_continue(ast_t* argument);
+ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression);

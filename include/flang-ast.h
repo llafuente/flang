@@ -75,6 +75,8 @@ enum ast_types {
   FL_AST_DECL_FUNCTION = 50,
   FL_AST_PARAMETER = 51,
   FL_AST_STMT_RETURN = 52,
+  FL_AST_STMT_BREAK = 53,
+  FL_AST_STMT_CONTINUE = 54,
 
   FL_AST_STMT_IF = 60,
   FL_AST_STMT_LOOP = 61,
@@ -241,6 +243,14 @@ struct ast {
       ast_t* argument;
     } ret;
 
+    struct ast_stmt_break {
+      ast_t* argument;
+    } brk;
+
+    struct ast_stmt_continue {
+      ast_t* argument;
+    } cont;
+
     struct ast_stmt_if {
       ast_t* test;
       ast_t* block; // consequent
@@ -267,8 +277,9 @@ struct ast {
     struct ast_expr_member {
       ast_t* left;
       ast_t* property;
-      size_t idx;
       bool expression;
+
+      size_t idx; // calc by typesystem
     } member;
 
     struct ast_stmt_comment {
