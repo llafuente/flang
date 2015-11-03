@@ -166,30 +166,30 @@ struct ast {
 
     struct ast_expr_assignament {
       ast_t* left;
-      tk_tokens_t operator;
+      enum yytokentype operator;
       ast_t* right;
     } assignament;
 
     struct ast_expr_binop {
       ast_t* left;
-      tk_tokens_t operator;
+      enum yytokentype operator;
       ast_t* right;
     } binop;
 
     struct ast_expr_lunary {
       ast_t* element;
-      tk_tokens_t operator;
+      enum yytokentype operator;
     } lunary;
 
     struct ast_expr_runary {
       ast_t* element;
-      tk_tokens_t operator;
+      enum yytokentype operator;
     } runary;
 
     struct ast_cast {
       ast_cast_operations_t operation;
+      ast_t* type;
       ast_t* element;
-      // use ty_id as type
     } cast;
 
     struct ast_dtor_variable {

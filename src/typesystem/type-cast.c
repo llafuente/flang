@@ -266,10 +266,10 @@ void ts_cast_return(ast_t* node) {
 
 void ts_cast_lunary(ast_t* node) {
   switch (node->lunary.operator) {
-  case FL_TK_EXCLAMATION:
+  case '!':
     node->ty_id = 2; // bool
     break;
-  case FL_TK_AND: {
+  case '&': {
     ast_t* el = node->lunary.element;
     ts_pass(el);
     node->ty_id = ts_wapper_typeid(FL_POINTER, el->ty_id);
@@ -378,12 +378,12 @@ void ts_cast_binop(ast_t* node) {
 
   // binop
   switch (node->binop.operator) {
-  case FL_TK_EQUAL2:
-  case FL_TK_EEQUAL: // !=
-  case FL_TK_LTE:
-  case FL_TK_LT:
-  case FL_TK_GTE:
-  case FL_TK_GT: {
+  case TK_EQEQ:
+  case TK_NE: // !=
+  case TK_LE:
+  case '<':
+  case TK_GE:
+  case '>': {
     // TODO this should test if any side is a literal
     // TEST parser-expression-test.c:187
 
@@ -391,11 +391,11 @@ void ts_cast_binop(ast_t* node) {
     node->ty_id = ts_promote_typeid(l_type, r_type);
     ts_create_binop_cast(node);
   } break;
-  case FL_TK_AND:
-  case FL_TK_OR:
-  case FL_TK_CARET:
-  case FL_TK_LT2:
-  case FL_TK_GT2:
+  case '&':
+  case '|':
+  case '^':
+  case TK_SHL:
+  case TK_SHR:
     // left and right must be Integers!
     if (l_fp || r_fp) {
       log_error("invalid operants");

@@ -24,6 +24,8 @@
 */
 
 #include "flang.h"
+#include "grammar/tokens.h"
+#include "grammar/parser.h"
 
 // http://stackoverflow.com/questions/780676/string-input-to-flex-lexer
 
@@ -39,14 +41,16 @@ stdin = newstdin;
 stdin = oldstdin;
 */
 
-extern int yylex(ast_t* root);
-extern int yy_scan_buffer(char* str, size_t size);
-
 ast_t* fl_parse(string* code, bool core) {
+  ts_init();
+
   ast_t* root;
   printf("fl_parse INPUT: %s\n", code->value);
-  yy_scan_buffer(code->value, code->capacity);
-  yylex(root);
+
+  yy_scan_string(code->value);
+  yyparse(&root);
+  // yy_delete_buffer( YY_CURRENT_BUFFER );
+
   return root;
 }
 

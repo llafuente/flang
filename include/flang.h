@@ -98,6 +98,8 @@ typedef struct psr_stack fl_psrstack_t;
 struct ts_typeh;
 typedef struct ts_typeh ts_typeh_t;
 
+#include "grammar/parser.h"
+//#include "grammar/tokens.h"
 #include "flang-typesystem.h"
 #include "flang-tokenizer.h"
 #include "flang-parser.h"
@@ -122,22 +124,6 @@ typedef struct ts_typeh ts_typeh_t;
 //-
 //- functions, global variables
 //-
-
-/* cldoc:begin-category(tokenizer.c) */
-
-FL_EXTERN size_t tk_token_list_s;
-
-FL_EXTERN tk_token_cfg_t tk_token_list[];
-
-FL_EXTERN void tk_tokens_delete(tk_token_list_t* tokens);
-
-void tk_cp_state(tk_state_t* src, tk_state_t* dst);
-
-FL_EXTERN void tk_dump(tk_token_list_t* tokens);
-
-FL_EXTERN tk_token_list_t* fl_tokenize(string* file);
-
-/* cldoc:end-category() */
 
 /* cldoc:begin-category(typesystem/typesystem.c) */
 
@@ -206,140 +192,6 @@ FL_EXTERN ast_t* fl_parse(string* code, bool core);
 FL_EXTERN ast_t* fl_parse_utf8(char* str);
 
 FL_EXTERN ast_t* fl_parse_file(const char* filename, bool core);
-
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(parser-utils.c) */
-
-FL_EXTERN bool psr_next(tk_token_list_t* tokens, fl_psrstate_t* state);
-
-FL_EXTERN bool psr_prev(tk_token_list_t* tokens, fl_psrstate_t* state);
-
-FL_EXTERN bool psr_eof(tk_token_list_t* tokens, fl_psrstate_t* state);
-
-FL_EXTERN bool psr_accept(tk_token_list_t* tokens, fl_psrstate_t* state,
-                          char* text);
-FL_EXTERN bool psr_accept_list(tk_token_list_t* tokens, fl_psrstate_t* state,
-                               char* text[], size_t text_count);
-
-FL_EXTERN bool psr_accept_token(tk_token_list_t* tokens, fl_psrstate_t* state,
-                                tk_tokens_t token_type);
-FL_EXTERN bool psr_accept_token_list(tk_token_list_t* tokens,
-                                     fl_psrstate_t* state,
-                                     tk_tokens_t token_type[], size_t tk_count);
-FL_EXTERN ast_t* psr_read_list(psr_read_t* arr, size_t length, PSR_READ_HEADER);
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(parser-stack.c) */
-
-FL_EXTERN void psr_stack_init(fl_psrstack_t* stack, tk_token_list_t* tokens,
-                              fl_psrstate_t* state);
-
-FL_EXTERN void psr_look_ahead(fl_psrstack_t* stack, fl_psrstate_t* state);
-
-FL_EXTERN void psr_commit(fl_psrstack_t* stack, fl_psrstate_t* state);
-
-FL_EXTERN void psr_rollback(fl_psrstack_t* stack, fl_psrstate_t* state);
-
-FL_EXTERN void psr_skipws(tk_token_list_t* tokens, fl_psrstate_t* state);
-
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(parser-block.c) */
-
-PSR_READ_DECL(block);
-PSR_READ_DECL(program_block);
-void PSR_READ_NAME(block_body)(PSR_READ_HEADER, ast_t** extend);
-
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(parser-literal.c) */
-
-PSR_READ_DECL(literal);
-PSR_READ_DECL(lit_null);
-PSR_READ_DECL(lit_boolean);
-PSR_READ_DECL(lit_string);
-PSR_READ_DECL(lit_numeric);
-PSR_READ_DECL(lit_identifier);
-PSR_READ_DECL(lit_identifier_rw);
-
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(parser-expression.c) */
-
-PSR_READ_DECL(expression);
-PSR_READ_DECL(expr_assignment);
-PSR_READ_DECL(expr_assignment_full);
-PSR_READ_DECL(expr_lhs);
-PSR_READ_DECL(expr_primary);
-PSR_READ_DECL(expr_conditional);
-PSR_READ_DECL(expr_logical_or);
-PSR_READ_DECL(expr_logical_and);
-PSR_READ_DECL(expr_bitwise_or);
-PSR_READ_DECL(expr_bitwise_xor);
-PSR_READ_DECL(expr_bitwise_and);
-PSR_READ_DECL(expr_equality);
-PSR_READ_DECL(expr_relational);
-PSR_READ_DECL(expr_shift);
-PSR_READ_DECL(expr_additive);
-PSR_READ_DECL(expr_multiplicative);
-PSR_READ_DECL(expr_unary);
-PSR_READ_DECL(expr_unary_left);
-PSR_READ_DECL(expr_unary_right);
-PSR_READ_DECL(expr_call);
-PSR_READ_DECL(expr_argument);
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(parser-variable.c) */
-
-PSR_READ_DECL(decl_variable);
-PSR_READ_DECL(decl_variable_no_type);
-PSR_READ_DECL(decl_variable_with_type);
-
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(parser-type.c) */
-
-PSR_READ_DECL(type);
-PSR_READ_DECL(decl_struct);
-PSR_READ_DECL(cast);
-
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(parser-function.c) */
-
-PSR_READ_DECL(decl_function);
-PSR_READ_DECL(stmt_return);
-PSR_READ_DECL(parameter_typed);
-PSR_READ_DECL(parameter_notyped);
-PSR_READ_DECL(parameter);
-
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(parser-if.c) */
-
-PSR_READ_DECL(stmt_if);
-
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(parser-loops.c) */
-
-PSR_READ_IMPL(stmt_for);
-PSR_READ_IMPL(stmt_while);
-PSR_READ_IMPL(stmt_dowhile);
-
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(parser-load.c) */
-
-PSR_READ_IMPL(pp_load);
-
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(parser-comment.c) */
-
-PSR_READ_DECL(comment_multi);
-PSR_READ_DECL(comment_single);
 
 /* cldoc:end-category() */
 
@@ -497,3 +349,4 @@ ast_t* ast_mk_struct_decl_field(ast_t* id, ast_t* type);
 ast_t* ast_mk_break(ast_t* argument);
 ast_t* ast_mk_continue(ast_t* argument);
 ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression);
+ast_t* ast_mk_cast(ast_t* type, ast_t* element);

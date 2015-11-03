@@ -1,7 +1,6 @@
 /* string must be first atm */
-#load "./../core/string.fl"
-
-#load "./../core/ffi-c.fl"
+import core/string; // into global space
+import core/ffi-c; // into global space
 
 fn alloc(u64 amount_of_bytes) : ptr<void> {
   return malloc(amount_of_bytes);

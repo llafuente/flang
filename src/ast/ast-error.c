@@ -31,18 +31,21 @@ ast_t* ast_err_node = 0;
 
 void ast_print_error_lines(const string* line, st_len_t pos,
                            const string* code) {
-  if (pos >= MAX(0, ast_err_node->token_start->start.line - 2) &&
-      pos <= ast_err_node->token_end->end.line + 2) {
-    fprintf(stderr, "%6d | %s\n", pos, line->value);
-    if (pos == ast_err_node->token_start->start.line - 1) {
-      fprintf(stderr, "%*s\x1B[32m^--%s\x1B[39m\n",
-              (int)(7 + ast_err_node->token_start->start.column), " ",
-              ast_err_node->err.str);
+  /*
+    if (pos >= MAX(0, ast_err_node->token_start->start.line - 2) &&
+        pos <= ast_err_node->token_end->end.line + 2) {
+      fprintf(stderr, "%6d | %s\n", pos, line->value);
+      if (pos == ast_err_node->token_start->start.line - 1) {
+        fprintf(stderr, "%*s\x1B[32m^--%s\x1B[39m\n",
+                (int)(7 + ast_err_node->token_start->start.column), " ",
+                ast_err_node->err.str);
+      }
     }
-  }
+  */
 }
 
 bool ast_print_error(ast_t* node) {
+  /*
   assert(node->type == FL_AST_PROGRAM);
   ast_t* err = node->program.body;
 
@@ -60,6 +63,7 @@ bool ast_print_error(ast_t* node) {
     // ast_dump(node);
     return true;
   }
+  */
 
   return false;
 }

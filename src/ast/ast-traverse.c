@@ -140,6 +140,7 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
     TRAVERSE(ast->loop.post_cond);
   } break;
   case FL_AST_CAST: {
+    TRAVERSE(ast->cast.type);
     TRAVERSE(ast->cast.element);
   } break;
   case FL_AST_DECL_STRUCT: {

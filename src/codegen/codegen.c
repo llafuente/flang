@@ -334,60 +334,59 @@ LLVMValueRef cg_binop(FL_CODEGEN_HEADER) {
 
   // common operations that works with any type
   switch (node->binop.operator) {
-  case FL_TK_AND:
+  case '&':
     return LLVMBuildAnd(builder, lhs, rhs, "and");
-  case FL_TK_OR:
+  case '|':
     return LLVMBuildOr(builder, lhs, rhs, "or");
-  case FL_TK_CARET:
+  case '^':
     return LLVMBuildXor(builder, lhs, rhs, "xor");
-  case FL_TK_LT2:
-    // returns the first operand shifted to the left a specified number of bits.
-    return LLVMBuildShl(builder, lhs, rhs, "shl");
-  case FL_TK_GT2:
+  case TK_SHR:
     // returns the first operand shifted to the right a specified number of bits
     // with sign extension
     return LLVMBuildAShr(builder, lhs, rhs, "ashr");
-
   // TODO
   // logical shift right - lshr
   // return LLVMBuildLShr(builder, lhs, rhs, "lshr");
   // signed
+  case TK_SHL:
+    // returns the first operand shifted to the left a specified number of bits.
+    return LLVMBuildShl(builder, lhs, rhs, "shl");
   default: {}
   }
 
   bool use_fp = ts_is_fp(node->ty_id);
   // Create different IR code depending on the operator.
   switch (node->binop.operator) {
-  case FL_TK_EQUAL2: { // ==
+  case TK_EQEQ: { // ==
     return use_fp ? LLVMBuildFCmp(builder, LLVMRealOEQ, lhs, rhs, "andand")
                   : LLVMBuildICmp(builder, LLVMIntEQ, lhs, rhs, "andand");
   }
-  case FL_TK_EEQUAL: { // !=
+  case TK_NE: { // !=
     return use_fp ? LLVMBuildFCmp(builder, LLVMRealONE, lhs, rhs, "andand")
                   : LLVMBuildICmp(builder, LLVMIntNE, lhs, rhs, "andand");
   }
-  case FL_TK_GT: { // >
+  case '>': { // >
     // TODO LLVMIntUGT
     // TODO LLVMRealUGT
 
     return use_fp ? LLVMBuildFCmp(builder, LLVMRealOGT, lhs, rhs, "andand")
                   : LLVMBuildICmp(builder, LLVMIntSGT, lhs, rhs, "andand");
   }
-  case FL_TK_GTE: { // >=
+  case TK_GE: { // >=
     // TODO LLVMIntUGE
     // TODO LLVMRealUGE
 
     return use_fp ? LLVMBuildFCmp(builder, LLVMRealOGE, lhs, rhs, "andand")
                   : LLVMBuildICmp(builder, LLVMIntSGE, lhs, rhs, "andand");
   }
-  case FL_TK_LT: { // <
+  case '<': { // <
     // TODO LLVMIntULT
     // TODO LLVMRealULT
 
     return use_fp ? LLVMBuildFCmp(builder, LLVMRealOLT, lhs, rhs, "andand")
                   : LLVMBuildICmp(builder, LLVMIntSLT, lhs, rhs, "andand");
   }
-  case FL_TK_LTE: { // <=
+  case TK_LE: { // <=
     // TODO LLVMIntULE
     // TODO LLVMRealULE
 
@@ -407,24 +406,24 @@ LLVMValueRef cg_binop(FL_CODEGEN_HEADER) {
     sle: signed less or equal
   */
 
-  case FL_TK_PLUS: {
+  case '+': {
     return use_fp ? LLVMBuildFAdd(builder, lhs, rhs, "add")
                   : LLVMBuildAdd(builder, lhs, rhs, "addi");
   }
-  case FL_TK_MINUS: {
+  case '-': {
     return use_fp ? LLVMBuildFSub(builder, lhs, rhs, "sub")
                   : LLVMBuildSub(builder, lhs, rhs, "subi");
   }
-  case FL_TK_ASTERISK: {
+  case '*': {
     return use_fp ? LLVMBuildFMul(builder, lhs, rhs, "mul")
                   : LLVMBuildMul(builder, lhs, rhs, "muli");
   }
-  case FL_TK_SLASH: {
+  case '/': {
     // signed vs unsigned
     return use_fp ? LLVMBuildFDiv(builder, lhs, rhs, "div")
                   : LLVMBuildSDiv(builder, lhs, rhs, "divi");
   }
-  case FL_TK_MOD: {
+  case '%': {
     return use_fp ? LLVMBuildFRem(builder, lhs, rhs, "mod")
                   : LLVMBuildSRem(builder, lhs, rhs, "modi");
   }
@@ -588,12 +587,12 @@ LLVMValueRef cg_runary(FL_CODEGEN_HEADER) {
                                        FL_CODEGEN_PASSTHROUGH);
 
   switch (node->lunary.operator) {
-  case FL_TK_PLUS2:
-  case FL_TK_MINUS2: {
+  case TK_PLUSPLUS:
+  case TK_MINUSMINUS: {
     LLVMTypeRef type = LLVMTypeOf(element);
     LLVMValueRef ret = LLVMBuildBinOp(
         builder, ts_is_fp(node->ty_id) ? LLVMFAdd : LLVMAdd, element,
-        LLVMConstInt(type, node->lunary.operator== FL_TK_PLUS2 ? 1 : -1, false),
+        LLVMConstInt(type, node->lunary.operator== TK_PLUSPLUS ? 1 : -1, false),
         "radd");
     ast_t* el = node->lunary.element;
     if (el->type == FL_AST_LIT_IDENTIFIER) {
@@ -612,7 +611,7 @@ LLVMValueRef cg_lunary(FL_CODEGEN_HEADER) {
   log_debug("cg_lunary");
 
   // raw: DO NOT LOAD!
-  if (node->lunary.operator== FL_TK_AND) {
+  if (node->lunary.operator== '&') {
     return cg_ast(node->lunary.element, FL_CODEGEN_PASSTHROUGH);
   }
 
@@ -620,16 +619,16 @@ LLVMValueRef cg_lunary(FL_CODEGEN_HEADER) {
                                        FL_CODEGEN_PASSTHROUGH);
 
   switch (node->lunary.operator) {
-  case FL_TK_MINUS:
+  case '-':
     return LLVMBuildNeg(builder, element, "negate");
-  case FL_TK_EXCLAMATION:
+  case '!':
     return LLVMBuildNot(builder, element, "not");
-  case FL_TK_PLUS2:
-  case FL_TK_MINUS2: {
+  case TK_PLUSPLUS:
+  case TK_MINUSMINUS: {
     LLVMTypeRef type = LLVMTypeOf(element);
     LLVMValueRef ret = LLVMBuildBinOp(
         builder, ts_is_fp(node->ty_id) ? LLVMFAdd : LLVMAdd, element,
-        LLVMConstInt(type, node->lunary.operator== FL_TK_PLUS2 ? 1 : -1, false),
+        LLVMConstInt(type, node->lunary.operator== TK_PLUSPLUS ? 1 : -1, false),
         "ladd");
     ast_t* el = node->lunary.element;
     if (el->type == FL_AST_LIT_IDENTIFIER) {
@@ -643,9 +642,9 @@ LLVMValueRef cg_lunary(FL_CODEGEN_HEADER) {
   log_error("lunary not handled %d", node->lunary.operator);
   return 0;
   /*
-  case FL_TK_PLUS:
-  case FL_TK_TILDE:
-  case FL_TK_DELETE:
+  case '+':
+  case TK_TILDE:
+  case TK_DELETE:
   */
 }
 

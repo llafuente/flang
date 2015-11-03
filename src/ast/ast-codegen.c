@@ -31,11 +31,11 @@ bool ast_require_load(ast_t* node) {
     return true;
   case FL_AST_EXPR_LUNARY:
     switch (node->lunary.operator) {
-    case FL_TK_AND:
-    case FL_TK_EXCLAMATION:
-    case FL_TK_MINUS:
-    case FL_TK_PLUS2:
-    case FL_TK_MINUS2:
+    case '&':
+    case '!':
+    case '-':
+    case TK_PLUSPLUS:
+    case TK_MINUSMINUS:
       return false;
     default: { log_error("Unkown Lunary operator"); }
     }

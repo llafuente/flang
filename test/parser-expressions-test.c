@@ -59,7 +59,7 @@ TASK_IMPL(parser_expressions) {
     ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
     ASSERT(body[0]->binop.left->type == FL_AST_LIT_NUMERIC,
            "FL_AST_LIT_NUMERIC");
-    ASSERT(body[0]->binop.operator== FL_TK_ASTERISK, "FL_TK_ASTERISK");
+    ASSERT(body[0]->binop.operator== '*', "'*'");
     ASSERT(body[0]->binop.right->type == FL_AST_LIT_NUMERIC,
            "FL_AST_LIT_NUMERIC");
   });
@@ -69,12 +69,11 @@ TASK_IMPL(parser_expressions) {
 
     ASSERT(body[0]->binop.left->binop.left->type == FL_AST_LIT_NUMERIC,
            "FL_AST_LIT_NUMERIC");
-    ASSERT(body[0]->binop.left->binop.operator== FL_TK_ASTERISK,
-           "left FL_TK_ASTERISK");
+    ASSERT(body[0]->binop.left->binop.operator== '*', "left '*'");
     ASSERT(body[0]->binop.left->binop.right->type == FL_AST_LIT_NUMERIC,
            "FL_AST_LIT_NUMERIC");
 
-    ASSERT(body[0]->binop.operator== FL_TK_PLUS, "FL_TK_PLUS");
+    ASSERT(body[0]->binop.operator== '+', "'+'");
     ASSERT(body[0]->binop.right->type == FL_AST_LIT_NUMERIC,
            "FL_AST_LIT_NUMERIC");
   });
@@ -84,7 +83,7 @@ TASK_IMPL(parser_expressions) {
 
     ASSERT(body[0]->lunary.element->type == FL_AST_LIT_NUMERIC,
            "FL_AST_LIT_NUMERIC");
-    ASSERT(body[0]->lunary.operator== FL_TK_MINUS, "operator FL_TK_MINUS");
+    ASSERT(body[0]->lunary.operator== '-', "operator '-'");
   });
 
   TEST_PARSER_OK("unary 02", "var i64 xxx; xxx++", {
@@ -92,13 +91,12 @@ TASK_IMPL(parser_expressions) {
 
     ASSERT(body[1]->lunary.element->type == FL_AST_LIT_IDENTIFIER,
            "FL_AST_LIT_IDENTIFIER");
-    ASSERT(body[1]->lunary.operator== FL_TK_PLUS2, "operator FL_TK_PLUS2");
+    ASSERT(body[1]->lunary.operator== TK_PLUSPLUS, "operator TK_PLUSPLUS");
   });
 
   TEST_PARSER_OK("assignament 01", "var i8 a; var i8 b; a=b;", {
     ASSERT(body[2]->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
-    ASSERT(body[2]->assignament.operator== FL_TK_EQUAL,
-           "operator: FL_TK_EQUAL");
+    ASSERT(body[2]->assignament.operator== '=', "operator: '='");
 
     ASSERT(body[2]->assignament.left->type == FL_AST_LIT_IDENTIFIER,
            "left: FL_AST_LIT_IDENTIFIER");
@@ -150,12 +148,11 @@ TASK_IMPL(parser_expressions) {
     ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
     ASSERT(body[0]->binop.left->type == FL_AST_LIT_NUMERIC,
            "FL_AST_LIT_NUMERIC");
-    ASSERT(body[0]->binop.operator== FL_TK_ASTERISK, "operator *");
+    ASSERT(body[0]->binop.operator== '*', "operator *");
 
     ASSERT(body[0]->binop.right->binop.left->type == FL_AST_LIT_NUMERIC,
            "FL_AST_LIT_NUMERIC");
-    ASSERT(body[0]->binop.right->binop.operator== FL_TK_PLUS,
-           "right operator +");
+    ASSERT(body[0]->binop.right->binop.operator== '+', "right operator +");
     ASSERT(body[0]->binop.right->binop.right->type == FL_AST_LIT_NUMERIC,
            "FL_AST_LIT_NUMERIC");
   });

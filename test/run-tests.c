@@ -27,8 +27,13 @@
 
 #include "tasks.h"
 #include "fixtures.h"
+#include "ext/array.h"
+
+array* identifiers;
 
 int main(int argc, const char* argv[]) {
+  identifiers = malloc(sizeof(array));
+  array_new(identifiers);
 
   printf("    ###############\n");
   printf("    ## unit test ##\n");
@@ -36,8 +41,11 @@ int main(int argc, const char* argv[]) {
 
   TASK_RUN(typesystem);
 
+  /*
   TASK_RUN(parser_literals);
+  */
   TASK_RUN(parser_expressions);
+  /*
   TASK_RUN(parser_variables);
   TASK_RUN(parser_functions);
   TASK_RUN(parser_types);
@@ -47,10 +55,12 @@ int main(int argc, const char* argv[]) {
   TASK_RUN(codegen_expressions);
   TASK_RUN(codegen_functions);
   TASK_RUN(flang_files);
+  */
 
   printf("\nOK\n");
 
   st_cleanup();
+  free(identifiers);
 
   return 0;
 }

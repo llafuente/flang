@@ -1,6 +1,8 @@
 // based on: http://www.happybearsoftware.com/implementing-a-dynamic-array.html
 // vector.h
 
+#include <string.h>
+
 #define VECTOR_INITIAL_CAPACITY 100
 #define ARRAY_T void*
 // Define a vector type
