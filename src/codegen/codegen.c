@@ -151,8 +151,8 @@ LLVMValueRef cg_ast(FL_CODEGEN_HEADER) {
     return cg_binop(FL_CODEGEN_HEADER_SEND);
   case FL_AST_EXPR_CALL:
     return cg_expr_call(FL_CODEGEN_HEADER_SEND);
-  case FL_AST_LIT_NUMERIC:
-    return cg_lit_number(FL_CODEGEN_HEADER_SEND);
+  case FL_AST_LIT_INTEGER:
+    return cg_lit_integer(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_BOOLEAN:
     return cg_lit_boolean(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_STRING:
@@ -249,8 +249,14 @@ LLVMValueRef cg_cast(FL_CODEGEN_HEADER) {
   }
 }
 
-LLVMValueRef cg_lit_number(FL_CODEGEN_HEADER) {
-  log_debug("number T(%zu)", node->ty_id);
+LLVMValueRef cg_lit_float(FL_CODEGEN_HEADER) {
+  log_debug("float T(%zu)", node->ty_id);
+  LLVMTypeRef tref = cg_get_typeid(node->ty_id, context);
+  return LLVMConstReal(tref, node->decimal.value);
+}
+
+LLVMValueRef cg_lit_integer(FL_CODEGEN_HEADER) {
+  log_debug("integer T(%zu)", node->ty_id);
 
   // get parent type, to know what type should i be.
   size_t ty = node->ty_id;
@@ -259,23 +265,11 @@ LLVMValueRef cg_lit_number(FL_CODEGEN_HEADER) {
 
   LLVMTypeRef tref = cg_get_typeid(ty, context);
 
-  if (t.number.fp) {
-    if (node->numeric.ty_id == 9) {
-      return LLVMConstReal(tref, node->numeric.li_value);
-    } else if (node->numeric.ty_id == 10) {
-      return LLVMConstReal(tref, node->numeric.lui_value);
-    } else {
-      return LLVMConstReal(tref, node->numeric.d_value);
-    }
+  if (t.number.sign) {
+    return LLVMConstInt(tref, node->integer.signed_value, t.number.sign);
   }
 
-  if (node->numeric.ty_id == 9) {
-    return LLVMConstInt(tref, node->numeric.li_value, t.number.sign);
-  } else if (node->numeric.ty_id == 10) {
-    return LLVMConstInt(tref, node->numeric.lui_value, t.number.sign);
-  } else {
-    return LLVMConstInt(tref, node->numeric.d_value, t.number.sign);
-  }
+  return LLVMConstInt(tref, node->integer.unsigned_value, t.number.sign);
 }
 
 LLVMValueRef cg_lit_boolean(FL_CODEGEN_HEADER) {

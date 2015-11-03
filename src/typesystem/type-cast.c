@@ -193,7 +193,7 @@ ast_t* ts_create_cast(ast_t* node, size_t type_id) {
     return node;
   }
 
-  if (node->type == FL_AST_LIT_NUMERIC) {
+  if (node->type == FL_AST_LIT_FLOAT || node->type == FL_AST_LIT_INTEGER) {
     node->ty_id = type_id;
     return node;
   }

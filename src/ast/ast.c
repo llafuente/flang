@@ -75,7 +75,8 @@ size_t ast_get_typeid(ast_t* node) {
     return node->ty_id;
   case FL_AST_LIT_BOOLEAN:
     return 2; // TODO maybe 3, i8
-  case FL_AST_LIT_NUMERIC:
+  case FL_AST_LIT_FLOAT:
+  case FL_AST_LIT_INTEGER:
     return node->ty_id;
   // dont give information, continue up
   case FL_AST_EXPR_LUNARY:
@@ -99,7 +100,8 @@ size_t ast_ret_type(ast_t* node) {
   switch (node->type) {
   case FL_AST_EXPR_ASSIGNAMENT:
     return ast_ret_type(node->assignament.right);
-  case FL_AST_LIT_NUMERIC:
+  case FL_AST_LIT_INTEGER:
+  case FL_AST_LIT_FLOAT:
     return node->ty_id;
   default: { log_error("ast_ret_type: cannot find type!"); }
   }

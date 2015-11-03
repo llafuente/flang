@@ -44,7 +44,8 @@ bool ast_require_load(ast_t* node) {
     return true;
     break;
   // node i'm sure right now
-  case FL_AST_LIT_NUMERIC: // static type
+  case FL_AST_LIT_FLOAT:   // static type
+  case FL_AST_LIT_INTEGER: // static type
   case FL_AST_CAST:        // load before cast
     return false;
   default: {} // supress warning

@@ -24,6 +24,8 @@
 */
 
 #include "flang.h"
+#include <limits.h>
+#include <errno.h>
 
 // TODO redefinition atm...
 // ast_t* ast_new() { return (ast_t*)calloc(1, sizeof(ast_t)); }
@@ -106,22 +108,43 @@ ast_t* ast_mk_lit_boolean(bool value) {
 // TODO do the parsing magic!
 ast_t* ast_mk_lit_integer(char* text) {
   ast_t* node = ast_new();
-  node->type = FL_AST_LIT_NUMERIC;
+  node->type = FL_AST_LIT_INTEGER;
 
-  node->numeric.d_value = 99;
-  node->numeric.li_value = 99;
-  node->numeric.lui_value = 99;
+  char* end = text + strlen(text);
+  long long val = strtol(text, &end, 10);
+
+  log_verbose("read [%lld] [%d == %d]", val, errno, ERANGE);
+
+  if (errno == ERANGE ||
+      (errno == ERANGE && (val == LONG_MAX || val == LONG_MIN)) ||
+      (errno != 0 && val == 0)) {
+    log_verbose("ERANGE: try to read long unsigned int");
+    node->integer.unsigned_value = strtoul(text, &end, 10);
+    if (errno == ERANGE) {
+      log_verbose("ERANGE: double");
+      // TODO ??
+    }
+  } else {
+    node->integer.signed_value = val;
+  }
 
   return node;
 }
 // TODO do the parsing magic!
 ast_t* ast_mk_lit_float(char* text) {
   ast_t* node = ast_new();
-  node->type = FL_AST_LIT_NUMERIC;
+  node->type = FL_AST_LIT_FLOAT;
 
-  node->numeric.d_value = 101;
-  node->numeric.li_value = 101;
-  node->numeric.lui_value = 101;
+  char* end = text + strlen(text);
+  double result = strtod(text, &end);
+  if (errno) {
+    if ((result == HUGE_VAL || result == -HUGE_VAL) && errno == ERANGE) {
+      fprintf(stderr, "ERROR! overflow\n");
+    } else if (errno == ERANGE) {
+      fprintf(stderr, "ERROR! underflow\n");
+    }
+  }
+  node->decimal.value = result;
 
   return node;
 }
@@ -192,18 +215,6 @@ ast_t* ast_mk_fn_param(ast_t* id, ast_t* type, ast_t* def) {
   node->param.def = def;
 
   // TODO assertions
-
-  return node;
-}
-
-ast_t* ast_mk_numeric(char* text) {
-  printf("ast_mk_numeric\n");
-  ast_t* node = ast_new();
-  node->type = FL_AST_LIT_NUMERIC;
-
-  node->numeric.d_value = 10;
-  node->numeric.li_value = 11;
-  node->numeric.lui_value = 12;
 
   return node;
 }
@@ -345,6 +356,16 @@ ast_t* ast_mk_cast(ast_t* type, ast_t* element) {
 
   node->cast.type = type;
   node->cast.element = element;
+
+  return node;
+}
+
+ast_t* ast_mk_import(ast_t* string_lit) {
+  printf("ast_mk_import\n");
+  ast_t* node = ast_new();
+  node->type = FL_AST_IMPORT;
+
+  node->import.path = string_lit;
 
   return node;
 }

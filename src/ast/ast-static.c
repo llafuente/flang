@@ -30,7 +30,8 @@ ast_action_t ast_is_static_cb(ast_t* node, ast_t* parent, size_t level,
   switch (node->type) {
   case FL_AST_EXPR_BINOP: // 1 + 3 is static... continue
   case FL_AST_LIT_STRING:
-  case FL_AST_LIT_NUMERIC:
+  case FL_AST_LIT_FLOAT:
+  case FL_AST_LIT_INTEGER:
     return FL_AC_CONTINUE;
   default: {} // supress warning
   }

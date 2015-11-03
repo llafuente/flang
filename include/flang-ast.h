@@ -42,17 +42,19 @@ enum ast_cast_operations {
 
 enum ast_types {
   FL_AST_PROGRAM = 1,
-  FL_AST_MODULE = 2,
-  FL_AST_BLOCK = 3,
-  FL_AST_LIST = 4,
+  FL_AST_IMPORT = 2,
+  FL_AST_MODULE = 3,
+  FL_AST_BLOCK = 4,
+  FL_AST_LIST = 5,
 
   FL_AST_LIT_ARRAY = 10,
   FL_AST_LIT_OBJECT = 11,
-  FL_AST_LIT_NUMERIC = 12,
-  FL_AST_LIT_STRING = 13,
-  FL_AST_LIT_BOOLEAN = 14,
-  FL_AST_LIT_NULL = 15,
-  FL_AST_LIT_IDENTIFIER = 16,
+  FL_AST_LIT_INTEGER = 12,
+  FL_AST_LIT_FLOAT = 13,
+  FL_AST_LIT_STRING = 14,
+  FL_AST_LIT_BOOLEAN = 15,
+  FL_AST_LIT_NULL = 16,
+  FL_AST_LIT_IDENTIFIER = 17,
 
   FL_AST_EXPR = 20,
   FL_AST_EXPR_ASSIGNAMENT = 21,
@@ -146,14 +148,15 @@ struct ast {
       string* value;
     } string;
 
-    struct ast_lit_numeric {
-      // internal type, where the value is stored d_value, li_value, lui_value
-      size_t ty_id;
+    struct ast_lit_integer {
+      // depending on ty_id signed should use one of these
+      long int signed_value;
+      long unsigned int unsigned_value;
+    } integer;
 
-      double d_value;
-      long int li_value;
-      long unsigned int lui_value;
-    } numeric;
+    struct ast_lit_float {
+      double value;
+    } decimal;
 
     struct ast_lit_identifier {
       string* string;
@@ -285,5 +288,10 @@ struct ast {
     struct ast_stmt_comment {
       string* text;
     } comment;
+
+    struct ast_import {
+      // string literal
+      ast_t* path;
+    } import;
   };
 };
