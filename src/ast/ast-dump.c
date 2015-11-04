@@ -34,7 +34,7 @@ void ast_dump_one(ast_t* node) {
 
   switch (node->type) {
   case FL_AST_PROGRAM:
-    printf("program [core=@%p]", node->program.core);
+    printf("program");
     // too much??
     // printf("\n%s\n", node->program.code->value);
     break;

@@ -117,15 +117,6 @@ LLVMValueRef cg_ast(FL_CODEGEN_HEADER) {
   switch (node->type) {
   case FL_AST_MODULE:
   case FL_AST_PROGRAM:
-    if (node->program.core) {
-      log_verbose("** program.core **");
-      int olog_debug_level = log_debug_level;
-      // log_debug_level = 0; // debug core
-      cg_ast(node->program.core, FL_CODEGEN_PASSTHROUGH);
-      log_debug_level = olog_debug_level;
-    } else {
-      log_warning("** program.core not found");
-    }
     log_verbose("** program.body **");
     return cg_ast(node->program.body, FL_CODEGEN_PASSTHROUGH);
   case FL_AST_BLOCK: {

@@ -58,7 +58,9 @@ ast_t* ast_mk_list_push(ast_t* list, ast_t* node) {
 ast_t* ast_mk_list_insert(ast_t* list, ast_t* node, size_t idx) {
   // printf("ast_mk_list_push [%p]\n", list);
   size_t count = list->list.count;
-  memmove(list->list.elements + idx, list->list.elements + idx + 1,
+  assert(count > idx);
+
+  memmove(list->list.elements + idx + 1, list->list.elements + idx,
           sizeof(ast_t*) * count - idx);
 
   list->list.elements[idx] = node;
@@ -75,6 +77,8 @@ ast_t* ast_mk_insert_before(ast_t* list, ast_t* search_item,
       // printf("ast_mk_insert_before not found 'search_item'\n");
       exit(2);
     }
+
+    return list;
   }
 
   ast_mk_list_insert(list, insert_item, idx);

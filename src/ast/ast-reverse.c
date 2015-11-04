@@ -51,8 +51,8 @@ bool __ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent, size_t level,
     ast_traverse(node, cb, parent, 0, userdata_in, userdata_out);
     break;
   case FL_AST_PROGRAM:
-    if (node->program.core) {
-      ast_traverse(node->program.core, cb, node, 0, userdata_in, userdata_out);
+    if (node->parent) { // TODO module should have PROGRAM inside?
+      ast_traverse(node->program.body, cb, node, 0, userdata_in, userdata_out);
     }
     break;
   case FL_AST_BLOCK: {

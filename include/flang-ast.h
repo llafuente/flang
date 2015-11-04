@@ -119,8 +119,6 @@ struct ast {
       // all types found in the code
       ty_t* types;
       size_t ntypes;
-      // parsed core
-      ast_t* core;
       // actual code parsed
       ast_t* body;
     } program;

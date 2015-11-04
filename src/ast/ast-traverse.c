@@ -80,7 +80,6 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
   switch (ast->type) {
   case FL_AST_MODULE:
   case FL_AST_PROGRAM:
-    TRAVERSE(ast->program.core);
     TRAVERSE(ast->program.body);
     break;
   case FL_AST_BLOCK: {
