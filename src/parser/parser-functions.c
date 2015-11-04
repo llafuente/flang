@@ -27,41 +27,16 @@
 #include "grammar/tokens.h"
 #include "grammar/parser.h"
 
-// http://stackoverflow.com/questions/780676/string-input-to-flex-lexer
-
-/*
-char* args = "(1,2,3)(4,5)(6,7,8)"
-FILE *newstdin = fmemopen (args, strlen (args), "r");
-FILE *oldstdin = fdup(stdin);
-
-stdin = newstdin;
-
-// do parsing
-
-stdin = oldstdin;
-*/
-
-ast_t* fl_parse(string* code, bool attach_core) {
-  ts_init();
-
+ast_t* fl_parse(string* code) {
   ast_t* root;
-  printf("fl_parse INPUT: %s\n", code->value);
-
+  printf("%s\n", code->value);
   yy_scan_string(code->value);
   yyparse(&root);
   // yy_delete_buffer( YY_CURRENT_BUFFER );
 
-  // read core
-  if (attach_core) {
-    int olog_debug_level = log_debug_level;
-    log_debug_level = 0; // remove to debug core parsing
-    root->program.core = fl_parse_file("./../core/core.fl", false);
-    log_debug_level = olog_debug_level;
-  }
-
   return root;
 }
-
+// TODO parse core!
 ast_t* fl_parse_utf8(char* str) {
   st_size_t cap;
   size_t len = st_utf8_length(str, &cap);
@@ -70,10 +45,15 @@ ast_t* fl_parse_utf8(char* str) {
   st_copyc(&code, str, st_enc_utf8);
   st_append_char(&code, 0);
 
-  return fl_parse(code, true);
+  return fl_parse(code);
 }
 
-ast_t* fl_parse_file(const char* filename, bool attach_core) {
+ast_t* fl_parse_file(const char* filename) {
+  string* code = fl_file_to_string(filename);
+  return fl_parse(code);
+}
+
+string* fl_file_to_string(const char* filename) {
   FILE* f = fopen(filename, "r");
   if (!f) {
     fprintf(stderr, "file cannot be opened: %s\n", filename);
@@ -84,7 +64,7 @@ ast_t* fl_parse_file(const char* filename, bool attach_core) {
   size_t lSize = ftell(f);
   rewind(f);
 
-  string* code = st_new(lSize + 1, st_enc_utf8);
+  string* code = st_new(lSize + 2, st_enc_utf8);
   // copy the file into the buffer:
   size_t result = fread(code->value, 1, lSize, f);
   if (result != lSize) {
@@ -97,22 +77,33 @@ ast_t* fl_parse_file(const char* filename, bool attach_core) {
   st__zeronull(code->value, result, st_enc_utf8);
   st_append_char(&code, 0); // \0\0 EOF
 
-  ast_t* r = fl_parse(code, attach_core);
-
-  return r;
+  return code;
 }
 
-/*
-tk_token_list_t* tokens;
+ast_t* fl_parse_main_file(const char* filename) {
+  ts_init(); // TODO required outside!
+  string* code = fl_file_to_string(filename);
 
-ast_t* root = fl_parser(tokens, attach_core);
-root->program.code = code;
+  ast_t* import = ast_mk_import(ast_mk_lit_string("\"core/core\"", false));
 
-// do inference
-ast_parent(root); // set node->parent
+  ast_t* root = fl_parse(code);
 
-ast_dump(root);
-root = ts_pass(root);
-// TODO remove this, just for debugging purpose
-ast_dump(root);
-*/
+  assert(root->type == FL_AST_PROGRAM);
+  ast_t* block = root->program.body;
+  if (block->type != FL_AST_ERROR) {
+    ast_mk_list_insert(block->block.body, import, 0);
+  }
+
+  return root;
+}
+
+ast_t* fl_passes(ast_t* root) {
+  psr_load_imports(root);
+
+  // do inference
+  ast_dump(root);
+  root = ts_pass(root);
+  ast_dump(root);
+
+  return root;
+}

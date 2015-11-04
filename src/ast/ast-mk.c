@@ -39,7 +39,7 @@ ast_t* ast_mk_program(ast_t* block) {
   return node;
 }
 ast_t* ast_mk_list() {
-  printf("ast_mk_list\n");
+  // printf("ast_mk_list\n");
   ast_t* node = ast_new();
   node->type = FL_AST_LIST;
 
@@ -50,13 +50,38 @@ ast_t* ast_mk_list() {
 }
 
 ast_t* ast_mk_list_push(ast_t* list, ast_t* node) {
-  printf("ast_mk_list_push [%p]\n", list);
+  // printf("ast_mk_list_push [%p]\n", list);
   list->list.elements[list->list.count++] = node;
   return list;
 }
 
+ast_t* ast_mk_list_insert(ast_t* list, ast_t* node, size_t idx) {
+  // printf("ast_mk_list_push [%p]\n", list);
+  size_t count = list->list.count;
+  memmove(list->list.elements + idx, list->list.elements + idx + 1,
+          sizeof(ast_t*) * count - idx);
+
+  list->list.elements[idx] = node;
+  ++list->list.count;
+
+  return list;
+}
+ast_t* ast_mk_insert_before(ast_t* list, ast_t* search_item,
+                            ast_t* insert_item) {
+  size_t idx = 0;
+  while (list->list.elements[idx] == search_item) {
+    ++idx;
+    if (idx > list->list.count) {
+      // printf("ast_mk_insert_before not found 'search_item'\n");
+      exit(2);
+    }
+  }
+
+  ast_mk_list_insert(list, insert_item, idx);
+}
+
 ast_t* ast_mk_block(ast_t* body) {
-  printf("ast_mk_block\n");
+  // printf("ast_mk_block\n");
   ast_t* node = ast_new();
   node->type = FL_AST_BLOCK;
 
@@ -66,7 +91,7 @@ ast_t* ast_mk_block(ast_t* body) {
 }
 
 ast_t* ast_mk_lit_id(string* str, bool resolve) {
-  printf("ast_mk_lit_id '%s'\n", str->value);
+  // printf("ast_mk_lit_id '%s'\n", str->value);
 
   ast_t* node = ast_new();
   node->type = FL_AST_LIT_IDENTIFIER;
@@ -78,7 +103,7 @@ ast_t* ast_mk_lit_id(string* str, bool resolve) {
 }
 
 ast_t* ast_mk_lit_null() {
-  printf("ast_mk_lit_null\n");
+  // printf("ast_mk_lit_null\n");
   ast_t* node = ast_new();
   node->type = FL_AST_LIT_NULL;
 
@@ -86,7 +111,7 @@ ast_t* ast_mk_lit_null() {
 }
 
 ast_t* ast_mk_lit_string(char* str, bool interpolate) {
-  printf("ast_mk_lit_string\n");
+  // printf("ast_mk_lit_string\n");
   ast_t* node = ast_new();
   node->type = FL_AST_LIT_STRING;
 
@@ -97,7 +122,7 @@ ast_t* ast_mk_lit_string(char* str, bool interpolate) {
 }
 
 ast_t* ast_mk_lit_boolean(bool value) {
-  printf("ast_mk_lit_boolean\n");
+  // printf("ast_mk_lit_boolean\n");
   ast_t* node = ast_new();
   node->type = FL_AST_LIT_BOOLEAN;
 
@@ -142,9 +167,9 @@ ast_t* ast_mk_lit_float(char* text) {
   double result = strtod(text, &end);
   if (errno) {
     if ((result == HUGE_VAL || result == -HUGE_VAL) && errno == ERANGE) {
-      fprintf(stderr, "ERROR! overflow\n");
+      // fprintf(stderr, "ERROR! overflow\n");
     } else if (errno == ERANGE) {
-      fprintf(stderr, "ERROR! underflow\n");
+      // fprintf(stderr, "ERROR! underflow\n");
     }
   }
   node->decimal.value = result;
@@ -154,7 +179,7 @@ ast_t* ast_mk_lit_float(char* text) {
 }
 
 ast_t* ast_mk_return(ast_t* argument) {
-  printf("ast_mk_return\n");
+  // printf("ast_mk_return\n");
   ast_t* node = ast_new();
   node->type = FL_AST_STMT_RETURN;
 
@@ -164,7 +189,7 @@ ast_t* ast_mk_return(ast_t* argument) {
 }
 
 ast_t* ast_mk_break(ast_t* argument) {
-  printf("ast_mk_break\n");
+  // printf("ast_mk_break\n");
   ast_t* node = ast_new();
   node->type = FL_AST_STMT_BREAK;
 
@@ -174,7 +199,7 @@ ast_t* ast_mk_break(ast_t* argument) {
 }
 
 ast_t* ast_mk_continue(ast_t* argument) {
-  printf("ast_mk_break\n");
+  // printf("ast_mk_break\n");
   ast_t* node = ast_new();
   node->type = FL_AST_STMT_CONTINUE;
 
@@ -184,7 +209,7 @@ ast_t* ast_mk_continue(ast_t* argument) {
 }
 
 ast_t* ast_mk_var_decl(ast_t* type, ast_t* id) {
-  printf("ast_mk_var_decl\n");
+  // printf("ast_mk_var_decl\n");
   ast_t* node = ast_new();
   node->type = FL_AST_DTOR_VAR;
 
@@ -195,7 +220,7 @@ ast_t* ast_mk_var_decl(ast_t* type, ast_t* id) {
 }
 
 ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body) {
-  printf("ast_mk_fn_decl\n");
+  // printf("ast_mk_fn_decl\n");
   ast_t* node = ast_new();
   node->type = FL_AST_DECL_FUNCTION;
 
@@ -210,7 +235,7 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body) {
 }
 
 ast_t* ast_mk_fn_param(ast_t* id, ast_t* type, ast_t* def) {
-  printf("ast_mk_fn_param\n");
+  // printf("ast_mk_fn_param\n");
   ast_t* node = ast_new();
   node->type = FL_AST_PARAMETER;
 
@@ -224,7 +249,7 @@ ast_t* ast_mk_fn_param(ast_t* id, ast_t* type, ast_t* def) {
 }
 
 ast_t* ast_mk_binop(ast_t* left, int op, ast_t* right) {
-  printf("ast_mk_binop\n");
+  // printf("ast_mk_binop\n");
   ast_t* node = ast_new();
   node->type = FL_AST_EXPR_BINOP;
 
@@ -236,7 +261,7 @@ ast_t* ast_mk_binop(ast_t* left, int op, ast_t* right) {
 }
 
 ast_t* ast_mk_assignament(ast_t* left, int op, ast_t* right) {
-  printf("ast_mk_assignament\n");
+  // printf("ast_mk_assignament\n");
   ast_t* node = ast_new();
   node->type = FL_AST_EXPR_ASSIGNAMENT;
 
@@ -248,7 +273,7 @@ ast_t* ast_mk_assignament(ast_t* left, int op, ast_t* right) {
 }
 
 ast_t* ast_mk_call_expr(ast_t* callee, ast_t* arguments) {
-  printf("ast_mk_call_expr\n");
+  // printf("ast_mk_call_expr\n");
   ast_t* node = ast_new();
   node->type = FL_AST_EXPR_CALL;
 
@@ -260,7 +285,7 @@ ast_t* ast_mk_call_expr(ast_t* callee, ast_t* arguments) {
 }
 
 ast_t* ast_mk_type(string* id, ast_t* child) {
-  printf("ast_mk_type\n");
+  // printf("ast_mk_type\n");
   ast_t* node = ast_new();
   node->type = FL_AST_TYPE;
 
@@ -271,7 +296,7 @@ ast_t* ast_mk_type(string* id, ast_t* child) {
 }
 
 ast_t* ast_mk_comment(string* text) {
-  printf("ast_mk_comment\n");
+  // printf("ast_mk_comment\n");
   ast_t* node = ast_new();
   node->type = FL_AST_STMT_COMMENT;
 
@@ -281,7 +306,7 @@ ast_t* ast_mk_comment(string* text) {
 }
 
 ast_t* ast_mk_lunary(ast_t* element, int operator) {
-  printf("ast_mk_lunary\n");
+  // printf("ast_mk_lunary\n");
   ast_t* node = ast_new();
   node->type = FL_AST_EXPR_LUNARY;
 
@@ -292,7 +317,7 @@ ast_t* ast_mk_lunary(ast_t* element, int operator) {
 }
 
 ast_t* ast_mk_if(ast_t* test, ast_t* block, ast_t* alternate) {
-  printf("ast_mk_if\n");
+  // printf("ast_mk_if\n");
   ast_t* node = ast_new();
   node->type = FL_AST_STMT_IF;
 
@@ -305,7 +330,7 @@ ast_t* ast_mk_if(ast_t* test, ast_t* block, ast_t* alternate) {
 
 ast_t* ast_mk_loop(ast_t* init, ast_t* pre_cond, ast_t* update, ast_t* block,
                    ast_t* post_cond) {
-  printf("ast_mk_loop\n");
+  // printf("ast_mk_loop\n");
   ast_t* node = ast_new();
   node->type = FL_AST_STMT_LOOP;
 
@@ -320,7 +345,7 @@ ast_t* ast_mk_loop(ast_t* init, ast_t* pre_cond, ast_t* update, ast_t* block,
 }
 
 ast_t* ast_mk_struct_decl(ast_t* id, ast_t* fields) {
-  printf("ast_mk_struct_decl\n");
+  // printf("ast_mk_struct_decl\n");
   ast_t* node = ast_new();
   node->type = FL_AST_DECL_STRUCT;
 
@@ -331,7 +356,7 @@ ast_t* ast_mk_struct_decl(ast_t* id, ast_t* fields) {
 }
 
 ast_t* ast_mk_struct_decl_field(ast_t* id, ast_t* type) {
-  printf("ast_mk_struct_decl_field\n");
+  // printf("ast_mk_struct_decl_field\n");
   ast_t* node = ast_new();
   node->type = FL_AST_DECL_STRUCT_FIELD;
 
@@ -342,7 +367,7 @@ ast_t* ast_mk_struct_decl_field(ast_t* id, ast_t* type) {
 }
 
 ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression) {
-  printf("ast_mk_member\n");
+  // printf("ast_mk_member\n");
   ast_t* node = ast_new();
   node->type = FL_AST_EXPR_MEMBER;
 
@@ -354,7 +379,7 @@ ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression) {
 }
 
 ast_t* ast_mk_cast(ast_t* type, ast_t* element) {
-  printf("ast_mk_cast\n");
+  // printf("ast_mk_cast\n");
   ast_t* node = ast_new();
   node->type = FL_AST_CAST;
 
@@ -365,7 +390,7 @@ ast_t* ast_mk_cast(ast_t* type, ast_t* element) {
 }
 
 ast_t* ast_mk_import(ast_t* string_lit) {
-  printf("ast_mk_import\n");
+  // printf("ast_mk_import\n");
   ast_t* node = ast_new();
   node->type = FL_AST_IMPORT;
 

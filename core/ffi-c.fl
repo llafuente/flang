@@ -1,4 +1,4 @@
-ffi fn printf(ptr<i8> format, ...) : i32;
+ffi fn printf(ptr(i8) format, ...) : i32;
 ffi fn malloc(u64 size) : ptr(void);
 ffi fn free(ptr(void) any) : void;
 

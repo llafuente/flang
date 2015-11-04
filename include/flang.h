@@ -185,14 +185,19 @@ FL_EXTERN void ts_cast_expr_member(ast_t* node);
 
 typedef ast_t* (*psr_read_t)(PSR_READ_HEADER);
 
-/* cldoc:begin-category(parser.c) */
+/* cldoc:begin-category(parser/parser-functions.c) */
 
-FL_EXTERN ast_t* fl_parse(string* code, bool core);
-
+FL_EXTERN ast_t* fl_parse(string* code);
 FL_EXTERN ast_t* fl_parse_utf8(char* str);
+FL_EXTERN ast_t* fl_parse_file(const char* filename);
+FL_EXTERN string* fl_file_to_string(const char* filename);
+FL_EXTERN ast_t* fl_parse_main_file(const char* filename);
+FL_EXTERN ast_t* fl_passes(ast_t* root);
 
-FL_EXTERN ast_t* fl_parse_file(const char* filename, bool core);
+/* cldoc:end-category() */
 
+/* cldoc:begin-category(parser/load-imports.c) */
+FL_EXTERN ast_t* psr_load_imports(ast_t* node);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(ast/ast.c) */
@@ -331,6 +336,9 @@ ast_t* ast_mk_program(ast_t* block);
 ast_t* ast_mk_root();
 ast_t* ast_mk_list();
 ast_t* ast_mk_list_push(ast_t* list, ast_t* node);
+ast_t* ast_mk_list_insert(ast_t* list, ast_t* node, size_t idx);
+ast_t* ast_mk_insert_before(ast_t* list, ast_t* search_item,
+                            ast_t* insert_item);
 ast_t* ast_mk_block(ast_t* body);
 ast_t* ast_mk_lit_id(string* str, bool resolve);
 ast_t* ast_mk_lit_null();

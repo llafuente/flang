@@ -17,21 +17,12 @@ int main(int argc, char** argv) {
 
   // ast_t* root;
   // yyparse(&root);
-  ast_t* root = fl_parse_file(argv[1], true);
+  ast_t* root = fl_parse_main_file(argv[1]);
   if (ast_print_error(root)) {
     exit(1);
   }
 
-  array_delete(identifiers);
-  free(identifiers);
-
-  // do inference
-  ast_parent(root); // set node->parent
-
-  ast_dump(root);
-  root = ts_pass(root);
-  ast_dump(root);
-
+  root = fl_passes(root);
   if (ast_print_error(root)) {
     exit(1);
   }
@@ -49,6 +40,8 @@ int main(int argc, char** argv) {
     fl_interpreter(module);
   }
 
+  array_delete(identifiers);
+  free(identifiers);
   ast_delete(root);
 
   return 0;

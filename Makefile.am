@@ -2,7 +2,8 @@ ACLOCAL_AMFLAGS = -I m4
 
 COMPILER_SOURCES = src/grammar/parser.c \
                 src/grammar/tokens.c \
-                src/psr.c \
+                src/parser/parser-functions.c \
+                src/parser/load-imports.c \
                 src/ast/ast.c \
                 src/ast/ast-alloc.c \
                 src/ast/ast-mk.c \

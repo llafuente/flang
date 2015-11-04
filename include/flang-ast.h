@@ -292,6 +292,8 @@ struct ast {
     struct ast_import {
       // string literal
       ast_t* path;
+
+      bool imported;
     } import;
   };
 };
