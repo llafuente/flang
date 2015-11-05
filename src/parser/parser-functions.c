@@ -29,10 +29,8 @@
 
 ast_t* fl_parse(string* code) {
   ast_t* root;
-  printf("%s\n", code->value);
   yy_scan_string(code->value);
   yyparse(&root);
-  // yy_delete_buffer( YY_CURRENT_BUFFER );
 
   return root;
 }
@@ -81,7 +79,6 @@ string* fl_file_to_string(const char* filename) {
 }
 
 ast_t* fl_parse_main_file(const char* filename) {
-  ts_init(); // TODO required outside!
   string* code = fl_file_to_string(filename);
 
   ast_t* import = ast_mk_import(ast_mk_lit_string("\"core/core\"", false));
@@ -100,8 +97,8 @@ ast_t* fl_parse_main_file(const char* filename) {
 ast_t* fl_passes(ast_t* root) {
   psr_load_imports(root);
 
+  ts_register_types(root);
   // do inference
-  ast_dump(root);
   root = ts_pass(root);
   ast_dump(root);
 

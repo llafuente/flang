@@ -26,7 +26,8 @@
 #include "flang.h"
 
 size_t get_type(ast_t* node) {
-  assert(node->type != FL_AST_TYPE);
+  ast_dump(node);
+  assert(node->type == FL_AST_TYPE);
 
   // built-in
   if (strcmp(node->ty.id->identifier.string->value, "bool") == 0) {
@@ -66,7 +67,7 @@ size_t get_type(ast_t* node) {
     return node->ty_id = TS_F64;
   }
   if (strcmp(node->ty.id->identifier.string->value, "string") == 0) {
-    return node->ty_id = TS_STRING;
+    return node->ty_id = TS_CSTR; // TODO TS_STRING
   }
 
   if (strcmp(node->ty.id->identifier.string->value, "ptr") == 0) {
@@ -77,6 +78,7 @@ size_t get_type(ast_t* node) {
 
   if (strcmp(node->ty.id->identifier.string->value, "vector") == 0) {
     assert(node->ty.child != 0);
+    printf("TYPE = %zu\n", node->ty.child->type);
     size_t t = get_type(node->ty.child);
     return node->ty_id = ts_wapper_typeid(FL_VECTOR, t);
   }
@@ -89,6 +91,34 @@ ast_action_t register_types(ast_t* node, ast_t* parent, size_t level,
                             void* userdata_in, void* userdata_out) {
   if (node->type == FL_AST_TYPE) {
     // check wrappers
+    get_type(node);
+    // expand type to parent.
+    ast_t* p = node->parent;
+    switch (p->type) {
+    case FL_AST_TYPE:
+      // just ignore
+      break;
+    case FL_AST_DTOR_VAR:
+      p->ty_id = node->ty_id;
+      p->var.id->ty_id = node->ty_id;
+      break;
+    case FL_AST_DECL_FUNCTION:
+      // declare the function
+      p->ty_id = ts_fn_create(p);
+      break;
+    case FL_AST_PARAMETER:
+      p->ty_id = node->ty_id;
+      p->param.id->ty_id = node->ty_id;
+      break;
+    case FL_AST_DECL_STRUCT_FIELD:
+      p->ty_id = node->ty_id;
+      p->field.id->ty_id = node->ty_id;
+      break;
+    default: {
+      ast_dump(p);
+      log_error("what is this?!");
+    }
+    }
   }
 
   return FL_AC_CONTINUE;

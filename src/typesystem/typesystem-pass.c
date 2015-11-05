@@ -37,6 +37,7 @@ ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
   } break;
   case FL_AST_LIT_IDENTIFIER: {
     if (node->identifier.resolve) {
+      printf("searching = %s\n", node->identifier.string->value);
       node->identifier.decl = ast_search_id_decl(node, node->identifier.string);
       assert(node->identifier.decl != 0);
 
@@ -87,12 +88,11 @@ ast_t* ts_typeit(ast_t* node) {
 }
 
 ast_t* ts_pass(ast_t* node) {
-  log_debug("typesystem!");
-  ts_register_types(node);
   log_debug("(parser) inference");
   ts_inference(node);
   log_debug("(parser) type it");
   ts_typeit(node);
+  log_debug("done!");
 
   return node; // TODO this should be the error
 }

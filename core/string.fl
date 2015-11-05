@@ -8,15 +8,15 @@ struct string {
   i32 used,
   u32 capacity,
   i32 encoding,
-  vector(i18) value
+  vector(i8) value,
 };
 
 /*
-fn autocast(ptr(i18) str) : string {
+fn autocast(ptr(i8) str) : string {
   return st_newc(str, st_enc_ascii)
 }
 */
 
-fn autocast(string str) : ptr(i18) {
+fn autocast(string str) : ptr(i8) {
   return str.value;
 }

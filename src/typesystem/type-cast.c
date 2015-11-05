@@ -194,6 +194,7 @@ ast_t* ts_create_cast(ast_t* node, size_t type_id) {
   }
 
   if (node->type == FL_AST_LIT_FLOAT || node->type == FL_AST_LIT_INTEGER) {
+    printf("**********************\n");
     node->ty_id = type_id;
     return node;
   }
@@ -282,6 +283,8 @@ void ts_cast_lunary(ast_t* node) {
 
 void ts_cast_assignament(ast_t* node) {
   assert(node->type == FL_AST_EXPR_ASSIGNAMENT);
+  printf("ASSIGNAMENTW!!!\n");
+  ast_dump(node);
 
   ast_t* l = node->assignament.left;
   ast_t* r = node->assignament.right;
@@ -454,9 +457,9 @@ void ts_cast_expr_member(ast_t* node) {
   case FL_VECTOR: {
     node->ty_id = type->vector.to;
   } break;
-  default: { log_error("invalid member access type"); }
+  default: {
+    ty_dump(l->ty_id);
+    log_error("invalid member access type");
   }
-
-  if (ts_is_struct(l->ty_id)) {
   }
 }

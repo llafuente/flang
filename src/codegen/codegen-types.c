@@ -44,11 +44,11 @@ bool cg_bitcast(ty_t a, ty_t b) {
 }
 
 LLVMTypeRef cg_get_type(ast_t* node, LLVMContextRef context) {
+  ast_dump(node);
   return cg_get_typeid(node->ty_id, context);
 }
 
 LLVMTypeRef cg_get_typeid(size_t id, LLVMContextRef context) {
-  // TODO codegen is cached?
   ty_t* t = &ts_type_table[id];
 
   if (t->codegen) {
@@ -60,7 +60,7 @@ LLVMTypeRef cg_get_typeid(size_t id, LLVMContextRef context) {
   switch (t->of) {
   case FL_VOID:
     // t->codegen = (void*)LLVMVoidType();
-    // by recomendation of llvm use i8
+    // NOTE by recomendation of llvm use i8
     t->codegen = (void*)LLVMIntType(8);
     break;
   case FL_NUMBER:
@@ -109,8 +109,8 @@ LLVMTypeRef cg_get_typeid(size_t id, LLVMContextRef context) {
       params[i] = cg_get_typeid(t->func.params[i], context);
     }
 
-    return LLVMFunctionType(cg_get_typeid(t->func.ret, context), params,
-                            t->func.nparams, t->func.varargs);
+    t->codegen = LLVMFunctionType(cg_get_typeid(t->func.ret, context), params,
+                                  t->func.nparams, t->func.varargs);
   }
   default: {
     ty_dump(id);

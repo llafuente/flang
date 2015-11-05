@@ -15,9 +15,11 @@ int main(int argc, char** argv) {
   identifiers = malloc(sizeof(array));
   array_new(identifiers);
 
-  // ast_t* root;
-  // yyparse(&root);
+  ts_init();
+
+  // debug single file
   ast_t* root = fl_parse_main_file(argv[1]);
+  // ast_t* root = fl_parse_file(argv[1]);
   if (ast_print_error(root)) {
     exit(1);
   }
@@ -28,7 +30,6 @@ int main(int argc, char** argv) {
   }
 
   LLVMModuleRef module = fl_codegen(root, "test");
-  ts_exit();
 
   if (argc == 3) {
     printf("export to ir %s\n", argv[2]);
@@ -40,6 +41,7 @@ int main(int argc, char** argv) {
     fl_interpreter(module);
   }
 
+  ts_exit();
   array_delete(identifiers);
   free(identifiers);
   ast_delete(root);

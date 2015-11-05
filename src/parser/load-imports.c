@@ -29,13 +29,14 @@ ast_action_t load_imports(ast_t* node, ast_t* parent, size_t level,
                           void* userdata_in, void* userdata_out) {
   if (node->type == FL_AST_IMPORT && !node->import.imported) {
     assert(node->parent->type == FL_AST_LIST);
-    ast_dump(node->parent);
 
     char filepath[1024] = "";
     strcat(filepath, "./../");
     strcat(filepath, node->import.path->string.value->value + 1);
     filepath[strlen(filepath) - 1] = '\0';
     strcat(filepath, ".fl");
+
+    printf("load module %s\n", filepath);
 
     ast_t* module = fl_parse_file(filepath);
     if (ast_print_error(module)) {
@@ -44,8 +45,10 @@ ast_action_t load_imports(ast_t* node, ast_t* parent, size_t level,
     }
 
     ast_mk_insert_before(node->parent, node, module);
+
     node->import.imported = true;
     ast_parent(node->parent); // update parents
+    ((*(size_t*)userdata_out))++;
   }
 
   return FL_AC_CONTINUE;

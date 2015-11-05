@@ -45,7 +45,6 @@ int main(int argc, const char* argv[]) {
   }
 
   LLVMModuleRef module = fl_codegen(root, "test");
-  ts_exit();
 
   if (argc == 3) {
     printf("export to ir %s\n", argv[2]);
@@ -57,6 +56,7 @@ int main(int argc, const char* argv[]) {
     fl_interpreter(module);
   }
 
+  ts_exit();
   ast_delete(root);
 
   return 0;

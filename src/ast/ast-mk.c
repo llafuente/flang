@@ -74,14 +74,13 @@ ast_t* ast_mk_insert_before(ast_t* list, ast_t* search_item,
   while (list->list.elements[idx] == search_item) {
     ++idx;
     if (idx > list->list.count) {
-      // printf("ast_mk_insert_before not found 'search_item'\n");
+      fprintf(stderr, "ast_mk_insert_before not found 'search_item'\n");
       exit(2);
     }
-
-    return list;
   }
 
   ast_mk_list_insert(list, insert_item, idx);
+  return list;
 }
 
 ast_t* ast_mk_block(ast_t* body) {
@@ -118,6 +117,7 @@ ast_t* ast_mk_lit_string(char* str, bool interpolate) {
   // printf("ast_mk_lit_string\n");
   ast_t* node = ast_new();
   node->type = FL_AST_LIT_STRING;
+  node->ty_id = TS_CSTR;
 
   node->string.value = st_newc(str, st_enc_utf8);
   node->string.quoted = interpolate; // TODO rename
@@ -129,6 +129,7 @@ ast_t* ast_mk_lit_boolean(bool value) {
   // printf("ast_mk_lit_boolean\n");
   ast_t* node = ast_new();
   node->type = FL_AST_LIT_BOOLEAN;
+  node->ty_id = TS_BOOL;
 
   node->boolean.value = value;
 
@@ -353,6 +354,7 @@ ast_t* ast_mk_struct_decl(ast_t* id, ast_t* fields) {
   ast_t* node = ast_new();
   node->type = FL_AST_DECL_STRUCT;
 
+  id->identifier.resolve = false;
   node->structure.id = id;
   node->structure.fields = fields;
 
@@ -364,6 +366,7 @@ ast_t* ast_mk_struct_decl_field(ast_t* id, ast_t* type) {
   ast_t* node = ast_new();
   node->type = FL_AST_DECL_STRUCT_FIELD;
 
+  id->identifier.resolve = false;
   node->field.id = id;
   node->field.type = type;
 
@@ -374,6 +377,10 @@ ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression) {
   // printf("ast_mk_member\n");
   ast_t* node = ast_new();
   node->type = FL_AST_EXPR_MEMBER;
+
+  if (property->type == FL_AST_LIT_IDENTIFIER) {
+    property->identifier.resolve = false;
+  }
 
   node->member.left = left;
   node->member.property = property;

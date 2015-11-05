@@ -144,6 +144,7 @@ bool ts_is_int(size_t id) {
 }
 
 bool ts_is_function(size_t id) {
+  printf("%zu\n", id);
   ty_t t = ts_type_table[id];
   return t.of == FL_FUNCTION;
 }
