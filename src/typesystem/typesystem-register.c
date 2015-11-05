@@ -78,7 +78,7 @@ size_t get_type(ast_t* node) {
 
   if (strcmp(node->ty.id->identifier.string->value, "vector") == 0) {
     assert(node->ty.child != 0);
-    printf("TYPE = %zu\n", node->ty.child->type);
+    printf("TYPE = %u\n", node->ty.child->type);
     size_t t = get_type(node->ty.child);
     return node->ty_id = ts_wapper_typeid(FL_VECTOR, t);
   }

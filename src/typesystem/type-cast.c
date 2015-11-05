@@ -138,18 +138,21 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
   if (autocast) {
     log_verbose("cast to expr-call");
 
-    PSR_CREATE(arguments, FL_AST_LIST);
+    ast_t* arguments = ast_new();
+    arguments->type = FL_AST_LIST;
     arguments->list.count = 1;
     arguments->list.elements = calloc(2, sizeof(ast_t*));
     arguments->list.elements[0] = node->cast.element;
     node->parent = arguments;
 
-    PSR_CREATE(callee, FL_AST_LIT_IDENTIFIER);
+    ast_t* callee = ast_new();
+    callee->type = FL_AST_LIT_IDENTIFIER;
     callee->identifier.string = st_clone(autocast->func.uid);
     callee->identifier.resolve = false;
     callee->identifier.decl = autocast;
 
-    PSR_CREATE(ecall, FL_AST_EXPR_CALL);
+    ast_t* ecall = ast_new();
+    ecall->type = FL_AST_EXPR_CALL;
     ecall->call.arguments = arguments;
     ecall->call.narguments = 1;
     ecall->call.callee = callee;
@@ -199,13 +202,9 @@ ast_t* ts_create_cast(ast_t* node, size_t type_id) {
     return node;
   }
 
-  ast_t* cast = (ast_t*)calloc(1, sizeof(ast_t));
-  cast->token_start = 0;
-  cast->token_end = 0;
-  cast->type = FL_AST_CAST;
+  ast_t* cast = ast_mk_cast(0, node);
   cast->parent = node->parent;
   node->parent = cast;
-  cast->cast.element = node;
   cast->ty_id = type_id;
 
   return cast;

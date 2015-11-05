@@ -30,6 +30,13 @@
 // TODO redefinition atm...
 // ast_t* ast_new() { return (ast_t*)calloc(1, sizeof(ast_t)); }
 
+void ast_position(ast_t* target, YYLTYPE start, YYLTYPE end) {
+  target->first_line = start.first_line;
+  target->first_column = start.first_column;
+  target->last_line = end.last_line;
+  target->last_column = end.last_column;
+}
+
 ast_t* ast_mk_program(ast_t* block) {
   ast_t* node = ast_new();
   node->type = FL_AST_PROGRAM;

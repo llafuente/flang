@@ -141,17 +141,13 @@ ast_action_t ast_dump_cb(ast_t* node, ast_t* parent, size_t level,
   printf("%*s• \x1B[32m", (int)level, " ");
 
   ast_dump_one(node);
+
+  if (node->first_line) {
+    printf("\x1B[39m@[%d:%d - %d:%d]", node->first_line, node->first_column,
+           node->last_line, node->last_column);
+  }
+
   printf("\x1B[39m\n");
-  /*
-    if (node->token_start && node->token_end) {
-      printf("\x1B[36m(%d)[@%p][%3zu:%3zu - %3zu:%3zu]\x1B[39m\n", node->type,
-             node, node->token_start->start.column,
-    node->token_start->start.line,
-             node->token_end->end.column, node->token_end->end.line);
-    } else {
-      printf("\x1B[36m(%d)[@%p]\x1B[39m\n", node->type, node);
-    }
-  */
   return FL_AC_CONTINUE;
 }
 

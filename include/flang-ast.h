@@ -93,8 +93,11 @@ enum ast_types {
 };
 
 struct ast {
-  tk_token_t* token_start;
-  tk_token_t* token_end;
+  int first_line;
+  int first_column;
+  int last_line;
+  int last_column;
+
   ast_types_t type;
   ast_t* parent;
 
@@ -114,8 +117,6 @@ struct ast {
       string* path;
       // code as string
       string* code;
-      // tokenizer result
-      tk_token_list_t* tokens;
       // all types found in the code
       ty_t* types;
       size_t ntypes;
@@ -167,24 +168,24 @@ struct ast {
 
     struct ast_expr_assignament {
       ast_t* left;
-      enum yytokentype operator;
+      int operator; // enum yytokentype
       ast_t* right;
     } assignament;
 
     struct ast_expr_binop {
       ast_t* left;
-      enum yytokentype operator;
+      int operator; // enum yytokentype
       ast_t* right;
     } binop;
 
     struct ast_expr_lunary {
       ast_t* element;
-      enum yytokentype operator;
+      int operator; // enum yytokentype
     } lunary;
 
     struct ast_expr_runary {
       ast_t* element;
-      enum yytokentype operator;
+      int operator; // enum yytokentype
     } runary;
 
     struct ast_cast {

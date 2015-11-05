@@ -24,6 +24,9 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
+  ast_dump(root);
+  exit(2);
+
   root = fl_passes(root);
   if (ast_print_error(root)) {
     exit(1);

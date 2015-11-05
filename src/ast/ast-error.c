@@ -31,29 +31,25 @@ ast_t* ast_err_node = 0;
 
 void ast_print_error_lines(const string* line, st_len_t pos,
                            const string* code) {
-  /*
-    if (pos >= MAX(0, ast_err_node->token_start->start.line - 2) &&
-        pos <= ast_err_node->token_end->end.line + 2) {
-      fprintf(stderr, "%6d | %s\n", pos, line->value);
-      if (pos == ast_err_node->token_start->start.line - 1) {
-        fprintf(stderr, "%*s\x1B[32m^--%s\x1B[39m\n",
-                (int)(7 + ast_err_node->token_start->start.column), " ",
-                ast_err_node->err.str);
-      }
+  if (pos >= MAX(0, ast_err_node->first_line - 2) &&
+      pos <= ast_err_node->last_line + 2) {
+    fprintf(stderr, "%6d | %s\n", pos, line->value);
+    if (pos == ast_err_node->first_line - 1) {
+      fprintf(stderr, "%*s\x1B[32m^--%s\x1B[39m\n",
+              (int)(7 + ast_err_node->first_column), " ",
+              ast_err_node->err.str);
     }
-  */
+  }
 }
 
 bool ast_print_error(ast_t* node) {
-  /*
   assert(node->type == FL_AST_PROGRAM);
   ast_t* err = node->program.body;
 
   if (err->type == FL_AST_ERROR) {
     fprintf(stderr, "Parse error: %s\n", err->err.str);
-    fprintf(stderr, "On line: %zu:%zu - %zu:%zu\n\n",
-            err->token_start->start.line, err->token_start->start.column,
-            err->token_end->end.line, err->token_end->end.column);
+    fprintf(stderr, "On line: %d:%d - %d:%d\n\n", err->first_line,
+            err->first_column, err->last_line, err->last_column);
 
     ast_err_node = err;
 
@@ -63,7 +59,6 @@ bool ast_print_error(ast_t* node) {
     // ast_dump(node);
     return true;
   }
-  */
 
   return false;
 }

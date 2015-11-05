@@ -71,24 +71,6 @@ typedef struct ts_type ty_t;
 enum ts_types;
 typedef enum ts_types ts_types_t;
 
-struct tk_position;
-typedef struct tk_position tk_position_t;
-
-enum tk_tokens;
-typedef enum tk_tokens tk_tokens_t;
-
-struct tk_token;
-typedef struct tk_token tk_token_t;
-
-struct tk_token_list;
-typedef struct tk_token_list tk_token_list_t;
-
-struct tk_state;
-typedef struct tk_state tk_state_t;
-
-struct tk_token_cfg;
-typedef struct tk_token_cfg tk_token_cfg_t;
-
 struct psr_state;
 typedef struct psr_state fl_psrstate_t;
 
@@ -101,8 +83,6 @@ typedef struct ts_typeh ts_typeh_t;
 #include "grammar/parser.h"
 //#include "grammar/tokens.h"
 #include "flang-typesystem.h"
-#include "flang-tokenizer.h"
-#include "flang-parser.h"
 #include "flang-debug.h"
 #include "flang-ast.h"
 
@@ -182,8 +162,6 @@ FL_EXTERN void ts_cast_call(ast_t* node);
 FL_EXTERN void ts_cast_binop(ast_t* node);
 FL_EXTERN void ts_cast_expr_member(ast_t* node);
 /* cldoc:end-category() */
-
-typedef ast_t* (*psr_read_t)(PSR_READ_HEADER);
 
 /* cldoc:begin-category(parser/parser-functions.c) */
 
@@ -331,6 +309,7 @@ FL_EXTERN void ty_dump_table();
 FL_EXTERN void ast_dump(ast_t* node);
 FL_EXTERN void ast_dump_one(ast_t* node);
 
+void ast_position(ast_t* target, YYLTYPE start, YYLTYPE end);
 ast_t* ast_new();
 ast_t* ast_mk_program(ast_t* block);
 ast_t* ast_mk_root();
