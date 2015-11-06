@@ -254,14 +254,23 @@ fn_decl
   : TK_FFI TK_FN ident fn_parameters ':' type {
     $$ = ast_mk_fn_decl($3, $4, $6, 0);
     $$->func.ffi = true;
+    if ($4->parent == 1) {
+      $$->func.varargs = true;
+    }
     ast_position($$, @1, @6);
   }
   | TK_FN ident fn_parameters ':' type block {
     $$ = ast_mk_fn_decl($2, $3, $5, $6);
+    if ($3->parent == 1) {
+      $$->func.varargs = true;
+    }
     ast_position($$, @1, @6);
   }
   | TK_FN ident fn_parameters block {
     $$ = ast_mk_fn_decl($2, $3, 0, $4);
+    if ($3->parent == 1) {
+      $$->func.varargs = true;
+    }
     ast_position($$, @1, @4);
   }
   ;
@@ -272,8 +281,10 @@ fn_parameters
   | '(' fn_parameter_list ')'                  { $$ = $2; }
   | '(' fn_parameter_list ',' ')'              { $$ = $2; }
   | '(' fn_parameter_list ',' TK_DOTDOTDOT ')' {
-    // TODO varargs!?
     $$ = $2;
+    // TODO more elegant way?
+    // use parent as hack
+    $$->parent = 1;
   }
   ;
 

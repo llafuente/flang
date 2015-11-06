@@ -36,7 +36,6 @@ ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
   } break;
   case FL_AST_LIT_IDENTIFIER: {
     if (node->identifier.resolve) {
-      printf("searching = %s\n", node->identifier.string->value);
       node->identifier.decl = ast_search_id_decl(node, node->identifier.string);
       assert(node->identifier.decl != 0);
 

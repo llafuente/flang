@@ -32,8 +32,7 @@ ast_action_t load_imports(ast_t* node, ast_t* parent, size_t level,
 
     char filepath[1024] = "";
     strcat(filepath, "./../");
-    strcat(filepath, node->import.path->string.value->value + 1);
-    filepath[strlen(filepath) - 1] = '\0';
+    strcat(filepath, node->import.path->string.value->value);
     strcat(filepath, ".fl");
 
     printf("load module %s\n", filepath);
@@ -56,6 +55,7 @@ ast_action_t load_imports(ast_t* node, ast_t* parent, size_t level,
 
 // return error
 ast_t* psr_load_imports(ast_t* node) {
+  ast_dump(node);
   ast_parent(node);
   size_t imported;
   do {

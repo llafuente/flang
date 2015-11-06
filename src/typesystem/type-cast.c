@@ -199,7 +199,6 @@ ast_t* ts_create_cast(ast_t* node, size_t type_id) {
   }
 
   if (node->type == FL_AST_LIT_FLOAT || node->type == FL_AST_LIT_INTEGER) {
-    printf("**********************\n");
     node->ty_id = type_id;
     return node;
   }
@@ -284,7 +283,6 @@ void ts_cast_lunary(ast_t* node) {
 
 void ts_cast_assignament(ast_t* node) {
   assert(node->type == FL_AST_EXPR_ASSIGNAMENT);
-  printf("ASSIGNAMENTW!!!\n");
 
   ast_t* l = node->assignament.left;
   ast_t* r = node->assignament.right;
@@ -347,8 +345,13 @@ void ts_cast_call(ast_t* node) {
     arg = args->list.elements[i];
 
     // do not cast varags
-    if (t->func.varargs && t->func.nparams <= i) {
+    /* TODO ??
+    if (t->func.varargs && t->func.nparams == i) {
       return;
+    }*/
+
+    if (t->func.nparams == i) {
+      break;
     }
 
     if (arg->ty_id != t->func.params[i]) {
@@ -430,6 +433,12 @@ void ts_cast_binop(ast_t* node) {
 void ts_cast_expr_member(ast_t* node) {
   assert(node->type == FL_AST_EXPR_MEMBER);
 
+  if (node->ty_id)
+    return;
+
+  log_verbose("*************");
+  ast_dump(node);
+
   ast_t* l = node->member.left;
   ast_t* p = node->member.property;
 
@@ -439,6 +448,8 @@ void ts_cast_expr_member(ast_t* node) {
   } else {
     ts_pass(l);
   }
+
+  log_debug("l->ty_id = %d", l->ty_id);
 
   // now we should know left type
   // get poperty index -> typeid
@@ -461,4 +472,8 @@ void ts_cast_expr_member(ast_t* node) {
     log_error("invalid member access type");
   }
   }
+
+  log_verbose("xxxxxxxxxxxxxxxxxxxxx");
+  ast_dump(node);
+  log_verbose("xxxxxxxxxxxxxxxxxxxxx");
 }

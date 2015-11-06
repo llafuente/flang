@@ -81,7 +81,7 @@ string* fl_file_to_string(const char* filename) {
 ast_t* fl_parse_main_file(const char* filename) {
   string* code = fl_file_to_string(filename);
 
-  ast_t* import = ast_mk_import(ast_mk_lit_string("\"core/core\"", false));
+  ast_t* import = ast_mk_import(ast_mk_lit_string("core/core", false));
 
   ast_t* root = fl_parse(code);
 

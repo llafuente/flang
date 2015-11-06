@@ -393,9 +393,9 @@ ast_t* ts_find_fn_decl(string* id, ast_t* args_call) {
 // TODO global vars!
 size_t ts_var_typeid(ast_t* id) {
   assert(id->type == FL_AST_LIT_IDENTIFIER);
-  log_verbose("%s", id->identifier.string->value)
+  log_verbose("%s", id->identifier.string->value);
 
-      ast_t* decl = ast_search_id_decl(id, id->identifier.string);
+  ast_t* decl = ast_search_id_decl(id, id->identifier.string);
 
   if (!decl) {
     log_error("(ts) cannot find var declaration %s",

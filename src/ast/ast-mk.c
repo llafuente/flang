@@ -125,8 +125,14 @@ ast_t* ast_mk_lit_string(char* str, bool interpolate) {
   ast_t* node = ast_new();
   node->type = FL_AST_LIT_STRING;
   node->ty_id = TS_STRING;
-
-  node->string.value = st_newc(str, st_enc_utf8);
+  if (str[0] == '"' || str[0] == '\'') {
+    str[strlen(str) - 1] = '\0';
+    string* tmp = st_newc(str + 1, st_enc_utf8);
+    node->string.value = st_unescape(tmp);
+    st_delete(&tmp);
+  } else {
+    node->string.value = st_newc(str, st_enc_utf8);
+  }
   node->string.quoted = interpolate; // TODO rename
 
   return node;
@@ -226,7 +232,7 @@ ast_t* ast_mk_var_decl(ast_t* type, ast_t* id) {
   node->type = FL_AST_DTOR_VAR;
 
   node->var.id = id;
-  node->var.type = type;
+  node->var.type = type ? type : ast_mk_type(0, 0);
 
   return node;
 }

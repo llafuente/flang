@@ -28,6 +28,11 @@
 size_t get_type(ast_t* node) {
   assert(node->type == FL_AST_TYPE);
 
+  // empty var_decl for example
+  if (!node->ty.id) {
+    return 0;
+  }
+
   // built-in
   if (strcmp(node->ty.id->identifier.string->value, "bool") == 0) {
     return node->ty_id = TS_BOOL;

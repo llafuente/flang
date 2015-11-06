@@ -11,7 +11,7 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
-  log_debug_level = 10;
+  log_debug_level = 0;
   identifiers = malloc(sizeof(array));
   array_new(identifiers);
 
