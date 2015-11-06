@@ -32,8 +32,7 @@ ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
     ts_cast_return(node);
   } break;
   case FL_AST_LIT_STRING: {
-    // TODO ptr<i8> atm -> string in the future
-    node->ty_id = TS_CSTR;
+    node->ty_id = TS_STRING;
   } break;
   case FL_AST_LIT_IDENTIFIER: {
     if (node->identifier.resolve) {

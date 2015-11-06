@@ -36,7 +36,6 @@ void ast_parent(ast_t* root) { ast_traverse(root, ast_parent_cb, 0, 0, 0, 0); }
 
 size_t ast_get_typeid(ast_t* node) {
   assert(node != 0);
-
   // check AST is somewhat "type-related"
   switch (node->type) {
   case FL_AST_DTOR_VAR:
@@ -82,7 +81,7 @@ size_t ast_get_typeid(ast_t* node) {
   case FL_AST_EXPR_LUNARY:
     return ast_get_typeid(node->parent);
   case FL_AST_LIT_STRING:
-    return 13;
+    return TS_STRING;
   case FL_AST_DECL_FUNCTION:
     return node->ty_id;
   default: {}

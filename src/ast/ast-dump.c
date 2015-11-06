@@ -99,9 +99,9 @@ void ast_dump_one(ast_t* node) {
     printf("field T(%zu)", node->ty_id);
     break;
   case FL_AST_DECL_FUNCTION:
-    printf("function T(%zu) id(%s) id(%s) [params=%zu]", node->ty_id,
+    printf("function T(%zu) id(%s) uid(%s) [params=%zu]", node->ty_id,
            node->func.id->identifier.string->value, node->func.uid->value,
-           node->func.nparams);
+           node->func.params->list.count);
     break;
   case FL_AST_PARAMETER:
     printf("parameter");

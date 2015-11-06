@@ -437,18 +437,18 @@ LLVMValueRef cg_dtor_var(FL_CODEGEN_HEADER) {
 }
 // TODO parent rewrite!
 LLVMValueRef cg_function(FL_CODEGEN_HEADER) {
-  log_debug("cg_function");
+  log_debug("cg_function %s", node->func.uid->value);
 
   if (!node->func.ret_type) {
     log_error("function has no return type");
   }
 
-  LLVMTypeRef param_types[node->func.nparams];
-
   // TODO use type info should be faster
   size_t i = 0;
   ast_t* params = node->func.params;
   ast_t* tmp;
+
+  LLVMTypeRef param_types[params->list.count];
 
   if (node->func.params) {
     while ((tmp = params->list.elements[i]) != 0) {
@@ -463,7 +463,7 @@ LLVMValueRef cg_function(FL_CODEGEN_HEADER) {
 
   LLVMTypeRef ret_type =
       LLVMFunctionType(cg_get_type(node->func.ret_type, context), param_types,
-                       node->func.nparams, node->func.varargs);
+                       params->list.count, node->func.varargs);
 
   LLVMValueRef func = LLVMAddFunction(module, node->func.uid->value, ret_type);
   LLVMSetFunctionCallConv(func, LLVMCCallConv);

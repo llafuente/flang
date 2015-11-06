@@ -48,25 +48,29 @@ extern int log_debug_level;
       fprintf(stderr, "\n");                                                   \
     }                                                                          \
     if (level == 0) {                                                          \
-      void* array[10];                                                         \
-      size_t size;                                                             \
-      char** strings;                                                          \
-      size_t i;                                                                \
-                                                                               \
-      size = backtrace(array, 10);                                             \
-      strings = backtrace_symbols(array, size);                                \
-                                                                               \
-      fprintf(stderr, "Obtained %zd stack frames.\n", size);                   \
-                                                                               \
-      for (i = 0; i < size; i++) {                                             \
-        fprintf(stderr, "%s\n", strings[i]);                                   \
-      }                                                                        \
-                                                                               \
-      free(strings);                                                           \
-                                                                               \
+      __sanitizer_print_stack_trace();                                         \
       exit(1);                                                                 \
     }                                                                          \
   }
+/*
+  void* array[10];                                                         \
+  size_t size;                                                             \
+  char** strings;                                                          \
+  size_t i;                                                                \
+                                                                           \
+  size = backtrace(array, 10);                                             \
+  strings = backtrace_symbols(array, size);                                \
+                                                                           \
+  fprintf(stderr, "Obtained %zd stack frames.\n", size);                   \
+                                                                           \
+  for (i = 0; i < size; i++) {                                             \
+    fprintf(stderr, "%s\n", strings[i]);                                   \
+  }                                                                        \
+                                                                           \
+  free(strings);                                                           \
+                                                                           \
+  exit(1);                                                                 \
+*/
 
 #define log_error(...) dbg(true, 0, __VA_ARGS__)
 #define log_warning(...) dbg(true, 1, __VA_ARGS__)

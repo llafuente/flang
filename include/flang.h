@@ -23,8 +23,28 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+/*
 #undef NDEBUG
 #include <assert.h>
+*/
+
+#ifndef ASAN
+#error : ASAN must be either 0 or 1, use -DASAN=X
+#endif
+
+extern void __sanitizer_print_stack_trace();
+
+#if ASAN == 1
+#define assert(check)                                                          \
+  if (!(check)) {                                                              \
+    __sanitizer_print_stack_trace();                                           \
+  }
+//    fprintf("assert: %s\n", #check);
+
+#else
+#undef NDEBUG
+#include <assert.h>
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>

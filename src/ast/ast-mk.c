@@ -78,7 +78,7 @@ ast_t* ast_mk_list_insert(ast_t* list, ast_t* node, size_t idx) {
 ast_t* ast_mk_insert_before(ast_t* list, ast_t* search_item,
                             ast_t* insert_item) {
   size_t idx = 0;
-  while (list->list.elements[idx] == search_item) {
+  while (list->list.elements[idx] != search_item) {
     ++idx;
     if (idx > list->list.count) {
       fprintf(stderr, "ast_mk_insert_before not found 'search_item'\n");
@@ -124,7 +124,7 @@ ast_t* ast_mk_lit_string(char* str, bool interpolate) {
   // printf("ast_mk_lit_string\n");
   ast_t* node = ast_new();
   node->type = FL_AST_LIT_STRING;
-  node->ty_id = TS_CSTR;
+  node->ty_id = TS_STRING;
 
   node->string.value = st_newc(str, st_enc_utf8);
   node->string.quoted = interpolate; // TODO rename
@@ -240,7 +240,7 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body) {
   node->func.uid =
       st_clone(id->identifier.string); // TODO this could be removed
   node->func.ret_type = ret_type;
-  node->func.params = params;
+  node->func.params = params ? params : ast_mk_list();
   node->func.body = body;
 
   return node;

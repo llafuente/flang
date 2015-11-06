@@ -44,7 +44,6 @@ bool cg_bitcast(ty_t a, ty_t b) {
 }
 
 LLVMTypeRef cg_get_type(ast_t* node, LLVMContextRef context) {
-  ast_dump(node);
   return cg_get_typeid(node->ty_id, context);
 }
 

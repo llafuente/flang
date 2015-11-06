@@ -37,6 +37,7 @@
 #define TS_F64 12
 #define TS_CSTR 13
 #define TS_PVOID 14
+#define TS_VECI8 15
 #define TS_STRING 16
 
 enum ts_types {

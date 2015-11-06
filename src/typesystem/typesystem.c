@@ -25,84 +25,6 @@
 
 #include "flang.h"
 
-ty_t* ts_type_table = 0;
-size_t ts_type_size_s = 0;
-ts_typeh_t* ts_hashtable = 0;
-
-// 0 infer
-// 1-12 built-in
-// 13-x core
-// x... user
-void ts_init() {
-  if (!ts_type_table) {
-    ts_type_table = calloc(sizeof(ty_t), 100);
-
-    // 0 means infer!
-    ts_type_table[0].of = FL_INFER;
-    // [1] void
-    ts_type_table[TS_VOID].of = FL_VOID;
-    ts_type_table[TS_VOID].id = st_newc("void", st_enc_ascii);
-
-    // [2] bool
-    ts_type_table[TS_BOOL].of = FL_NUMBER;
-    ts_type_table[TS_BOOL].id = st_newc("bool", st_enc_ascii);
-    ts_type_table[TS_BOOL].number.bits = 1;
-    ts_type_table[TS_BOOL].number.fp = false;
-    ts_type_table[TS_BOOL].number.sign = false;
-    // [3-10] i8,u8,i16,u16,i32,u32,i64,u64
-    size_t id = 2;
-    size_t i = 3;
-    char buffer[20];
-    for (; i < 7; i++) {
-      size_t bits = pow(2, i);
-      ts_type_table[++id].of = FL_NUMBER;
-      ts_type_table[id].number.bits = bits;
-      ts_type_table[id].number.fp = false;
-      ts_type_table[id].number.sign = false;
-      sprintf(buffer, "u%zu", bits);
-      ts_type_table[id].id = st_newc(buffer, st_enc_ascii);
-
-      ts_type_table[++id].of = FL_NUMBER;
-      ts_type_table[id].number.bits = bits;
-      ts_type_table[id].number.fp = false;
-      ts_type_table[id].number.sign = true;
-      sprintf(buffer, "i%zu", bits);
-      ts_type_table[id].id = st_newc(buffer, st_enc_ascii);
-    }
-
-    // [11] f32
-    ts_type_table[++id].of = FL_NUMBER;
-    ts_type_table[id].id = st_newc("f32", st_enc_ascii);
-    ts_type_table[id].number.bits = 32;
-    ts_type_table[id].number.fp = true;
-    ts_type_table[id].number.sign = true;
-
-    // [12] f64
-    ts_type_table[++id].of = FL_NUMBER;
-    ts_type_table[id].id = st_newc("f64", st_enc_ascii);
-    ts_type_table[id].number.bits = 64;
-    ts_type_table[id].number.fp = true;
-    ts_type_table[id].number.sign = true;
-
-    // [13] C-str (null-terminated)
-    ts_type_table[++id].of = FL_POINTER;
-    ts_type_table[id].id = st_newc("cstr", st_enc_ascii);
-    ts_type_table[id].ptr.to = TS_I8;
-
-    // [14] ptr void
-    ts_type_table[++id].of = FL_POINTER;
-    ts_type_table[id].id = st_newc("ptr<void>", st_enc_ascii);
-    ts_type_table[id].ptr.to = TS_VOID;
-
-    // adding types here
-    // affects: typesystem pass (some are hardcoded)
-    // also affects: ts_exit st_delete(xx.id)
-
-    // [15+] core + user
-    ts_type_size_s = ++id;
-  }
-}
-
 bool ts_is_struct(size_t id) {
   ty_t t = ts_type_table[id];
   return t.of == FL_STRUCT;
@@ -318,6 +240,7 @@ FL_EXTERN size_t ts_struct_idx(ast_t* decl, string* id) {
 }
 
 size_t ts_fn_create(ast_t* decl) {
+  ast_dump(decl);
   string* id = decl->func.id->identifier.string;
   string* uid;
 
@@ -503,33 +426,4 @@ size_t ts_named_typeid(string* id) {
 
   ast_t* ast = (ast_t*)array_get(&s->list, 0);
   return ast->ty_id;
-}
-
-void ts_exit() {
-  size_t i;
-
-  for (i = 0; i < ts_type_size_s; ++i) {
-    if (i < 15) {
-      st_delete(&ts_type_table[i].id);
-    }
-    // struct and same length?
-    if (ts_type_table[i].of == FL_STRUCT) {
-      free(ts_type_table[i].structure.fields);
-    } else if (ts_type_table[i].of == FL_FUNCTION) {
-      free(ts_type_table[i].func.params);
-    }
-  }
-
-  free(ts_type_table);
-  ts_type_table = 0;
-
-  ts_typeh_t* s;
-  ts_typeh_t* tmp;
-  HASH_ITER(hh, ts_hashtable, s, tmp) {
-    HASH_DEL(ts_hashtable, s);
-    array_delete(&s->list);
-    free(s);
-  }
-
-  ts_hashtable = 0;
 }

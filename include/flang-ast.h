@@ -222,7 +222,6 @@ struct ast {
       ast_t* id;
       string* uid; // realname in the module
       ast_t* params;
-      size_t nparams;
       ast_t* body;
       ast_t* ret_type;
       bool varargs;

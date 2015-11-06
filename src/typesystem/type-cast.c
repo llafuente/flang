@@ -177,6 +177,8 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
   ty_dump(expected);
   printf("\n");
 
+  ast_dump(node->parent);
+
   log_error("invalid casting");
   return 0;
 }
@@ -283,7 +285,6 @@ void ts_cast_lunary(ast_t* node) {
 void ts_cast_assignament(ast_t* node) {
   assert(node->type == FL_AST_EXPR_ASSIGNAMENT);
   printf("ASSIGNAMENTW!!!\n");
-  ast_dump(node);
 
   ast_t* l = node->assignament.left;
   ast_t* r = node->assignament.right;
@@ -361,7 +362,6 @@ void ts_cast_binop(ast_t* node) {
   assert(node->type == FL_AST_EXPR_BINOP);
 
   log_debug("binop found %d", node->binop.operator);
-  ast_dump(node);
   // cast if necessary
   ast_t* l = node->binop.left;
   ast_t* r = node->binop.right;

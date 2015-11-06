@@ -19,6 +19,7 @@ COMPILER_SOURCES = src/grammar/parser.c \
                 src/codegen/codegen-interpreter.c \
                 src/codegen/codegen-utils.c \
                 src/codegen/codegen-types.c \
+                src/typesystem/typesystem-alloc.c \
                 src/typesystem/typesystem-inference.c \
                 src/typesystem/typesystem-pass.c \
                 src/typesystem/typesystem-register.c \

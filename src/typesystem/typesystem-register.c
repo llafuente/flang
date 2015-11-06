@@ -26,7 +26,6 @@
 #include "flang.h"
 
 size_t get_type(ast_t* node) {
-  ast_dump(node);
   assert(node->type == FL_AST_TYPE);
 
   // built-in
@@ -67,7 +66,8 @@ size_t get_type(ast_t* node) {
     return node->ty_id = TS_F64;
   }
   if (strcmp(node->ty.id->identifier.string->value, "string") == 0) {
-    return node->ty_id = TS_CSTR; // TODO TS_STRING
+    // return node->ty_id = TS_CSTR; // TODO TS_STRING
+    return node->ty_id = TS_STRING;
   }
 
   if (strcmp(node->ty.id->identifier.string->value, "ptr") == 0) {
@@ -89,12 +89,27 @@ size_t get_type(ast_t* node) {
 
 ast_action_t register_types(ast_t* node, ast_t* parent, size_t level,
                             void* userdata_in, void* userdata_out) {
-  if (node->type == FL_AST_TYPE) {
+  if (node->ty_id)
+    return FL_AC_CONTINUE;
+
+  switch (node->type) {
+  case FL_AST_DECL_STRUCT:
+    ts_register_types(node->structure.fields);
+    node->ty_id = ts_struct_create(node);
+    break;
+  case FL_AST_DECL_FUNCTION:
+    // declare the function
+    ts_register_types(node->func.params);
+    ts_register_types(node->func.ret_type);
+    node->ty_id = ts_fn_create(node);
+    break;
+  case FL_AST_TYPE: {
     // check wrappers
-    get_type(node);
-    // expand type to parent.
     ast_t* p = node->parent;
+    get_type(node);
+
     switch (p->type) {
+    case FL_AST_DECL_FUNCTION:
     case FL_AST_TYPE:
       // just ignore
       break;
@@ -102,10 +117,7 @@ ast_action_t register_types(ast_t* node, ast_t* parent, size_t level,
       p->ty_id = node->ty_id;
       p->var.id->ty_id = node->ty_id;
       break;
-    case FL_AST_DECL_FUNCTION:
-      // declare the function
-      p->ty_id = ts_fn_create(p);
-      break;
+
     case FL_AST_PARAMETER:
       p->ty_id = node->ty_id;
       p->param.id->ty_id = node->ty_id;
@@ -120,6 +132,8 @@ ast_action_t register_types(ast_t* node, ast_t* parent, size_t level,
     }
     }
   }
+  default: {} // supress warning
+  }
 
   return FL_AC_CONTINUE;
 }
@@ -127,6 +141,5 @@ ast_action_t register_types(ast_t* node, ast_t* parent, size_t level,
 // return error
 ast_t* ts_register_types(ast_t* node) {
   ast_traverse(node, register_types, 0, 0, 0, 0);
-
   return node;
 }
