@@ -273,7 +273,7 @@ void ts_cast_lunary(ast_t* node) {
   case '&': {
     ast_t* el = node->lunary.element;
     ts_pass(el);
-    node->ty_id = ts_wapper_typeid(FL_POINTER, el->ty_id);
+    node->ty_id = ty_create_wrapped(FL_POINTER, el->ty_id);
   } break;
   default:
     ts_pass(node->lunary.element);
@@ -319,7 +319,7 @@ void ts_cast_call(ast_t* node) {
     // search for a compatible function
     string* callee = node->call.callee->identifier.string;
 
-    ast_t* decl = ts_find_fn_decl(callee, args);
+    ast_t* decl = ast_search_fn_wargs(callee, args);
     if (!decl) {
       log_error("cannot find compatible function");
     }
@@ -378,8 +378,8 @@ void ts_cast_binop(ast_t* node) {
 
   log_verbose("l_type %zu r_type %zu", l_type, r_type);
 
-  bool l_fp = ts_is_fp(l_type);
-  bool r_fp = ts_is_fp(r_type);
+  bool l_fp = ty_is_fp(l_type);
+  bool r_fp = ty_is_fp(r_type);
 
   // binop
   switch (node->binop.operator) {
@@ -436,9 +436,6 @@ void ts_cast_expr_member(ast_t* node) {
   if (node->ty_id)
     return;
 
-  log_verbose("*************");
-  ast_dump(node);
-
   ast_t* l = node->member.left;
   ast_t* p = node->member.property;
 
@@ -448,8 +445,10 @@ void ts_cast_expr_member(ast_t* node) {
   } else {
     ts_pass(l);
   }
+  log_verbose("*************");
+  ast_dump(node);
 
-  log_debug("l->ty_id = %d", l->ty_id);
+  log_debug("l->ty_id = %zu", l->ty_id);
 
   // now we should know left type
   // get poperty index -> typeid
@@ -457,8 +456,8 @@ void ts_cast_expr_member(ast_t* node) {
   ty_t* type = &ts_type_table[l->ty_id];
   switch (type->of) {
   case FL_STRUCT: {
-    node->ty_id = ts_struct_property_type(l->ty_id, p->identifier.string);
-    node->member.idx = ts_struct_property_idx(l->ty_id, p->identifier.string);
+    node->ty_id = ty_get_struct_prop_type(l->ty_id, p->identifier.string);
+    node->member.idx = ty_get_struct_prop_idx(l->ty_id, p->identifier.string);
   } break;
   case FL_POINTER: {
     node->ty_id = type->ptr.to;
@@ -468,6 +467,7 @@ void ts_cast_expr_member(ast_t* node) {
     node->ty_id = type->vector.to;
   } break;
   default: {
+    ast_dump(l);
     ty_dump(l->ty_id);
     log_error("invalid member access type");
   }

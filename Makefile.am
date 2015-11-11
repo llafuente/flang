@@ -26,6 +26,7 @@ COMPILER_SOURCES = src/grammar/parser.c \
                 src/typesystem/typesystem.c \
                 src/typesystem/type-dump.c \
                 src/typesystem/type-cast.c \
+                src/typesystem/type-utils.c \
                 src/debug.c \
                 ext/array.c
 

@@ -45,8 +45,8 @@ int main(int argc, const char* argv[]) {
   TASK_RUN(parser_literals);
   */
   TASK_RUN(parser_expressions);
-  /*
   TASK_RUN(parser_variables);
+  /*
   TASK_RUN(parser_functions);
   TASK_RUN(parser_types);
   TASK_RUN(parser_if);
@@ -60,6 +60,7 @@ int main(int argc, const char* argv[]) {
   printf("\nOK\n");
 
   st_cleanup();
+  array_delete(identifiers);
   free(identifiers);
 
   return 0;

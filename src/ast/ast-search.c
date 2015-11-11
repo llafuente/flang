@@ -119,3 +119,70 @@ ast_t* ast_search_fn(ast_t* node, string* identifier, size_t* args,
 
   return ret;
 }
+
+// TODO handle args
+ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
+  array* arr = ast_find_fn_decls(args_call->parent, id);
+  if (!arr) {
+    log_verbose("undefined function: '%s' must be a variable", id->value);
+    ast_t* decl = ast_search_id_decl(args_call->parent, id);
+    if (!decl) {
+      log_error("no function/var: '%s'", id->value);
+    }
+    // now search any function that has that ty_id
+    // type is pointer to function so
+    size_t fn_ty = ts_type_table[decl->ty_id].ptr.to;
+    return ts_type_table[fn_ty].func.decl;
+  }
+
+  log_verbose("declarations with same name = %d\n", arr->size);
+
+  if (arr->size == 1) {
+    ast_t* ret = array_get(arr, 0);
+    array_delete(arr);
+    free(arr);
+    return ret;
+  }
+
+  ast_t* decl;
+  ast_t* params;
+  ast_t* param;
+  ast_t* ret_decl = 0;
+
+  ast_t* arg_call;
+
+  size_t i, j;
+  size_t imax = args_call->list.count;
+  size_t jmax = arr->size;
+
+  for (j = 0; j < jmax; ++j) {
+    decl = array_get(arr, j);
+    assert(decl->type == FL_AST_DECL_FUNCTION);
+
+    params = decl->func.params;
+    // get types from arguments first
+
+    for (i = 0; i < imax; ++i) {
+      arg_call = args_call->list.elements[i];
+      param = params->list.elements[i];
+
+      if (!arg_call->ty_id) {
+        log_error("cannot find type of argument %zu", i);
+      }
+
+      if (!ts_castable(arg_call->ty_id, param->ty_id)) {
+        break;
+      }
+      if (i == imax - 1) {
+        // we reach the end all is ok!
+        // this is compatible!
+        ret_decl = decl;
+      }
+    }
+  }
+
+  array_delete(arr);
+  free(arr);
+
+  return ret_decl;
+}

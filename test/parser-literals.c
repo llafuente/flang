@@ -58,23 +58,23 @@ TASK_IMPL(parser_literals) {
   });
 
   TEST_PARSER_OK("numeric literals 01", "1567", {
-    ASSERT(body[0]->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
-    ASSERT(body[0]->numeric.li_value == 1567, "value = 1567");
+    ASSERT(body[0]->type == FL_AST_LIT_INTEGER, "FL_AST_LIT_INTEGER");
+    ASSERT(body[0]->integer.signed_value == 1567, "signed_value = 1567");
   });
 
   TEST_PARSER_OK("numeric literals 02", "1e1", {
-    ASSERT(body[0]->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
-    ASSERT(body[0]->numeric.li_value == 10, "value = 10");
+    ASSERT(body[0]->type == FL_AST_LIT_FLOAT, "FL_AST_LIT_FLOAT");
+    ASSERT(body[0]->decimal.value == 10, "value = 10");
   });
 
   TEST_PARSER_OK("numeric literals 03", "0xff", {
-    ASSERT(body[0]->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
-    ASSERT(body[0]->numeric.li_value == 0xff, "value = 0xff");
+    ASSERT(body[0]->type == FL_AST_LIT_INTEGER, "FL_AST_LIT_INTEGER");
+    ASSERT(body[0]->integer.signed_value == 0xff, "value = 0xff");
   });
 
   TEST_PARSER_OK("numeric literals 04", "5.2", {
-    ASSERT(body[0]->type == FL_AST_LIT_NUMERIC, "FL_AST_LIT_NUMERIC");
-    ASSERT(body[0]->numeric.d_value == 5.2, "value = 5.2");
+    ASSERT(body[0]->type == FL_AST_LIT_FLOAT, "FL_AST_LIT_FLOAT");
+    ASSERT(body[0]->decimal.value == 5.2, "value = 5.2");
   });
 
   // TODO binary 0b000000001
@@ -99,7 +99,8 @@ TASK_IMPL(parser_literals) {
 
   TEST_PARSER_OK("comments", "var i64 a; a = 9223372036854775807;", {
     ASSERT(body[0]->type == FL_AST_DTOR_VAR, "FL_AST_DTOR_VAR");
-    ASSERT(body[1]->assignament.right->numeric.li_value == 9223372036854775807,
+    ASSERT(body[1]->assignament.right->integer.signed_value ==
+               9223372036854775807,
            "i64 max");
   });
 

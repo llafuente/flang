@@ -48,8 +48,8 @@ ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
 
     // if type is a function, in fact what we want is a
     // function pointer, so do it for easy to type
-    if (node->parent->type == FL_AST_DTOR_VAR && ts_is_function(node->ty_id)) {
-      node->ty_id = ts_wapper_typeid(FL_POINTER, node->ty_id);
+    if (node->parent->type == FL_AST_DTOR_VAR && ty_is_function(node->ty_id)) {
+      node->ty_id = ty_create_wrapped(FL_POINTER, node->ty_id);
       node->parent->ty_id = node->ty_id;
       if (node->parent->var.type) {
         node->parent->var.type->ty_id = node->ty_id;

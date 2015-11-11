@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "flang.h"
 
-extern int yyparse(ast_t** root);
 array* identifiers;
 
 int main(int argc, char** argv) {
@@ -24,7 +23,7 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
-  root = fl_passes(root);
+  root = typesystem(root);
   if (ast_print_error(root)) {
     exit(1);
   }

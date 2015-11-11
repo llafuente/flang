@@ -169,3 +169,17 @@ array* ast_find_fn_decls(ast_t* node, string* id) {
   free(userdata);
   return 0;
 }
+
+FL_EXTERN size_t ast_get_struct_prop_idx(ast_t* decl, string* id) {
+  size_t i;
+  ast_t* list = decl->structure.fields;
+  ast_t** elements = list->list.elements;
+  size_t length = list->list.count;
+
+  for (i = 0; i < length; ++i) {
+    if (st_cmp(elements[i]->field.id->identifier.string, id)) {
+      return i;
+    }
+  }
+  return -1;
+}

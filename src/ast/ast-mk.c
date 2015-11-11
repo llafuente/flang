@@ -245,7 +245,7 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body) {
   node->func.id = id;
   node->func.uid =
       st_clone(id->identifier.string); // TODO this could be removed
-  node->func.ret_type = ret_type;
+  node->func.ret_type = ret_type ? ret_type : ast_mk_type_void();
   node->func.params = params ? params : ast_mk_list();
   node->func.body = body;
 
@@ -300,6 +300,10 @@ ast_t* ast_mk_call_expr(ast_t* callee, ast_t* arguments) {
   node->call.narguments = arguments ? arguments->list.count : 0;
 
   return node;
+}
+
+ast_t* ast_mk_type_void() {
+  return ast_mk_type(st_newc("void", st_enc_utf8), 0);
 }
 
 ast_t* ast_mk_type(string* id, ast_t* child) {

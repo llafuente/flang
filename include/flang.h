@@ -131,31 +131,31 @@ extern ty_t* ts_type_table;
 extern size_t ts_type_size_s;
 extern ts_typeh_t* ts_hashtable;
 
-FL_EXTERN bool ts_is_pointer(size_t id);
+FL_EXTERN bool ty_is_pointer(size_t id);
 FL_EXTERN size_t ts_get_pointer_level(size_t id);
-FL_EXTERN bool ts_is_struct(size_t id);
-FL_EXTERN bool ts_is_number(size_t id);
-FL_EXTERN bool ts_is_fp(size_t id);
-FL_EXTERN bool ts_is_int(size_t id);
-FL_EXTERN bool ts_is_function(size_t id);
-FL_EXTERN size_t ts_wapper_typeid(ts_types_t wrapper, size_t child);
+FL_EXTERN bool ty_is_struct(size_t id);
+FL_EXTERN bool ty_is_number(size_t id);
+FL_EXTERN bool ty_is_fp(size_t id);
+FL_EXTERN bool ty_is_int(size_t id);
+FL_EXTERN bool ty_is_function(size_t id);
+FL_EXTERN size_t ty_create_wrapped(ts_types_t wrapper, size_t child);
 FL_EXTERN size_t ts_promote_typeid(size_t a, size_t b);
 FL_EXTERN ast_t* ts_pass(ast_t* node);
 FL_EXTERN void ts_pass_try(ast_t* node);
 
 // return the unique typeid given ret + arguments
-FL_EXTERN size_t ts_fn_create(ast_t* decl);
+FL_EXTERN size_t ty_create_fn(ast_t* decl);
 // return the unique typeid given fields
-FL_EXTERN size_t ts_struct_create(ast_t* decl);
-FL_EXTERN size_t ts_struct_idx(ast_t* decl, string* id);
+FL_EXTERN size_t ty_create_struct(ast_t* decl);
+FL_EXTERN size_t ast_get_struct_prop_idx(ast_t* decl, string* id);
 
 FL_EXTERN size_t ts_named_typeid(string* id);
 FL_EXTERN ts_typeh_t* ts_named_type(string* id);
-FL_EXTERN size_t ts_struct_property_type(size_t id, string* property);
-FL_EXTERN size_t ts_struct_property_idx(size_t id, string* property);
+FL_EXTERN size_t ty_get_struct_prop_type(size_t id, string* property);
+FL_EXTERN size_t ty_get_struct_prop_idx(size_t id, string* property);
 
-FL_EXTERN size_t ts_fn_typeid(ast_t* id);
-FL_EXTERN ast_t* ts_find_fn_decl(string* id, ast_t* args);
+FL_EXTERN size_t ty_get_fn_typeid(ast_t* id);
+FL_EXTERN ast_t* ast_search_fn_wargs(string* id, ast_t* args);
 FL_EXTERN size_t ts_var_typeid(ast_t* id);
 
 FL_EXTERN void ts_init();
@@ -190,7 +190,7 @@ FL_EXTERN ast_t* fl_parse_utf8(char* str);
 FL_EXTERN ast_t* fl_parse_file(const char* filename);
 FL_EXTERN string* fl_file_to_string(const char* filename);
 FL_EXTERN ast_t* fl_parse_main_file(const char* filename);
-FL_EXTERN ast_t* fl_passes(ast_t* root);
+FL_EXTERN ast_t* typesystem(ast_t* root);
 
 /* cldoc:end-category() */
 
@@ -352,6 +352,7 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body);
 ast_t* ast_mk_fn_param(ast_t* id, ast_t* type, ast_t* def);
 ast_t* ast_mk_assignament(ast_t* left, int op, ast_t* right);
 ast_t* ast_mk_call_expr(ast_t* callee, ast_t* arguments);
+ast_t* ast_mk_type_void();
 ast_t* ast_mk_type(string* id, ast_t* child);
 ast_t* ast_mk_comment(string* text);
 ast_t* ast_mk_lunary(ast_t* element, int operator);

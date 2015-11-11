@@ -78,14 +78,14 @@ size_t get_type(ast_t* node) {
   if (strcmp(node->ty.id->identifier.string->value, "ptr") == 0) {
     assert(node->ty.child != 0);
     size_t t = get_type(node->ty.child);
-    return node->ty_id = ts_wapper_typeid(FL_POINTER, t);
+    return node->ty_id = ty_create_wrapped(FL_POINTER, t);
   }
 
   if (strcmp(node->ty.id->identifier.string->value, "vector") == 0) {
     assert(node->ty.child != 0);
     printf("TYPE = %u\n", node->ty.child->type);
     size_t t = get_type(node->ty.child);
-    return node->ty_id = ts_wapper_typeid(FL_VECTOR, t);
+    return node->ty_id = ty_create_wrapped(FL_VECTOR, t);
   }
 
   printf("delayed type!?");
@@ -100,13 +100,13 @@ ast_action_t register_types(ast_t* node, ast_t* parent, size_t level,
   switch (node->type) {
   case FL_AST_DECL_STRUCT:
     ts_register_types(node->structure.fields);
-    node->ty_id = ts_struct_create(node);
+    node->ty_id = ty_create_struct(node);
     break;
   case FL_AST_DECL_FUNCTION:
     // declare the function
     ts_register_types(node->func.params);
     ts_register_types(node->func.ret_type);
-    node->ty_id = ts_fn_create(node);
+    node->ty_id = ty_create_fn(node);
     break;
   case FL_AST_TYPE: {
     // check wrappers

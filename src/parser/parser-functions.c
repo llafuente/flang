@@ -29,8 +29,11 @@
 
 ast_t* fl_parse(string* code) {
   ast_t* root;
-  yy_scan_string(code->value);
+  YY_BUFFER_STATE buf = yy_scan_string(code->value);
   yyparse(&root);
+  yy_delete_buffer(buf);
+
+  root->program.code = code;
 
   return root;
 }
@@ -94,7 +97,7 @@ ast_t* fl_parse_main_file(const char* filename) {
   return root;
 }
 
-ast_t* fl_passes(ast_t* root) {
+ast_t* typesystem(ast_t* root) {
   psr_load_imports(root);
 
   ts_register_types(root);

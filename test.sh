@@ -19,7 +19,7 @@ if [ "$1" = "--clean" ]
 fi
 
 # -fsanitize-memory-track-origins -fsanitize-memory could be needed ?
-make check "CC='clang'" "CFLAGS=${LLVM_CC_FLAGS} -g -O0 -fsanitize=integer -fsanitize=undefined -fsanitize=address -fno-omit-frame-pointer"
+make check "CC='clang'" "CFLAGS=${LLVM_CC_FLAGS} -g -O0 -fsanitize=integer -fsanitize=undefined -fsanitize=address -fno-omit-frame-pointer -DASAN=1"
 
 if [ "$1" = "--run" ]
   then

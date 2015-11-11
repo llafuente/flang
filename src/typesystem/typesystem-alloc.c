@@ -109,7 +109,7 @@ void ts_init() {
     ts_type_table[id].structure.decl = null;
     ts_type_table[id].structure.fields = fields;
     ts_type_table[id].structure.nfields = length;
-    ts_named_set(idstr, decl, i);
+    ty_create_named(idstr, decl, i);
     */
 
     // adding types here
@@ -125,7 +125,7 @@ void ts_exit() {
   size_t i;
 
   for (i = 0; i < ts_type_size_s; ++i) {
-    if (i < 15) {
+    if (i < 16) {
       st_delete(&ts_type_table[i].id);
     }
     // struct and same length?

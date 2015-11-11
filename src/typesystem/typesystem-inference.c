@@ -85,7 +85,7 @@ ast_action_t dtors_var_infer(ast_t* node, ast_t* parent, size_t level,
 
           if (parent->parent->type == FL_AST_EXPR_CALL) {
             string* callee = call->call.callee->identifier.string;
-            ast_t* decl = ts_find_fn_decl(callee, fnod);
+            ast_t* decl = ast_search_fn_wargs(callee, fnod);
             if (!decl) {
               continue;
             }

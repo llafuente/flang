@@ -35,7 +35,7 @@ TASK_IMPL(parser_functions) {
     ASSERT(body[0]->type == FL_AST_DECL_FUNCTION, "FL_AST_DECL_FUNCTION");
     ASSERT(body[0]->func.id->type == FL_AST_LIT_IDENTIFIER,
            "FL_AST_LIT_IDENTIFIER");
-    ASSERT(body[0]->func.nparams == 0, "no args");
+    ASSERT(body[0]->func.params->list.count == 0, "no args");
   });
 
   TEST_PARSER_OK("function 02", "fn x(yy, zz , mm ,xx) {}", {

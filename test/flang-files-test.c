@@ -127,7 +127,8 @@ TASK_IMPL(flang_files) {
     strcat(ir_file, files[i]);
     strcat(ir_file, ".ir");
 
-    root = fl_parse_file(fl_file, true);
+    ts_init();
+    root = fl_parse_main_file(fl_file);
 
     if (ast_print_error(root)) {
       exit(1);

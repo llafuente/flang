@@ -339,7 +339,7 @@ LLVMValueRef cg_binop(FL_CODEGEN_HEADER) {
   default: {}
   }
 
-  bool use_fp = ts_is_fp(node->ty_id);
+  bool use_fp = ty_is_fp(node->ty_id);
   // Create different IR code depending on the operator.
   switch (node->binop.operator) {
   case TK_EQEQ: { // ==
@@ -576,7 +576,7 @@ LLVMValueRef cg_runary(FL_CODEGEN_HEADER) {
   case TK_MINUSMINUS: {
     LLVMTypeRef type = LLVMTypeOf(element);
     LLVMValueRef ret = LLVMBuildBinOp(
-        builder, ts_is_fp(node->ty_id) ? LLVMFAdd : LLVMAdd, element,
+        builder, ty_is_fp(node->ty_id) ? LLVMFAdd : LLVMAdd, element,
         LLVMConstInt(type, node->lunary.operator== TK_PLUSPLUS ? 1 : -1, false),
         "radd");
     ast_t* el = node->lunary.element;
@@ -612,7 +612,7 @@ LLVMValueRef cg_lunary(FL_CODEGEN_HEADER) {
   case TK_MINUSMINUS: {
     LLVMTypeRef type = LLVMTypeOf(element);
     LLVMValueRef ret = LLVMBuildBinOp(
-        builder, ts_is_fp(node->ty_id) ? LLVMFAdd : LLVMAdd, element,
+        builder, ty_is_fp(node->ty_id) ? LLVMFAdd : LLVMAdd, element,
         LLVMConstInt(type, node->lunary.operator== TK_PLUSPLUS ? 1 : -1, false),
         "ladd");
     ast_t* el = node->lunary.element;

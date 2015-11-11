@@ -54,9 +54,11 @@
 */
 #define TEST_PARSER_OK(name, code, code_block)                                 \
   {                                                                            \
+    ts_init();                                                                 \
     fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
     ast_t* root = fl_parse_utf8(code);                                         \
     CHK_BODY(root);                                                            \
+    root = typesystem(root);                                                   \
     ast_t** body = root->program.body->block.body->list.elements;              \
     code_block;                                                                \
     ts_exit();                                                                 \
