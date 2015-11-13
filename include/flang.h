@@ -122,12 +122,21 @@ typedef struct ts_typeh ts_typeh_t;
 //- functions, global variables
 //-
 
-/* cldoc:begin-category(typesystem/typesystem.c) */
+/* cldoc:begin-category(flang.c) */
+extern array* identifiers;
+FL_EXTERN void flang_init();
+FL_EXTERN void flang_exit();
+/* cldoc:end-category() */
 
+/* cldoc:begin-category(typesystem/typesystem-alloc.c) */
 extern ty_t* ts_type_table;
 extern size_t ts_type_size_s;
 extern ts_typeh_t* ts_hashtable;
+FL_EXTERN void ts_init();
+FL_EXTERN void ts_exit();
+/* cldoc:end-category() */
 
+/* cldoc:begin-category(typesystem/typesystem.c) */
 FL_EXTERN bool ty_is_pointer(size_t id);
 FL_EXTERN size_t ts_get_pointer_level(size_t id);
 FL_EXTERN bool ty_is_struct(size_t id);
@@ -154,9 +163,6 @@ FL_EXTERN size_t ty_get_struct_prop_idx(size_t id, string* property);
 FL_EXTERN size_t ty_get_fn_typeid(ast_t* id);
 FL_EXTERN ast_t* ast_search_fn_wargs(string* id, ast_t* args);
 FL_EXTERN size_t ts_var_typeid(ast_t* id);
-
-FL_EXTERN void ts_init();
-FL_EXTERN void ts_exit();
 
 /* cldoc:end-category() */
 

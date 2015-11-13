@@ -85,7 +85,7 @@
 %type <node> expr_while expr_dowhile expr_for import_stmt
 %type <node> fn_decl fn_parameters fn_parameter_list fn_parameter
 
-%type <token> assignament_operator
+%type <token> assignament_operator equality_operator comparison_operator additive_operators multiplication_operators
 
 /* terminals */
 %type <node> type ty_primitive ident literal lit_integer lit_numeric lit_string
@@ -94,7 +94,6 @@
 
 %precedence IDENT
 %precedence TYPE
-%precedence SHIFTPLUS
 
 %precedence FORTYPE
 %precedence FOR
@@ -104,17 +103,27 @@
 %precedence RETURN
 
 %left '=' TK_SHLEQ TK_SHREQ TK_MINUSEQ TK_ANDEQ TK_OREQ TK_PLUSEQ TK_STAREQ TK_SLASHEQ TK_CARETEQ TK_PERCENTEQ
+%precedence ASSIGNAMENT
+
 %left TK_OROR
 %left TK_ANDAND
+
 %left TK_EQEQ TK_NE
+%precedence EQUALITY
+
 %left '<' '>' TK_LE TK_GE
+%precedence COMPARISON
+
 %left '|'
 %left '^'
 %left '&'
 %left TK_SHL TK_SHR
 %left '+' '-'
-/* %precedence AS */
+%precedence ADDITION
+
+%precedence MULTIPLICATION
 %left '*' '/' '%'
+
 %precedence '!'
 
 %precedence '{' '[' '(' '.'
@@ -183,10 +192,6 @@ stmt
   | import_stmt ';'
   ;
 
-/*
-  TODO improve it, without quotes...
-  WHERE? global space, namespaced
-*/
 import_stmt
   : TK_IMPORT lit_string {
     $$ = ast_mk_import($2);
@@ -248,7 +253,7 @@ struct_decl_fields_list
     ast_position($3, @3, @3);
     $$ = $1;
   }
-  | %empty { yyerror(root, "empty struct declaration"); YYERROR; }
+  | %empty { yyerror(root, "syntax error, empty struct declaration"); YYERROR; }
   ;
 
 struct_decl_field
@@ -311,7 +316,7 @@ fn_parameter_list
 
   /* TODO default! */
 fn_parameter
-  : %prec IDENT type ident {
+  : type ident {
     $$ = ast_mk_fn_param($2, $1, 0);
     ast_position($$, @1, @2);
   }
@@ -333,6 +338,28 @@ assignament_operator
   | TK_SLASHEQ   { $$ = $1; }
   | TK_CARETEQ   { $$ = $1; }
   | TK_PERCENTEQ { $$ = $1; }
+  ;
+
+equality_operator
+  : TK_EQEQ      { $$ = $1; }
+  | TK_NE        { $$ = $1; }
+  ;
+
+comparison_operator
+  : '<'          { $$ = '<'; }
+  | '>'          { $$ = '>'; }
+  | TK_LE        { $$ = $1; }
+  | TK_GE        { $$ = $1; }
+
+additive_operators
+  : '+'          { $$ = '+'; }
+  | '-'          { $$ = '-'; }
+  ;
+
+multiplication_operators
+  : '*'          { $$ = '*'; }
+  | '/'          { $$ = '/'; }
+  | '%'          { $$ = '%'; }
   ;
 
 expression
@@ -389,7 +416,7 @@ expression
     $$ = ast_mk_break($2);
     ast_position($$, @1, @2);
   }
-  | expression assignament_operator expression                     {
+  | %prec ASSIGNAMENT expression assignament_operator expression                     {
     $$ = ast_mk_assignament($1, $2, $3);
     ast_position($$, @1, @3);
   }
@@ -399,30 +426,6 @@ expression
   }
   | expression TK_ANDAND expression{
     $$ = ast_mk_binop($1, TK_ANDAND, $3);
-    ast_position($$, @1, @3);
-  }
-  | expression TK_EQEQ expression {
-    $$ = ast_mk_binop($1, TK_EQEQ, $3);
-    ast_position($$, @1, @3);
-  }
-  | expression TK_NE expression {
-    $$ = ast_mk_binop($1, TK_NE, $3);
-    ast_position($$, @1, @3);
-  }
-  | expression '<' expression {
-    $$ = ast_mk_binop($1, '<', $3);
-    ast_position($$, @1, @3);
-  }
-  | expression '>' expression {
-    $$ = ast_mk_binop($1, '>', $3);
-    ast_position($$, @1, @3);
-  }
-  | expression TK_LE expression {
-    $$ = ast_mk_binop($1, TK_LE, $3);
-    ast_position($$, @1, @3);
-  }
-  | expression TK_GE expression {
-    $$ = ast_mk_binop($1, TK_GE, $3);
     ast_position($$, @1, @3);
   }
   | expression '|' expression {
@@ -437,6 +440,14 @@ expression
     $$ = ast_mk_binop($1, '&', $3);
     ast_position($$, @1, @3);
   }
+  | %prec EQUALITY expression equality_operator expression {
+    $$ = ast_mk_binop($1, $2, $3);
+    ast_position($$, @1, @3);
+  }
+  | %prec COMPARISON expression comparison_operator expression {
+    $$ = ast_mk_binop($1, $2, $3);
+    ast_position($$, @1, @3);
+  }
   | expression TK_SHL expression {
     $$ = ast_mk_binop($1, TK_SHL, $3);
     ast_position($$, @1, @3);
@@ -445,24 +456,12 @@ expression
     $$ = ast_mk_binop($1, TK_SHR, $3);
     ast_position($$, @1, @3);
   }
-  | expression '+' expression {
-    $$ = ast_mk_binop($1, '+', $3);
+  | %prec ADDITION expression additive_operators  expression {
+    $$ = ast_mk_binop($1, $2, $3);
     ast_position($$, @1, @3);
   }
-  | expression '-' expression {
-    $$ = ast_mk_binop($1, '-', $3);
-    ast_position($$, @1, @3);
-  }
-  | expression '*' expression {
-    $$ = ast_mk_binop($1, '*', $3);
-    ast_position($$, @1, @3);
-  }
-  | expression '/' expression {
-    $$ = ast_mk_binop($1, '/', $3);
-    ast_position($$, @1, @3);
-  }
-  | expression '%' expression {
-    $$ = ast_mk_binop($1, '%', $3);
+  | %prec MULTIPLICATION expression multiplication_operators expression {
+    $$ = ast_mk_binop($1, $2, $3);
     ast_position($$, @1, @3);
   }
   /*
@@ -626,11 +625,11 @@ lit_integer
 
 /* TODO */
 type
-  : ty_primitive {
+  : %prec TYPE ty_primitive {
     $$ = $1;
     ast_position($$, @1, @1);
   }
-  | %prec '(' ty_primitive '(' type ')' {
+  | %prec TYPE ty_primitive '(' type ')' {
     //printf("ty_primitive<ty_primitive>\n");
     $1->ty.child = $3;
     ast_position($1, @1, @4);
@@ -639,19 +638,19 @@ type
   ;
 
 ty_primitive
-  : AST_IDENT {
+  : %prec TYPE AST_IDENT {
     //printf("ty_primitive\n");
     $$ = ast_mk_type(array_unshift(identifiers), 0);
     ast_position($$, @1, @1);
   }
-  | TK_ANY {
+  | %prec TYPE TK_ANY {
     $$ = ast_mk_type(0, 0); // TODO set type ?
     ast_position($$, @1, @1);
   }
   ;
 
 ident
-  : AST_IDENT {
+  : %prec IDENT AST_IDENT {
     //printf("ident\n");
     $$ = ast_mk_lit_id(array_unshift(identifiers), true);
     ast_position($$, @1, @1);

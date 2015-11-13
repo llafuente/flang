@@ -64,6 +64,8 @@ TASK_IMPL(parser_expressions) {
            "FL_AST_LIT_INTEGER");
   });
 
+  log_debug_level = 10;
+
   TEST_PARSER_OK("expressions 04", "1*2+3;", {
     ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
 
@@ -72,6 +74,8 @@ TASK_IMPL(parser_expressions) {
     ASSERT(body[0]->binop.left->binop.operator== '*', "left '*'");
     ASSERT(body[0]->binop.left->binop.right->type == FL_AST_LIT_INTEGER,
            "FL_AST_LIT_INTEGER");
+
+    ast_dump(root);
 
     ASSERT(body[0]->binop.operator== '+', "'+'");
     ASSERT(body[0]->binop.right->type == FL_AST_LIT_INTEGER,
@@ -99,6 +103,10 @@ TASK_IMPL(parser_expressions) {
     ASSERT(body[2]->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
     ASSERT(body[2]->assignament.operator== '=', "operator: '='");
 
+    ASSERT(strcmp(body[0]->var.id->identifier.string->value, "a") == 0,
+           "check id 0");
+    ASSERT(strcmp(body[1]->var.id->identifier.string->value, "b") == 0,
+           "check id 1");
     ASSERT(body[2]->assignament.left->type == FL_AST_LIT_IDENTIFIER,
            "left: FL_AST_LIT_IDENTIFIER");
     ASSERT(body[2]->assignament.right->type == FL_AST_LIT_IDENTIFIER,

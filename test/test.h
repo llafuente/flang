@@ -55,20 +55,20 @@
 #define TEST_PARSER_OK(name, code, code_block)                                 \
   {                                                                            \
     fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
-    ts_init();                                                                 \
+    flang_init();                                                              \
     ast_t* root = fl_parse_utf8(code);                                         \
     CHK_BODY(root);                                                            \
     root = typesystem(root);                                                   \
     ast_t** body = root->program.body->block.body->list.elements;              \
     code_block;                                                                \
-    ts_exit();                                                                 \
+    flang_exit();                                                              \
     ast_delete(root);                                                          \
   }
 
 #define TEST_PARSER_ERROR(name, code, msg, code_block)                         \
   {                                                                            \
     fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
-    ts_init();                                                                 \
+    flang_init();                                                              \
     ast_t* root = fl_parse_utf8(code);                                         \
     ASSERT(root != 0, "root is not null");                                     \
     ASSERT(root->type == FL_AST_PROGRAM, "root is a program");                 \
@@ -77,7 +77,7 @@
     ASSERT(err->type == FL_AST_ERROR, "body is an error");                     \
     ASSERT(strcmp(err->err.message->value, msg) == 0, "error message match");  \
     code_block;                                                                \
-    ts_exit();                                                                 \
+    flang_exit();                                                              \
     ast_delete(root);                                                          \
   }
 
@@ -89,6 +89,6 @@
     ast_t** body = root->program.body->block.body->list.elements;              \
     LLVMModuleRef module = fl_codegen(root, "test");                           \
     code_block;                                                                \
-    ts_exit();                                                                 \
+    flang_exit();                                                              \
     ast_delete(root);                                                          \
   }

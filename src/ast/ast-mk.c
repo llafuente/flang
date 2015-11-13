@@ -319,7 +319,7 @@ ast_t* ast_mk_type_void() {
 }
 
 ast_t* ast_mk_type(string* id, ast_t* child) {
-  // printf("ast_mk_type\n");
+  printf("ast_mk_type\n");
   ast_t* node = ast_new();
   node->type = FL_AST_TYPE;
 

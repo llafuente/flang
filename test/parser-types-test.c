@@ -85,10 +85,9 @@ TASK_IMPL(parser_types) {
   });
 
   log_debug_level = 10;
-  TEST_PARSER_OK("empty struct", "struct test {}", {
-    printf("%zu\n", body[0]->ty_id);
-    ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid");
-  });
+  TEST_PARSER_ERROR("empty struct", "struct test {}",
+                    "syntax error, empty struct declaration",
+                    {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/});
 
   TEST_PARSER_OK("simple struct", "struct test {"
                                   "i8 t1"

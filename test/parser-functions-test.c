@@ -66,7 +66,7 @@ TASK_IMPL(parser_functions) {
 
   // TODO 'template'
   log_debug_level = 10;
-  TEST_PARSER_OK("function 03", "fn x(i8 arg1, i8 arg2) : i8 {"
+  TEST_PARSER_OK("function 03", "var i8 zz; fn x(i8 arg1, i8 arg2) : i8 {"
                                 "return arg1 + arg2;"
                                 "}",
                  {});

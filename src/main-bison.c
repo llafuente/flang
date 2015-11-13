@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include "flang.h"
 
-array* identifiers;
-
 // edit codes
 // 2 invalid input
 // 3 parse error
@@ -18,10 +16,7 @@ int main(int argc, char** argv) {
   }
 
   log_debug_level = 0;
-  identifiers = malloc(sizeof(array));
-  array_new(identifiers);
-
-  ts_init();
+  flang_init();
 
   // debug single file
   ast_t* root = fl_parse_main_file(argv[1]);
@@ -47,10 +42,9 @@ int main(int argc, char** argv) {
     fl_interpreter(module);
   }
 
-  ts_exit();
-  array_delete(identifiers);
-  free(identifiers);
+  flang_exit();
   ast_delete(root);
+  st_cleanup();
 
   return 0;
 }

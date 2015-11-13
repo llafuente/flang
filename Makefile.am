@@ -1,6 +1,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
-COMPILER_SOURCES = src/grammar/parser.c \
+COMPILER_SOURCES = src/flang.c \
+                src/grammar/parser.c \
                 src/grammar/tokens.c \
                 src/parser/parser-functions.c \
                 src/parser/load-imports.c \

@@ -23,38 +23,17 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/// @file
+#include "flang.h"
 
-#include "tasks.h"
-#include "fixtures.h"
-#include "ext/array.h"
+array* identifiers;
+void flang_init() {
+  identifiers = malloc(sizeof(array));
+  array_new(identifiers);
 
-int main(int argc, const char* argv[]) {
-  printf("    ###############\n");
-  printf("    ## unit test ##\n");
-  printf("    ###############\n");
-
-  TASK_RUN(typesystem);
-
-  /*
-  TASK_RUN(parser_literals);
-  */
-  TASK_RUN(parser_expressions);
-  TASK_RUN(parser_variables);
-  TASK_RUN(parser_functions);
-  TASK_RUN(parser_types);
-  /*
-  TASK_RUN(parser_if);
-  TASK_RUN(parser_loops);
-
-  TASK_RUN(codegen_expressions);
-  TASK_RUN(codegen_functions);
-  TASK_RUN(flang_files);
-  */
-
-  printf("\nOK\n");
-
-  st_cleanup();
-
-  return 0;
+  ts_init();
+}
+void flang_exit() {
+  ts_exit();
+  array_delete(identifiers);
+  free(identifiers);
 }
