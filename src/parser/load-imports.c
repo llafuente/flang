@@ -39,8 +39,7 @@ ast_action_t load_imports(ast_t* node, ast_t* parent, size_t level,
 
     ast_t* module = fl_parse_file(filepath);
     if (ast_print_error(module)) {
-      printf("Failed to load module: %s\n", filepath);
-      exit(1);
+      fl_fatal_error("Failed to load module: %s\n", filepath);
     }
 
     ast_mk_insert_before(node->parent, node, module);

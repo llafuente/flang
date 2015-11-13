@@ -31,6 +31,13 @@
 
 extern int log_debug_level;
 
+#define fl_fatal_error(fmt, ...)                                               \
+  fprintf(stderr, "Faltal error at %s:%d @ %s\n", __FILE__, __LINE__,          \
+          __FUNCTION__);                                                       \
+  fprintf(stderr, fmt, __VA_ARGS__);                                           \
+  __sanitizer_print_stack_trace();                                             \
+  exit(5);
+
 // 0 - error
 // 1 - warning
 // 2 - info
@@ -49,7 +56,7 @@ extern int log_debug_level;
     }                                                                          \
     if (level == 0) {                                                          \
       __sanitizer_print_stack_trace();                                         \
-      exit(1);                                                                 \
+      exit(6);                                                                 \
     }                                                                          \
   }
 /*

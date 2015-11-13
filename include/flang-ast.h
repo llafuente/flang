@@ -109,8 +109,8 @@ struct ast {
 
   union {
     struct ast_error {
-      char* str;
-      fl_error_zone_t zone;
+      string* message;
+      string* type;
     } err;
 
     struct ast_program {

@@ -3,11 +3,18 @@
 
 array* identifiers;
 
+// edit codes
+// 2 invalid input
+// 3 parse error
+// 4 typesystem error
+// 5 faltal error
+// 6 unexpected error
+
 int main(int argc, char** argv) {
   // TODO 0 means REPL
   if (argc == 1 || argc > 3) {
-    printf("Usage: flan file.fl [output.ir]\n");
-    exit(1);
+    fprintf(stderr, "Usage: flan file.fl [output.ir]\n");
+    exit(2);
   }
 
   log_debug_level = 0;
@@ -20,12 +27,12 @@ int main(int argc, char** argv) {
   ast_t* root = fl_parse_main_file(argv[1]);
   // ast_t* root = fl_parse_file(argv[1]);
   if (ast_print_error(root)) {
-    exit(1);
+    exit(3);
   }
 
   root = typesystem(root);
   if (ast_print_error(root)) {
-    exit(1);
+    exit(4);
   }
 
   LLVMModuleRef module = fl_codegen(root, "test");

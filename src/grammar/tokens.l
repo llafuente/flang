@@ -235,7 +235,6 @@ nil      { SET_LOCATION; return TK_NULL; }
 \^=  { SET_LOCATION; return TK_CARETEQ; }
 %    { SET_LOCATION; return '%'; }
 %=   { SET_LOCATION; return TK_PERCENTEQ; }
-@   { SET_LOCATION; return '@'; }
 
 <<EOF>> { SET_LOCATION; return 0; }
 

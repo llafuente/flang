@@ -44,39 +44,42 @@ TASK_IMPL(parser_functions) {
            "FL_AST_LIT_IDENTIFIER");
     ASSERT(body[0]->func.params != 0, "no args");
   });
+  TEST_PARSER_ERROR("function err 01", "fn {} var x;",
+                    "syntax error, unexpected '{', expecting AST_IDENT",
+                    {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/});
 
-  TEST_PARSER_ERROR("function err 01", "fn {} /* xxx\n yyy */ var x;",
-                    "cannot parse function identifier",
-                    { CHK_ERROR_RANGE(err, 4, 1, 5, 1); });
+  TEST_PARSER_ERROR(
+      "function err 02", "fn hell ({}",
+      "syntax error, unexpected '{', expecting TK_ANY or AST_IDENT or ')'", {});
 
-  TEST_PARSER_ERROR("function err 01", "fn hell ({}", "expected identifier",
-                    {});
+  TEST_PARSER_ERROR("function err 03", "fn x a",
+                    "syntax error, unexpected AST_IDENT, expecting '{' or ':'",
+                    {/*CHK_ERROR_RANGE(err, 6, 1, 9, 1);*/});
 
-  TEST_PARSER_ERROR("function err 01", "fn x a", "expected '('",
-                    { CHK_ERROR_RANGE(err, 6, 1, 9, 1); });
+  TEST_PARSER_ERROR("function err 04", "fn (){};",
+                    "syntax error, unexpected '(', expecting AST_IDENT",
+                    {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/});
 
-  TEST_PARSER_ERROR("function err 01", "fn (){};",
-                    "cannot parse function identifier",
-                    { CHK_ERROR_RANGE(err, 4, 1, 5, 1); });
-
-  TEST_PARSER_ERROR("function err 01", "fn x () { fn (){}; }",
-                    "cannot parse function identifier",
-                    { CHK_ERROR_RANGE(err, 14, 1, 15, 1); });
+  TEST_PARSER_ERROR("function err 05", "fn x () { fn (){}; }",
+                    "syntax error, unexpected '(', expecting AST_IDENT",
+                    {/*CHK_ERROR_RANGE(err, 14, 1, 15, 1);*/});
 
   // TODO 'template'
+  log_debug_level = 10;
   TEST_PARSER_OK("function 03", "fn x(i8 arg1, i8 arg2) : i8 {"
                                 "return arg1 + arg2;"
                                 "}",
                  {});
 
-  // declaration only
+  /* declaration only is for ffi
   TEST_PARSER_OK("function 04", "fn x( i8 arg1 , i8 arg2 ) : i8 ;"
-                                "fn printf2( ptr<i8> format, ... ) ;",
+                                "fn printf2( ptr(i8) format, ... ) ;",
                  {});
+  */
 
-  TEST_PARSER_OK("function 04", "function test_i32() {}", {});
+  TEST_PARSER_OK("function 05", "function test_i32() {}", {});
 
-  TEST_PARSER_OK("function 05", "function t(i8 i) {} var i32 i; i = 0;", {
+  TEST_PARSER_OK("function 06", "function t(i8 i) {} var i32 i; i = 0;", {
     ASSERT(body[2]->assignament.left->ty_id == TS_I32, "i is i32");
   });
 

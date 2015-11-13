@@ -43,7 +43,6 @@ TASK_IMPL(codegen_expressions) {
   TEST_CODEGEN_OK("type infer 01", "var x; var y; x = y = 1;", {});
   TEST_CODEGEN_OK("type infer 02", "var x; var y; x = 1; y = x + 1;", {});
   TEST_CODEGEN_OK("type infer 03", "fn a(i8 b) { return 0; } var x; a(x);", {});
-  log_debug_level = 10;
   TEST_CODEGEN_OK("type infer 04",
                   "fn a(i8 b) : i8 { var x = b; return x; } var x; a(x);", {});
 

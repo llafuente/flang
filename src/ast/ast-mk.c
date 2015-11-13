@@ -45,6 +45,18 @@ ast_t* ast_mk_program(ast_t* block) {
 
   return node;
 }
+
+// TODO maybe string*
+ast_t* ast_mk_error(const char* message, char* type) {
+  ast_t* node = ast_new();
+  node->type = FL_AST_ERROR;
+
+  node->err.message = st_newc(message, st_enc_utf8);
+  node->err.type = st_newc(type, st_enc_utf8);
+
+  return node;
+}
+
 ast_t* ast_mk_list() {
   // printf("ast_mk_list\n");
   ast_t* node = ast_new();
@@ -101,7 +113,7 @@ ast_t* ast_mk_block(ast_t* body) {
 }
 
 ast_t* ast_mk_lit_id(string* str, bool resolve) {
-  // printf("ast_mk_lit_id '%s'\n", str->value);
+  printf("ast_mk_lit_id '%s'\n", str->value);
 
   ast_t* node = ast_new();
   node->type = FL_AST_LIT_IDENTIFIER;
@@ -253,7 +265,7 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body) {
 }
 
 ast_t* ast_mk_fn_param(ast_t* id, ast_t* type, ast_t* def) {
-  // printf("ast_mk_fn_param\n");
+  printf("ast_mk_fn_param\n");
   ast_t* node = ast_new();
   node->type = FL_AST_PARAMETER;
 
@@ -312,6 +324,17 @@ ast_t* ast_mk_type(string* id, ast_t* child) {
   node->type = FL_AST_TYPE;
 
   node->ty.id = id ? ast_mk_lit_id(id, false) : 0;
+  node->ty.child = child;
+
+  return node;
+}
+
+ast_t* ast_mk_type2(ast_t* id, ast_t* child) {
+  // printf("ast_mk_type\n");
+  ast_t* node = ast_new();
+  node->type = FL_AST_TYPE;
+
+  node->ty.id = id;
   node->ty.child = child;
 
   return node;

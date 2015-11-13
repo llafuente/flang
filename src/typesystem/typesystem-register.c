@@ -33,59 +33,68 @@ size_t get_type(ast_t* node) {
     return 0;
   }
 
+  string* t_str = node->ty.id->identifier.string;
+  char* tcstr = t_str->value;
+
   // built-in
-  if (strcmp(node->ty.id->identifier.string->value, "bool") == 0) {
+  if (strcmp(tcstr, "bool") == 0) {
     return node->ty_id = TS_BOOL;
   }
-  if (strcmp(node->ty.id->identifier.string->value, "void") == 0) {
+  if (strcmp(tcstr, "void") == 0) {
     return node->ty_id = TS_VOID;
   }
-  if (strcmp(node->ty.id->identifier.string->value, "i8") == 0) {
+  if (strcmp(tcstr, "i8") == 0) {
     return node->ty_id = TS_I8;
   }
-  if (strcmp(node->ty.id->identifier.string->value, "u8") == 0) {
+  if (strcmp(tcstr, "u8") == 0) {
     return node->ty_id = TS_U8;
   }
-  if (strcmp(node->ty.id->identifier.string->value, "i16") == 0) {
+  if (strcmp(tcstr, "i16") == 0) {
     return node->ty_id = TS_I16;
   }
-  if (strcmp(node->ty.id->identifier.string->value, "u16") == 0) {
+  if (strcmp(tcstr, "u16") == 0) {
     return node->ty_id = TS_U16;
   }
-  if (strcmp(node->ty.id->identifier.string->value, "i32") == 0) {
+  if (strcmp(tcstr, "i32") == 0) {
     return node->ty_id = TS_I32;
   }
-  if (strcmp(node->ty.id->identifier.string->value, "u32") == 0) {
+  if (strcmp(tcstr, "u32") == 0) {
     return node->ty_id = TS_U32;
   }
-  if (strcmp(node->ty.id->identifier.string->value, "i64") == 0) {
+  if (strcmp(tcstr, "i64") == 0) {
     return node->ty_id = TS_I64;
   }
-  if (strcmp(node->ty.id->identifier.string->value, "u64") == 0) {
+  if (strcmp(tcstr, "u64") == 0) {
     return node->ty_id = TS_U64;
   }
-  if (strcmp(node->ty.id->identifier.string->value, "f32") == 0) {
+  if (strcmp(tcstr, "f32") == 0) {
     return node->ty_id = TS_F32;
   }
-  if (strcmp(node->ty.id->identifier.string->value, "f64") == 0) {
+  if (strcmp(tcstr, "f64") == 0) {
     return node->ty_id = TS_F64;
   }
-  if (strcmp(node->ty.id->identifier.string->value, "string") == 0) {
+  if (strcmp(tcstr, "string") == 0) {
     // return node->ty_id = TS_CSTR; // TODO TS_STRING
     return node->ty_id = TS_STRING;
   }
 
-  if (strcmp(node->ty.id->identifier.string->value, "ptr") == 0) {
+  if (strcmp(tcstr, "ptr") == 0) {
     assert(node->ty.child != 0);
     size_t t = get_type(node->ty.child);
     return node->ty_id = ty_create_wrapped(FL_POINTER, t);
   }
 
-  if (strcmp(node->ty.id->identifier.string->value, "vector") == 0) {
+  if (strcmp(tcstr, "vector") == 0) {
     assert(node->ty.child != 0);
     printf("TYPE = %u\n", node->ty.child->type);
     size_t t = get_type(node->ty.child);
     return node->ty_id = ty_create_wrapped(FL_VECTOR, t);
+  }
+
+  // search named types
+  size_t t = ty_get_typeid_by_name(t_str);
+  if (t) {
+    return node->ty_id = t;
   }
 
   printf("delayed type!?");

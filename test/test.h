@@ -25,7 +25,7 @@
 #define STR(val) #val
 
 // last core typeid + 1
-#define TEST_TYPEID 21
+#define TEST_TYPEID 16
 
 #define CHK_BODY(root)                                                         \
   ASSERT(root != 0, "root is not null");                                       \
@@ -43,7 +43,7 @@
   ASSERT(root->type == FL_AST_PROGRAM, "root is a program");                   \
   target = root->program.body;                                                 \
   ASSERT(target->type == FL_AST_ERROR, "body is an error");                    \
-  ASSERT(strcmp(target->err.str, msg) == 0, "error message match");
+  ASSERT(strcmp(target->err.message->value, msg) == 0, "error message match");
 
 #define CHK_ERROR_RANGE(target, sc, sl, ec, el)
 /*
@@ -54,8 +54,8 @@
 */
 #define TEST_PARSER_OK(name, code, code_block)                                 \
   {                                                                            \
-    ts_init();                                                                 \
     fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
+    ts_init();                                                                 \
     ast_t* root = fl_parse_utf8(code);                                         \
     CHK_BODY(root);                                                            \
     root = typesystem(root);                                                   \
@@ -68,12 +68,14 @@
 #define TEST_PARSER_ERROR(name, code, msg, code_block)                         \
   {                                                                            \
     fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
+    ts_init();                                                                 \
     ast_t* root = fl_parse_utf8(code);                                         \
     ASSERT(root != 0, "root is not null");                                     \
     ASSERT(root->type == FL_AST_PROGRAM, "root is a program");                 \
     ast_t* err = root->program.body;                                           \
+    ast_dump(root);                                                            \
     ASSERT(err->type == FL_AST_ERROR, "body is an error");                     \
-    ASSERT(strcmp(err->err.str, msg) == 0, "error message match");             \
+    ASSERT(strcmp(err->err.message->value, msg) == 0, "error message match");  \
     code_block;                                                                \
     ts_exit();                                                                 \
     ast_delete(root);                                                          \

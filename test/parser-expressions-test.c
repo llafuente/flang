@@ -167,7 +167,6 @@ TASK_IMPL(parser_expressions) {
 
   TEST_PARSER_OK("equality 2", "var i32 i; i = 1; i == 5.0;", {});
 
-  log_debug_level = 10;
   // TODO illustrate typesystem vs inference war, fix it!
   TEST_PARSER_OK("member access", "struct xxx {i8 b};"
                                   "var xxx sin;"

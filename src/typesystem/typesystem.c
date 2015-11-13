@@ -60,7 +60,7 @@ size_t ts_var_typeid(ast_t* id) {
   log_verbose("%s", id->identifier.string->value);
 
   ast_t* decl = ast_search_id_decl(id, id->identifier.string);
-
+  ast_dump(decl);
   if (!decl) {
     log_error("(ts) cannot find var declaration %s",
               id->identifier.string->value);
@@ -74,20 +74,4 @@ ts_typeh_t* ts_named_type(string* id) {
   HASH_FIND_STR(ts_hashtable, id->value, s);
 
   return s;
-}
-
-size_t ts_named_typeid(string* id) {
-  ts_typeh_t* s;
-  HASH_FIND_STR(ts_hashtable, id->value, s);
-
-  // TODO raise something ?!
-  if (!s)
-    return 0;
-
-  if (s->list.size > 1) {
-    log_error("not allowed?!");
-  }
-
-  ast_t* ast = (ast_t*)array_get(&s->list, 0);
-  return ast->ty_id;
 }

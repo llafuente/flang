@@ -279,3 +279,19 @@ size_t ty_get_fn_typeid(ast_t* id) {
 
   return 0;
 }
+
+size_t ty_get_typeid_by_name(string* id) {
+  ts_typeh_t* s;
+  HASH_FIND_STR(ts_hashtable, id->value, s);
+
+  // TODO raise something ?!
+  if (!s)
+    return 0;
+
+  if (s->list.size > 1) {
+    log_error("not allowed?!");
+  }
+
+  ast_t* ast = (ast_t*)array_get(&s->list, 0);
+  return ast->ty_id;
+}

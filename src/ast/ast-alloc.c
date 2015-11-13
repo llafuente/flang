@@ -111,6 +111,7 @@ void ast_delete_props(ast_t* ast) {
     break;
   case FL_AST_DECL_FUNCTION:
     SAFE_DEL(ast->func.id);
+    printf("\n\n*** ast->func.uid %p\n", ast->func.uid);
     SAFE_DEL_STR(ast->func.uid);
     SAFE_DEL(ast->func.ret_type);
     SAFE_DEL(ast->func.params);
@@ -156,6 +157,10 @@ void ast_delete_props(ast_t* ast) {
   case FL_AST_TYPE: {
     SAFE_DEL(ast->ty.id);
     SAFE_DEL(ast->ty.child);
+  }
+  case FL_AST_ERROR: {
+    SAFE_DEL_STR(ast->err.message);
+    SAFE_DEL_STR(ast->err.type);
   }
   default: {}
   }

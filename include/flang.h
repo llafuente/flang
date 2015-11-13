@@ -71,9 +71,6 @@ extern void __sanitizer_print_stack_trace();
 //- type pre-declaration
 //-
 
-enum fl_error_zone { FL_ERROR_SYNTAX = 1 };
-typedef enum fl_error_zone fl_error_zone_t;
-
 enum ast_types;
 typedef enum ast_types ast_types_t;
 
@@ -149,7 +146,7 @@ FL_EXTERN size_t ty_create_fn(ast_t* decl);
 FL_EXTERN size_t ty_create_struct(ast_t* decl);
 FL_EXTERN size_t ast_get_struct_prop_idx(ast_t* decl, string* id);
 
-FL_EXTERN size_t ts_named_typeid(string* id);
+FL_EXTERN size_t ty_get_typeid_by_name(string* id);
 FL_EXTERN ts_typeh_t* ts_named_type(string* id);
 FL_EXTERN size_t ty_get_struct_prop_type(size_t id, string* property);
 FL_EXTERN size_t ty_get_struct_prop_idx(size_t id, string* property);
@@ -354,6 +351,7 @@ ast_t* ast_mk_assignament(ast_t* left, int op, ast_t* right);
 ast_t* ast_mk_call_expr(ast_t* callee, ast_t* arguments);
 ast_t* ast_mk_type_void();
 ast_t* ast_mk_type(string* id, ast_t* child);
+ast_t* ast_mk_type2(ast_t* id, ast_t* child);
 ast_t* ast_mk_comment(string* text);
 ast_t* ast_mk_lunary(ast_t* element, int operator);
 ast_t* ast_mk_if(ast_t* test, ast_t* block, ast_t* alternate);
@@ -366,3 +364,4 @@ ast_t* ast_mk_continue(ast_t* argument);
 ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression);
 ast_t* ast_mk_cast(ast_t* type, ast_t* element);
 ast_t* ast_mk_import(ast_t* string_lit);
+ast_t* ast_mk_error(const char* message, char* type);

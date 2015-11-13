@@ -42,19 +42,27 @@ ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
       if (node->parent->type != FL_AST_EXPR_CALL &&
           node->parent->type != FL_AST_EXPR_MEMBER) {
         // it's a var, copy type
+        log_debug("\n\n");
+        ast_dump(node);
+        ast_dump(node->identifier.decl);
         node->ty_id = ast_get_typeid(node->identifier.decl);
       }
     }
 
-    // if type is a function, in fact what we want is a
-    // function pointer, so do it for easy to type
-    if (node->parent->type == FL_AST_DTOR_VAR && ty_is_function(node->ty_id)) {
-      node->ty_id = ty_create_wrapped(FL_POINTER, node->ty_id);
-      node->parent->ty_id = node->ty_id;
-      if (node->parent->var.type) {
-        node->parent->var.type->ty_id = node->ty_id;
+    if (node->parent->type == FL_AST_DTOR_VAR) {
+      // if type is a function, in fact what we want is a
+      // function pointer, so do it for easy to type
+      if (ty_is_function(node->ty_id)) {
+        node->ty_id = ty_create_wrapped(FL_POINTER, node->ty_id);
+        node->parent->ty_id = node->ty_id;
+        if (node->parent->var.type) {
+          node->parent->var.type->ty_id = node->ty_id;
+        }
+      } else {
+        node->parent->ty_id = node->ty_id;
       }
     }
+
   } break;
   case FL_AST_EXPR_MEMBER: {
     ts_cast_expr_member(node);

@@ -37,7 +37,7 @@ void ast_print_error_lines(const string* line, st_len_t pos,
     if (pos == ast_err_node->first_line - 1) {
       fprintf(stderr, "%*s\x1B[32m^--%s\x1B[39m\n",
               (int)(7 + ast_err_node->first_column), " ",
-              ast_err_node->err.str);
+              ast_err_node->err.message->value);
     }
   }
 }
@@ -47,7 +47,7 @@ bool ast_print_error(ast_t* node) {
   ast_t* err = node->program.body;
 
   if (err->type == FL_AST_ERROR) {
-    fprintf(stderr, "Parse error: %s\n", err->err.str);
+    fprintf(stderr, "Parse error: %s\n", err->err.message->value);
     fprintf(stderr, "On line: %d:%d - %d:%d\n\n", err->first_line,
             err->first_column, err->last_line, err->last_column);
 

@@ -8,12 +8,17 @@
   extern int yyget_lineno();
   extern char* yytext;
   void yyerror(ast_t** root, const char *s) {
-    printf("%s at %d:%d\n%s\n", s, yylloc.first_line, yylloc.first_column, yytext);
-    exit(1);
+    ast_t* err = ast_mk_error(s, "syntax");
+    ast_position(err, yylloc, yylloc);
+    (*root)->program.body = err;
+
+    printf("%s at [%d:%d]\n%s\n", s, yylloc.first_line, yylloc.first_column, yytext);
   }
 %}
 
 %locations
+
+%define parse.error verbose
 
 %parse-param {ast_t **root}
 
@@ -88,6 +93,7 @@
 /* %expect 0 */
 
 %precedence IDENT
+%precedence TYPE
 %precedence SHIFTPLUS
 
 %precedence FORTYPE
@@ -126,7 +132,7 @@ program
 
     ast_t* block = ast_mk_block($1);
     ast_position(block, @1, @1);
-    *root = ast_mk_program(block);
+    (*root)->program.body = block;
   }
   ;
 
@@ -242,7 +248,7 @@ struct_decl_fields_list
     ast_position($3, @3, @3);
     $$ = $1;
   }
-  | %empty { $$ = 0; }
+  | %empty { yyerror(root, "empty struct declaration"); YYERROR; }
   ;
 
 struct_decl_field
@@ -268,6 +274,8 @@ fn_decl
   }
   | TK_FN ident fn_parameters block {
     $$ = ast_mk_fn_decl($2, $3, 0, $4);
+    printf("WTF!!0 = %p\n", $$);
+    printf("WTF!!3 = %p\n", $3);
     if ($3->parent == 1) {
       $$->func.varargs = true;
     }
@@ -276,8 +284,8 @@ fn_decl
   ;
 
 fn_parameters
-  : %empty                          { $$ = 0; }
-  | '(' ')'                         { $$ = 0; }
+  : %empty                          { $$ = ast_mk_list(); }
+  | '(' ')'                         { $$ = ast_mk_list(); ast_position($$, @1, @1); }
   | '(' fn_parameter_list ')'                  { $$ = $2; }
   | '(' fn_parameter_list ',' ')'              { $$ = $2; }
   | '(' fn_parameter_list ',' TK_DOTDOTDOT ')' {
@@ -303,7 +311,7 @@ fn_parameter_list
 
   /* TODO default! */
 fn_parameter
-  : type ident {
+  : %prec IDENT type ident {
     $$ = ast_mk_fn_param($2, $1, 0);
     ast_position($$, @1, @2);
   }
@@ -334,7 +342,7 @@ expression
   }
   | '@' block {
     // TODO short function decl
-    exit(1);
+    fl_fatal_error("%s", "not implemented");
   }
   | expression '.' ident {
     $$ = ast_mk_member($1, $3, false);
@@ -622,7 +630,7 @@ type
     $$ = $1;
     ast_position($$, @1, @1);
   }
-  | ty_primitive '(' type ')' {
+  | %prec '(' ty_primitive '(' type ')' {
     //printf("ty_primitive<ty_primitive>\n");
     $1->ty.child = $3;
     ast_position($1, @1, @4);

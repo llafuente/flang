@@ -28,12 +28,13 @@
 #include "grammar/parser.h"
 
 ast_t* fl_parse(string* code) {
-  ast_t* root;
+  // create program node, so error reporting could be nice!
+  ast_t* root = ast_mk_program(0);
+  root->program.code = code;
+
   YY_BUFFER_STATE buf = yy_scan_string(code->value);
   yyparse(&root);
   yy_delete_buffer(buf);
-
-  root->program.code = code;
 
   return root;
 }
@@ -57,8 +58,7 @@ ast_t* fl_parse_file(const char* filename) {
 string* fl_file_to_string(const char* filename) {
   FILE* f = fopen(filename, "r");
   if (!f) {
-    fprintf(stderr, "file cannot be opened: %s\n", filename);
-    exit(3);
+    fl_fatal_error("file cannot be opened: %s\n", filename);
   }
 
   fseek(f, 0, SEEK_END);
@@ -69,8 +69,7 @@ string* fl_file_to_string(const char* filename) {
   // copy the file into the buffer:
   size_t result = fread(code->value, 1, lSize, f);
   if (result != lSize) {
-    fprintf(stderr, "Reading error\n");
-    exit(3);
+    fl_fatal_error(stderr, "Reading error\n");
   }
 
   code->used = result;
@@ -104,7 +103,6 @@ ast_t* typesystem(ast_t* root) {
   /*
   ty_dump_table();
   ast_dump(root);
-  exit(1);
   */
   // do inference
   root = ts_pass(root);
