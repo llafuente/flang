@@ -84,7 +84,6 @@ TASK_IMPL(parser_types) {
     test_parser_type(body[0], TS_I64);
   });
 
-  log_debug_level = 10;
   TEST_PARSER_ERROR("empty struct", "struct test {}",
                     "syntax error, empty struct declaration",
                     {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/});
@@ -133,19 +132,18 @@ TASK_IMPL(parser_types) {
                                         "  vector(i8) value"
                                         "};",
                  { ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid struct"); });
-  TEST_PARSER_OK("void*", "var ptr<void> a",
+  TEST_PARSER_OK("void*", "var ptr(void) a;",
                  { ASSERT(body[0]->ty_id == TS_PVOID, "typeid ptr<void>"); });
 
-  TEST_PARSER_OK("alloc", "fn alloc(u64 amount_of_bytes) : ptr<void> { return "
-                          "malloc(amount_of_bytes); }",
+  TEST_PARSER_OK("alloc", "fn alloc(u64 amount_of_bytes) : ptr(void) {}",
                  {
                   // TODO search core.alloc and check both types are the same
                   // ASSERT(body[0]->ty_id == 18, "typeid struct");
                  });
 
   // TODO this is a bug in tokenizer-parser: 'ptr<ptr<void>>' should be valid!
-  TEST_PARSER_OK("void*", "var ptr(ptr(void)) a", {
-    ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid ptr<void>");
+  TEST_PARSER_OK("void*", "var ptr(ptr(void)) a;", {
+    ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid ptr(void)");
   });
 
   TEST_PARSER_OK("string", "var string x;",

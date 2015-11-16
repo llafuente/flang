@@ -289,8 +289,8 @@ fn_decl
   ;
 
 fn_parameters
-  : %empty                          { $$ = ast_mk_list(); }
-  | '(' ')'                         { $$ = ast_mk_list(); ast_position($$, @1, @1); }
+  : %empty                          { $$ = ast_mk_list(); ast_position($$, @1, @1); }
+  | '(' ')'                         { $$ = ast_mk_list(); ast_position($$, @1, @2); }
   | '(' fn_parameter_list ')'                  { $$ = $2; }
   | '(' fn_parameter_list ',' ')'              { $$ = $2; }
   | '(' fn_parameter_list ',' TK_DOTDOTDOT ')' {

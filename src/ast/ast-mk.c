@@ -255,8 +255,6 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body) {
   node->type = FL_AST_DECL_FUNCTION;
 
   node->func.id = id;
-  node->func.uid =
-      st_clone(id->identifier.string); // TODO this could be removed
   node->func.ret_type = ret_type ? ret_type : ast_mk_type_void();
   node->func.params = params ? params : ast_mk_list();
   node->func.body = body;

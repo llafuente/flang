@@ -52,6 +52,7 @@ TASK_IMPL(parser_functions) {
       "function err 02", "fn hell ({}",
       "syntax error, unexpected '{', expecting TK_ANY or AST_IDENT or ')'", {});
 
+  exit(10);
   TEST_PARSER_ERROR("function err 03", "fn x a",
                     "syntax error, unexpected AST_IDENT, expecting '{' or ':'",
                     {/*CHK_ERROR_RANGE(err, 6, 1, 9, 1);*/});
@@ -63,9 +64,7 @@ TASK_IMPL(parser_functions) {
   TEST_PARSER_ERROR("function err 05", "fn x () { fn (){}; }",
                     "syntax error, unexpected '(', expecting AST_IDENT",
                     {/*CHK_ERROR_RANGE(err, 14, 1, 15, 1);*/});
-
   // TODO 'template'
-  log_debug_level = 10;
   TEST_PARSER_OK("function 03", "var i8 zz; fn x(i8 arg1, i8 arg2) : i8 {"
                                 "return arg1 + arg2;"
                                 "}",

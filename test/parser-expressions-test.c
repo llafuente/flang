@@ -54,7 +54,6 @@ TASK_IMPL(parser_expressions) {
     ASSERT(body[0]->binop.left->binop.right->type == FL_AST_LIT_INTEGER,
            "FL_AST_LIT_INTEGER");
   });
-
   TEST_PARSER_OK("expressions 03", "1*2;", {
     ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
     ASSERT(body[0]->binop.left->type == FL_AST_LIT_INTEGER,
@@ -63,8 +62,6 @@ TASK_IMPL(parser_expressions) {
     ASSERT(body[0]->binop.right->type == FL_AST_LIT_INTEGER,
            "FL_AST_LIT_INTEGER");
   });
-
-  log_debug_level = 10;
 
   TEST_PARSER_OK("expressions 04", "1*2+3;", {
     ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
@@ -191,6 +188,7 @@ TASK_IMPL(parser_expressions) {
                    ASSERT(body[2]->ty_id == TS_I64, "assignament type TS_I64");
                    */
                  });
+
   /*
     TEST_PARSER_OK("member access", "var h; h = s.hello.world();", {});
     TEST_PARSER_OK("member access", "var h; h = s.hello.world(15, 20);", {});
