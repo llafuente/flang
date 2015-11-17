@@ -29,7 +29,8 @@ COMPILER_SOURCES = src/flang.c \
                 src/typesystem/type-cast.c \
                 src/typesystem/type-utils.c \
                 src/debug.c \
-                ext/array.c
+                ext/array.c \
+                ext/pool.c
 
 AM_CPPFLAGS = -I$(top_srcdir)/include \
               -I$(top_srcdir)/ext \

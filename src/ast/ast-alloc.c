@@ -25,7 +25,10 @@
 
 #include "flang.h"
 
-ast_t* ast_new() { return (ast_t*)calloc(1, sizeof(ast_t)); }
+ast_t* ast_new() {
+  return (ast_t*)pool_new(sizeof(ast_t));
+  // return (ast_t*)calloc(1, sizeof(ast_t));
+}
 void ast_delete_list(ast_t** list) {
   size_t i = 0;
   ast_t* tmp;
@@ -41,7 +44,8 @@ void ast_delete_list(ast_t** list) {
 
 void ast_delete(ast_t* ast) {
   ast_delete_props(ast);
-  free(ast);
+  // pool is used to handle memory on errors
+  // free(ast);
 }
 
 void ast_delete_props(ast_t* ast) {
@@ -168,7 +172,7 @@ void ast_delete_props(ast_t* ast) {
 
 // TODO handle more types
 ast_t* ast_clone(ast_t* node) {
-  ast_t* t = (ast_t*)malloc(sizeof(ast_t));
+  ast_t* t = ast_new();
   memcpy(t, node, sizeof(ast_t));
   switch (t->type) {
   case FL_AST_LIT_IDENTIFIER:

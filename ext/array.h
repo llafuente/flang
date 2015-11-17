@@ -3,14 +3,18 @@
 
 #include <string.h>
 
-#define VECTOR_INITIAL_CAPACITY 100
-#define ARRAY_T void*
+#ifndef ARRAY_T
 // Define a vector type
 typedef struct {
   int size;
   int capacity;
   void **data;     // array of pointers
 } array;
+#endif
+
+#define VECTOR_INITIAL_CAPACITY 100
+#define ARRAY_T void*
+
 
 void array_new(array *arr);
 

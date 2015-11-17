@@ -27,13 +27,19 @@
 
 array* identifiers;
 void flang_init() {
+  pool_init(2048);
+
   identifiers = malloc(sizeof(array));
   array_new(identifiers);
 
   ts_init();
 }
-void flang_exit() {
+void flang_exit(ast_t* root) {
+  ast_delete(root);
+  pool_destroy();
+
   ts_exit();
   array_delete(identifiers);
   free(identifiers);
+  identifiers = 0;
 }

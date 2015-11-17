@@ -61,8 +61,7 @@
     root = typesystem(root);                                                   \
     ast_t** body = root->program.body->block.body->list.elements;              \
     code_block;                                                                \
-    flang_exit();                                                              \
-    ast_delete(root);                                                          \
+    flang_exit(root);                                                          \
   }
 
 #define TEST_PARSER_ERROR(name, code, msg, code_block)                         \
@@ -77,8 +76,7 @@
     ASSERT(err->type == FL_AST_ERROR, "body is an error");                     \
     ASSERT(strcmp(err->err.message->value, msg) == 0, "error message match");  \
     code_block;                                                                \
-    flang_exit();                                                              \
-    ast_delete(root);                                                          \
+    flang_exit(root);                                                          \
   }
 
 #define TEST_CODEGEN_OK(name, code, code_block)                                \
@@ -89,6 +87,5 @@
     ast_t** body = root->program.body->block.body->list.elements;              \
     LLVMModuleRef module = fl_codegen(root, "test");                           \
     code_block;                                                                \
-    flang_exit();                                                              \
-    ast_delete(root);                                                          \
+    flang_exit(root);                                                          \
   }

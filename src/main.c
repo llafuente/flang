@@ -56,8 +56,7 @@ int main(int argc, const char* argv[]) {
     fl_interpreter(module);
   }
 
-  ts_exit();
-  ast_delete(root);
+  flang_exit(root);
 
   return 0;
 }

@@ -42,8 +42,7 @@ int main(int argc, char** argv) {
     fl_interpreter(module);
   }
 
-  flang_exit();
-  ast_delete(root);
+  flang_exit(root);
   st_cleanup();
 
   return 0;

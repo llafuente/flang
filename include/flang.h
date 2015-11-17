@@ -66,6 +66,7 @@ extern void __sanitizer_print_stack_trace();
 
 #include "ext/uthash.h"
 #include "ext/array.h"
+#include "ext/pool.h"
 
 //-
 //- type pre-declaration
@@ -125,7 +126,7 @@ typedef struct ts_typeh ts_typeh_t;
 /* cldoc:begin-category(flang.c) */
 extern array* identifiers;
 FL_EXTERN void flang_init();
-FL_EXTERN void flang_exit();
+FL_EXTERN void flang_exit(ast_t* root);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(typesystem/typesystem-alloc.c) */
