@@ -31,27 +31,30 @@ TASK_IMPL(parser_if) {
   log_debug_level = 0;
 
   TEST_PARSER_OK("function 01", "var bool b; b = 1;"
-                                "if (b == true) { printf('ok'); }",
+                                "if b == true { \"ok\"; }",
                  {});
 
   TEST_PARSER_OK("function 01", "if(true) {}", {});
 
-  TEST_PARSER_ERROR("function 01", "if(true)", "expected '{'", {});
+  TEST_PARSER_ERROR("function 01", "if(true)", "syntax error, unexpected $end",
+                    {});
 
-  TEST_PARSER_ERROR("function 01", "if(true) {", "expected '}'", {});
+  TEST_PARSER_ERROR("function 01", "if(true) {",
+                    "syntax error, unexpected $end, expecting '}'", {});
 
-  TEST_PARSER_ERROR("function 01", "if(true) {/}", "invalid statement", {
+  TEST_PARSER_ERROR("function 01", "if(true) {/}",
+                    "syntax error, unexpected '/', expecting '}'", {
 
-                                                                        });
+                                                                   });
 
   TEST_PARSER_OK("function 01", "var bool b; b = 1;\n"
-                                "if (b == true) { printf('ok'); }\n"
-                                "else { printf('ko'); }",
+                                "if (b == true) { \"ok\"; }\n"
+                                "else { \"ko\"; }",
                  {});
 
   TEST_PARSER_OK("function 01", "var i32 b; b = 1;\n"
-                                "if (b == 2) { printf('2'); }\n"
-                                "else if (b == 1) { printf('1'); }",
+                                "if (b == 2) { \"2\"; }\n"
+                                "else if (b == 1) { \"1\"; }",
                  {});
 
   return 0;

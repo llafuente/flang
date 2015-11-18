@@ -39,7 +39,8 @@ void ast_delete_list(ast_t** list) {
     }
   }
 
-  free(list);
+  // pool is used to handle memory on errors
+  // free(list);
 }
 
 void ast_delete(ast_t* ast) {

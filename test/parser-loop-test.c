@@ -31,75 +31,72 @@ TASK_IMPL(parser_loops) {
   log_debug_level = 0;
 
   TEST_PARSER_OK("loop 01", "var i32 x; for x = 1; x < 10; ++x {"
-                            "printf(\"%d\", x);"
                             "}",
                  {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1; x < 10; ++x ",
-                    "expected '{'", {});
+                    "syntax error, unexpected $end", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1; x < 10;",
-                    "expected update expression", {});
+                    //"expected update expression", {});
+                    "syntax error, unexpected $end", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1; x < 10",
-                    "expected semicolon", {});
+                    //"expected semicolon", {});
+                    "syntax error, unexpected $end", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1;",
-                    "expected condition expression", {});
+                    //"expected condition expression", {});
+                    "syntax error, unexpected AST_IDENT", {});
 
-  TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1", "expected semicolon",
-                    {});
+  TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1",
+                    "syntax error, unexpected $end", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; for ",
-                    "expected initialization expression", {});
+                    //"expected initialization expression", {});
+                    "syntax error, unexpected AST_IDENT", {});
 
   // TODO this should be valid!?
   TEST_PARSER_ERROR("loop 01", "for var i32 x = 1; x < 10; ++x {"
-                               "printf(\"%d\", x);"
                                "}",
-                    "expected initialization expression", {});
+                    "syntax error, unexpected TK_VAR", {});
 
   TEST_PARSER_OK("loop 01", "var i32 x; x = 1; while x < 10 {"
-                            "printf(\"%d\", x);"
                             "++x;"
                             "}",
                  {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; while x < 10 {"
-                               "printf(\"%d\", x);"
                                "++x;",
-                    "expected '}'", {});
+                    "syntax error, unexpected $end, expecting '}'", {});
 
-  TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; while x < 10", "expected '{'",
-                    {});
+  TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; while x < 10",
+                    "syntax error, unexpected $end", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; while",
-                    "expected condition expression", {});
+                    "syntax error, unexpected AST_IDENT", {});
 
   TEST_PARSER_OK("loop 01", "var i32 x; x = 1; do {"
-                            "printf(\"%d\", x);"
                             "++x;"
                             "} while x < 10;",
                  {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; do {"
-                               "printf(\"%d\", x);"
                                "++x;"
                                "} while ",
-                    "expected condition expression", {});
+                    "syntax error, unexpected $end", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; do {"
-                               "printf(\"%d\", x);"
                                "++x;"
                                "}",
-                    "expected 'while'", {});
+                    "syntax error, unexpected $end, expecting TK_WHILE", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; do {"
-                               "printf(\"%d\", x);"
                                "++x;",
-                    "expected '}'", {});
+                    "syntax error, unexpected $end, expecting '}'", {});
 
-  TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; do ", "expected '{'", {});
+  TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; do ",
+                    "syntax error, unexpected $end, expecting '{'", {});
 
   return 0;
 }

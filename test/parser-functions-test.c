@@ -52,7 +52,6 @@ TASK_IMPL(parser_functions) {
       "function err 02", "fn hell ({}",
       "syntax error, unexpected '{', expecting TK_ANY or AST_IDENT or ')'", {});
 
-  exit(10);
   TEST_PARSER_ERROR("function err 03", "fn x a",
                     "syntax error, unexpected AST_IDENT, expecting '{' or ':'",
                     {/*CHK_ERROR_RANGE(err, 6, 1, 9, 1);*/});

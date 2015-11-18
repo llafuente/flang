@@ -29,7 +29,7 @@ void* pool_new(size_t bytes) {
   size_t i = 0;
   for (; i < pool_pages->size; ++i) {
     pool_page_t* p = (pool_page_t*)pool_pages->data[i];
-    printf("%zu - enough? %zu > %zu\n",i,  p->free, bytes);
+    //printf("%zu - enough? %zu > %zu\n",i,  p->free, bytes);
     if (p->free >= bytes) {
       void* ret = p->next;
 

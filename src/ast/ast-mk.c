@@ -63,7 +63,9 @@ ast_t* ast_mk_list() {
   node->type = FL_AST_LIST;
 
   node->list.count = 0;
-  node->list.elements = calloc(300, sizeof(ast_t*));
+  size_t s = 300 * sizeof(ast_t*);
+  node->list.elements = pool_new(s);
+  memset(node->list.elements, 0, s);
 
   return node;
 }
@@ -113,7 +115,7 @@ ast_t* ast_mk_block(ast_t* body) {
 }
 
 ast_t* ast_mk_lit_id(string* str, bool resolve) {
-  printf("ast_mk_lit_id '%s'\n", str->value);
+  // printf("ast_mk_lit_id '%s'\n", str->value);
 
   ast_t* node = ast_new();
   node->type = FL_AST_LIT_IDENTIFIER;
@@ -317,7 +319,7 @@ ast_t* ast_mk_type_void() {
 }
 
 ast_t* ast_mk_type(string* id, ast_t* child) {
-  printf("ast_mk_type\n");
+  // printf("ast_mk_type\n");
   ast_t* node = ast_new();
   node->type = FL_AST_TYPE;
 

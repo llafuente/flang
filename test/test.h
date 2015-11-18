@@ -82,8 +82,11 @@
 #define TEST_CODEGEN_OK(name, code, code_block)                                \
   {                                                                            \
     fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
+    flang_init();                                                              \
     ast_t* root = fl_parse_utf8(code);                                         \
     CHK_BODY(root);                                                            \
+    root = typesystem(root);                                                   \
+    ast_dump(root);                                                            \
     ast_t** body = root->program.body->block.body->list.elements;              \
     LLVMModuleRef module = fl_codegen(root, "test");                           \
     code_block;                                                                \
