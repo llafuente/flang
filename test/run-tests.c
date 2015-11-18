@@ -54,7 +54,5 @@ int main(int argc, const char* argv[]) {
 
   printf("\nOK\n");
 
-  st_cleanup();
-
   return 0;
 }

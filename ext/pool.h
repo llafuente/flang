@@ -14,4 +14,6 @@ extern array* pool_pages;
 extern void pool_init(size_t bytes);
 extern void pool_new_page(size_t bytes);
 extern void* pool_new(size_t bytes);
+extern void* pool_realloc(void* ptr, size_t bytes);
+extern void pool_free(void* ptr);
 extern void pool_destroy();

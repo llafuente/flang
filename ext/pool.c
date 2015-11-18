@@ -1,4 +1,5 @@
 #include "pool.h"
+#include <math.h>
 
 array* pool_pages = 0;
 size_t pool_page_size = 0;
@@ -18,6 +19,13 @@ void pool_new_page(size_t bytes) {
 }
 
 void* pool_new(size_t bytes) {
+  // everything in the pool is 8 bytes alligned
+  float bt = bytes;
+  bt /= 8;
+  bt = ceil(bt);
+  bt *= 8;
+  bytes = bt;
+
   size_t i = 0;
   for (; i < pool_pages->size; ++i) {
     pool_page_t* p = (pool_page_t*)pool_pages->data[i];
@@ -34,6 +42,12 @@ void* pool_new(size_t bytes) {
 
   pool_new_page(bytes > pool_page_size ? bytes : pool_page_size);
   return pool_new(bytes);
+}
+
+void* pool_realloc(void* ptr, size_t bytes) {
+  return pool_new(bytes);
+}
+void pool_free(void* ptr) {
 }
 
 void pool_destroy() {

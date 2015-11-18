@@ -29,6 +29,8 @@ array* identifiers;
 void flang_init() {
   pool_init(2048);
 
+  st_replace_allocators(pool_new, pool_realloc, pool_free);
+
   identifiers = malloc(sizeof(array));
   array_new(identifiers);
 
@@ -42,4 +44,7 @@ void flang_exit(ast_t* root) {
   array_delete(identifiers);
   free(identifiers);
   identifiers = 0;
+
+  st_memfree();
+  st_replace_allocators(malloc, realloc, free);
 }

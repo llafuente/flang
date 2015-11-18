@@ -43,7 +43,6 @@ int main(int argc, char** argv) {
   }
 
   flang_exit(root);
-  st_cleanup();
 
   return 0;
 }
