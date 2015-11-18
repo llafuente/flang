@@ -47,8 +47,8 @@ int main(int argc, const char* argv[]) {
   TASK_RUN(parser_loops);
 
   TASK_RUN(codegen_expressions);
-  /*
   TASK_RUN(codegen_functions);
+  /*
   TASK_RUN(flang_files);
   */
 

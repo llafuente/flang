@@ -122,7 +122,7 @@ ast_t* ast_search_fn(ast_t* node, string* identifier, size_t* args,
 
 // TODO handle args
 ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
-  array* arr = ast_find_fn_decls(args_call->parent, id);
+  array* arr = ast_search_fns(args_call->parent, id);
   if (!arr) {
     log_verbose("undefined function: '%s' must be a variable", id->value);
     ast_t* decl = ast_search_id_decl(args_call->parent, id);
@@ -185,4 +185,38 @@ ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
   free(arr);
 
   return ret_decl;
+}
+
+ast_action_t ast_search_fns_cb(ast_t* node, ast_t* parent, size_t level,
+                               void* userdata_in, void* userdata_out) {
+
+  if (node->type == FL_AST_DECL_FUNCTION) {
+    string* ast_search_id = (string*)userdata_in;
+    log_verbose("'%s' == '%s'", ast_search_id->value,
+                node->func.id->identifier.string->value);
+    if (st_cmp(ast_search_id, node->func.id->identifier.string) == 0) {
+      log_verbose("function found push  !");
+      array_append((array*)userdata_out, node);
+    }
+    // TODO retrive functions inside functions ?
+    // it's not out of your scope?!
+  }
+
+  return FL_AC_CONTINUE;
+}
+array* ast_search_fns(ast_t* node, string* id) {
+  array* userdata = malloc(sizeof(array));
+  array_new(userdata);
+
+  log_verbose("ast_search_fns %s %p", id->value, node);
+
+  ast_reverse(node, ast_search_fns_cb, 0, 0, (void*)id, (void*)userdata);
+
+  if (userdata->size) {
+    return userdata;
+  }
+
+  array_delete(userdata);
+  free(userdata);
+  return 0;
 }

@@ -265,7 +265,7 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body) {
 }
 
 ast_t* ast_mk_fn_param(ast_t* id, ast_t* type, ast_t* def) {
-  printf("ast_mk_fn_param\n");
+  // printf("ast_mk_fn_param\n");
   ast_t* node = ast_new();
   node->type = FL_AST_PARAMETER;
 

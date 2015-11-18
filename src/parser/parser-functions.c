@@ -27,6 +27,15 @@
 #include "grammar/tokens.h"
 #include "grammar/parser.h"
 
+ast_t* fl_attach_core(ast_t* root) {
+  ast_t* block = root->program.body;
+
+  if (block->type != FL_AST_ERROR) {
+    ast_t* import = ast_mk_import(ast_mk_lit_string("core/core", false));
+    ast_mk_list_insert(block->block.body, import, 0);
+  }
+}
+
 ast_t* fl_parse(string* code) {
   // create program node, so error reporting could be nice!
   ast_t* root = ast_mk_program(0);
@@ -48,6 +57,13 @@ ast_t* fl_parse_utf8(char* str) {
   st_append_char(&code, 0);
 
   return fl_parse(code);
+}
+
+ast_t* fl_parse_main_utf8(char* str) {
+  ast_t* root = fl_parse_utf8(str);
+  fl_attach_core(root);
+
+  return root;
 }
 
 ast_t* fl_parse_file(const char* filename) {
@@ -83,15 +99,10 @@ string* fl_file_to_string(const char* filename) {
 ast_t* fl_parse_main_file(const char* filename) {
   string* code = fl_file_to_string(filename);
 
-  ast_t* import = ast_mk_import(ast_mk_lit_string("core/core", false));
-
   ast_t* root = fl_parse(code);
 
   assert(root->type == FL_AST_PROGRAM);
-  ast_t* block = root->program.body;
-  if (block->type != FL_AST_ERROR) {
-    ast_mk_list_insert(block->block.body, import, 0);
-  }
+  fl_attach_core(root);
 
   return root;
 }

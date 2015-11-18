@@ -26,7 +26,13 @@
 #include "flang.h"
 
 array* identifiers;
+extern int yycolumn;
+extern int yylineno;
 void flang_init() {
+  // reset flex/bison
+  yycolumn = 1;
+  yylineno = 1;
+
   pool_init(2048);
 
   st_replace_allocators(pool_new, pool_realloc, pool_free);

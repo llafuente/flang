@@ -35,7 +35,7 @@ ast_action_t load_imports(ast_t* node, ast_t* parent, size_t level,
     strcat(filepath, node->import.path->string.value->value);
     strcat(filepath, ".fl");
 
-    printf("load module %s\n", filepath);
+    // printf("load module %s\n", filepath);
 
     ast_t* module = fl_parse_file(filepath);
     if (ast_print_error(module)) {

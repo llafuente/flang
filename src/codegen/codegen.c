@@ -256,6 +256,13 @@ LLVMValueRef cg_lit_integer(FL_CODEGEN_HEADER) {
 
   LLVMTypeRef tref = cg_get_typeid(ty, context);
 
+  // TODO happens on cast, this should be promoted to AST_LIT_DECIMAL?
+  if (t.number.fp) {
+    return LLVMConstReal(tref, node->integer.signed_value
+                                   ? node->integer.signed_value
+                                   : node->integer.unsigned_value);
+  }
+
   if (t.number.sign) {
     return LLVMConstInt(tref, node->integer.signed_value, t.number.sign);
   }

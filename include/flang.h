@@ -191,6 +191,7 @@ FL_EXTERN void ts_cast_expr_member(ast_t* node);
 
 FL_EXTERN ast_t* fl_parse(string* code);
 FL_EXTERN ast_t* fl_parse_utf8(char* str);
+FL_EXTERN ast_t* fl_parse_main_utf8(char* str);
 FL_EXTERN ast_t* fl_parse_file(const char* filename);
 FL_EXTERN string* fl_file_to_string(const char* filename);
 FL_EXTERN ast_t* fl_parse_main_file(const char* filename);
@@ -220,7 +221,7 @@ FL_EXTERN size_t ast_ret_type(ast_t* node);
 
 FL_EXTERN ast_t* ast_find_fn_decl(ast_t* identifier);
 
-FL_EXTERN array* ast_find_fn_decls(ast_t* node, string* id);
+FL_EXTERN array* ast_search_fns(ast_t* node, string* id);
 
 /* cldoc:end-category() */
 

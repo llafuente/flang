@@ -51,7 +51,7 @@ ident [a-zA-Z\x80-\xff_][a-zA-Z0-9\x80-\xff_]*
 <suffix>(.|\n)  { yyless(0); BEGIN(INITIAL); }
 
 [ \t\r]             { }
-\n                  { yycolumn = 1; }
+\n                  { RESET_COLUMN; }
 
 \xef\xbb\xbf {
   // UTF-8 byte order mark (BOM), ignore if in line 1, error otherwise

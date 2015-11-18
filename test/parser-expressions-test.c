@@ -225,5 +225,18 @@ TASK_IMPL(parser_expressions) {
                               FL_AST_LIT_INTEGER,
                           "right.left FL_AST_LIT_INTEGER");
                  });
+
+  TEST_PARSER_OK("expressions 04", "1+2+3;", {
+    ast_t* expr = body[0];
+
+    ASSERT(expr->type == FL_AST_EXPR_BINOP, "root is binop");
+
+    ast_t* expr_l = body[0]->binop.left;
+    ast_t* expr_r = body[0]->binop.right;
+
+    ASSERT(expr_l->type == FL_AST_EXPR_BINOP, "left is binop");
+    ASSERT(expr_r->type == FL_AST_LIT_INTEGER, "left id literal");
+  });
+
   return 0;
 }

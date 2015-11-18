@@ -110,6 +110,7 @@ LLVMTypeRef cg_get_typeid(size_t id, LLVMContextRef context) {
 
     t->codegen = LLVMFunctionType(cg_get_typeid(t->func.ret, context), params,
                                   t->func.nparams, t->func.varargs);
+    break;
   }
   default: {
     ty_dump(id);

@@ -76,7 +76,7 @@
    calling an (NIdentifier*). It makes the compiler happy.
  */
 %type <node> program stmts
-%type <node> stmt var_decl  expression maybe_expression maybe_expression_list expression_list comment
+%type <node> stmt var_decl  expression expression_lit maybe_expression maybe_expression_list expression_list comment
 %type <node> struct_decl struct_decl_fields struct_decl_fields_list struct_decl_field
 %type <node> block maybe_stmts nonblock_prefix_expression
 /* TODO this should be a stmt ? */
@@ -289,7 +289,7 @@ fn_decl
   ;
 
 fn_parameters
-  : %empty                          { $$ = ast_mk_list(); ast_position($$, @1, @1); }
+  : %empty                          { $$ = ast_mk_list(); ast_position($$, @0, @0); }
   | '(' ')'                         { $$ = ast_mk_list(); ast_position($$, @1, @2); }
   | '(' fn_parameter_list ')'                  { $$ = $2; }
   | '(' fn_parameter_list ',' ')'              { $$ = $2; }
@@ -362,13 +362,14 @@ multiplication_operators
   | '%'          { $$ = '%'; }
   ;
 
-expression
+expression_lit
   : literal {
     $$ = $1;
     ast_position($$, @1, @1);
   }
   | '@' block {
     // TODO short function decl
+    // TODO move. this prio?
     fl_fatal_error("%s", "not implemented");
   }
   | expression '.' ident {
@@ -385,10 +386,15 @@ expression
     ast_position($$, @1, @4);
   }
   | expression '(' maybe_expression_list ')' {
+    // TODO this cannot be assignament lhs, right ?
     $$ = ast_mk_call_expr($1, $3);
     ast_position($$, @1, @4);
   }
   | '(' maybe_expression ')'                            { $$ = $2; }
+  ;
+
+expression
+  : expression_lit
   /*
   | '[' vec_expr ']'                                    { $$ = mk_node("ExprVec", 1, $2); }
   */
@@ -416,7 +422,7 @@ expression
     $$ = ast_mk_break($2);
     ast_position($$, @1, @2);
   }
-  | %prec ASSIGNAMENT expression assignament_operator expression                     {
+  | %prec ASSIGNAMENT expression_lit assignament_operator expression                     {
     $$ = ast_mk_assignament($1, $2, $3);
     ast_position($$, @1, @3);
   }
@@ -484,7 +490,7 @@ maybe_expression
   ;
 
 maybe_expression_list
-  : %empty                          { $$ = 0; }
+  : %empty                          { $$ = ast_mk_list(); }
   | expression_list
   ;
 

@@ -83,7 +83,7 @@
   {                                                                            \
     fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
     flang_init();                                                              \
-    ast_t* root = fl_parse_utf8(code);                                         \
+    ast_t* root = fl_parse_main_utf8(code);                                    \
     CHK_BODY(root);                                                            \
     root = typesystem(root);                                                   \
     ast_dump(root);                                                            \

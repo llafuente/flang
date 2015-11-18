@@ -136,40 +136,6 @@ ast_t* ast_find_fn_decl(ast_t* identifier) {
   return *ret;
 }
 
-ast_action_t ast_find_fn_decls_cb(ast_t* node, ast_t* parent, size_t level,
-                                  void* userdata_in, void* userdata_out) {
-
-  if (node->type == FL_AST_DECL_FUNCTION) {
-    string* ast_search_id = (string*)userdata_in;
-    log_verbose("'%s' == '%s'", ast_search_id->value,
-                node->func.id->identifier.string->value);
-    if (st_cmp(ast_search_id, node->func.id->identifier.string) == 0) {
-      log_verbose("function found push  !");
-      array_append((array*)userdata_out, node);
-    }
-    // TODO retrive functions inside functions ?
-    // it's not out of your scope?!
-  }
-
-  return FL_AC_CONTINUE;
-}
-array* ast_find_fn_decls(ast_t* node, string* id) {
-  array* userdata = malloc(sizeof(array));
-  array_new(userdata);
-
-  log_verbose("ast_find_fn_decls %s %p", id->value, node);
-
-  ast_reverse(node, ast_find_fn_decls_cb, 0, 0, (void*)id, (void*)userdata);
-
-  if (userdata->size) {
-    return userdata;
-  }
-
-  array_delete(userdata);
-  free(userdata);
-  return 0;
-}
-
 FL_EXTERN size_t ast_get_struct_prop_idx(ast_t* decl, string* id) {
   size_t i;
   ast_t* list = decl->structure.fields;
