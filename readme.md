@@ -6,6 +6,13 @@ take a look if you want but it not useable yet.
 
 ## Usage
 
+requisites (at least)
+* bison (GNU bison) 3.0.4
+* flex 2.5.37
+* autoconf (GNU Autoconf) 2.69
+* Clang 3.6.2
+
+
 ```bash
 sh gen-grammar.sh
 sh autogen.sh
