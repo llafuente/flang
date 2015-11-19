@@ -86,7 +86,7 @@ size_t get_type(ast_t* node) {
 
   if (strcmp(tcstr, "vector") == 0) {
     assert(node->ty.child != 0);
-    printf("TYPE = %u\n", node->ty.child->type);
+
     size_t t = get_type(node->ty.child);
     return node->ty_id = ty_create_wrapped(FL_VECTOR, t);
   }
@@ -139,6 +139,9 @@ ast_action_t register_types(ast_t* node, ast_t* parent, size_t level,
     case FL_AST_DECL_STRUCT_FIELD:
       p->ty_id = node->ty_id;
       p->field.id->ty_id = node->ty_id;
+      break;
+    case FL_AST_CAST:
+      p->ty_id = node->ty_id;
       break;
     default: {
       ast_dump(p);

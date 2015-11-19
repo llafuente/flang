@@ -117,6 +117,7 @@ struct ast {
       string* path;
       // code as string
       string* code;
+      char* file;
       // all types found in the code
       ty_t* types;
       size_t ntypes;

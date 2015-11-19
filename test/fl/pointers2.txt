@@ -1,2 +1,2 @@
-ptr<i8>
-ptr<ptr<i8>>
+ptr(i8)
+ptr(ptr(i8))

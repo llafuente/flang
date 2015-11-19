@@ -26,31 +26,6 @@
 #include "flang.h"
 #include "tasks.h"
 
-string* file_to_string(char* filename) {
-  FILE* f = fopen(filename, "r");
-  if (!f) {
-    fprintf(stderr, "file cannot be opened: %s\n", filename);
-    exit(3);
-  }
-
-  fseek(f, 0, SEEK_END);
-  size_t lSize = ftell(f);
-  rewind(f);
-
-  string* file = st_new(lSize, st_enc_utf8);
-  // copy the file into the buffer:
-  size_t result = fread(file->value, 1, lSize, f);
-  if (result != lSize) {
-    fprintf(stderr, "Reading error\n");
-    exit(3);
-  }
-
-  file->used = result;
-  file->length = st_utf8_length(file->value, 0);
-  st__zeronull(file->value, result, st_enc_utf8);
-
-  return file;
-}
 // _popen and _pclose for Windows.
 // 2>&1
 string* execute(char* cmd) {
@@ -111,7 +86,7 @@ TASK_IMPL(flang_files) {
     }
 
     // if (i == 14) {
-    //  log_debug_level = 10;
+    log_debug_level = 10;
     //}
 
     fl_file[0] = '\0';
@@ -127,29 +102,33 @@ TASK_IMPL(flang_files) {
     strcat(ir_file, files[i]);
     strcat(ir_file, ".ir");
 
-    ts_init();
+    flang_init();
     root = fl_parse_main_file(fl_file);
 
     if (ast_print_error(root)) {
-      exit(1);
+      exit(3);
+    }
+
+    root = typesystem(root);
+    if (ast_print_error(root)) {
+      exit(4);
     }
 
     // ty_dump_table();
 
     module = fl_codegen(root, "test");
 
-    ts_exit();
-
     fl_to_bitcode(module, bc_file);
     fl_to_ir(module, ir_file);
 
-    ast_delete(root);
+    flang_exit(root);
+
     cmd[0] = '\0';
     strcat(cmd, "lli -load libstringc.so ");
     strcat(cmd, ir_file);
     strcat(cmd, " 2>&1");
     string* output = execute(cmd);
-    string* output_cmp = file_to_string(txt_file);
+    string* output_cmp = fl_file_to_string(txt_file);
 
     // printf("output-cmd \n--\n%s\n--\n", output_cmp->value);
 

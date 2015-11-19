@@ -189,7 +189,7 @@ FL_EXTERN void ts_cast_expr_member(ast_t* node);
 
 /* cldoc:begin-category(parser/parser-functions.c) */
 
-FL_EXTERN ast_t* fl_parse(string* code);
+FL_EXTERN ast_t* fl_parse(string* code, const char* file);
 FL_EXTERN ast_t* fl_parse_utf8(char* str);
 FL_EXTERN ast_t* fl_parse_main_utf8(char* str);
 FL_EXTERN ast_t* fl_parse_file(const char* filename);

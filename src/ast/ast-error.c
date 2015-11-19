@@ -31,12 +31,12 @@ ast_t* ast_err_node = 0;
 
 void ast_print_error_lines(const string* line, st_len_t pos,
                            const string* code) {
-  if (pos >= MAX(0, ast_err_node->first_line - 2) &&
+  if (pos >= MAX(0, ast_err_node->first_line - 3) &&
       pos <= ast_err_node->last_line + 2) {
-    fprintf(stderr, "%6d | %s\n", pos, line->value);
+    fprintf(stderr, "%6d | %s\n", pos + 1, line->value);
     if (pos == ast_err_node->first_line - 1) {
       fprintf(stderr, "%*s\x1B[32m^--%s\x1B[39m\n",
-              (int)(7 + ast_err_node->first_column), " ",
+              (int)(9 + ast_err_node->first_column), " ",
               ast_err_node->err.message->value);
     }
   }
@@ -47,9 +47,10 @@ bool ast_print_error(ast_t* node) {
   ast_t* err = node->program.body;
 
   if (err->type == FL_AST_ERROR) {
-    fprintf(stderr, "Parse error: %s\n", err->err.message->value);
-    fprintf(stderr, "On line: %d:%d - %d:%d\n\n", err->first_line,
-            err->first_column, err->last_line, err->last_column);
+    fprintf(stderr, "\n\n\x1B[31mError: %s\x1B[39m\n", err->err.message->value);
+    fprintf(stderr, "File & Line: %s:%d:%d @ %d:%d\n", node->program.file,
+            err->first_line, err->first_column, err->last_line,
+            err->last_column);
 
     ast_err_node = err;
 

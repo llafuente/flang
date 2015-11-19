@@ -1,4 +1,4 @@
-var ptr<i8> list;
+var ptr(i8) list;
 var i64 i;
 
 list = "blablabla";

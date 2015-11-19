@@ -56,7 +56,7 @@ as_parameter(abc_param);
 printf("return %d%d%d\n", abc_param.a, abc_param.b, abc_param.c); //101112
 
 
-function as_pointer(ptr<abc> abc_i) {
+function as_pointer(ptr(abc) abc_i) {
 
   printf("as_pointer\n");
 
@@ -78,7 +78,7 @@ function as_pointer(ptr<abc> abc_i) {
   return 0;
 }
 
-var ptr<abc> abc_ptr_param;
+var ptr(abc) abc_ptr_param;
 abc_ptr_param = malloc(50);
 as_pointer(abc_ptr_param);
 free(abc_ptr_param);

@@ -31,6 +31,11 @@
 TASK_IMPL(parser_expressions) {
   log_debug_level = 0;
 
+  TEST_PARSER_OK("fix missing operator ", "1 <= 2;", {
+    ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+    ASSERT(body[0]->binop.operator== TK_LE, "operator TK_LE");
+  });
+
   TEST_PARSER_OK("fix left recursion", "1 + 2 + 3 + 4;", {
     ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
     ASSERT(body[0]->binop.left->type == FL_AST_EXPR_BINOP,

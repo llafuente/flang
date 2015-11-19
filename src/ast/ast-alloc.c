@@ -75,6 +75,9 @@ void ast_delete_props(ast_t* ast) {
     // TODO remove! tk_tokens_delete(ast->program.tokens);
     SAFE_DEL_STR(ast->program.code);
     SAFE_DEL_STR(ast->program.path);
+    if (ast->program.file) {
+      free(ast->program.file);
+    }
   } break;
   case FL_AST_BLOCK: {
     SAFE_DEL(ast->block.body);

@@ -279,8 +279,6 @@ fn_decl
   }
   | TK_FN ident fn_parameters block {
     $$ = ast_mk_fn_decl($2, $3, 0, $4);
-    printf("WTF!!0 = %p\n", $$);
-    printf("WTF!!3 = %p\n", $3);
     if ($3->parent == 1) {
       $$->func.varargs = true;
     }
@@ -328,28 +326,28 @@ fn_parameter
 
 assignament_operator
   : '='          { $$ = '='; }
-  | TK_SHLEQ     { $$ = $1; }
-  | TK_SHREQ     { $$ = $1; }
-  | TK_MINUSEQ   { $$ = $1; }
-  | TK_ANDEQ     { $$ = $1; }
-  | TK_OREQ      { $$ = $1; }
-  | TK_PLUSEQ    { $$ = $1; }
-  | TK_STAREQ    { $$ = $1; }
-  | TK_SLASHEQ   { $$ = $1; }
-  | TK_CARETEQ   { $$ = $1; }
-  | TK_PERCENTEQ { $$ = $1; }
+  | TK_SHLEQ     { $$ = TK_SHLEQ; }
+  | TK_SHREQ     { $$ = TK_SHREQ; }
+  | TK_MINUSEQ   { $$ = TK_MINUSEQ; }
+  | TK_ANDEQ     { $$ = TK_ANDEQ; }
+  | TK_OREQ      { $$ = TK_OREQ; }
+  | TK_PLUSEQ    { $$ = TK_PLUSEQ; }
+  | TK_STAREQ    { $$ = TK_STAREQ; }
+  | TK_SLASHEQ   { $$ = TK_SLASHEQ; }
+  | TK_CARETEQ   { $$ = TK_CARETEQ; }
+  | TK_PERCENTEQ { $$ = TK_PERCENTEQ; }
   ;
 
 equality_operator
-  : TK_EQEQ      { $$ = $1; }
-  | TK_NE        { $$ = $1; }
+  : TK_EQEQ      { $$ = TK_EQEQ; }
+  | TK_NE        { $$ = TK_NE; }
   ;
 
 comparison_operator
   : '<'          { $$ = '<'; }
   | '>'          { $$ = '>'; }
-  | TK_LE        { $$ = $1; }
-  | TK_GE        { $$ = $1; }
+  | TK_LE        { $$ = TK_LE; }
+  | TK_GE        { $$ = TK_GE; }
 
 additive_operators
   : '+'          { $$ = '+'; }
@@ -383,6 +381,11 @@ expression_lit
   | expression '[' expression ']' {
     /* TODO maybe_expr? */
     $$ = ast_mk_member($1, $3, true);
+    ast_position($$, @1, @4);
+  }
+  | expression '[' lit_integer ']' {
+    /* TODO maybe_expr? */
+    $$ = ast_mk_member($1, $3, false);
     ast_position($$, @1, @4);
   }
   | expression '(' maybe_expression_list ')' {
@@ -451,6 +454,7 @@ expression
     ast_position($$, @1, @3);
   }
   | %prec COMPARISON expression comparison_operator expression {
+  printf("operator!! %u\n", $2);
     $$ = ast_mk_binop($1, $2, $3);
     ast_position($$, @1, @3);
   }

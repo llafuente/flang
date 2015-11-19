@@ -20,7 +20,7 @@ while i < 10 {
 }
 printf("\n");
 
-i = 5
+i = 5;
 while i <= 10 {
   printf("%d-", i);
   i = i + 2;
@@ -35,7 +35,7 @@ do {
 
 
 printf("\n");
-i = 5
+i = 5;
 do {
   printf("%d-", i);
   i = i + 2;

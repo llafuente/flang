@@ -144,6 +144,8 @@ LLVMValueRef cg_ast(FL_CODEGEN_HEADER) {
     return cg_expr_call(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_INTEGER:
     return cg_lit_integer(FL_CODEGEN_HEADER_SEND);
+  case FL_AST_LIT_FLOAT:
+    return cg_lit_float(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_BOOLEAN:
     return cg_lit_boolean(FL_CODEGEN_HEADER_SEND);
   case FL_AST_LIT_STRING:
@@ -242,6 +244,7 @@ LLVMValueRef cg_cast(FL_CODEGEN_HEADER) {
 
 LLVMValueRef cg_lit_float(FL_CODEGEN_HEADER) {
   log_debug("float T(%zu)", node->ty_id);
+
   LLVMTypeRef tref = cg_get_typeid(node->ty_id, context);
   return LLVMConstReal(tref, node->decimal.value);
 }
@@ -316,10 +319,9 @@ LLVMValueRef cg_binop(FL_CODEGEN_HEADER) {
   ast_t* r = node->binop.right;
 
   // retrieve left/right side
-  ast_dump(l);
+  ast_dump(node);
   LLVMValueRef lhs = cg_ast_loaded("load_lhs", l, FL_CODEGEN_PASSTHROUGH);
 
-  ast_dump(r);
   LLVMValueRef rhs = cg_ast_loaded("load_rhs", r, FL_CODEGEN_PASSTHROUGH);
 
   log_verbose("using binop %d", node->binop.operator);
@@ -347,6 +349,7 @@ LLVMValueRef cg_binop(FL_CODEGEN_HEADER) {
   }
 
   bool use_fp = ty_is_fp(node->ty_id);
+  log_verbose("is fp? %d", use_fp);
   // Create different IR code depending on the operator.
   switch (node->binop.operator) {
   case TK_EQEQ: { // ==
@@ -444,7 +447,9 @@ LLVMValueRef cg_dtor_var(FL_CODEGEN_HEADER) {
 }
 // TODO parent rewrite!
 LLVMValueRef cg_function(FL_CODEGEN_HEADER) {
-  log_debug("cg_function %s", node->func.uid->value);
+  log_debug("cg_function %s", node->func.uid
+                                  ? node->func.uid->value
+                                  : node->func.id->identifier.string->value);
 
   if (!node->func.ret_type) {
     log_error("function has no return type");
@@ -467,7 +472,7 @@ LLVMValueRef cg_function(FL_CODEGEN_HEADER) {
       param_types[i++] = cg_get_typeid(tmp->param.id->ty_id, context);
     }
   }
-
+  ast_dump(node);
   LLVMTypeRef ret_type =
       LLVMFunctionType(cg_get_type(node->func.ret_type, context), param_types,
                        params->list.count, node->func.varargs);
@@ -788,6 +793,7 @@ LLVMValueRef cg_right_identifier(FL_CODEGEN_HEADER) {
   ast_t* decl = node->identifier.decl;
 
   if (!decl) {
+    ast_dump(node->parent);
     log_error("identifier not found: '%s'", node->identifier.string->value);
   }
 

@@ -167,25 +167,25 @@ ast_t* ast_mk_lit_integer(char* text) {
   ast_t* node = ast_new();
   node->type = FL_AST_LIT_INTEGER;
 
-  char* end = text + strlen(text);
+  char* end;
   long long val = strtol(text, &end, 10);
 
-  log_verbose("read [%lld] [%d == %d]", val, errno, ERANGE);
-
-  if (errno == ERANGE ||
-      (errno == ERANGE && (val == LONG_MAX || val == LONG_MIN)) ||
-      (errno != 0 && val == 0)) {
-    log_verbose("ERANGE: try to read long unsigned int");
+  log_silly("read [%lld] [%d == %d]", val, errno, ERANGE);
+  if (*end == '\0') {
+    // conversion OK!
+    node->integer.signed_value = val;
+    node->ty_id = TS_I64;
+  } else if (errno == ERANGE ||
+             (errno == ERANGE && (val == LONG_MAX || val == LONG_MIN)) ||
+             (errno != 0 && val == 0)) {
+    log_silly("ERANGE: try to read long unsigned int");
     node->integer.unsigned_value = strtoul(text, &end, 10);
     if (errno == ERANGE) {
-      log_verbose("ERANGE: double");
       // TODO ??
+      log_error("ERANGE: double");
     } else {
       node->ty_id = TS_U64;
     }
-  } else {
-    node->integer.signed_value = val;
-    node->ty_id = TS_I64;
   }
 
   return node;
@@ -418,7 +418,7 @@ ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression) {
   ast_t* node = ast_new();
   node->type = FL_AST_EXPR_MEMBER;
 
-  if (property->type == FL_AST_LIT_IDENTIFIER) {
+  if (property->type == FL_AST_LIT_IDENTIFIER && !expression) {
     property->identifier.resolve = false;
   }
 

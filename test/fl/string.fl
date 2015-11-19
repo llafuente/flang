@@ -1,24 +1,24 @@
-ffi fn st_newc(ptr<i8> src, i32 enc) : ptr<string>;
-ffi fn st_debug(ptr<string> str);
+ffi fn st_newc(ptr(i8) src, i32 enc) : ptr(string);
+ffi fn st_debug(ptr(string) str) : void;
 /* FIXME: tokenizerbug */
-/* ffi fn st_delete(ptr<ptr<string>> str); */
+/* ffi fn st_delete(ptr(ptr(string) str); */
 
-var ptr<string> s;
+var ptr(string) s;
 
 s = st_newc("hi!", 0);
 printf("string = '%s'\n", s[0].value);
 
-var ptr<i8> z = s[0].value;
+var ptr(i8) z = s[0].value;
 printf("string as ptr = '%s'\n", s[0].value);
 // st_delete(&s);
 /*
 
-fn autocast(ptr<string> str) : ptr<i8> {
-  var ptr<i8> x = str[0].value;
+fn autocast(ptr(string) str) : ptr(i8) {
+  var ptr(i8) x = str[0].value;
   //return str.value;
   return x;
 }
 
 printf("string as autocast = '%s'\n", autocast(s));
-printf("string as cast forced = '%s'\n", cast(ptr<i8>) s);
+printf("string as cast forced = '%s'\n", cast(ptr(i8)) s);
 */

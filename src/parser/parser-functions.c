@@ -36,10 +36,11 @@ ast_t* fl_attach_core(ast_t* root) {
   }
 }
 
-ast_t* fl_parse(string* code) {
+ast_t* fl_parse(string* code, const char* file) {
   // create program node, so error reporting could be nice!
   ast_t* root = ast_mk_program(0);
   root->program.code = code;
+  root->program.file = file ? strdup(file) : 0;
 
   YY_BUFFER_STATE buf = yy_scan_string(code->value);
   yyparse(&root);
@@ -56,7 +57,7 @@ ast_t* fl_parse_utf8(char* str) {
   st_copyc(&code, str, st_enc_utf8);
   st_append_char(&code, 0);
 
-  return fl_parse(code);
+  return fl_parse(code, 0);
 }
 
 ast_t* fl_parse_main_utf8(char* str) {
@@ -68,7 +69,7 @@ ast_t* fl_parse_main_utf8(char* str) {
 
 ast_t* fl_parse_file(const char* filename) {
   string* code = fl_file_to_string(filename);
-  return fl_parse(code);
+  return fl_parse(code, filename);
 }
 
 string* fl_file_to_string(const char* filename) {
@@ -88,10 +89,12 @@ string* fl_file_to_string(const char* filename) {
     fl_fatal_error(stderr, "Reading error\n");
   }
 
+  // double null needed by flex/bison
+  code->value[lSize] = '\0';
+  code->value[lSize + 1] = '\0';
+
   code->used = result;
   code->length = st_utf8_length(code->value, 0);
-  st__zeronull(code->value, result, st_enc_utf8);
-  st_append_char(&code, 0); // \0\0 EOF
 
   return code;
 }
@@ -99,7 +102,7 @@ string* fl_file_to_string(const char* filename) {
 ast_t* fl_parse_main_file(const char* filename) {
   string* code = fl_file_to_string(filename);
 
-  ast_t* root = fl_parse(code);
+  ast_t* root = fl_parse(code, filename);
 
   assert(root->type == FL_AST_PROGRAM);
   fl_attach_core(root);

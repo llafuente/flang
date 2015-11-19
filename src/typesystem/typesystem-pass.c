@@ -42,9 +42,6 @@ ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
       if (node->parent->type != FL_AST_EXPR_CALL &&
           node->parent->type != FL_AST_EXPR_MEMBER) {
         // it's a var, copy type
-        log_debug("\n\n");
-        ast_dump(node);
-        ast_dump(node->identifier.decl);
         node->ty_id = ast_get_typeid(node->identifier.decl);
       }
     }
