@@ -54,7 +54,6 @@ ast_action_t load_imports(ast_t* node, ast_t* parent, size_t level,
 
 // return error
 ast_t* psr_load_imports(ast_t* node) {
-  ast_dump(node);
   ast_parent(node);
   size_t imported;
   do {

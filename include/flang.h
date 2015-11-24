@@ -268,7 +268,9 @@ FL_EXTERN bool ast_require_load(ast_t* node);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(ast/ast-error.c) */
+extern char* ast_err_buff;
 FL_EXTERN bool ast_print_error(ast_t* node);
+FL_EXTERN void ast_raise_error(ast_t* node, char* message);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(typesystem/typesystem-inference.c) */

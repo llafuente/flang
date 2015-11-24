@@ -79,10 +79,9 @@ TASK_IMPL(parser_types) {
     test_parser_type(body[0], TEST_TYPEID);
     test_parser_type(body[1], TEST_TYPEID);
   });
-  TEST_PARSER_OK("inference 01", "var x; x = 10;", {
-    ast_dump(root);
-    test_parser_type(body[0], TS_I64);
-  });
+
+  TEST_PARSER_OK("inference 01", "var x; x = 10;",
+                 { test_parser_type(body[0], TS_I64); });
 
   TEST_PARSER_ERROR("empty struct", "struct test {}",
                     "syntax error, empty struct declaration",
@@ -92,6 +91,17 @@ TASK_IMPL(parser_types) {
                                   "i8 t1"
                                   "}",
                  { ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid"); });
+
+  TEST_PARSER_OK(
+      "simple struct", "struct stt {"
+                       "i8 b"
+                       "}; struct stt2 {"
+                       "i8 b"
+                       "};",
+      {
+        ASSERT(body[0]->type == FL_AST_DECL_STRUCT, "FL_AST_DECL_STRUCT");
+        ASSERT(body[1]->type == FL_AST_DECL_STRUCT, "FL_AST_DECL_STRUCT");
+      });
 
   TEST_PARSER_OK("complex struct", "struct test {"
                                    "i8 t1,"

@@ -177,9 +177,8 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
   ty_dump(expected);
   printf("\n");
 
-  ast_dump(node->parent);
+  ast_raise_error(node, "invalid casting");
 
-  log_error("invalid casting");
   return 0;
 }
 
@@ -417,8 +416,6 @@ void ts_cast_binop(ast_t* node) {
       log_verbose("bigger! %zu", node->ty_id);
       ts_create_binop_cast(node);
 
-      log_verbose("*************");
-      ast_dump(node);
     } else if (l_static) {
       node->ty_id = r_type;
       ts_create_left_cast(node, l);
@@ -445,8 +442,6 @@ void ts_cast_expr_member(ast_t* node) {
   } else {
     ts_pass(l);
   }
-  log_verbose("*************");
-  ast_dump(node);
 
   log_debug("l->ty_id = %zu", l->ty_id);
 
@@ -467,13 +462,9 @@ void ts_cast_expr_member(ast_t* node) {
     node->ty_id = type->vector.to;
   } break;
   default: {
-    ast_dump(l);
-    ty_dump(l->ty_id);
-    log_error("invalid member access type");
-  }
-  }
+    ast_dump(node);
 
-  log_verbose("xxxxxxxxxxxxxxxxxxxxx");
-  ast_dump(node);
-  log_verbose("xxxxxxxxxxxxxxxxxxxxx");
+    ast_raise_error(0, "invalid member access type");
+  }
+  }
 }

@@ -197,7 +197,6 @@ size_t ty_create_struct(ast_t* decl) {
 }
 
 size_t ty_create_fn(ast_t* decl) {
-  ast_dump(decl);
   string* id = decl->func.id->identifier.string;
   string* uid;
 

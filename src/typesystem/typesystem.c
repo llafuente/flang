@@ -60,7 +60,7 @@ size_t ts_var_typeid(ast_t* id) {
   log_verbose("%s", id->identifier.string->value);
 
   ast_t* decl = ast_search_id_decl(id, id->identifier.string);
-  ast_dump(decl);
+
   if (!decl) {
     log_error("(ts) cannot find var declaration %s",
               id->identifier.string->value);

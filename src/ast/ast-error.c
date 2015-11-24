@@ -26,6 +26,7 @@
 #include "flang.h"
 
 ast_t* ast_err_node = 0;
+char* ast_err_buff = 0;
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
@@ -62,4 +63,32 @@ bool ast_print_error(ast_t* node) {
   }
 
   return false;
+}
+
+void ast_raise_error(ast_t* node, char* message) {
+  fprintf(stderr, "\n\n\x1B[31mError: %s\x1B[39m\n", message);
+
+  if (!node) {
+    __sanitizer_print_stack_trace();
+    exit(6);
+    return;
+  }
+  ast_t* root = node;
+  while (root->type != FL_AST_PROGRAM) {
+    root = root->parent;
+  }
+
+  ast_dump(node); // even node parent or root?!
+
+  fprintf(stderr, "File & Line: %s:%d:%d @ %d:%d\n", root->program.file,
+          node->first_line, node->first_column, node->last_line,
+          node->last_column);
+
+  ast_err_node = node;
+
+  // TODO add context do not use global var
+  st_line_iterator(node->program.code, ast_print_error_lines);
+
+  __sanitizer_print_stack_trace();
+  exit(6);
 }

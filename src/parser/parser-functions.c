@@ -114,13 +114,9 @@ ast_t* typesystem(ast_t* root) {
   psr_load_imports(root);
 
   ts_register_types(root);
-  /*
-  ty_dump_table();
-  ast_dump(root);
-  */
+
   // do inference
   root = ts_pass(root);
-  ast_dump(root);
 
   return root;
 }

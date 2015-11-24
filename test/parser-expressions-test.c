@@ -77,8 +77,6 @@ TASK_IMPL(parser_expressions) {
     ASSERT(body[0]->binop.left->binop.right->type == FL_AST_LIT_INTEGER,
            "FL_AST_LIT_INTEGER");
 
-    ast_dump(root);
-
     ASSERT(body[0]->binop.operator== '+', "'+'");
     ASSERT(body[0]->binop.right->type == FL_AST_LIT_INTEGER,
            "FL_AST_LIT_INTEGER");

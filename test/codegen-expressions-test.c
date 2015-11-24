@@ -46,5 +46,12 @@ TASK_IMPL(codegen_expressions) {
   TEST_CODEGEN_OK("type infer 04",
                   "fn a(i8 b) : i8 { var x = b; return x; } var x; a(x);", {});
 
+  TEST_CODEGEN_OK("type infer 05", "struct stt {i8 b,};"
+                                   "fn func(i8 b) : i8 { return b; }"
+                                   "var stt ins;"
+                                   "ins.b = 1;"
+                                   "func(ins.b);",
+                  {});
+
   return 0;
 }
