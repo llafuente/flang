@@ -111,6 +111,8 @@ ast_t* fl_parse_main_file(const char* filename) {
 }
 
 ast_t* typesystem(ast_t* root) {
+  ast_parent(root);
+
   psr_load_imports(root);
 
   ts_register_types(root);

@@ -45,7 +45,7 @@ LLVM_LINK_FLAGS=`llvm-config --cxxflags --ldflags --system-libs --libs`
 
 
 bin_PROGRAMS = flang
-flang_SOURCES = src/main-bison.c
+flang_SOURCES = src/main.c
 flang_SOURCES += $(COMPILER_SOURCES)
 
 flang_CFLAGS = $(LLVM_CC_FLAGS)

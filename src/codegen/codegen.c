@@ -838,8 +838,7 @@ LLVMValueRef cg_left_member(FL_CODEGEN_HEADER) {
       index[0] = cg_ast_loaded("left_expr_loaded", node->member.property,
                                FL_CODEGEN_PASSTHROUGH);
     } else {
-      index[0] = cg_ast(node->member.property,
-                               FL_CODEGEN_PASSTHROUGH);
+      index[0] = cg_ast(node->member.property, FL_CODEGEN_PASSTHROUGH);
     }
 
     return LLVMBuildGEP(builder, left, index, 1, "ptr");

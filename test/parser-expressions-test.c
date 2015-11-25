@@ -31,6 +31,15 @@
 TASK_IMPL(parser_expressions) {
   log_debug_level = 0;
 
+  TEST_PARSER_OK("parent till root works", "1 + 2;", {
+    ASSERT(body[0]->parent != 0, "has parent");
+    ASSERT(body[0]->parent == root->program.body->block.body, "is parent");
+    ASSERT(body[0]->parent->parent != 0, "has parent");
+    ASSERT(body[0]->parent->parent == root->program.body, "is parent");
+    ASSERT(body[0]->parent->parent->parent != 0, "has parent");
+    ASSERT(body[0]->parent->parent->parent == root, "is parent");
+  });
+
   TEST_PARSER_OK("fix missing operator ", "1 <= 2;", {
     ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
     ASSERT(body[0]->binop.operator== TK_LE, "operator TK_LE");

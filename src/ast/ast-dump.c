@@ -34,7 +34,7 @@ void ast_dump_one(ast_t* node) {
 
   switch (node->type) {
   case FL_AST_PROGRAM:
-    printf("program");
+    printf("program [path='%s']", node->program.file);
     // too much??
     // printf("\n%s\n", node->program.code->value);
     break;
@@ -42,7 +42,7 @@ void ast_dump_one(ast_t* node) {
     printf("import [path='%s']", node->import.path->string.value->value);
     break;
   case FL_AST_MODULE:
-    printf("module [path='%s']", node->program.path->value);
+    printf("module [path='%s']", node->program.file);
     break;
   case FL_AST_BLOCK:
     printf("block");

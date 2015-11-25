@@ -138,24 +138,14 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
   if (autocast) {
     log_verbose("cast to expr-call");
 
-    ast_t* arguments = ast_new();
-    arguments->type = FL_AST_LIST;
-    arguments->list.count = 1;
-    arguments->list.elements = calloc(2, sizeof(ast_t*));
-    arguments->list.elements[0] = node->cast.element;
+    ast_t* arguments = ast_mk_list();
+    ast_mk_list_push(arguments, node->cast.element);
     node->parent = arguments;
 
-    ast_t* callee = ast_new();
-    callee->type = FL_AST_LIT_IDENTIFIER;
-    callee->identifier.string = st_clone(autocast->func.uid);
-    callee->identifier.resolve = false;
+    ast_t* callee = ast_mk_lit_id(st_clone(autocast->func.uid), false);
     callee->identifier.decl = autocast;
 
-    ast_t* ecall = ast_new();
-    ecall->type = FL_AST_EXPR_CALL;
-    ecall->call.arguments = arguments;
-    ecall->call.narguments = 1;
-    ecall->call.callee = callee;
+    ast_t* ecall = ast_mk_call_expr(callee, arguments);
     ecall->call.decl = autocast;
 
     callee->parent = ecall;

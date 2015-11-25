@@ -42,10 +42,14 @@ ast_action_t load_imports(ast_t* node, ast_t* parent, size_t level,
       fl_fatal_error("Failed to load module: %s\n", filepath);
     }
 
+    module->type = FL_AST_MODULE;
+
     ast_mk_insert_before(node->parent, node, module);
 
     node->import.imported = true;
-    ast_parent(node->parent); // update parents
+    ast_parent(module); // update parents
+    node->parent = module->parent;
+
     ((*(size_t*)userdata_out))++;
   }
 
@@ -54,7 +58,6 @@ ast_action_t load_imports(ast_t* node, ast_t* parent, size_t level,
 
 // return error
 ast_t* psr_load_imports(ast_t* node) {
-  ast_parent(node);
   size_t imported;
   do {
     imported = 0;

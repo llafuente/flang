@@ -26,6 +26,7 @@
 #include "flang.h"
 
 ast_t* ast_err_node = 0;
+char* ast_err_message = 0;
 char* ast_err_buff = 0;
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
@@ -36,9 +37,8 @@ void ast_print_error_lines(const string* line, st_len_t pos,
       pos <= ast_err_node->last_line + 2) {
     fprintf(stderr, "%6d | %s\n", pos + 1, line->value);
     if (pos == ast_err_node->first_line - 1) {
-      fprintf(stderr, "%*s\x1B[32m^--%s\x1B[39m\n",
-              (int)(9 + ast_err_node->first_column), " ",
-              ast_err_node->err.message->value);
+      fprintf(stderr, "%*s\x1B[32m^-- %s\x1B[39m\n",
+              (int)(9 + ast_err_node->first_column), " ", ast_err_message);
     }
   }
 }
@@ -49,14 +49,16 @@ bool ast_print_error(ast_t* node) {
 
   if (err->type == FL_AST_ERROR) {
     fprintf(stderr, "\n\n\x1B[31mError: %s\x1B[39m\n", err->err.message->value);
-    fprintf(stderr, "File & Line: %s:%d:%d @ %d:%d\n", node->program.file,
+    fprintf(stderr, "File & Line: %s:%d:%d @ %d:%d\n\n", node->program.file,
             err->first_line, err->first_column, err->last_line,
             err->last_column);
 
     ast_err_node = err;
+    ast_err_message = ast_err_node->err.message->value;
 
     // TODO add context do not use global var
     st_line_iterator(node->program.code, ast_print_error_lines);
+    fprintf(stderr, "\n");
 
     // ast_dump(node);
     return true;
@@ -66,6 +68,8 @@ bool ast_print_error(ast_t* node) {
 }
 
 void ast_raise_error(ast_t* node, char* message) {
+  log_debug_level = 10;
+
   fprintf(stderr, "\n\n\x1B[31mError: %s\x1B[39m\n", message);
 
   if (!node) {
@@ -74,20 +78,35 @@ void ast_raise_error(ast_t* node, char* message) {
     return;
   }
   ast_t* root = node;
-  while (root->type != FL_AST_PROGRAM) {
+  while (root->type != FL_AST_PROGRAM && root->type != FL_AST_MODULE) {
     root = root->parent;
   }
 
   ast_dump(node); // even node parent or root?!
 
-  fprintf(stderr, "File & Line: %s:%d:%d @ %d:%d\n", root->program.file,
+  // search a decent node to display 'error area'
+  ast_err_node = node;
+  ast_err_message = message;
+
+  if (!node->first_line && !node->first_column && !node->last_line &&
+      !node->last_column) {
+    do {
+      node = node->parent;
+    } while (!node->first_line && !node->first_column && !node->last_line &&
+             !node->last_column);
+    ast_err_node->first_line = node->first_line;
+    ast_err_node->first_column = node->first_column;
+    ast_err_node->last_line = node->last_line;
+    ast_err_node->last_column = node->last_column;
+  }
+
+  fprintf(stderr, "File & Line: %s:%d:%d @ %d:%d\n\n", root->program.file,
           node->first_line, node->first_column, node->last_line,
           node->last_column);
 
-  ast_err_node = node;
-
   // TODO add context do not use global var
-  st_line_iterator(node->program.code, ast_print_error_lines);
+  st_line_iterator(root->program.code, ast_print_error_lines);
+  fprintf(stderr, "\n\nStackTrace:\n");
 
   __sanitizer_print_stack_trace();
   exit(6);
