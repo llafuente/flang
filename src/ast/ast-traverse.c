@@ -151,6 +151,9 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
     TRAVERSE(ast->field.id);
     TRAVERSE(ast->field.type);
   } break;
+  case FL_AST_EXPR_SIZEOF: {
+    TRAVERSE(ast->sof.type);
+  } break;
   case FL_AST_TYPE: {
     TRAVERSE(ast->ty.id);
     TRAVERSE(ast->ty.child);

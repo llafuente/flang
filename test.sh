@@ -1,5 +1,8 @@
 #!/bin/sh -x
 
+rm -rf tmp
+mkdir -p tmp
+
 mkdir -p build
 cd build
 

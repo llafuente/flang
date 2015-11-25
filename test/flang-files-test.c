@@ -37,12 +37,12 @@ string* execute(char* cmd) {
     exit(1);
   }
 
-  string* output = st_new(2048, st_enc_utf8);
+  string* output = st_new(4096, st_enc_utf8);
 
   char* pos = output->value;
 
   while (!feof(pipe)) {
-    if (fgets(pos, 2048, pipe) != NULL) {
+    if (fgets(pos, 4096, pipe) != NULL) {
       pos = pos + strlen(pos);
     }
   }
@@ -56,18 +56,7 @@ string* execute(char* cmd) {
   return output;
 }
 
-TASK_IMPL(flang_files) {
-  char* files[] = {
-      "../test/fl/memory", "../test/fl/expressions", "../test/fl/casting",
-      "../test/fl/if", "../test/fl/loops", "../test/fl/loops2",
-      "../test/fl/types", "../test/fl/pointers", "../test/fl/pointers2",
-      "../test/fl/string", "../test/fl/functions",
-      "../test/fl/function-pointer", "../test/perf/array-reverse",
-      "../test/fl/arithmetic", "../test/fl/autocast", "../test/fl/increment",
-      "../test/fl/fibonacci"
-      //,"../test/fl/promotion"
-  };
-  size_t nfiles = 17;
+void test_file_list(char** files, size_t nfiles, char* path) {
   char* fl_file = malloc(sizeof(char) * 100);
   char* txt_file = malloc(sizeof(char) * 100);
   char* bc_file = malloc(sizeof(char) * 100);
@@ -90,15 +79,19 @@ TASK_IMPL(flang_files) {
     //}
 
     fl_file[0] = '\0';
+    strcat(fl_file, path);
     strcat(fl_file, files[i]);
     strcat(fl_file, ".fl");
     txt_file[0] = '\0';
+    strcat(txt_file, path);
     strcat(txt_file, files[i]);
     strcat(txt_file, ".txt");
     bc_file[0] = '\0';
+    strcat(bc_file, "../tmp/");
     strcat(bc_file, files[i]);
     strcat(bc_file, ".bc");
     ir_file[0] = '\0';
+    strcat(ir_file, "../tmp/");
     strcat(ir_file, files[i]);
     strcat(ir_file, ".ir");
 
@@ -150,6 +143,21 @@ TASK_IMPL(flang_files) {
   free(bc_file);
   free(ir_file);
   free(cmd);
+}
+
+TASK_IMPL(flang_files) {
+  char* test_files[] = {
+      "memory", "memory3", "expressions", "casting", "if", "loops", "loops2",
+      "types", "pointers", "pointers2", "string", "functions",
+      "function-pointer", "arithmetic", "autocast", "increment", "fibonacci"
+      //,"promotion"
+  };
+
+  test_file_list(test_files, 17, "../test/fl/");
+
+  char* perf_files[] = {"array-reverse"};
+
+  test_file_list(perf_files, 1, "../test/perf/");
 
   return 0;
 }

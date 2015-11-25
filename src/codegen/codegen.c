@@ -168,6 +168,8 @@ LLVMValueRef cg_ast(FL_CODEGEN_HEADER) {
     return cg_if(FL_CODEGEN_HEADER_SEND);
   case FL_AST_STMT_LOOP:
     return cg_loop(FL_CODEGEN_HEADER_SEND);
+  case FL_AST_EXPR_SIZEOF:
+    return cg_sizeof(FL_CODEGEN_HEADER_SEND);
   case FL_AST_DECL_STRUCT:
     // ignore it, will be created on first use
     break;
@@ -378,8 +380,8 @@ LLVMValueRef cg_binop(FL_CODEGEN_HEADER) {
     // TODO LLVMIntULT
     // TODO LLVMRealULT
 
-    return use_fp ? LLVMBuildFCmp(builder, LLVMRealOLT, lhs, rhs, "andand")
-                  : LLVMBuildICmp(builder, LLVMIntSLT, lhs, rhs, "andand");
+    return use_fp ? LLVMBuildFCmp(builder, LLVMRealOLT, lhs, rhs, "ltf")
+                  : LLVMBuildICmp(builder, LLVMIntSLT, lhs, rhs, "lti");
   }
   case TK_LE: { // <=
     // TODO LLVMIntULE
@@ -496,9 +498,7 @@ LLVMValueRef cg_function(FL_CODEGEN_HEADER) {
       LLVMSetValueName(param, tmp->param.id->identifier.string->value);
 
       if (block) {
-        LLVMValueRef ref =
-            LLVMBuildAlloca(builder, LLVMTypeOf(param),
-                            tmp->param.id->identifier.string->value);
+        LLVMValueRef ref = LLVMBuildAlloca(builder, LLVMTypeOf(param), "arg");
         LLVMBuildStore(builder, param, ref);
         tmp->param.alloca = (void*)ref;
       } else {
@@ -877,4 +877,8 @@ LLVMValueRef cg_lhs(FL_CODEGEN_HEADER) {
   }
 
   return 0;
+}
+
+LLVMValueRef cg_sizeof(FL_CODEGEN_HEADER) {
+  return LLVMSizeOf(cg_get_type(node->sof.type, context));
 }

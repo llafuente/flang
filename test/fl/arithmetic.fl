@@ -7,18 +7,21 @@ function test_i32() {
   b = 2;
   c = 3;
 
+  printf("a = %d | b = %d | c = %d\n", a, b, c);
   printf("sum = %d\n", a + b + c); // 6
   printf("mul = %d\n", a * b * c); // 6
 
   a = 27;
   b = 3;
   c = 3;
+  printf("a = %d | b = %d | c = %d\n", a, b, c);
   printf("div = %d\n", a / b / c); // 3
   printf("sub = %d\n", a - b - c); // 21
 
   a = 8;
   b = 4;
   c = 8;
+  printf("a = %d | b = %d | c = %d\n", a, b, c);
   printf("or = %d\n", a | b & c); // 8
 
   return 0;

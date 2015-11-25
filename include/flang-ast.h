@@ -64,8 +64,9 @@ enum ast_types {
   FL_AST_EXPR_RUNARY = 25,
   FL_AST_EXPR_CALL = 26,
   FL_AST_EXPR_MEMBER = 27,
+  FL_AST_EXPR_SIZEOF = 28,
 
-  FL_AST_CAST = 28,
+  FL_AST_CAST = 29,
 
   // TODO FL_AST_DECL_VAR = 30
   FL_AST_DTOR_VAR = 31,
@@ -283,6 +284,9 @@ struct ast {
 
       size_t idx; // calc by typesystem
     } member;
+    struct ast_expr_sizeof {
+      ast_t* type;
+    } sof;
 
     struct ast_stmt_comment {
       string* text;

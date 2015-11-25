@@ -29,7 +29,21 @@
 
 // TODO review if ";" is required
 TASK_IMPL(parser_expressions) {
-  log_debug_level = 0;
+  log_debug_level = 10;
+
+  /*
+  TEST_PARSER_OK("sizeof parse",
+      "var i32 a = 27; var i32 b = 3; var i32 c = 3;"
+            "a / b / c;", {
+    ast_dump(root);
+  });
+  */
+
+  TEST_PARSER_OK("sizeof parse", "sizeof(i8);", {
+    ASSERT(body[0]->type == FL_AST_EXPR_SIZEOF, "is sizeof");
+    ASSERT(body[0]->ty_id == TS_I64, "type is i64");
+    ASSERT(body[0]->sof.type->ty_id == TS_I8, "type is i8");
+  });
 
   TEST_PARSER_OK("parent till root works", "1 + 2;", {
     ASSERT(body[0]->parent != 0, "has parent");
@@ -141,8 +155,10 @@ TASK_IMPL(parser_expressions) {
   TEST_PARSER_OK("binop 01", "1 + 2;", {
     ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
   });
+
+  // TODO fix, should be string
   TEST_PARSER_OK(
-      "function call 01", "fn printf(string str) {}"
+      "function call 01", "fn printf(ptr(i8) str) {}"
                           "printf ( \"xxx\" );",
       { ASSERT(body[1]->type == FL_AST_EXPR_CALL, "FL_AST_EXPR_CALL"); });
 

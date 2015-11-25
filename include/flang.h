@@ -313,6 +313,7 @@ FL_EXTERN LLVMValueRef cg_right_identifier(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef cg_right_member(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef cg_left_member(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef cg_lhs(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_sizeof(FL_CODEGEN_HEADER);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(codegen-types.c) */
@@ -373,5 +374,6 @@ ast_t* ast_mk_break(ast_t* argument);
 ast_t* ast_mk_continue(ast_t* argument);
 ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression);
 ast_t* ast_mk_cast(ast_t* type, ast_t* element);
+ast_t* ast_mk_sizeof(ast_t* type);
 ast_t* ast_mk_import(ast_t* string_lit);
 ast_t* ast_mk_error(const char* message, char* type);

@@ -429,6 +429,16 @@ ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression) {
   return node;
 }
 
+ast_t* ast_mk_sizeof(ast_t* type) {
+  // printf("ast_mk_sizeof\n");
+  ast_t* node = ast_new();
+  node->type = FL_AST_EXPR_SIZEOF;
+
+  node->sof.type = type;
+
+  return node;
+}
+
 ast_t* ast_mk_cast(ast_t* type, ast_t* element) {
   // printf("ast_mk_cast\n");
   ast_t* node = ast_new();

@@ -49,7 +49,7 @@
 %token <token> TK_FFI TK_FOR TK_IF TK_IN TK_MATCH
 %token <token> TK_IMPORT TK_PUB TK_REF TK_RETURN TK_STATIC
 %token <token> TK_STRUCT TK_TYPE TK_TYPEOF TK_USE
-%token <token> TK_VAR TK_WHERE TK_WHILE TK_DO
+%token <token> TK_VAR TK_WHERE TK_WHILE TK_DO TK_SIZEOF
 
 %token <token> TK_FALSE TK_TRUE TK_NULL
 
@@ -76,9 +76,15 @@
    calling an (NIdentifier*). It makes the compiler happy.
  */
 %type <node> program stmts
-%type <node> stmt var_decl  expression expression_lit maybe_expression maybe_expression_list expression_list comment
+%type <node> stmt var_decl expression_lhs maybe_expression maybe_expression_list expression_list comment
 %type <node> struct_decl struct_decl_fields struct_decl_fields_list struct_decl_field
 %type <node> block maybe_stmts nonblock_prefix_expression
+
+
+%type <node> old_expression
+%type <node> expression
+
+
 /* TODO this should be a stmt ? */
 %type <node> expr_if block_or_if
 /* loops */
@@ -360,7 +366,7 @@ multiplication_operators
   | '%'          { $$ = '%'; }
   ;
 
-expression_lit
+expression_lhs
   : literal {
     $$ = $1;
     ast_position($$, @1, @1);
@@ -396,8 +402,12 @@ expression_lit
   | '(' maybe_expression ')'                            { $$ = $2; }
   ;
 
-expression
-  : expression_lit
+old_expression
+  : expression_lhs
+  | TK_SIZEOF '(' type ')' {
+    $$ = ast_mk_sizeof($3);
+    ast_position($$, @1, @4);
+  }
   /*
   | '[' vec_expr ']'                                    { $$ = mk_node("ExprVec", 1, $2); }
   */
@@ -425,7 +435,7 @@ expression
     $$ = ast_mk_break($2);
     ast_position($$, @1, @2);
   }
-  | %prec ASSIGNAMENT expression_lit assignament_operator expression                     {
+  | %prec ASSIGNAMENT expression_lhs assignament_operator expression                     {
     $$ = ast_mk_assignament($1, $2, $3);
     ast_position($$, @1, @3);
   }
@@ -487,6 +497,12 @@ expression
   | block
   | nonblock_prefix_expression
   ;
+
+
+expression
+  : old_expression
+  ;
+
 
 maybe_expression
   : expression

@@ -75,7 +75,8 @@ size_t get_type(ast_t* node) {
   }
   if (strcmp(tcstr, "string") == 0) {
     // return node->ty_id = TS_CSTR; // TODO TS_STRING
-    return node->ty_id = TS_STRING;
+    // return node->ty_id = TS_STRING;
+    return node->ty_id = 16;
   }
 
   if (strcmp(tcstr, "ptr") == 0) {
@@ -142,6 +143,10 @@ ast_action_t register_types(ast_t* node, ast_t* parent, size_t level,
       break;
     case FL_AST_CAST:
       p->ty_id = node->ty_id;
+      break;
+    case FL_AST_EXPR_SIZEOF:
+      // LLVMSizeOf
+      p->ty_id = TS_I64;
       break;
     default: {
       ast_dump(p);

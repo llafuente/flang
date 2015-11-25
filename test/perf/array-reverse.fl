@@ -1,4 +1,4 @@
-fn reverseArray(ptr<i32> theList, i32 count) : void {
+fn reverseArray(ptr(i32) theList, i32 count) : void {
   var i32 i;
   printf("count = %d\n", count);
   for i = 0; i < count >> 1; i = i + 1 {
@@ -17,16 +17,16 @@ count = 10;
 var i32 iterations;
 iterations = 5;
 
-// ptr<i32> arr = malloc(sizeof(i32) * count);
-
-var ptr<i32> arr;
-arr = malloc(40);
+// ptr(i32) arr = malloc(sizeof(i32) * count);
+var ptr(i32) arr;
+arr = malloc(sizeof(i32) * count);
 
 var i32 i;
 for i = 0; i < count; i = i + 1 {
   arr[i] = i;
   printf("arr[%d] = %d\n", i, arr[i]);
 }
+
 
 for i = 0; i < iterations; i = i + 1 {
   reverseArray(arr, count);

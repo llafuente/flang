@@ -1,5 +1,5 @@
 /* polymorphism */
-function print(ptr<i8> str) : i32 {
+function print(ptr(i8) str) : i32 {
   return printf("as string = %s\n", str);
 }
 
