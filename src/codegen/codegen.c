@@ -580,10 +580,10 @@ LLVMValueRef cg_expr_call(FL_CODEGEN_HEADER) {
 }
 
 LLVMValueRef cg_runary(FL_CODEGEN_HEADER) {
-  LLVMValueRef element = cg_ast_loaded("load_lunary", node->lunary.element,
+  LLVMValueRef element = cg_ast_loaded("load_lunary", node->runary.element,
                                        FL_CODEGEN_PASSTHROUGH);
 
-  switch (node->lunary.operator) {
+  switch (node->runary.operator) {
   case TK_PLUSPLUS:
   case TK_MINUSMINUS: {
     LLVMTypeRef type = LLVMTypeOf(element);

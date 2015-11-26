@@ -365,6 +365,7 @@ ast_t* ast_mk_type(string* id, ast_t* child);
 ast_t* ast_mk_type2(ast_t* id, ast_t* child);
 ast_t* ast_mk_comment(string* text);
 ast_t* ast_mk_lunary(ast_t* element, int operator);
+ast_t* ast_mk_runary(ast_t* element, int operator);
 ast_t* ast_mk_if(ast_t* test, ast_t* block, ast_t* alternate);
 ast_t* ast_mk_loop(ast_t* init, ast_t* pre_cond, ast_t* update, ast_t* block,
                    ast_t* post_cond);

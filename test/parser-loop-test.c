@@ -35,7 +35,7 @@ TASK_IMPL(parser_loops) {
                  {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1; x < 10; ++x ",
-                    "syntax error, unexpected $end", {});
+                    "syntax error, unexpected $end, expecting '{'", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1; x < 10;",
                     //"expected update expression", {});
@@ -43,18 +43,18 @@ TASK_IMPL(parser_loops) {
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1; x < 10",
                     //"expected semicolon", {});
-                    "syntax error, unexpected $end", {});
+                    "syntax error, unexpected $end, expecting ';'", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1;",
                     //"expected condition expression", {});
-                    "syntax error, unexpected AST_IDENT", {});
+                    "syntax error, unexpected AST_IDENT, expecting ';'", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1",
-                    "syntax error, unexpected $end", {});
+                    "syntax error, unexpected $end, expecting ';'", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; for ",
                     //"expected initialization expression", {});
-                    "syntax error, unexpected AST_IDENT", {});
+                    "syntax error, unexpected AST_IDENT, expecting ';'", {});
 
   // TODO this should be valid!?
   TEST_PARSER_ERROR("loop 01", "for var i32 x = 1; x < 10; ++x {"
@@ -71,10 +71,10 @@ TASK_IMPL(parser_loops) {
                     "syntax error, unexpected $end, expecting '}'", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; while x < 10",
-                    "syntax error, unexpected $end", {});
+                    "syntax error, unexpected $end, expecting '{'", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; while",
-                    "syntax error, unexpected AST_IDENT", {});
+                    "syntax error, unexpected AST_IDENT, expecting ';'", {});
 
   TEST_PARSER_OK("loop 01", "var i32 x; x = 1; do {"
                             "++x;"

@@ -36,8 +36,8 @@ TASK_IMPL(parser_if) {
 
   TEST_PARSER_OK("function 01", "if(true) {}", {});
 
-  TEST_PARSER_ERROR("function 01", "if(true)", "syntax error, unexpected $end",
-                    {});
+  TEST_PARSER_ERROR("function 01", "if(true)",
+                    "syntax error, unexpected $end, expecting '{'", {});
 
   TEST_PARSER_ERROR("function 01", "if(true) {",
                     "syntax error, unexpected $end, expecting '}'", {});

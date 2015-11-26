@@ -16,6 +16,8 @@
   }
 %}
 
+%debug
+
 %locations
 
 %define parse.error verbose
@@ -76,13 +78,27 @@
    calling an (NIdentifier*). It makes the compiler happy.
  */
 %type <node> program stmts
-%type <node> stmt var_decl expression_lhs maybe_expression maybe_expression_list expression_list comment
+%type <node> stmt var_decl maybe_argument_expression_list argument_expression_list comment
 %type <node> struct_decl struct_decl_fields struct_decl_fields_list struct_decl_field
-%type <node> block maybe_stmts nonblock_prefix_expression
+%type <node> block maybe_stmts
 
-
-%type <node> old_expression
-%type <node> expression
+%type <node> expression maybe_expression
+%type <node> assignment_expression
+%type <node> conditional_expression
+%type <node> logical_or_expression
+%type <node> logical_and_expression
+%type <node> inclusive_or_expression
+%type <node> exclusive_or_expression
+%type <node> and_expression
+%type <node> equality_expression
+%type <node> relational_expression
+%type <node> shift_expression
+%type <node> additive_expression
+%type <node> multiplicative_expression
+%type <node> cast_expression
+%type <node> unary_expression
+%type <node> postfix_expression
+%type <node> primary_expression
 
 
 /* TODO this should be a stmt ? */
@@ -91,7 +107,7 @@
 %type <node> expr_while expr_dowhile expr_for import_stmt
 %type <node> fn_decl fn_parameters fn_parameter_list fn_parameter
 
-%type <token> assignament_operator equality_operator comparison_operator additive_operators multiplication_operators
+%type <token> assignament_operator equality_operator relational_operator additive_operator multiplicative_operator unary_operator
 
 /* terminals */
 %type <node> type ty_primitive ident literal lit_integer lit_numeric lit_string
@@ -196,6 +212,30 @@ stmt
   | expr_dowhile
   | expr_for
   | import_stmt ';'
+  | TK_CONTINUE ';' {
+    $$ = ast_mk_continue(0);
+    ast_position($$, @1, @2);
+  }
+  | TK_CONTINUE ident ';' {
+  $$ = ast_mk_continue($2);
+  ast_position($$, @1, @3);
+  }
+  | TK_RETURN ';' {
+    $$ = ast_mk_return(0);
+    ast_position($$, @1, @2);
+  }
+  | TK_RETURN expression ';' {
+    $$ = ast_mk_return($2);
+    ast_position($$, @1, @3);
+  }
+  | TK_BREAK ';' {
+    $$ = ast_mk_break(0);
+    ast_position($$, @1, @2);
+  }
+  | TK_BREAK ident ';' {
+    $$ = ast_mk_break($2);
+    ast_position($$, @1, @3);
+  }
   ;
 
 import_stmt
@@ -349,190 +389,84 @@ equality_operator
   | TK_NE        { $$ = TK_NE; }
   ;
 
-comparison_operator
+relational_operator
   : '<'          { $$ = '<'; }
   | '>'          { $$ = '>'; }
   | TK_LE        { $$ = TK_LE; }
   | TK_GE        { $$ = TK_GE; }
 
-additive_operators
+additive_operator
   : '+'          { $$ = '+'; }
   | '-'          { $$ = '-'; }
   ;
 
-multiplication_operators
+multiplicative_operator
   : '*'          { $$ = '*'; }
   | '/'          { $$ = '/'; }
   | '%'          { $$ = '%'; }
   ;
 
-expression_lhs
+unary_operator
+  : '-' { $$ = '-'; }
+  | '!' { $$ = '!'; }
+  | '*' { $$ = '*'; }
+  | '&' { $$ = '&'; }
+  ;
+
+primary_expression
   : literal {
     $$ = $1;
     ast_position($$, @1, @1);
+  }
+  | '(' maybe_expression ')'                            {
+    $$ = $2;
+    ast_position($$, @1, @3); // override position to include parens
   }
   | '@' block {
     // TODO short function decl
     // TODO move. this prio?
     fl_fatal_error("%s", "not implemented");
   }
-  | expression '.' ident {
-    $$ = ast_mk_member($1, $3, false);
-    ast_position($$, @1, @3);
-  }
-  | expression '.' lit_integer {
-    $$ = ast_mk_member($1, $3, false);
-    ast_position($$, @1, @3);
-  }
-  | expression '[' expression ']' {
+  ;
+
+postfix_expression
+  : primary_expression
+  | postfix_expression '[' expression ']' {
     /* TODO maybe_expr? */
     $$ = ast_mk_member($1, $3, true);
     ast_position($$, @1, @4);
   }
-  | expression '[' lit_integer ']' {
+  | postfix_expression '[' lit_integer ']' {
     /* TODO maybe_expr? */
     $$ = ast_mk_member($1, $3, false);
     ast_position($$, @1, @4);
   }
-  | expression '(' maybe_expression_list ')' {
+  | postfix_expression '(' maybe_argument_expression_list ')' {
     // TODO this cannot be assignament lhs, right ?
     $$ = ast_mk_call_expr($1, $3);
     ast_position($$, @1, @4);
   }
-  | '(' maybe_expression ')'                            { $$ = $2; }
-  ;
-
-old_expression
-  : expression_lhs
-  | TK_SIZEOF '(' type ')' {
-    $$ = ast_mk_sizeof($3);
-    ast_position($$, @1, @4);
+  | postfix_expression '.' ident {
+    $$ = ast_mk_member($1, $3, false);
+    ast_position($$, @1, @3);
   }
-  /*
-  | '[' vec_expr ']'                                    { $$ = mk_node("ExprVec", 1, $2); }
+  | postfix_expression '.' lit_integer {
+    $$ = ast_mk_member($1, $3, false);
+    ast_position($$, @1, @3);
+  }
+  | postfix_expression TK_PLUSPLUS   { $$ = ast_mk_runary($1, TK_PLUSPLUS); ast_position($$, @1, @2); }
+  | postfix_expression TK_MINUSMINUS { $$ = ast_mk_runary($1, TK_MINUSMINUS); ast_position($$, @1, @2); }
+  /* TODO really? not needed!
+  | postfix_expression PTR_OP IDENT '->'
   */
-  | TK_CONTINUE {
-    $$ = ast_mk_continue(0);
-    ast_position($$, @1, @1);
-  }
-  | TK_CONTINUE ident {
-  $$ = ast_mk_continue($2);
-  ast_position($$, @1, @2);
-  }
-  | TK_RETURN {
-    $$ = ast_mk_return(0);
-    ast_position($$, @1, @1);
-  }
-  | TK_RETURN expression {
-    $$ = ast_mk_return($2);
-    ast_position($$, @1, @2);
-  }
-  | TK_BREAK {
-    $$ = ast_mk_break(0);
-    ast_position($$, @1, @1);
-  }
-  | TK_BREAK ident {
-    $$ = ast_mk_break($2);
-    ast_position($$, @1, @2);
-  }
-  | %prec ASSIGNAMENT expression_lhs assignament_operator expression                     {
-    $$ = ast_mk_assignament($1, $2, $3);
-    ast_position($$, @1, @3);
-  }
-  | expression TK_OROR expression {
-    $$ = ast_mk_binop($1, TK_OROR, $3);
-    ast_position($$, @1, @3);
-  }
-  | expression TK_ANDAND expression{
-    $$ = ast_mk_binop($1, TK_ANDAND, $3);
-    ast_position($$, @1, @3);
-  }
-  | expression '|' expression {
-    $$ = ast_mk_binop($1, '|', $3);
-    ast_position($$, @1, @3);
-  }
-  | expression '^' expression {
-    $$ = ast_mk_binop($1, '^', $3);
-    ast_position($$, @1, @3);
-  }
-  | expression '&' expression {
-    $$ = ast_mk_binop($1, '&', $3);
-    ast_position($$, @1, @3);
-  }
-  | %prec EQUALITY expression equality_operator expression {
-    $$ = ast_mk_binop($1, $2, $3);
-    ast_position($$, @1, @3);
-  }
-  | %prec COMPARISON expression comparison_operator expression {
-  printf("operator!! %u\n", $2);
-    $$ = ast_mk_binop($1, $2, $3);
-    ast_position($$, @1, @3);
-  }
-  | expression TK_SHL expression {
-    $$ = ast_mk_binop($1, TK_SHL, $3);
-    ast_position($$, @1, @3);
-  }
-  | expression TK_SHR expression {
-    $$ = ast_mk_binop($1, TK_SHR, $3);
-    ast_position($$, @1, @3);
-  }
-  | %prec ADDITION expression additive_operators  expression {
-    $$ = ast_mk_binop($1, $2, $3);
-    ast_position($$, @1, @3);
-  }
-  | %prec MULTIPLICATION expression multiplication_operators expression {
-    $$ = ast_mk_binop($1, $2, $3);
-    ast_position($$, @1, @3);
-  }
-  /*
-  | expression DOTDOT               %prec RANGE {}
-  | expression DOTDOT expression                {}
-  |               DOTDOT expression             {}
-  |               DOTDOT                        {}
-  */
-  | TK_CAST '(' type ')' expression {
-    $$ = ast_mk_cast($3, $5);
-    ast_position($$, @1, @5);
-  }
-  | block
-  | nonblock_prefix_expression
   ;
 
-
-expression
-  : old_expression
-  ;
-
-
-maybe_expression
-  : expression
-  | %empty { $$ = 0;}
-  ;
-
-maybe_expression_list
-  : %empty                          { $$ = ast_mk_list(); }
-  | expression_list
-  ;
-
-expression_list
-  : expression {
-    $$ = ast_mk_list();
-    ast_mk_list_push($$, $1);
-  }
-  | expression_list ',' expression {
-    ast_mk_list_push($1, $3);
-    $$ = $1;
-  }
-  ;
-
-nonblock_prefix_expression
-  : '-' expression           { $$ = ast_mk_lunary($2, '-'); ast_position($$, @1, @2); }
-  | TK_MINUSMINUS expression { $$ = ast_mk_lunary($2, TK_MINUSMINUS); ast_position($$, @1, @2); }
-  | '!' expression           { $$ = ast_mk_lunary($2, '!'); ast_position($$, @1, @2); }
-  | '*' expression           { $$ = ast_mk_lunary($2, '*'); ast_position($$, @1, @2); }
-  | TK_PLUSPLUS expression   { $$ = ast_mk_lunary($2, TK_PLUSPLUS); ast_position($$, @1, @2); }
-  | '&' expression           { $$ = ast_mk_lunary($2, '&'); ast_position($$, @1, @2); }
-  | TK_ANDAND expression {
+unary_expression
+  : postfix_expression             { $$ = $1; }
+  | TK_PLUSPLUS unary_expression   { $$ = ast_mk_lunary($2, TK_PLUSPLUS); ast_position($$, @1, @2); }
+  | TK_MINUSMINUS unary_expression { $$ = ast_mk_lunary($2, TK_MINUSMINUS); ast_position($$, @1, @2); }
+  | unary_operator cast_expression { $$ = ast_mk_lunary($2, $1); ast_position($$, @1, @2); }
+  | TK_ANDAND cast_expression {
     ast_t* lun = ast_mk_lunary($2, '&');
     ast_position(lun, @1, @2);
 
@@ -540,9 +474,151 @@ nonblock_prefix_expression
     ast_position($$, @1, @2);
   }
   /*
-  | MOVE? lambda_expr
-  | proc_expr
+    TODO sizeof variable?
+    | SIZEOF unary_expression
   */
+  | TK_SIZEOF '(' type ')' {
+    $$ = ast_mk_sizeof($3);
+    ast_position($$, @1, @4);
+  }
+  ;
+
+cast_expression
+  : unary_expression
+  | TK_CAST '(' type ')' cast_expression {
+    $$ = ast_mk_cast($3, $5);
+    ast_position($$, @1, @5);
+  }
+  ;
+
+multiplicative_expression
+  : cast_expression
+  | multiplicative_expression multiplicative_operator cast_expression {
+    $$ = ast_mk_binop($1, $2, $3);
+    ast_position($$, @1, @3);
+  }
+  ;
+
+additive_expression
+  : multiplicative_expression
+  | additive_expression additive_operator  multiplicative_expression {
+    $$ = ast_mk_binop($1, $2, $3);
+    ast_position($$, @1, @3);
+  }
+  ;
+
+shift_expression
+  : additive_expression
+  | shift_expression TK_SHL additive_expression {
+    $$ = ast_mk_binop($1, TK_SHL, $3);
+    ast_position($$, @1, @3);
+  }
+  | shift_expression TK_SHR additive_expression {
+    $$ = ast_mk_binop($1, TK_SHR, $3);
+    ast_position($$, @1, @3);
+  }
+
+relational_expression
+  : shift_expression
+  | relational_expression relational_operator shift_expression {
+    $$ = ast_mk_binop($1, $2, $3);
+    ast_position($$, @1, @3);
+  }
+  ;
+
+equality_expression
+  : relational_expression
+  | equality_expression equality_operator relational_expression {
+    $$ = ast_mk_binop($1, $2, $3);
+    ast_position($$, @1, @3);
+  }
+  ;
+
+and_expression
+  : equality_expression
+  | and_expression '&' equality_expression {
+    $$ = ast_mk_binop($1, '&', $3);
+    ast_position($$, @1, @3);
+  }
+  ;
+
+exclusive_or_expression
+  : and_expression
+  | exclusive_or_expression '^' and_expression {
+    $$ = ast_mk_binop($1, '^', $3);
+    ast_position($$, @1, @3);
+  }
+  ;
+
+inclusive_or_expression
+  : exclusive_or_expression
+  | inclusive_or_expression '|' exclusive_or_expression {
+    $$ = ast_mk_binop($1, '|', $3);
+    ast_position($$, @1, @3);
+  }
+  ;
+
+logical_and_expression
+  : inclusive_or_expression
+  | logical_and_expression TK_ANDAND inclusive_or_expression {
+    $$ = ast_mk_binop($1, TK_ANDAND, $3);
+    ast_position($$, @1, @3);
+  }
+  ;
+
+logical_or_expression
+  : logical_and_expression
+  | logical_or_expression TK_OROR logical_and_expression {
+    $$ = ast_mk_binop($1, TK_OROR, $3);
+    ast_position($$, @1, @3);
+  }
+  ;
+
+conditional_expression
+  : logical_or_expression
+  | logical_or_expression '?' expression ':' conditional_expression {
+    printf("TODO logical_or_expression");
+    exit(99);
+  }
+  ;
+
+assignment_expression
+  : conditional_expression
+  | %prec ASSIGNAMENT unary_expression assignament_operator assignment_expression                     {
+    $$ = ast_mk_assignament($1, $2, $3);
+    ast_position($$, @1, @3);
+  }
+  ;
+
+/* NOTE comma expression is removed on purpose! */
+expression
+  : assignment_expression
+  ;
+
+maybe_expression
+  : expression
+  | %empty { $$ = 0;}
+  ;
+
+constant_expression
+  : conditional_expression
+  ;
+
+
+maybe_argument_expression_list
+  : %empty                          { $$ = ast_mk_list(); }
+  | argument_expression_list
+  ;
+
+argument_expression_list
+  : assignment_expression {
+    $$ = ast_mk_list();
+    ast_mk_list_push($$, $1);
+  }
+  | argument_expression_list ',' assignment_expression {
+    ast_mk_list_push($1, $3);
+    $$ = $1;
+  }
   ;
 
 block

@@ -61,5 +61,11 @@ TASK_IMPL(codegen_expressions) {
                               "func(ins[0].b);",
                   {});
 
+  log_debug_level = 10;
+  TEST_CODEGEN_OK("unary 01", "var i64 c = 0; c++;", {});
+  TEST_CODEGEN_OK("unary 02", "var i64 c = 0; ++c;", {});
+  TEST_CODEGEN_OK("unary 03", "var i64 c = 0; c--;", {});
+  TEST_CODEGEN_OK("unary 04", "var i64 c = 0; --c;", {});
+
   return 0;
 }

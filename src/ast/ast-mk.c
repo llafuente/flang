@@ -361,6 +361,17 @@ ast_t* ast_mk_lunary(ast_t* element, int operator) {
   return node;
 }
 
+ast_t* ast_mk_runary(ast_t* element, int operator) {
+  // printf("ast_mk_runary\n");
+  ast_t* node = ast_new();
+  node->type = FL_AST_EXPR_RUNARY;
+
+  node->runary.element = element;
+  node->runary.operator= operator;
+
+  return node;
+}
+
 ast_t* ast_mk_if(ast_t* test, ast_t* block, ast_t* alternate) {
   // printf("ast_mk_if\n");
   ast_t* node = ast_new();
