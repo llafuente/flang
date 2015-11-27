@@ -26,6 +26,7 @@
 #include "flang.h"
 
 bool ts_castable(size_t aty_id, size_t bty_id) {
+  // same obviously true
   if (aty_id == bty_id) {
     return true;
   }
@@ -51,6 +52,8 @@ bool ts_castable(size_t aty_id, size_t bty_id) {
     default: {}
     }
   }
+
+  // TODO vector - ptr casting should be allowed?
 
   printf("\n");
   ty_dump(aty_id);
@@ -428,7 +431,7 @@ void ts_cast_expr_member(ast_t* node) {
 
   size_t l_typeid;
   if (l->type == FL_AST_LIT_IDENTIFIER) {
-    l->ty_id = ts_var_typeid(l);
+    l->ty_id = ast_get_ident_typeid(l);
   } else {
     ts_pass(l);
   }

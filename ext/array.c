@@ -23,7 +23,7 @@ void array_append(array *arr, ARRAY_T value) {
 
 ARRAY_T array_get(array *arr, int index) {
   if (index >= arr->size || index < 0) {
-    printf("Index %d out of bounds for vector of size %d\n", index, arr->size);
+    fprintf(stderr, "Index %d out of bounds for vector of size %d\n", index, arr->size);
     exit(1);
   }
   return arr->data[index];
@@ -31,7 +31,7 @@ ARRAY_T array_get(array *arr, int index) {
 
 ARRAY_T array_pop(array *arr) {
   if (arr->size == 0) {
-    printf("Cannot pop empty array\n");
+    fprintf(stderr, "Cannot pop empty array\n");
     exit(1);
   }
 
@@ -40,7 +40,7 @@ ARRAY_T array_pop(array *arr) {
 
 ARRAY_T array_unshift(array *arr) {
   if (arr->size == 0) {
-    printf("Cannot unshift empty array\n");
+    fprintf(stderr, "Cannot unshift empty array\n");
     exit(1);
   }
 

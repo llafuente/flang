@@ -92,3 +92,19 @@
     code_block;                                                                \
     flang_exit(root);                                                          \
   }
+
+#define TEST_CODEGEN_OK_NOCORE(name, code, code_block)                         \
+  {                                                                            \
+    fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
+    flang_init();                                                              \
+    ast_t* root = fl_parse_main_utf8(code);                                    \
+    CHK_BODY(root);                                                            \
+    ast_parent(root);                                                          \
+    ts_register_types(root);                                                   \
+    root = ts_pass(root);                                                      \
+    ast_dump(root);                                                            \
+    ast_t** body = root->program.body->block.body->list.elements;              \
+    LLVMModuleRef module = fl_codegen(root, "test");                           \
+    code_block;                                                                \
+    flang_exit(root);                                                          \
+  }

@@ -109,16 +109,3 @@ ast_t* fl_parse_main_file(const char* filename) {
 
   return root;
 }
-
-ast_t* typesystem(ast_t* root) {
-  ast_parent(root);
-
-  psr_load_imports(root);
-
-  ts_register_types(root);
-
-  // do inference
-  root = ts_pass(root);
-
-  return root;
-}

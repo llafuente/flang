@@ -37,7 +37,9 @@ ast_action_t ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
   case FL_AST_LIT_IDENTIFIER: {
     if (node->identifier.resolve) {
       node->identifier.decl = ast_search_id_decl(node, node->identifier.string);
-      assert(node->identifier.decl != 0);
+      if (!node->identifier.decl) {
+        ast_raise_error(node, "Cannot find declaration");
+      }
 
       if (node->parent->type != FL_AST_EXPR_CALL &&
           node->parent->type != FL_AST_EXPR_MEMBER) {
@@ -91,6 +93,9 @@ ast_t* ts_typeit(ast_t* node) {
 }
 
 ast_t* ts_pass(ast_t* node) {
+  log_debug_level = 10;
+  ast_dump(node);
+
   log_debug("(parser) inference");
   ts_inference(node);
   log_debug("(parser) type it");

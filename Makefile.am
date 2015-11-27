@@ -15,18 +15,20 @@ COMPILER_SOURCES = src/flang.c \
                 src/ast/ast-error.c \
                 src/ast/ast-codegen.c \
                 src/ast/ast-search.c \
+                src/ast/ast-get.c \
                 src/codegen/codegen.c \
                 src/codegen/codegen-export.c \
                 src/codegen/codegen-interpreter.c \
                 src/codegen/codegen-utils.c \
                 src/codegen/codegen-types.c \
+                src/typesystem/typesystem.c \
                 src/typesystem/typesystem-alloc.c \
                 src/typesystem/typesystem-inference.c \
                 src/typesystem/typesystem-pass.c \
                 src/typesystem/typesystem-register.c \
-                src/typesystem/typesystem.c \
+                src/typesystem/typesystem-casting.c \
+                src/typesystem/typesystem-promotion.c \
                 src/typesystem/type-dump.c \
-                src/typesystem/type-cast.c \
                 src/typesystem/type-utils.c \
                 src/debug.c \
                 ext/array.c \

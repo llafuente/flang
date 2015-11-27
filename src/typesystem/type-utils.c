@@ -66,7 +66,6 @@ size_t ty_get_pointer_level(size_t id) {
 }
 
 bool ty_is_function(size_t id) {
-  printf("%zu\n", id);
   ty_t t = ts_type_table[id];
   return t.of == FL_FUNCTION;
 }
@@ -141,7 +140,7 @@ size_t ty_get_struct_prop_type(size_t id, string* property) {
 }
 
 void ty_create_named(string* id, ast_t* decl, size_t type_id) {
-  ts_typeh_t* t = ts_named_type(id);
+  ts_typeh_t* t = ty_get_type_by_name(id);
 
   if (!t) {
     t = (ts_typeh_t*)calloc(1, sizeof(ts_typeh_t));
@@ -201,15 +200,15 @@ size_t ty_create_fn(ast_t* decl) {
   string* uid;
 
   // check for collisions
-  if (ts_named_type(id)) {
+  if (ty_get_type_by_name(id)) {
     if (decl->func.uid) {
-      if (ts_named_type(decl->func.uid)) {
+      if (ty_get_type_by_name(decl->func.uid)) {
         log_error("uid collision!");
       }
     } else {
       // create a unique name!
       uid = st_concat_random(id, 10);
-      while (ts_named_type(uid)) {
+      while (ty_get_type_by_name(uid)) {
         st_delete(&uid);
         uid = st_concat_random(id, 10);
       }
@@ -277,6 +276,13 @@ size_t ty_get_fn_typeid(ast_t* id) {
   }
 
   return 0;
+}
+
+ts_typeh_t* ty_get_type_by_name(string* id) {
+  ts_typeh_t* s;
+  HASH_FIND_STR(ts_hashtable, id->value, s);
+
+  return s;
 }
 
 size_t ty_get_typeid_by_name(string* id) {

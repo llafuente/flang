@@ -73,10 +73,13 @@ void fl_interpreter(LLVMModuleRef module) {
     int LLVMRunFunctionAsMain (LLVMExecutionEngineRef EE, LLVMValueRef F,
       unsigned ArgC, const char *const *ArgV, const char *const *EnvP)
   */
-  LLVMGenericValueRef res =
-      LLVMRunFunction(interp, LLVMGetNamedFunction(module, "main"), 0, 0);
+  LLVMValueRef f = LLVMGetNamedFunction(module, "main");
+  LLVMGenericValueRef res = LLVMRunFunction(interp, f, 0, 0);
+
+  LLVMFreeMachineCodeForFunction(interp, f);
 
   LLVMDisposeGenericValue(res);
   LLVMDisposeExecutionEngine(interp);
-  LLVMDisposeModule(module);
+  // TODO this fail... but why? and no leaks?!
+  // LLVMDisposeModule(module);
 }

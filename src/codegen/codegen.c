@@ -61,15 +61,17 @@ LLVMModuleRef fl_codegen(ast_t* root, char* module_name) {
   */
 
   // create main
-  LLVMValueRef parent = LLVMAddFunction(
+  LLVMValueRef main_function = LLVMAddFunction(
       module, "main", LLVMFunctionType(LLVMInt32Type(), 0, 0, 0));
-  LLVMSetFunctionCallConv(parent, LLVMCCallConv);
-  LLVMBasicBlockRef main_block = LLVMAppendBasicBlock(parent, "main-entry");
+  LLVMSetFunctionCallConv(main_function, LLVMCCallConv);
+  LLVMBasicBlockRef main_block =
+      LLVMAppendBasicBlock(main_function, "main-entry");
 
   LLVMPositionBuilderAtEnd(builder, main_block);
 
   // node must have parent, because we need to search backwards
   ast_parent(root);
+  LLVMValueRef* parent = &main_function;
   LLVMBasicBlockRef* current_block;
   current_block = &main_block;
   cg_ast(root, FL_CODEGEN_PASSTHROUGH);
@@ -181,18 +183,22 @@ LLVMValueRef cg_ast(FL_CODEGEN_HEADER) {
 
 LLVMValueRef cg_do_block(LLVMBasicBlockRef block, LLVMBasicBlockRef fall_block,
                          FL_CODEGEN_HEADER) {
-  LLVMBasicBlockRef old_cb = *current_block;
-
+  // save block
+  LLVMBasicBlockRef _current_block = *current_block;
   *current_block = block;
-  LLVMPositionBuilderAtEnd(builder, *current_block); // new block
+  // end save
+
+  LLVMPositionBuilderAtEnd(builder, block); // new block
   // codegen
   LLVMValueRef rnode = cg_ast(node, FL_CODEGEN_PASSTHROUGH);
   if (fall_block) {
     LLVMBuildBr(builder, fall_block);
   }
-  // restore
-  *current_block = old_cb;
-  LLVMPositionBuilderAtEnd(builder, *current_block);
+
+  // restore block
+  LLVMPositionBuilderAtEnd(builder, _current_block);
+  *current_block = _current_block;
+  // end restore
 
   return rnode;
 }
@@ -321,7 +327,6 @@ LLVMValueRef cg_binop(FL_CODEGEN_HEADER) {
   ast_t* r = node->binop.right;
 
   // retrieve left/right side
-  ast_dump(node);
   LLVMValueRef lhs = cg_ast_loaded("load_lhs", l, FL_CODEGEN_PASSTHROUGH);
 
   LLVMValueRef rhs = cg_ast_loaded("load_rhs", r, FL_CODEGEN_PASSTHROUGH);
@@ -474,7 +479,7 @@ LLVMValueRef cg_function(FL_CODEGEN_HEADER) {
       param_types[i++] = cg_get_typeid(tmp->param.id->ty_id, context);
     }
   }
-  ast_dump(node);
+
   LLVMTypeRef ret_type =
       LLVMFunctionType(cg_get_type(node->func.ret_type, context), param_types,
                        params->list.count, node->func.varargs);
@@ -510,8 +515,12 @@ LLVMValueRef cg_function(FL_CODEGEN_HEADER) {
   }
 
   if (block) {
+    // save and retore parent
+    LLVMValueRef _parent = *parent;
+    *parent = func;
     LLVMPositionBuilderAtEnd(builder, *current_block);
     cg_do_block(block, 0, node->func.body, FL_CODEGEN_PASSTHROUGH);
+    *parent = _parent;
   }
 
   node->func.cg_decl = func;
@@ -650,18 +659,18 @@ LLVMValueRef cg_if(FL_CODEGEN_HEADER) {
   bool has_else = node->if_stmt.alternate > 0;
 
   // end at the end
-  LLVMBasicBlockRef end_block = LLVMAppendBasicBlock(parent, "if-end");
+  LLVMBasicBlockRef end_block = LLVMAppendBasicBlock(*parent, "if-end");
   LLVMMoveBasicBlockAfter(end_block, *current_block);
 
   // else in the middle
   LLVMBasicBlockRef if_else_block;
   if (has_else) {
-    if_else_block = LLVMAppendBasicBlock(parent, "if-false");
+    if_else_block = LLVMAppendBasicBlock(*parent, "if-false");
     LLVMMoveBasicBlockAfter(if_else_block, *current_block);
   }
 
   // then at the top
-  LLVMBasicBlockRef if_then_block = LLVMAppendBasicBlock(parent, "if-true");
+  LLVMBasicBlockRef if_then_block = LLVMAppendBasicBlock(*parent, "if-true");
   LLVMMoveBasicBlockAfter(if_then_block, *current_block);
 
   // test expression
@@ -691,26 +700,29 @@ LLVMValueRef cg_if(FL_CODEGEN_HEADER) {
 LLVMValueRef cg_loop(FL_CODEGEN_HEADER) {
   log_debug("cg_loop");
 
+  LLVMBasicBlockRef main_block = *current_block;
+
   // blocks are backwards!
   LLVMBasicBlockRef pre_cond = 0;
   LLVMBasicBlockRef post_cond = 0;
   LLVMBasicBlockRef update = 0;
-  LLVMBasicBlockRef start = LLVMAppendBasicBlock(parent, "loop-start");
-  LLVMBasicBlockRef block = LLVMAppendBasicBlock(parent, "loop-block");
-  LLVMBasicBlockRef end_block = LLVMAppendBasicBlock(parent, "loop-end");
+  LLVMBasicBlockRef start = LLVMAppendBasicBlock(*parent, "loop-start");
+  LLVMBasicBlockRef block = LLVMAppendBasicBlock(*parent, "loop-block");
+  LLVMBasicBlockRef end_block = LLVMAppendBasicBlock(*parent, "loop-end");
 
   LLVMBuildBr(builder, start); // current-block -> start
   // initialization at start
   if (node->loop.init) {
+    log_debug("loop initialization");
     cg_do_block(start, 0, node->loop.init, FL_CODEGEN_PASSTHROUGH);
   }
 
   if (node->loop.pre_cond) {
-    pre_cond = LLVMAppendBasicBlock(parent, "loop-pre_cond");
+    pre_cond = LLVMAppendBasicBlock(*parent, "loop-pre_cond");
 
     LLVMPositionBuilderAtEnd(builder, start);
     LLVMBuildBr(builder, pre_cond);
-    LLVMPositionBuilderAtEnd(builder, *current_block);
+    LLVMPositionBuilderAtEnd(builder, main_block);
 
     // test expression
 
@@ -718,20 +730,22 @@ LLVMValueRef cg_loop(FL_CODEGEN_HEADER) {
     LLVMValueRef pre_cond_test =
         cg_ast(node->loop.pre_cond, FL_CODEGEN_PASSTHROUGH);
     LLVMBuildCondBr(builder, pre_cond_test, block, end_block);
-    LLVMPositionBuilderAtEnd(builder, *current_block);
+    LLVMPositionBuilderAtEnd(builder, main_block);
   } else {
     LLVMPositionBuilderAtEnd(builder, start);
     LLVMBuildBr(builder, block);
-    LLVMPositionBuilderAtEnd(builder, *current_block);
+    LLVMPositionBuilderAtEnd(builder, main_block);
   }
 
   if (node->loop.update) {
-    update = LLVMAppendBasicBlock(parent, "loop-update");
+    log_debug("loop update");
+    assert(pre_cond != 0);
+    update = LLVMAppendBasicBlock(*parent, "loop-update");
     cg_do_block(update, pre_cond, node->loop.update, FL_CODEGEN_PASSTHROUGH);
   }
 
   if (node->loop.post_cond) {
-    post_cond = LLVMAppendBasicBlock(parent, "loop-post_cond");
+    post_cond = LLVMAppendBasicBlock(*parent, "loop-post_cond");
 
     // test expression
 
@@ -739,23 +753,24 @@ LLVMValueRef cg_loop(FL_CODEGEN_HEADER) {
     LLVMValueRef post_cond_test =
         cg_ast(node->loop.post_cond, FL_CODEGEN_PASSTHROUGH);
     LLVMBuildCondBr(builder, post_cond_test, block, end_block);
-    LLVMPositionBuilderAtEnd(builder, *current_block);
+    LLVMPositionBuilderAtEnd(builder, main_block);
   }
 
+  log_debug("loop block");
   cg_do_block(block, update ? update
                             : (pre_cond ? pre_cond
                                         : (post_cond ? post_cond : end_block)),
               node->loop.block, FL_CODEGEN_PASSTHROUGH);
 
-  LLVMMoveBasicBlockAfter(end_block, *current_block);
+  LLVMMoveBasicBlockAfter(end_block, main_block);
   if (update) {
-    LLVMMoveBasicBlockAfter(update, *current_block);
+    LLVMMoveBasicBlockAfter(update, main_block);
   }
-  LLVMMoveBasicBlockAfter(block, *current_block);
+  LLVMMoveBasicBlockAfter(block, main_block);
   if (pre_cond) {
-    LLVMMoveBasicBlockAfter(pre_cond, *current_block);
+    LLVMMoveBasicBlockAfter(pre_cond, main_block);
   }
-  LLVMMoveBasicBlockAfter(start, *current_block);
+  LLVMMoveBasicBlockAfter(start, main_block);
 
   LLVMPositionBuilderAtEnd(builder, end_block);
   *current_block = end_block;
@@ -765,9 +780,7 @@ LLVMValueRef cg_loop(FL_CODEGEN_HEADER) {
 
 LLVMValueRef cg_left_identifier(FL_CODEGEN_HEADER) {
   log_debug("identifier");
-  ast_dump(node);
   ast_t* decl = ast_search_id_decl(node, node->identifier.string);
-  ast_dump(decl);
 
   if (!decl) {
     log_error("identifier not found: '%s'", node->identifier.string->value);

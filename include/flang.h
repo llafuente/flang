@@ -113,7 +113,7 @@ typedef struct ts_typeh ts_typeh_t;
 #define FL_CODEGEN_HEADER                                                      \
   ast_t* node, LLVMBuilderRef builder, LLVMModuleRef module,                   \
       LLVMContextRef context, LLVMBasicBlockRef* current_block,                \
-      LLVMValueRef parent
+      LLVMValueRef* parent
 
 #define FL_CODEGEN_HEADER_SEND                                                 \
   node, builder, module, context, current_block, parent
@@ -157,13 +157,13 @@ FL_EXTERN size_t ty_create_struct(ast_t* decl);
 FL_EXTERN size_t ast_get_struct_prop_idx(ast_t* decl, string* id);
 
 FL_EXTERN size_t ty_get_typeid_by_name(string* id);
-FL_EXTERN ts_typeh_t* ts_named_type(string* id);
+FL_EXTERN ts_typeh_t* ty_get_type_by_name(string* id);
 FL_EXTERN size_t ty_get_struct_prop_type(size_t id, string* property);
 FL_EXTERN size_t ty_get_struct_prop_idx(size_t id, string* property);
 
 FL_EXTERN size_t ty_get_fn_typeid(ast_t* id);
 FL_EXTERN ast_t* ast_search_fn_wargs(string* id, ast_t* args);
-FL_EXTERN size_t ts_var_typeid(ast_t* id);
+FL_EXTERN size_t ast_get_ident_typeid(ast_t* id);
 
 /* cldoc:end-category() */
 
@@ -195,7 +195,6 @@ FL_EXTERN ast_t* fl_parse_main_utf8(char* str);
 FL_EXTERN ast_t* fl_parse_file(const char* filename);
 FL_EXTERN string* fl_file_to_string(const char* filename);
 FL_EXTERN ast_t* fl_parse_main_file(const char* filename);
-FL_EXTERN ast_t* typesystem(ast_t* root);
 
 /* cldoc:end-category() */
 
@@ -378,3 +377,12 @@ ast_t* ast_mk_cast(ast_t* type, ast_t* element);
 ast_t* ast_mk_sizeof(ast_t* type);
 ast_t* ast_mk_import(ast_t* string_lit);
 ast_t* ast_mk_error(const char* message, char* type);
+
+/* cldoc:begin-category(typesystem/typesystem.c) */
+/** Pass all typesystem to given ast_t
+ * First it will fetch all imports
+ * Then register all types
+ * Then apply inference and casting logics
+ */
+FL_EXTERN ast_t* typesystem(ast_t* root);
+/* cldoc:end-category() */

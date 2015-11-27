@@ -192,7 +192,7 @@ maybe_stmts
   | stmts nonblock_expr { $$ = ext_node($1, 1, $2); }
   | nonblock_expr
   */
-  | %empty              { $$ = 0; }
+  | %empty              { $$ = ast_mk_list(); }
   ;
 
 stmt

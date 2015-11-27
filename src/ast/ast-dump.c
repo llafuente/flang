@@ -54,7 +54,11 @@ void ast_dump_one(ast_t* node) {
     printf("assignament T(%zu)", node->ty_id);
     break;
   case FL_AST_EXPR_BINOP:
-    printf("binop T(%zu) [operator=%d]", node->ty_id, node->binop.operator);
+    if (node->binop.operator<127) {
+      printf("binop T(%zu) [operator=%c]", node->ty_id, node->binop.operator);
+    } else {
+      printf("binop T(%zu) [operator=%d]", node->ty_id, node->binop.operator);
+    }
     break;
   case FL_AST_LIT_INTEGER:
     printf("integer T(%zu) [u=%ld] [zu=%zu]", node->ty_id,
@@ -74,10 +78,18 @@ void ast_dump_one(ast_t* node) {
     printf("boolean T(%zu) [value=%d]", node->ty_id, node->boolean.value);
     break;
   case FL_AST_EXPR_LUNARY:
-    printf("lunary T(%zu) [operator=%d]", node->ty_id, node->lunary.operator);
+    if (node->lunary.operator<127) {
+      printf("lunary T(%zu) [operator=%c]", node->ty_id, node->lunary.operator);
+    } else {
+      printf("lunary T(%zu) [operator=%d]", node->ty_id, node->lunary.operator);
+    }
     break;
   case FL_AST_EXPR_RUNARY:
-    printf("runary T(%zu) [operator=%d]", node->ty_id, node->runary.operator);
+    if (node->runary.operator<127) {
+      printf("runary T(%zu) [operator=%d]", node->ty_id, node->runary.operator);
+    } else {
+      printf("runary T(%zu) [operator=%c]", node->ty_id, node->runary.operator);
+    }
     break;
   case FL_AST_EXPR_CALL:
     printf("call T(%zu) [arguments=%zu]", node->ty_id, node->call.narguments);
@@ -122,6 +134,7 @@ void ast_dump_one(ast_t* node) {
     break;
   case FL_AST_STMT_LOOP:
     printf("loop");
+    break;
   case FL_AST_EXPR_SIZEOF:
     printf("sizeof T(%zu)", node->ty_id);
     break;

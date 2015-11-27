@@ -67,5 +67,32 @@ TASK_IMPL(codegen_expressions) {
   TEST_CODEGEN_OK("unary 03", "var i64 c = 0; c--;", {});
   TEST_CODEGEN_OK("unary 04", "var i64 c = 0; --c;", {});
 
+  TEST_CODEGEN_OK_NOCORE("double loop", "var i64 i = 0;var i64 j = 0;"
+                                        "for i = 0; i < 1; ++i {"
+                                        "for j = 0; j < 1; ++j {"
+                                        "}"
+                                        "}",
+                         {});
+
+  TEST_CODEGEN_OK_NOCORE("double loop inside function",
+                         "fn abc() : i32 {"
+                         "var i64 i = 0;var i64 j = 0;"
+                         "for i = 0; i < 1; ++i {"
+                         "}"
+                         "return 0;"
+                         "}",
+                         {});
+
+  TEST_CODEGEN_OK_NOCORE("double loop inside function",
+                         "fn abc() : i32 {"
+                         "var i64 i = 0;var i64 j = 0;"
+                         "for i = 0; i < 1; ++i {"
+                         "for j = 0; j < 1; ++j {"
+                         "}"
+                         "}"
+                         "return 0;"
+                         "}",
+                         {});
+
   return 0;
 }

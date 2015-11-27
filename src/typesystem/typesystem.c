@@ -25,53 +25,15 @@
 
 #include "flang.h"
 
-// only promote numbers
-size_t ts_promote_typeid(size_t a, size_t b) {
-  ty_t t_a = ts_type_table[a];
-  ty_t t_b = ts_type_table[b];
+ast_t* typesystem(ast_t* root) {
+  ast_parent(root);
 
-  assert(t_a.of == FL_NUMBER);
-  assert(t_b.of == FL_NUMBER);
+  psr_load_imports(root);
 
-  // check floating point
-  if (t_a.number.fp && !t_b.number.fp) {
-    return a;
-  }
+  ts_register_types(root);
 
-  if (t_b.number.fp && !t_a.number.fp) {
-    return b;
-  }
-  // check different sign
-  if (!t_b.number.sign && t_a.number.sign) {
-    return a;
-  }
+  // do inference
+  root = ts_pass(root);
 
-  if (t_b.number.sign && !t_a.number.sign) {
-    return b;
-  }
-
-  // check bits
-  return t_a.number.bits > t_b.number.bits ? a : b;
-}
-
-// TODO global vars!
-size_t ts_var_typeid(ast_t* id) {
-  assert(id->type == FL_AST_LIT_IDENTIFIER);
-  log_verbose("%s", id->identifier.string->value);
-
-  ast_t* decl = ast_search_id_decl(id, id->identifier.string);
-
-  if (!decl) {
-    log_error("(ts) cannot find var declaration %s",
-              id->identifier.string->value);
-  }
-
-  return ast_get_typeid(decl);
-}
-
-ts_typeh_t* ts_named_type(string* id) {
-  ts_typeh_t* s;
-  HASH_FIND_STR(ts_hashtable, id->value, s);
-
-  return s;
+  return root;
 }
