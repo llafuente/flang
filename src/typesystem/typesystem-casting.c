@@ -101,12 +101,17 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
           return FL_CAST_FPEXT;
         }
 
-        // sign -> sign
-        if ((cu_type.number.sign && ex_type.number.sign) ||
+        if ((!cu_type.number.sign && !ex_type.number.sign) ||
             (!cu_type.number.sign && ex_type.number.sign)) {
-          return FL_CAST_SEXT;
+          return FL_CAST_ZEXT;
         }
-        return FL_CAST_ZEXT;
+
+        return FL_CAST_SEXT;
+        /* not necessary :)
+        if ((!cu_type.number.sign && !ex_type.number.sign) ||
+            (cu_type.number.sign && !ex_type.number.sign)) {
+        }
+        */
       }
 
       // downcast / truncate

@@ -86,7 +86,7 @@ string* fl_file_to_string(const char* filename) {
   // copy the file into the buffer:
   size_t result = fread(code->value, 1, lSize, f);
   if (result != lSize) {
-    fl_fatal_error(stderr, "Reading error\n");
+    fl_fatal_error("%s\n", "Reading error");
   }
 
   // double null needed by flex/bison

@@ -150,11 +150,13 @@ TASK_IMPL(flang_files) {
       "memory", "memory3", "expressions", "casting", "if", "loops", "loops2",
       "types", "pointers", "pointers2", "string", "functions",
       "function-pointer", "arithmetic", "autocast", "increment", "fibonacci",
-      "type-promotion"
+      "type-promotion-signed",
+      "type-promotion-unsigned",
+      "type-promotion-mix"
       //,"promotion"
   };
 
-  test_file_list(test_files, 18, "../test/fl/");
+  test_file_list(test_files, 20, "../test/fl/");
 
   char* perf_files[] = {"array-reverse"};
 
