@@ -45,6 +45,15 @@ TASK_IMPL(typesystem) {
   t = ts_promote_typeid(TS_BOOL, TS_F32);
   ASSERT(t == TS_F32, "TS_BOOL + TS_F32 => TS_F32");
 
+  t = ts_promote_typeid(TS_I32, TS_BOOL);
+  ASSERT(t == TS_I32, "TS_BOOL + TS_I32 => TS_I32");
+
+  t = ts_promote_typeid(TS_BOOL, TS_I32);
+  ASSERT(t == TS_I32, "TS_BOOL + TS_I32 => TS_I32");
+
+  ASSERT(!ts_castable(TS_I64, TS_I32), "demotion not allowed");
+
+
   ts_exit();
 
   return 0;

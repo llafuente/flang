@@ -170,7 +170,7 @@ ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
         log_error("cannot find type of argument %zu", i);
       }
 
-      if (!ts_castable(arg_call->ty_id, param->ty_id)) {
+      if (!ts_castable(param->ty_id, arg_call->ty_id)) {
         break;
       }
       if (i == imax - 1) {

@@ -198,7 +198,9 @@ TASK_IMPL(parser_expressions) {
     ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
   });
 
-  TEST_PARSER_OK("equality 2", "var i32 i; i = 1; i == 5.0;", {});
+  // TODO test this err
+  //TEST_PARSER_OK("equality 2", "var i32 i;\ni = 1;\ni == 5.0;", {});
+  TEST_PARSER_OK("equality 2", "var i32 i;\ni = 1;\ni == 5;", {});
 
   // TODO illustrate typesystem vs inference war, fix it!
   TEST_PARSER_OK("member access", "struct xxx {i8 b};"
@@ -265,6 +267,15 @@ TASK_IMPL(parser_expressions) {
     ASSERT(expr_l->type == FL_AST_EXPR_BINOP, "left is binop");
     ASSERT(expr_r->type == FL_AST_LIT_INTEGER, "left id literal");
   });
+
+  /* TODO ast_raise should return an error so err can be tested!
+  TEST_PARSER_ERROR("type demotion",
+                    "var i32 a = 1;\n"
+                    "var i64 b = 1;\n"
+                    "a = b;",
+                    "manual casting required",
+                    {});
+  */
 
   return 0;
 }

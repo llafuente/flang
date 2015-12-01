@@ -27,7 +27,7 @@
 #include "grammar/tokens.h"
 #include "grammar/parser.h"
 
-ast_t* fl_attach_core(ast_t* root) {
+void __fl_attach_core(ast_t* root) {
   ast_t* block = root->program.body;
 
   if (block->type != FL_AST_ERROR) {
@@ -62,7 +62,7 @@ ast_t* fl_parse_utf8(char* str) {
 
 ast_t* fl_parse_main_utf8(char* str) {
   ast_t* root = fl_parse_utf8(str);
-  fl_attach_core(root);
+  __fl_attach_core(root);
 
   return root;
 }
@@ -105,7 +105,7 @@ ast_t* fl_parse_main_file(const char* filename) {
   ast_t* root = fl_parse(code, filename);
 
   assert(root->type == FL_AST_PROGRAM);
-  fl_attach_core(root);
+  __fl_attach_core(root);
 
   return root;
 }

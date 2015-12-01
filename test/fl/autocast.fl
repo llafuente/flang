@@ -16,7 +16,7 @@ struct c_t {
   i32 value
 };
 fn autocast(c_t t) : i8 {
-  return t.value;
+  return cast(i8) t.value;
 }
 
 var a_t a;

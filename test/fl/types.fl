@@ -8,7 +8,7 @@ b.a = 1;
 
 var i8 c;
 
-c = b.a;
+c = cast(i8) b.a;
 
 printf("%d = %d\n", b.a, c);
 

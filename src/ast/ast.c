@@ -39,7 +39,7 @@ size_t ast_get_typeid(ast_t* node) {
   // check AST is somewhat "type-related"
   switch (node->type) {
   case FL_AST_DTOR_VAR:
-    log_verbose("var decl T(%zu)", node->var.type->ty_id);
+    log_verbose("var decl '%s' T(%zu)", node->var.id->identifier.string->value, node->var.type->ty_id);
     return node->var.type->ty_id;
   case FL_AST_PARAMETER:
     log_verbose("parameter T(%zu)", node->param.id->ty_id);

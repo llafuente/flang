@@ -25,6 +25,56 @@
 
 #include "flang.h"
 
+string* ty_to_string(size_t ty_id) {
+  ty_t ty = ts_type_table[ty_id];
+  // cached?
+  if (ty.id) {
+    return ty.id;
+  }
+
+  string* buffer = st_new(64, st_enc_utf8);
+
+  switch (ty.of) {
+    case FL_POINTER:
+      st_append_c(&buffer, "ptr<");
+      st_append(&buffer, ty_to_string(ty.ptr.to));
+      st_append_c(&buffer, ">");
+      break;
+    case FL_VECTOR:
+      st_append_c(&buffer, "vector<");
+      st_append(&buffer, ty_to_string(ty.vector.to));
+      st_append_c(&buffer, ">");
+      break;
+    case FL_STRUCT: {
+      st_append_c(&buffer, "struct ");
+      st_append(&buffer, ty.structure.decl->structure.id->identifier.string);
+      st_append_c(&buffer, " { ");
+
+      size_t i;
+      for (i = 0; i < ty.structure.nfields; ++i) {
+        st_append(&buffer, ty_to_string(ty.structure.fields[i]));
+        st_append_c(&buffer, ", ");
+      }
+      st_append_c(&buffer, "}");
+    } break;
+    case FL_FUNCTION: {
+      st_append_c(&buffer, "fn ");
+      st_append_c(&buffer, ty.id ? ty.id->value : "Anonymous");
+      st_append_c(&buffer, " (");
+
+      size_t i;
+      for (i = 0; i < ty.func.nparams; ++i) {
+        st_append(&buffer, ty_to_string(ty.func.params[i]));
+        st_append_c(&buffer, ", ");
+      }
+
+      st_append_c(&buffer, ") : ");
+      st_append(&buffer, ty_to_string(ty.func.ret));
+    } break;
+  }
+  return ty.id = buffer;
+}
+
 // TODO buffered version
 void ty_dump(size_t ty_id) {
   ty_t ty = ts_type_table[ty_id];

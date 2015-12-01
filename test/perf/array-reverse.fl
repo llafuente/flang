@@ -36,4 +36,4 @@ for i = 0; i < count; i = i + 1 {
   printf("arr[%d] = %d\n", i, arr[i]);
 }
 
-free(arr);
+free(cast(ptr(void)) arr);

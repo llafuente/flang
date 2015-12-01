@@ -45,6 +45,9 @@ LLVMModuleRef fl_codegen(ast_t* root, char* module_name) {
   // LLVMBuilderRef builder = LLVMCreateBuilderInContext(context);
   LLVMBuilderRef builder = LLVMCreateBuilder();
 
+  log_debug("this is what codegen see");
+  ast_dump(root);
+
   /*
     LLVMExecutionEngineRef jit = cg_jit();
 
@@ -296,9 +299,12 @@ LLVMValueRef cg_lit_string(FL_CODEGEN_HEADER) {
 }
 
 LLVMValueRef cg_assignament(FL_CODEGEN_HEADER) {
+  if (node->assignament.operator != '=') {
+    ast_raise_error(node, "invalid assignament for codegen. Must be expanded.");
+  }
+
   log_debug("right");
   ast_t* r = node->assignament.right;
-
   LLVMValueRef right =
       cg_ast_loaded("load_assignament", r, FL_CODEGEN_PASSTHROUGH);
 
@@ -355,7 +361,9 @@ LLVMValueRef cg_binop(FL_CODEGEN_HEADER) {
   default: {}
   }
 
-  bool use_fp = ty_is_fp(node->ty_id);
+  // left and right must have the same type, so pick one
+  // current node could have other type
+  bool use_fp = ty_is_fp(node->binop.left->ty_id);
   log_verbose("is fp? %d", use_fp);
   // Create different IR code depending on the operator.
   switch (node->binop.operator) {

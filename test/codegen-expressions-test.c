@@ -94,5 +94,11 @@ TASK_IMPL(codegen_expressions) {
                          "}",
                          {});
 
+TEST_CODEGEN_OK_NOCORE("type demotion",
+                      "var i32 a = 1;\n"
+                      "var i64 b = 1;\n"
+                      "a = cast(i32) b;",
+                      {});
+
   return 0;
 }

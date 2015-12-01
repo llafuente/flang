@@ -25,42 +25,62 @@
 
 #include "flang.h"
 
-bool ts_castable(size_t aty_id, size_t bty_id) {
-  // same obviously true
-  if (aty_id == bty_id) {
+bool ts_castable(size_t current, size_t expected) {
+  // same obviously true, no type yet also true
+  if (current == expected || !current) {
     return true;
   }
 
   // TODO special cases atm
-  if ((aty_id == TS_STRING && bty_id == TS_CSTR) ||
-      (aty_id == TS_CSTR && bty_id == TS_STRING)) {
+  if ((current == TS_STRING && expected == TS_CSTR) ||
+      (current == TS_CSTR && expected == TS_STRING)) {
     return true;
   }
 
-  ty_t atype = ts_type_table[aty_id];
-  ty_t btype = ts_type_table[bty_id];
+  ty_t atype = ts_type_table[current];
+  ty_t btype = ts_type_table[expected];
 
   if (btype.of == atype.of) {
     switch (btype.of) {
+    case FL_POINTER:
+      // void* to anything is ok, to avoid casting malloc
+      // anything else bad
+      if (atype.ptr.to == TS_VOID) {
+        return true;
+      }
+    break;
     case FL_NUMBER:
-      // a is bigger & both floating/number
-      if (atype.number.bits >= btype.number.bits &&
+      printf("atype.number.bits %d\n", atype.number.bits);
+      printf("btype.number.bits %d\n", btype.number.bits);
+
+      // b is bigger & both floating/number
+      if (atype.number.bits <= btype.number.bits &&
           btype.number.fp == atype.number.fp) {
         return true; // both numbers
+      }
+      // from integer to float
+      if (!atype.number.fp && btype.number.fp) {
+        return true;
       }
       break;
     default: {}
     }
   }
 
-  // TODO vector - ptr casting should be allowed?
+  //vector-ptr casting
+  if ((btype.of == FL_POINTER && atype.of == FL_VECTOR)) {
+    return btype.ptr.to == atype.vector.to;
+  }
+  if ((atype.of == FL_POINTER && btype.of == FL_VECTOR)) {
+    return atype.ptr.to == btype.vector.to;
+  }
 
   printf("\n");
-  ty_dump(aty_id);
+  ty_dump(current);
   printf("\n");
-  ty_dump(bty_id);
+  ty_dump(expected);
 
-  log_verbose("invalid cast [%zu] to [%zu]", aty_id, bty_id);
+  log_verbose("invalid cast [%zu] to [%zu]", current, expected);
 
   return false;
 }
@@ -189,17 +209,46 @@ ast_action_t ts_cast_operation_pass_cb(ast_t* node, ast_t* parent, size_t level,
   return FL_AC_CONTINUE;
 }
 
+ast_t* ts_autocast(ast_t* node, size_t input, size_t output) {
+  string* name = st_newc("autocast", st_enc_ascii);
+  size_t args_ty[1];
+  args_ty[0] = input;
+  ast_t* autocast = ast_search_fn(node, name, args_ty, 1, output, false);
+  st_delete(&name);
+
+  return autocast;
+}
+
+bool ts_cast_literal(ast_t* node, size_t type_id) {
+  if (node->type == FL_AST_LIT_FLOAT || node->type == FL_AST_LIT_INTEGER) {
+    node->ty_id = type_id;
+    return node;
+  }
+  if (node->type == FL_AST_EXPR_LUNARY && node->lunary.operator == '-') {
+    return ts_cast_literal(node->lunary.element, type_id);
+  }
+  return false;
+}
+
 ast_t* ts_create_cast(ast_t* node, size_t type_id) {
   // try to cast to "inference" type, just wait...
   if (!type_id) {
     return node;
   }
 
-  if (node->type == FL_AST_LIT_FLOAT || node->type == FL_AST_LIT_INTEGER) {
-    node->ty_id = type_id;
+  // literals are always castables
+  if (ts_cast_literal(node, type_id)) {
+    log_verbose("literal casted");
     return node;
   }
 
+  log_verbose("castable? %d", ts_castable(node->ty_id, type_id));
+  log_verbose("autocast? %p", ts_autocast(node, node->ty_id, type_id));
+
+  if (!ts_castable(node->ty_id, type_id) && !ts_autocast(node, node->ty_id, type_id)) {
+    ast_raise_error(node, "manual casting is required from %s to %s", ty_to_string(node->ty_id)->value, ty_to_string(type_id)->value);
+    return node; // almost an error!?
+  }
   ast_t* cast = ast_mk_cast(0, node);
   cast->parent = node->parent;
   node->parent = cast;
@@ -229,15 +278,38 @@ void ts_create_binop_cast(ast_t* bo) {
 
   ast_t* l = bo->binop.left;
   ast_t* r = bo->binop.right;
+  size_t expected_ty_id = bo->ty_id;
 
-  if (bo->ty_id != l->ty_id) {
+  if (expected_ty_id == TS_BOOL) {
+    // both must have the same type!
+    if (ast_is_literal(l)) {
+      ast_t* cast = ts_create_cast(l, r->ty_id);
+      bo->binop.left = cast;
+      return;
+    }
+
+    if (ast_is_literal(r)) {
+      ast_t* cast = ts_create_cast(r, l->ty_id);
+      bo->binop.right = cast;
+      return;
+    }
+
+    expected_ty_id = ts_promote_typeid(bo->binop.left->ty_id, bo->binop.right->ty_id);
+  } else {
+    expected_ty_id = bo->ty_id;
+  }
+
+  if (expected_ty_id != l->ty_id) {
     // cast left side
-    ts_create_left_cast(bo, l);
+    ast_t* cast = ts_create_cast(l, expected_ty_id);
+    bo->binop.left = cast;
   }
 
-  if (bo->ty_id != r->ty_id) {
-    ts_create_right_cast(bo, r);
+  if (expected_ty_id != r->ty_id) {
+    ast_t* cast = ts_create_cast(r, expected_ty_id);
+    bo->binop.right = cast;
   }
+
 }
 
 void ts_cast_return(ast_t* node) {
@@ -353,6 +425,7 @@ void ts_cast_call(ast_t* node) {
 
     if (arg->ty_id != t->func.params[i]) {
       // cast right side
+      log_debug("cast argument %zu != %zu", arg->ty_id, t->func.params[i]);
       args->list.elements[i] = ts_create_cast(arg, t->func.params[i]);
     }
   }
@@ -390,7 +463,7 @@ void ts_cast_binop(ast_t* node) {
     // TEST parser-expression-test.c:187
 
     // both sides must be the same! the bigger one
-    node->ty_id = ts_promote_typeid(l_type, r_type);
+    node->ty_id = TS_BOOL; //ts_promote_typeid(l_type, r_type);
     ts_create_binop_cast(node);
   } break;
   case '&':
@@ -400,7 +473,7 @@ void ts_cast_binop(ast_t* node) {
   case TK_SHR:
     // left and right must be Integers!
     if (l_fp || r_fp) {
-      log_error("invalid operants");
+      ast_raise_error(node, "Invalid operants. Both must be integers.");
     }
   // fallthrough
   default: {

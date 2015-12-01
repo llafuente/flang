@@ -262,6 +262,10 @@ FL_EXTERN ast_t* ast_clone(ast_t* node);
 FL_EXTERN bool ast_is_static(ast_t* node);
 /* cldoc:end-category() */
 
+/* cldoc:begin-category(ast/ast-query.c) */
+FL_EXTERN bool ast_is_literal(ast_t* node);
+/* cldoc:end-category() */
+
 /* cldoc:begin-category(ast/ast-codegen.c) */
 FL_EXTERN bool ast_require_load(ast_t* node);
 /* cldoc:end-category() */
@@ -269,7 +273,7 @@ FL_EXTERN bool ast_require_load(ast_t* node);
 /* cldoc:begin-category(ast/ast-error.c) */
 extern char* ast_err_buff;
 FL_EXTERN bool ast_print_error(ast_t* node);
-FL_EXTERN void ast_raise_error(ast_t* node, char* message);
+FL_EXTERN void ast_raise_error(ast_t* node, char* message, ...);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(typesystem/typesystem-inference.c) */
@@ -331,6 +335,7 @@ FL_EXTERN void cg_utils_store(ast_t* identifier, LLVMValueRef value,
 extern int log_debug_level;
 /* cldoc:end-category() */
 
+FL_EXTERN string* ty_to_string(size_t ty_id);
 FL_EXTERN void ty_dump(size_t ty_id);
 FL_EXTERN void ty_dump_table();
 FL_EXTERN void ast_dump(ast_t* node);
