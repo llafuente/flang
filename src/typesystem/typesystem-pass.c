@@ -93,9 +93,6 @@ ast_t* ts_typeit(ast_t* node) {
 }
 
 ast_t* ts_pass(ast_t* node) {
-  log_debug_level = 10;
-  ast_dump(node);
-
   log_debug("(parser) inference");
   ts_inference(node);
   log_debug("(parser) type it");

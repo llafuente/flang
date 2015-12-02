@@ -11,6 +11,7 @@ requisites (at least)
 * flex 2.5.37
 * autoconf (GNU Autoconf) 2.69
 * Clang 3.6.2
+* [https://github.com/llafuente/string.c](string.c) latest in the git
 
 
 ```bash

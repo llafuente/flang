@@ -50,9 +50,6 @@ bool ts_castable(size_t current, size_t expected) {
       }
     break;
     case FL_NUMBER:
-      printf("atype.number.bits %d\n", atype.number.bits);
-      printf("btype.number.bits %d\n", btype.number.bits);
-
       // b is bigger & both floating/number
       if (atype.number.bits <= btype.number.bits &&
           btype.number.fp == atype.number.fp) {

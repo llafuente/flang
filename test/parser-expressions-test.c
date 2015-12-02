@@ -29,7 +29,7 @@
 
 // TODO review if ";" is required
 TASK_IMPL(parser_expressions) {
-  log_debug_level = 10;
+  log_debug_level = 0;
 
   /*
   TEST_PARSER_OK("sizeof parse",

@@ -36,14 +36,14 @@ string* ty_to_string(size_t ty_id) {
 
   switch (ty.of) {
     case FL_POINTER:
-      st_append_c(&buffer, "ptr<");
+      st_append_c(&buffer, "ptr(");
       st_append(&buffer, ty_to_string(ty.ptr.to));
-      st_append_c(&buffer, ">");
+      st_append_c(&buffer, ")");
       break;
     case FL_VECTOR:
-      st_append_c(&buffer, "vector<");
+      st_append_c(&buffer, "vector(");
       st_append(&buffer, ty_to_string(ty.vector.to));
-      st_append_c(&buffer, ">");
+      st_append_c(&buffer, ")");
       break;
     case FL_STRUCT: {
       st_append_c(&buffer, "struct ");

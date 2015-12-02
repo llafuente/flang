@@ -68,7 +68,7 @@ bool ast_print_error(ast_t* node) {
 }
 
 void ast_raise_error(ast_t* node, char* message, ...) {
-  log_debug_level = 10;
+  log_debug_level = 99;
 
   char buffer[1024];
   va_list args;
