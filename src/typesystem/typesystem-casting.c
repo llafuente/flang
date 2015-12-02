@@ -48,7 +48,7 @@ bool ts_castable(size_t current, size_t expected) {
       if (atype.ptr.to == TS_VOID) {
         return true;
       }
-    break;
+      break;
     case FL_NUMBER:
       // b is bigger & both floating/number
       if (atype.number.bits <= btype.number.bits &&
@@ -64,7 +64,7 @@ bool ts_castable(size_t current, size_t expected) {
     }
   }
 
-  //vector-ptr casting
+  // vector-ptr casting
   if ((btype.of == FL_POINTER && atype.of == FL_VECTOR)) {
     return btype.ptr.to == atype.vector.to;
   }
@@ -221,7 +221,7 @@ bool ts_cast_literal(ast_t* node, size_t type_id) {
     node->ty_id = type_id;
     return node;
   }
-  if (node->type == FL_AST_EXPR_LUNARY && node->lunary.operator == '-') {
+  if (node->type == FL_AST_EXPR_LUNARY && node->lunary.operator== '-') {
     return ts_cast_literal(node->lunary.element, type_id);
   }
   return false;
@@ -242,8 +242,11 @@ ast_t* ts_create_cast(ast_t* node, size_t type_id) {
   log_verbose("castable? %d", ts_castable(node->ty_id, type_id));
   log_verbose("autocast? %p", ts_autocast(node, node->ty_id, type_id));
 
-  if (!ts_castable(node->ty_id, type_id) && !ts_autocast(node, node->ty_id, type_id)) {
-    ast_raise_error(node, "manual casting is required from %s to %s", ty_to_string(node->ty_id)->value, ty_to_string(type_id)->value);
+  if (!ts_castable(node->ty_id, type_id) &&
+      !ts_autocast(node, node->ty_id, type_id)) {
+    ast_raise_error(node, "manual casting is required from %s to %s",
+                    ty_to_string(node->ty_id)->value,
+                    ty_to_string(type_id)->value);
     return node; // almost an error!?
   }
   ast_t* cast = ast_mk_cast(0, node);
@@ -291,7 +294,8 @@ void ts_create_binop_cast(ast_t* bo) {
       return;
     }
 
-    expected_ty_id = ts_promote_typeid(bo->binop.left->ty_id, bo->binop.right->ty_id);
+    expected_ty_id =
+        ts_promote_typeid(bo->binop.left->ty_id, bo->binop.right->ty_id);
   } else {
     expected_ty_id = bo->ty_id;
   }
@@ -306,7 +310,6 @@ void ts_create_binop_cast(ast_t* bo) {
     ast_t* cast = ts_create_cast(r, expected_ty_id);
     bo->binop.right = cast;
   }
-
 }
 
 void ts_cast_return(ast_t* node) {
@@ -460,7 +463,7 @@ void ts_cast_binop(ast_t* node) {
     // TEST parser-expression-test.c:187
 
     // both sides must be the same! the bigger one
-    node->ty_id = TS_BOOL; //ts_promote_typeid(l_type, r_type);
+    node->ty_id = TS_BOOL; // ts_promote_typeid(l_type, r_type);
     ts_create_binop_cast(node);
   } break;
   case '&':

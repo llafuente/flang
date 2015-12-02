@@ -72,12 +72,11 @@ void ast_raise_error(ast_t* node, char* message, ...) {
 
   char buffer[1024];
   va_list args;
-	va_start(args, message);
+  va_start(args, message);
   vsprintf(buffer, message, args);
   va_end(args);
 
   fprintf(stderr, "\n\n\x1B[31mError: %s\x1B[39m\n", buffer);
-
 
   if (!node) {
     __sanitizer_print_stack_trace();

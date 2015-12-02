@@ -285,7 +285,11 @@ ts_typeh_t* ty_get_type_by_name(string* id) {
   return s;
 }
 
-size_t ty_get_typeid_by_name(string* id) {
+size_t ty_get_typeid_by_name(ast_t* node) {
+  assert(node->type == FL_AST_LIT_IDENTIFIER);
+
+  string* id = node->identifier.string;
+
   ts_typeh_t* s;
   HASH_FIND_STR(ts_hashtable, id->value, s);
 
@@ -294,7 +298,7 @@ size_t ty_get_typeid_by_name(string* id) {
     return 0;
 
   if (s->list.size > 1) {
-    log_error("not allowed?!");
+    ast_raise_error(node, "Found many types with the same name");
   }
 
   ast_t* ast = (ast_t*)array_get(&s->list, 0);

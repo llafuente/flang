@@ -299,7 +299,7 @@ LLVMValueRef cg_lit_string(FL_CODEGEN_HEADER) {
 }
 
 LLVMValueRef cg_assignament(FL_CODEGEN_HEADER) {
-  if (node->assignament.operator != '=') {
+  if (node->assignament.operator!= '=') {
     ast_raise_error(node, "invalid assignament for codegen. Must be expanded.");
   }
 

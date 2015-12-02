@@ -160,7 +160,14 @@ TASK_IMPL(parser_types) {
   // TODO uncomment
   TEST_PARSER_OK("string", "var string x;",
                  { ASSERT(body[0]->ty_id == TS_STRING, "typeid string"); });
-                 */
 
+
+  // TODO this requires typesystem to fail
+  TEST_PARSER_ERROR("empty struct", "function a() {};"
+                                    "struct a { i8 b, };"
+                                    "var a invalid;",
+                    "Found many types with the same name",
+                    {});
+  */
   return 0;
 }

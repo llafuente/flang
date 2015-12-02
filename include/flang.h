@@ -156,7 +156,7 @@ FL_EXTERN size_t ty_create_fn(ast_t* decl);
 FL_EXTERN size_t ty_create_struct(ast_t* decl);
 FL_EXTERN size_t ast_get_struct_prop_idx(ast_t* decl, string* id);
 
-FL_EXTERN size_t ty_get_typeid_by_name(string* id);
+FL_EXTERN size_t ty_get_typeid_by_name(ast_t* node);
 FL_EXTERN ts_typeh_t* ty_get_type_by_name(string* id);
 FL_EXTERN size_t ty_get_struct_prop_type(size_t id, string* property);
 FL_EXTERN size_t ty_get_struct_prop_idx(size_t id, string* property);

@@ -93,7 +93,7 @@ size_t get_type(ast_t* node) {
   }
 
   // search named types
-  size_t t = ty_get_typeid_by_name(t_str);
+  size_t t = ty_get_typeid_by_name(node->ty.id);
   if (t) {
     return node->ty_id = t;
   }

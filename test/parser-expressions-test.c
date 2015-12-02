@@ -199,7 +199,7 @@ TASK_IMPL(parser_expressions) {
   });
 
   // TODO test this err
-  //TEST_PARSER_OK("equality 2", "var i32 i;\ni = 1;\ni == 5.0;", {});
+  // TEST_PARSER_OK("equality 2", "var i32 i;\ni = 1;\ni == 5.0;", {});
   TEST_PARSER_OK("equality 2", "var i32 i;\ni = 1;\ni == 5;", {});
 
   // TODO illustrate typesystem vs inference war, fix it!

@@ -50,7 +50,7 @@ ident [a-zA-Z\x80-\xff_][a-zA-Z0-9\x80-\xff_]*
 <suffix>{ident}            { BEGIN(INITIAL); }
 <suffix>(.|\n)  { yyless(0); BEGIN(INITIAL); }
 
-[ \t\r]             { }
+[ \t\r]             { UPDATE_COLUMN(1);}
 \n                  { RESET_COLUMN; }
 
 \xef\xbb\xbf {

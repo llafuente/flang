@@ -174,7 +174,7 @@ ast_t* ast_mk_lit_integer(char* text) {
   if (*end == '\0') {
     // conversion OK!
     node->integer.signed_value = val;
-    node->integer.unsigned_value = (long unsigned int) val;
+    node->integer.unsigned_value = (long unsigned int)val;
     node->ty_id = TS_I64;
   } else if (errno == ERANGE ||
              (errno == ERANGE && (val == LONG_MAX || val == LONG_MIN)) ||

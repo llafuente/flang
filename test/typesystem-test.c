@@ -53,7 +53,6 @@ TASK_IMPL(typesystem) {
 
   ASSERT(!ts_castable(TS_I64, TS_I32), "demotion not allowed");
 
-
   ts_exit();
 
   return 0;

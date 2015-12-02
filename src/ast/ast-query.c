@@ -26,7 +26,7 @@
 #include "flang.h"
 
 ast_action_t ast_is_literal_cb(ast_t* node, ast_t* parent, size_t level,
-                              void* userdata_in, void* userdata_out) {
+                               void* userdata_in, void* userdata_out) {
   switch (node->type) {
   case FL_AST_LIT_STRING:
   case FL_AST_LIT_FLOAT:
@@ -35,12 +35,12 @@ ast_action_t ast_is_literal_cb(ast_t* node, ast_t* parent, size_t level,
   default: {} // supress warning
   }
   if (node->type == FL_AST_EXPR_LUNARY) {
-    switch(node->lunary.operator) {
-      case '-':
-      case '!':
-      case '&':
-        return FL_AC_CONTINUE;
-      default: {} // supress warning
+    switch (node->lunary.operator) {
+    case '-':
+    case '!':
+    case '&':
+      return FL_AC_CONTINUE;
+    default: {} // supress warning
     }
   }
 
