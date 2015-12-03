@@ -36,7 +36,7 @@ void __fl_attach_core(ast_t* root) {
   }
 }
 
-ast_t* fl_parse(string* code, const char* file) {
+ast_t* __fl_parse(string* code, const char* file) {
   // create program node, so error reporting could be nice!
   ast_t* root = ast_mk_program(0);
   root->program.code = code;
@@ -57,7 +57,7 @@ ast_t* fl_parse_utf8(char* str) {
   st_copyc(&code, str, st_enc_utf8);
   st_append_char(&code, 0);
 
-  return fl_parse(code, 0);
+  return __fl_parse(code, 0);
 }
 
 ast_t* fl_parse_main_utf8(char* str) {
@@ -69,7 +69,7 @@ ast_t* fl_parse_main_utf8(char* str) {
 
 ast_t* fl_parse_file(const char* filename) {
   string* code = fl_file_to_string(filename);
-  return fl_parse(code, filename);
+  return __fl_parse(code, filename);
 }
 
 string* fl_file_to_string(const char* filename) {
@@ -102,7 +102,7 @@ string* fl_file_to_string(const char* filename) {
 ast_t* fl_parse_main_file(const char* filename) {
   string* code = fl_file_to_string(filename);
 
-  ast_t* root = fl_parse(code, filename);
+  ast_t* root = __fl_parse(code, filename);
 
   assert(root->type == FL_AST_PROGRAM);
   __fl_attach_core(root);

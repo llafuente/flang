@@ -28,7 +28,7 @@
 ast_t* typesystem(ast_t* root) {
   ast_parent(root);
 
-  psr_load_imports(root);
+  ast_load_imports(root);
 
   ts_register_types(root);
 

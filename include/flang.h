@@ -95,8 +95,8 @@ typedef struct psr_state fl_psrstate_t;
 struct psr_stack;
 typedef struct psr_stack fl_psrstack_t;
 
-struct ts_typeh;
-typedef struct ts_typeh ts_typeh_t;
+struct ts_type_hash;
+typedef struct ts_type_hash ts_type_hash_t;
 
 #include "grammar/parser.h"
 //#include "grammar/tokens.h"
@@ -124,28 +124,262 @@ typedef struct ts_typeh ts_typeh_t;
 //-
 
 /* cldoc:begin-category(flang.c) */
+
 extern array* identifiers;
+
+/* Initiaze global variables and memory pool.
+ * Must be called before anything else.
+ *
+ * see: [flang_exit](#flang_exit)
+ *
+ * @input str input string
+ * @return root ast node
+ */
 FL_EXTERN void flang_init();
+
+/* Free global variables and the memory pool
+ *
+ * see: [flang_init](#flang_init)
+ *
+ * @input str input string
+ * @return root ast node
+ */
 FL_EXTERN void flang_exit(ast_t* root);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(parser/parser-utils.c) */
+
+/* Parse an utf8 string and return the root ast node.
+ *
+ * see: [fl_parse_file](#fl_parse_file)
+ *
+ * @input str input string
+ * @return root ast node
+ */
+FL_EXTERN ast_t* fl_parse_utf8(char* str);
+
+/* Parse an utf8 string and return the root ast node
+ * with import core at the beginning. So you can later call
+ * ast_load_imports and get the full ast.
+ *
+ * see: [fl_parse_main_file](#fl_parse_main_file)
+ *
+ * @input str input string
+ * @return root ast node
+ */
+FL_EXTERN ast_t* fl_parse_main_utf8(char* str);
+
+/* Return file contents parsed.
+ *
+ * see: [fl_parse_utf8](#fl_parse_utf8)
+ *
+ * @input filename path to file
+ * @return root ast node
+ */
+FL_EXTERN ast_t* fl_parse_file(const char* filename);
+
+/* Return file contents parsed with import core at the beginning.
+ * So you can later call ast_load_imports and get the full ast.
+ *
+ * see: [fl_parse_main_utf8](#fl_parse_main_utf8)
+ *
+ * @input filename path to file
+ * @return root ast node
+ */
+FL_EXTERN ast_t* fl_parse_main_file(const char* filename);
+
+/* Help function, exported to easy test code.
+ *
+ * @input filename path to file
+ * @return file contents as string
+ */
+FL_EXTERN string* fl_file_to_string(const char* filename);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(typesystem/type-dump.c) */
+
+/* Get string representation of given type.
+ * Do not need to free ther string, it's allocated in the pool.
+ *
+ * @ty_id type id
+ * @return type as string
+ */
+FL_EXTERN string* ty_to_string(size_t ty_id);
+FL_EXTERN void ty_dump(size_t ty_id);
+FL_EXTERN void ty_dump_cell(size_t ty_id, int indent);
+FL_EXTERN void ty_dump_table();
+
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(typesystem/typesystem-alloc.c) */
+
 extern ty_t* ts_type_table;
+
 extern size_t ts_type_size_s;
-extern ts_typeh_t* ts_hashtable;
+
+extern ts_type_hash_t* ts_hashtable;
+
+/* Intialize type system global variables
+ * Do not call this directly use: [flang_init](#flang_init)
+ */
 FL_EXTERN void ts_init();
+
+/* Free global variables
+ * Do not call this directly use: [flang_exit](#flang_exit)
+ */
 FL_EXTERN void ts_exit();
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(typesystem/typesystem.c) */
-FL_EXTERN bool ty_is_pointer(size_t id);
-FL_EXTERN size_t ts_get_pointer_level(size_t id);
-FL_EXTERN bool ty_is_struct(size_t id);
-FL_EXTERN bool ty_is_number(size_t id);
-FL_EXTERN bool ty_is_fp(size_t id);
-FL_EXTERN bool ty_is_int(size_t id);
-FL_EXTERN bool ty_is_function(size_t id);
-FL_EXTERN size_t ty_create_wrapped(ts_types_t wrapper, size_t child);
+
+/* Check if given type is a struct
+ *
+ * @tyid type id
+ * @return is a struct?
+ */
+FL_EXTERN bool ty_is_struct(size_t tyid);
+
+/* Check if given type is a vector
+ *
+ * @tyid type id
+ * @return is a vector?
+ */
+FL_EXTERN bool ty_is_vector(size_t tyid);
+
+/* Check if given type is a integer or float
+ *
+ * @tyid type id
+ * @return is a integer or float?
+ */
+FL_EXTERN bool ty_is_number(size_t tyid);
+
+/* Check if given type is a floating point number
+ *
+ * @tyid type id
+ * @return is a floating point number?
+ */
+FL_EXTERN bool ty_is_fp(size_t tyid);
+
+/* Check if given type is a integer
+ *
+ * @tyid type id
+ * @return is a integer?
+ */
+FL_EXTERN bool ty_is_int(size_t tyid);
+
+/* Check if given type is a pointer
+ *
+ * @tyid type id
+ * @return is a pointer?
+ */
+FL_EXTERN bool ty_is_pointer(size_t tyid);
+
+/* Return how many pointer deep is the current non-pointer type
+ *
+ * examples: ptr(vector(ptr(i8))) is 1
+ * examples: ptr(ptr(i8)) is 2
+ *
+ * @tyid type id
+ * @return pointer count
+ */
+FL_EXTERN size_t ty_get_pointer_level(size_t tyid);
+
+/* Check if given type is a function
+ *
+ * @tyid type id
+ * @return is a function?
+ */
+FL_EXTERN bool ty_is_function(size_t tyid);
+
+/* Create a wrapper type (ptr, vector, array, etc...)
+ *
+ * @wrapper_type wrapper type
+ * @child_tyid child type id, can be a built-in or another wrapper
+ * @return the type id (unique atm)
+ */
+FL_EXTERN size_t ty_create_wrapped(ts_types_t wrapper_type, size_t child_tyid);
+
+/* Get the index in the struct of given property
+ *
+ * @tyid type id, must be a struct
+ * @property property as text
+ * @return -1 on error/not found, >= 0 otherwise
+ */
+FL_EXTERN size_t ty_get_struct_prop_idx(size_t tyid, string* property);
+
+/* Get the index in the struct of given property
+ *
+ * @tyid type id, must be a struct
+ * @property property as text
+ * @return 0 on error/not found, > 0 otherwise
+ */
+FL_EXTERN size_t ty_get_struct_prop_type(size_t tyid, string* property);
+
+/* Create a new type with given name.
+ * This is used by functions and structs, so both types can collide
+ * in name.
+ * This is called after [ts_create_struct](#ts_create_struct) &
+ * [ty_create_fn](#ty_create_fn)
+ *
+ * @id name
+ * @decl ast declaration, cannot be null
+ * @tyid type id
+ * @return 0 on error/not found, > 0 otherwise
+ */
+FL_EXTERN void ty_create_named(string* id, ast_t* decl, size_t tyid);
+
+/* Create a new type given a struct declaration.
+ * Ensure uniqueness of the returned ty_id
+ * If the type should be indexed (~public) use:
+ *[ty_create_named](#ty_create_named)
+ *
+ * @decl struct declaration, cannot be null
+ * @return type id
+ */
+FL_EXTERN size_t ty_create_struct(ast_t* decl);
+
+/* Create a new type given a function declaration.
+ * Ensure uniqueness of the returned ty_id
+ * If the type should be indexed (~public) use:
+ *[ty_create_named](#ty_create_named)
+ *
+ * @decl function declaration, cannot be null
+ * @return type id
+ */
+FL_EXTERN size_t ty_create_fn(ast_t* decl);
+
+/* Given the function name return it's ty_id
+ * This function does not handle collisions, return the first
+ *
+ * @id function name
+ * @return type id
+ */
+FL_EXTERN size_t ty_get_fn_typeid(ast_t* id);
+
+/* Given a type name return the hash item
+ *
+ * @id type name
+ * @return hash item or null
+ */
+FL_EXTERN ts_type_hash_t* ty_get_type_by_name(string* id);
+
+/* Given an identifier literal, traverse the tree searching
+ * all types. Raise an error if more than one type is found.
+ *
+ * TODO move it to ast-query.c?
+ *
+ * @id type name
+ * @return type id, 0 if not found
+ */
+FL_EXTERN size_t ty_get_typeid_by_name(ast_t* node);
+
+/* cldoc:end-category() */
+
+// TODO continue documenting
+
+/* cldoc:begin-category(typesystem/typesystem.c) */
 FL_EXTERN size_t ts_promote_typeid(size_t a, size_t b);
 FL_EXTERN ast_t* ts_pass(ast_t* node);
 FL_EXTERN void ts_pass_try(ast_t* node);
@@ -154,14 +388,9 @@ FL_EXTERN void ts_pass_try(ast_t* node);
 FL_EXTERN size_t ty_create_fn(ast_t* decl);
 // return the unique typeid given fields
 FL_EXTERN size_t ty_create_struct(ast_t* decl);
+
 FL_EXTERN size_t ast_get_struct_prop_idx(ast_t* decl, string* id);
 
-FL_EXTERN size_t ty_get_typeid_by_name(ast_t* node);
-FL_EXTERN ts_typeh_t* ty_get_type_by_name(string* id);
-FL_EXTERN size_t ty_get_struct_prop_type(size_t id, string* property);
-FL_EXTERN size_t ty_get_struct_prop_idx(size_t id, string* property);
-
-FL_EXTERN size_t ty_get_fn_typeid(ast_t* id);
 FL_EXTERN ast_t* ast_search_fn_wargs(string* id, ast_t* args);
 FL_EXTERN size_t ast_get_ident_typeid(ast_t* id);
 
@@ -187,19 +416,8 @@ FL_EXTERN void ts_cast_binop(ast_t* node);
 FL_EXTERN void ts_cast_expr_member(ast_t* node);
 /* cldoc:end-category() */
 
-/* cldoc:begin-category(parser/parser-functions.c) */
-
-FL_EXTERN ast_t* fl_parse(string* code, const char* file);
-FL_EXTERN ast_t* fl_parse_utf8(char* str);
-FL_EXTERN ast_t* fl_parse_main_utf8(char* str);
-FL_EXTERN ast_t* fl_parse_file(const char* filename);
-FL_EXTERN string* fl_file_to_string(const char* filename);
-FL_EXTERN ast_t* fl_parse_main_file(const char* filename);
-
-/* cldoc:end-category() */
-
 /* cldoc:begin-category(parser/load-imports.c) */
-FL_EXTERN ast_t* psr_load_imports(ast_t* node);
+FL_EXTERN ast_t* ast_load_imports(ast_t* node);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(ast/ast.c) */
@@ -334,12 +552,6 @@ FL_EXTERN void cg_utils_store(ast_t* identifier, LLVMValueRef value,
 // 4 by default
 extern int log_debug_level;
 /* cldoc:end-category() */
-
-FL_EXTERN string* ty_to_string(size_t ty_id);
-FL_EXTERN void ty_dump(size_t ty_id);
-FL_EXTERN void ty_dump_table();
-FL_EXTERN void ast_dump(ast_t* node);
-FL_EXTERN void ast_dump_one(ast_t* node);
 
 void ast_position(ast_t* target, YYLTYPE start, YYLTYPE end);
 ast_t* ast_new();

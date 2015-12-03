@@ -140,10 +140,10 @@ size_t ty_get_struct_prop_type(size_t id, string* property) {
 }
 
 void ty_create_named(string* id, ast_t* decl, size_t type_id) {
-  ts_typeh_t* t = ty_get_type_by_name(id);
+  ts_type_hash_t* t = ty_get_type_by_name(id);
 
   if (!t) {
-    t = (ts_typeh_t*)calloc(1, sizeof(ts_typeh_t));
+    t = (ts_type_hash_t*)calloc(1, sizeof(ts_type_hash_t));
     array_new(&t->list);
 
     strncpy(t->name, id->value, 64);
@@ -264,7 +264,7 @@ size_t ty_create_fn(ast_t* decl) {
   return i;
 }
 
-// TODO global functions!
+// TODO handle: global functions, collisions, etc.
 size_t ty_get_fn_typeid(ast_t* id) {
   assert(id->type != FL_AST_LIT_IDENTIFIER);
 
@@ -278,8 +278,8 @@ size_t ty_get_fn_typeid(ast_t* id) {
   return 0;
 }
 
-ts_typeh_t* ty_get_type_by_name(string* id) {
-  ts_typeh_t* s;
+ts_type_hash_t* ty_get_type_by_name(string* id) {
+  ts_type_hash_t* s;
   HASH_FIND_STR(ts_hashtable, id->value, s);
 
   return s;
@@ -290,7 +290,7 @@ size_t ty_get_typeid_by_name(ast_t* node) {
 
   string* id = node->identifier.string;
 
-  ts_typeh_t* s;
+  ts_type_hash_t* s;
   HASH_FIND_STR(ts_hashtable, id->value, s);
 
   // TODO raise something ?!

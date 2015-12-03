@@ -3,8 +3,7 @@ ACLOCAL_AMFLAGS = -I m4
 COMPILER_SOURCES = src/flang.c \
                 src/grammar/parser.c \
                 src/grammar/tokens.c \
-                src/parser/parser-functions.c \
-                src/parser/load-imports.c \
+                src/parser/parser-utils.c \
                 src/ast/ast.c \
                 src/ast/ast-alloc.c \
                 src/ast/ast-mk.c \
@@ -17,6 +16,7 @@ COMPILER_SOURCES = src/flang.c \
                 src/ast/ast-search.c \
                 src/ast/ast-get.c \
                 src/ast/ast-query.c \
+                src/ast/ast-load-imports.c \
                 src/codegen/codegen.c \
                 src/codegen/codegen-export.c \
                 src/codegen/codegen-interpreter.c \
