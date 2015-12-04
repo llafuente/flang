@@ -379,7 +379,7 @@ FL_EXTERN void ts_exit();
 
 /* cldoc:begin-category(typesystem-promotion.c) */
 
-/* Return if @current can be safetly casted to @expected
+/* Return if current can be safetly casted to expected
  *
  * @current type id
  * @expected type id
@@ -395,7 +395,7 @@ FL_EXTERN bool ts_castable(size_t current, size_t expected);
  */
 FL_EXTERN ast_cast_operations_t ts_cast_operation(ast_t* node);
 
-/* Try to cast a literal to the given @type_id
+/* Try to cast a literal to the given type_id
  *
  * @node node literal
  * @type_id type id
@@ -458,7 +458,7 @@ FL_EXTERN ast_t* ts_pass(ast_t* node);
 
 /* cldoc:begin-category(typesystem-promotion.c) */
 
-/* @a can be promoted to @b
+/* `a` can be promoted to `b`
  * Only numbers can be promoted.
  *
  * @a source type id
@@ -572,13 +572,11 @@ FL_EXTERN bool ast_require_load(ast_t* node);
 
 /* Debug: Print to stderr a node as text
  * @node
- * @return true if load is required
  */
 FL_EXTERN void ast_dump_one(ast_t* node);
 
 /* Debug: Recursive print to stderr a node as text
  * @node
- * @return true if load is required
  */
 FL_EXTERN void ast_dump(ast_t* node);
 
@@ -588,7 +586,6 @@ FL_EXTERN void ast_dump(ast_t* node);
 
 /* Print an error to stderr
  * @node
- * @return true if an error is printed
  */
 FL_EXTERN bool ast_print_error(ast_t* node);
 
@@ -679,7 +676,7 @@ FL_EXTERN bool ast_is_literal(ast_t* node);
 
 /* cldoc:begin-category(ast-reverse.c) */
 
-/* Reverse the tree calling @cb on each node.
+/* Reverse the tree calling cb on each node.
  * [typesystem](#typesystem) set parent, so this cannot be called before
  *
  * @node
@@ -696,13 +693,13 @@ FL_EXTERN void ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent,
 
 /* cldoc:begin-category(ast-search.c) */
 
-/* From give @node reverse the tree searching given @identifier
+/* From give node reverse the tree searching given identifier
  * @node
  * @identifier
  */
 FL_EXTERN ast_t* ast_search_id_decl(ast_t* node, string* identifier);
 
-/* From give @node reverse the tree search searching given function
+/* From give node reverse the tree search searching given function
  * prototype
  * @node
  * @identifier
@@ -746,7 +743,7 @@ FL_EXTERN bool ast_is_static(ast_t* node);
 
 /* cldoc:begin-category(ast-traverse.c) */
 
-/* Traverse the tree calling @cb on each node
+/* Traverse the tree calling cb on each node
  * @node
  * @cb
  * @parent
@@ -758,7 +755,7 @@ FL_EXTERN void ast_traverse(ast_t* node, ast_cb_t cb, ast_t* parent,
                             size_t level, void* userdata_in,
                             void* userdata_out);
 
-/* Traverse the tree calling @cb on each node
+/* Traverse a list calling cb on each node
  * @node
  * @cb
  * @parent
@@ -779,13 +776,13 @@ FL_EXTERN void ast_traverse_list(ast_t* node, ast_cb_t cb, ast_t* until,
  */
 FL_EXTERN void ast_parent(ast_t* root);
 
-/* Get tyid given a @node
+/* Get tyid given a node
  * TODO this should be removed, in pro of just `node->ty_id`
  * @node
  */
 FL_EXTERN size_t ast_get_typeid(ast_t* node);
 
-/* Return if the type of @node is a pointer (at first level!)
+/* Return if the type of node is a pointer (at first level!)
  * @node
  */
 FL_EXTERN bool ast_is_pointer(ast_t* node);

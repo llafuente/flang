@@ -21,9 +21,11 @@ src/grammar/tokens.c
 /test/*/*.ll
 
 #documentation
-/docs
+/docs/*
 !/docs/cldoc2md.js
 !/docs/package.json
+# TODO remove when doc is ready!
+doc.md
 
 #build-make/autoconf.sh
 .dirstamp

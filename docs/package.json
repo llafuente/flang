@@ -1,0 +1,14 @@
+{
+  "name": "cldoc2md",
+  "version": "0.0.0",
+  "description": "parse cldoc xml file to markdown",
+  "main": "cldoc2md.js",
+  "repository": {},
+  "author": "",
+  "license": "MIT",
+  "bugs": {},
+  "dependencies": {
+    "async": "*",
+    "xml2js": "*"
+  }
+}

@@ -22,7 +22,15 @@ make
 # enjoy :)
 ```
 
+# Generate documentation
 
+Documentation of the language is not ready, but the code is documented.
+
+```bash
+sh gen-doc.sh
+```
+
+`doc.md` contain the documentation, that it's not yet ready to be in the git.
 
 ## Compile process
 
