@@ -24,17 +24,19 @@
 */
 
 #include "flang.h"
-struct id_search {
+
+struct __id_search {
   string* needle;
   ast_t** list;
   size_t length;
 };
-typedef struct id_search id_search_t;
 
-ast_action_t fl_ast_find_identifier(ast_t* node, ast_t* parent, size_t level,
-                                    void* userdata_in, void* userdata_out) {
+typedef struct __id_search __id_search_t;
+
+ast_action_t __ast_find_identifier(ast_t* node, ast_t* parent, size_t level,
+                                   void* userdata_in, void* userdata_out) {
   if (node->type == FL_AST_LIT_IDENTIFIER) {
-    id_search_t* data = (id_search_t*)userdata_in;
+    __id_search_t* data = (__id_search_t*)userdata_in;
     string* str = data->needle;
     if (st_cmp(str, node->identifier.string) == 0) {
       data->list[data->length++] = node;
@@ -43,16 +45,16 @@ ast_action_t fl_ast_find_identifier(ast_t* node, ast_t* parent, size_t level,
   return FL_AC_CONTINUE;
 }
 
-ast_action_t dtors_var_infer(ast_t* node, ast_t* parent, size_t level,
-                             void* userdata_in, void* userdata_out) {
+ast_action_t __ts_inference_dtors(ast_t* node, ast_t* parent, size_t level,
+                                  void* userdata_in, void* userdata_out) {
   if (node->type == FL_AST_DTOR_VAR && node->var.type->ty_id == 0) {
     // search all ocurrences of this identifier
-    id_search_t data;
+    __id_search_t data;
     data.list = calloc(sizeof(ast_t*), 100); // TODO resizable
     data.needle = node->var.id->identifier.string;
     data.length = 0;
 
-    ast_traverse(node->parent, fl_ast_find_identifier, 0, 0, (void*)&data, 0);
+    ast_traverse(node->parent, __ast_find_identifier, 0, 0, (void*)&data, 0);
 
     if (data.length) {
       // search from any aparience, if we can get the type
@@ -121,7 +123,7 @@ ast_t* ts_inference(ast_t* node) {
   size_t modified;
   do {
     modified = 0;
-    ast_traverse(node, dtors_var_infer, 0, 0, 0, (void*)&modified);
+    ast_traverse(node, __ts_inference_dtors, 0, 0, 0, (void*)&modified);
   } while (modified);
 
   return 0;

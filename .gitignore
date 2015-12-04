@@ -22,6 +22,8 @@ src/grammar/tokens.c
 
 #documentation
 /docs
+!/docs/cldoc2md.js
+!/docs/package.json
 
 #build-make/autoconf.sh
 .dirstamp

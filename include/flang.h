@@ -89,14 +89,12 @@ typedef struct ts_type ty_t;
 enum ts_types;
 typedef enum ts_types ts_types_t;
 
-struct psr_state;
-typedef struct psr_state fl_psrstate_t;
-
-struct psr_stack;
-typedef struct psr_stack fl_psrstack_t;
-
 struct ts_type_hash;
 typedef struct ts_type_hash ts_type_hash_t;
+
+// callback type for [ast_traverse](#ast_traverse) & [ast_reverse](#ast_reverse)
+typedef ast_action_t (*ast_cb_t)(ast_t* node, ast_t* parent, size_t level,
+                                 void* userdata_in, void* userdata_out);
 
 #include "grammar/parser.h"
 //#include "grammar/tokens.h"
@@ -131,30 +129,24 @@ extern array* identifiers;
  * Must be called before anything else.
  *
  * see: [flang_exit](#flang_exit)
- *
- * @input str input string
- * @return root ast node
  */
 FL_EXTERN void flang_init();
 
 /* Free global variables and the memory pool
- *
  * see: [flang_init](#flang_init)
- *
- * @input str input string
- * @return root ast node
+ * @root node
  */
 FL_EXTERN void flang_exit(ast_t* root);
 
 /* cldoc:end-category() */
 
-/* cldoc:begin-category(parser/parser-utils.c) */
+/* cldoc:begin-category(parser-utils.c) */
 
 /* Parse an utf8 string and return the root ast node.
  *
  * see: [fl_parse_file](#fl_parse_file)
  *
- * @input str input string
+ * @str input string
  * @return root ast node
  */
 FL_EXTERN ast_t* fl_parse_utf8(char* str);
@@ -165,7 +157,7 @@ FL_EXTERN ast_t* fl_parse_utf8(char* str);
  *
  * see: [fl_parse_main_file](#fl_parse_main_file)
  *
- * @input str input string
+ * @str input string
  * @return root ast node
  */
 FL_EXTERN ast_t* fl_parse_main_utf8(char* str);
@@ -174,7 +166,7 @@ FL_EXTERN ast_t* fl_parse_main_utf8(char* str);
  *
  * see: [fl_parse_utf8](#fl_parse_utf8)
  *
- * @input filename path to file
+ * @filename path to file
  * @return root ast node
  */
 FL_EXTERN ast_t* fl_parse_file(const char* filename);
@@ -184,21 +176,21 @@ FL_EXTERN ast_t* fl_parse_file(const char* filename);
  *
  * see: [fl_parse_main_utf8](#fl_parse_main_utf8)
  *
- * @input filename path to file
+ * @filename path to file
  * @return root ast node
  */
 FL_EXTERN ast_t* fl_parse_main_file(const char* filename);
 
 /* Help function, exported to easy test code.
  *
- * @input filename path to file
+ * @filename path to file
  * @return file contents as string
  */
 FL_EXTERN string* fl_file_to_string(const char* filename);
 
 /* cldoc:end-category() */
 
-/* cldoc:begin-category(typesystem/type-dump.c) */
+/* cldoc:begin-category(type-dump.c) */
 
 /* Get string representation of given type.
  * Do not need to free ther string, it's allocated in the pool.
@@ -207,32 +199,19 @@ FL_EXTERN string* fl_file_to_string(const char* filename);
  * @return type as string
  */
 FL_EXTERN string* ty_to_string(size_t ty_id);
+
+/* Print string representation to stderr
+ *
+ * @ty_id type id
+ */
 FL_EXTERN void ty_dump(size_t ty_id);
-FL_EXTERN void ty_dump_cell(size_t ty_id, int indent);
+/* Print a table with all type registered
+ */
 FL_EXTERN void ty_dump_table();
 
 /* cldoc:end-category() */
 
-/* cldoc:begin-category(typesystem/typesystem-alloc.c) */
-
-extern ty_t* ts_type_table;
-
-extern size_t ts_type_size_s;
-
-extern ts_type_hash_t* ts_hashtable;
-
-/* Intialize type system global variables
- * Do not call this directly use: [flang_init](#flang_init)
- */
-FL_EXTERN void ts_init();
-
-/* Free global variables
- * Do not call this directly use: [flang_exit](#flang_exit)
- */
-FL_EXTERN void ts_exit();
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(typesystem/typesystem.c) */
+/* cldoc:begin-category(type-utils.c) */
 
 /* Check if given type is a struct
  *
@@ -377,229 +356,491 @@ FL_EXTERN size_t ty_get_typeid_by_name(ast_t* node);
 
 /* cldoc:end-category() */
 
+/* cldoc:begin-category(typesystem-alloc.c) */
+
+extern ty_t* ts_type_table;
+
+extern size_t ts_type_size_s;
+
+extern ts_type_hash_t* ts_hashtable;
+
+/* Intialize type system global variables
+ * Do not call this directly use: [flang_init](#flang_init)
+ */
+FL_EXTERN void ts_init();
+
+/* Free global variables
+ * Do not call this directly use: [flang_exit](#flang_exit)
+ */
+FL_EXTERN void ts_exit();
+/* cldoc:end-category() */
+
 // TODO continue documenting
 
-/* cldoc:begin-category(typesystem/typesystem.c) */
-FL_EXTERN size_t ts_promote_typeid(size_t a, size_t b);
-FL_EXTERN ast_t* ts_pass(ast_t* node);
-FL_EXTERN void ts_pass_try(ast_t* node);
+/* cldoc:begin-category(typesystem-promotion.c) */
 
-// return the unique typeid given ret + arguments
-FL_EXTERN size_t ty_create_fn(ast_t* decl);
-// return the unique typeid given fields
-FL_EXTERN size_t ty_create_struct(ast_t* decl);
-
-FL_EXTERN size_t ast_get_struct_prop_idx(ast_t* decl, string* id);
-
-FL_EXTERN ast_t* ast_search_fn_wargs(string* id, ast_t* args);
-FL_EXTERN size_t ast_get_ident_typeid(ast_t* id);
-
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(typesystem/type-cast.c) */
-FL_EXTERN bool ts_castable(size_t aty_id, size_t bty_id);
-FL_EXTERN ast_cast_operations_t ts_cast_operation(ast_t* node);
-FL_EXTERN ast_action_t
-ts_cast_operation_pass_cb(ast_t* node, ast_t* parent, size_t level,
-                          void* userdata_in, void* userdata_out);
-
-FL_EXTERN ast_t* ts_create_cast(ast_t* node, size_t type_id);
-FL_EXTERN ast_t* ts_create_left_cast(ast_t* parent, ast_t* left);
-FL_EXTERN ast_t* ts_create_right_cast(ast_t* parent, ast_t* right);
-FL_EXTERN void ts_create_binop_cast(ast_t* bo);
-
-FL_EXTERN void ts_cast_return(ast_t* node);
-FL_EXTERN void ts_cast_lunary(ast_t* node);
-FL_EXTERN void ts_cast_assignament(ast_t* node);
-FL_EXTERN void ts_cast_call(ast_t* node);
-FL_EXTERN void ts_cast_binop(ast_t* node);
-FL_EXTERN void ts_cast_expr_member(ast_t* node);
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(parser/load-imports.c) */
-FL_EXTERN ast_t* ast_load_imports(ast_t* node);
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(ast/ast.c) */
-
-/**
- * @returns if the iteration must stop
+/* Return if @current can be safetly casted to @expected
+ *
+ * @current type id
+ * @expected type id
  */
-typedef ast_action_t (*ast_cb_t)(ast_t* node, ast_t* parent, size_t level,
-                                 void* userdata_in, void* userdata_out);
+FL_EXTERN bool ts_castable(size_t current, size_t expected);
 
-FL_EXTERN void ast_parent(ast_t* root);
+/* Given a FL_AST_CAST node, will determine the asm operation
+ * needed to cast both types.
+ * If no operation is found, it will try to search for an
+ * appropiate `autocast` function or raise otherwise.
+ *
+ * @node FL_AST_CAST node
+ */
+FL_EXTERN ast_cast_operations_t ts_cast_operation(ast_t* node);
 
-FL_EXTERN size_t ast_get_typeid(ast_t* node);
+/* Try to cast a literal to the given @type_id
+ *
+ * @node node literal
+ * @type_id type id
+ */
+FL_EXTERN bool ts_cast_literal(ast_t* node, size_t type_id);
 
-FL_EXTERN bool ast_is_pointer(ast_t* node);
+/* Check if a return statement need to be casted
+ * @node node
+ */
+FL_EXTERN void ts_cast_return(ast_t* node);
 
-FL_EXTERN size_t ast_ret_type(ast_t* node);
+/* Check if a left unary expression need to be casted
+ * @node node
+ */
+FL_EXTERN void ts_cast_lunary(ast_t* node);
 
-FL_EXTERN ast_t* ast_find_fn_decl(ast_t* identifier);
+/* Check if an assignament expression need to be casted
+ * @node node
+ */
+FL_EXTERN void ts_cast_assignament(ast_t* node);
 
-FL_EXTERN array* ast_search_fns(ast_t* node, string* id);
+/* Check if an expression call need to be casted
+ * @node node
+ */
+FL_EXTERN void ts_cast_call(ast_t* node);
+
+/* Check if an binary operation expression need to be casted
+ * either right or left.
+ * @node node
+ */
+FL_EXTERN void ts_cast_binop(ast_t* node);
+
+/* Check if an meber expression need to be casted
+ * @node node
+ */
+FL_EXTERN void ts_cast_expr_member(ast_t* node);
 
 /* cldoc:end-category() */
 
-/* cldoc:begin-category(ast/ast-search.c) */
-FL_EXTERN ast_t* ast_search_id_decl(ast_t* node, string* name);
-FL_EXTERN ast_t* ast_search_fn(ast_t* node, string* identifier, size_t* args,
-                               size_t nargs, size_t ret, bool var_args);
-/* cldoc:end-category() */
+/* cldoc:begin-category(typesystem-inference.c) */
 
-/* cldoc:begin-category(ast/traverse.c) */
-FL_EXTERN void ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
-                            size_t level, void* userdata_in,
-                            void* userdata_out);
-FL_EXTERN void ast_traverse_list(ast_t* node, ast_cb_t cb, ast_t* until,
-                                 size_t level, void* userdata_in,
-                                 void* userdata_out);
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(ast/reverse.c) */
-FL_EXTERN void ast_reverse(ast_t* ast, ast_cb_t cb, ast_t* parent, size_t level,
-                           void* userdata_in, void* userdata_out);
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(ast/alloc.c) */
-
-FL_EXTERN ast_t* ast_new();
-
-FL_EXTERN void ast_delete(ast_t* ast);
-
-FL_EXTERN void ast_delete_props(ast_t* ast);
-
-FL_EXTERN void ast_delete_list(ast_t** list);
-
-FL_EXTERN ast_t* ast_clone(ast_t* node);
-
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(ast/ast-static.c) */
-FL_EXTERN bool ast_is_static(ast_t* node);
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(ast/ast-query.c) */
-FL_EXTERN bool ast_is_literal(ast_t* node);
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(ast/ast-codegen.c) */
-FL_EXTERN bool ast_require_load(ast_t* node);
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(ast/ast-error.c) */
-extern char* ast_err_buff;
-FL_EXTERN bool ast_print_error(ast_t* node);
-FL_EXTERN void ast_raise_error(ast_t* node, char* message, ...);
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(typesystem/typesystem-inference.c) */
-
+/* Traverse the node and try to figure the type of all
+ * declarations. This is called many times to try to resolve
+ * dependencies.
+ * @node node
+ */
 FL_EXTERN ast_t* ts_inference(ast_t* node);
 
 /* cldoc:end-category() */
 
-/* cldoc:begin-category(typesystem/typesystem-register.c) */
+/* cldoc:begin-category(typesystem-pass.c) */
 
+/* Traverse the tree enforcing types. After this, all the tree
+ * has types and can be codegen.
+ * @node node
+ */
+FL_EXTERN ast_t* ts_pass(ast_t* node);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(typesystem-promotion.c) */
+
+/* @a can be promoted to @b
+ * Only numbers can be promoted.
+ *
+ * @a source type id
+ * @a destination type id
+ * @return type id, 0 if not found
+ */
+FL_EXTERN size_t ts_promote_typeid(size_t a, size_t b);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(typesystem-register.c) */
+
+/* Traverse the tree transforming all type nodes (text)
+ * to it's internal tyid (number) representation.
+ * Structs and functions are also typed.
+ *
+ * @a source type id
+ * @a destination type id
+ * @return type id, 0 if not found
+ */
 FL_EXTERN ast_t* ts_register_types(ast_t* node);
 
 /* cldoc:end-category() */
 
-/* cldoc:begin-category(codegen.c) */
-FL_EXTERN void fl_interpreter(LLVMModuleRef module);
-FL_EXTERN bool fl_to_bitcode(LLVMModuleRef module, const char* filename);
-FL_EXTERN bool fl_to_ir(LLVMModuleRef module, const char* filename);
+/* cldoc:begin-category(typesystem.c) */
 
-FL_EXTERN LLVMModuleRef fl_codegen(ast_t* root, char* module_name);
-FL_EXTERN LLVMValueRef cg_ast(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_cast(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_cast(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_binop(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_lit_integer(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_lit_float(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_lit_boolean(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_lit_string(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_assignament(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_dtor_var(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_function(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_return(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_expr_call(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_runary(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_lunary(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_if(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_loop(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_left_identifier(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_right_identifier(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_right_member(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_left_member(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_lhs(FL_CODEGEN_HEADER);
-FL_EXTERN LLVMValueRef cg_sizeof(FL_CODEGEN_HEADER);
+/* This will transform the raw tree parsed by
+ * flex/bison to a good codegen friendly tree.
+ * * Inference types
+ * * Promote types
+ * * Implicit casting
+ * * Handle autocast functions
+ *
+ * TODO
+ * * Function operators (are like casting)
+ */
+FL_EXTERN ast_t* typesystem(ast_t* root);
+
 /* cldoc:end-category() */
 
+// - codegen
+
+/* cldoc:begin-category(codegen-export.c) */
+
+/* Export to bitcode given module.
+ *
+ * @module Module to export
+ * @filename export filename (path must exits)
+ * @return true if everything goes ok
+ */
+FL_EXTERN bool fl_to_bitcode(LLVMModuleRef module, const char* filename);
+
+/* Export to IR given module.
+ *
+ * @module Module to export
+ * @filename export filename (path must exits)
+ * @return true if everything goes ok
+ */
+FL_EXTERN bool fl_to_ir(LLVMModuleRef module, const char* filename);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(codegen-interpreter.c) */
+
+/* Execute main function of given module.
+ *
+ * @module Module to execute
+ */
+FL_EXTERN void fl_interpreter(LLVMModuleRef module);
+
+/* cldoc:end-category() */
+
+// - ast/*
+
+/* cldoc:begin-category(ast-alloc.c) */
+
+/* Create a new AST from the pool.
+ *
+ * @return new ast (do not free it yourself)
+ */
+FL_EXTERN ast_t* ast_new();
+
+/* Free non-pool memory asociated with the node
+ *
+ * @node
+ */
+FL_EXTERN void ast_delete(ast_t* node);
+
+/* Clone a node
+*
+ * TODO not all nodes are supported, check code before!
+ *
+ * @node
+ * @return cloned node (do not free it yourself)
+ */
+FL_EXTERN ast_t* ast_clone(ast_t* node);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast-codegen.c) */
+
+/* Determine if given node require to be loaded to access it value
+ * @node
+ * @return true if load is required
+ */
+FL_EXTERN bool ast_require_load(ast_t* node);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast-codegen.c) */
+
+/* Debug: Print to stderr a node as text
+ * @node
+ * @return true if load is required
+ */
+FL_EXTERN void ast_dump_one(ast_t* node);
+
+/* Debug: Recursive print to stderr a node as text
+ * @node
+ * @return true if load is required
+ */
+FL_EXTERN void ast_dump(ast_t* node);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast-error.c) */
+
+/* Print an error to stderr
+ * @node
+ * @return true if an error is printed
+ */
+FL_EXTERN bool ast_print_error(ast_t* node);
+
+/* Print an error an trace to stderr, then exit
+ * @node
+ * @message
+ */
+FL_EXTERN void ast_raise_error(ast_t* node, char* message, ...);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast-get.c) */
+
+/* Get tyid from given AST Identifier
+ * @id Identifier node
+ */
+FL_EXTERN size_t ast_get_ident_typeid(ast_t* id);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast-load-imports.c) */
+
+/* Traverse the tree loading and appending all imports.
+ * Imports cannot be double loaded so it safe.
+ * @node
+ */
+FL_EXTERN ast_t* ast_load_imports(ast_t* node);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast-mk.c) */
+//- self explanatory
+FL_EXTERN void ast_position(ast_t* target, YYLTYPE start, YYLTYPE end);
+FL_EXTERN ast_t* ast_mk_program(ast_t* block);
+FL_EXTERN ast_t* ast_mk_error(const char* message, char* type);
+FL_EXTERN ast_t* ast_mk_list();
+FL_EXTERN ast_t* ast_mk_list_push(ast_t* list, ast_t* node);
+FL_EXTERN ast_t* ast_mk_list_insert(ast_t* list, ast_t* node, size_t idx);
+FL_EXTERN ast_t* ast_mk_insert_before(ast_t* list, ast_t* search_item,
+                                      ast_t* insert_item);
+FL_EXTERN ast_t* ast_mk_block(ast_t* body);
+FL_EXTERN ast_t* ast_mk_lit_id(string* str, bool resolve);
+FL_EXTERN ast_t* ast_mk_lit_null();
+FL_EXTERN ast_t* ast_mk_lit_string(char* str, bool interpolate);
+FL_EXTERN ast_t* ast_mk_lit_boolean(bool value);
+FL_EXTERN ast_t* ast_mk_lit_integer(char* text);
+FL_EXTERN ast_t* ast_mk_lit_float(char* text);
+FL_EXTERN ast_t* ast_mk_return(ast_t* argument);
+FL_EXTERN ast_t* ast_mk_break(ast_t* argument);
+FL_EXTERN ast_t* ast_mk_continue(ast_t* argument);
+FL_EXTERN ast_t* ast_mk_var_decl(ast_t* type, ast_t* id);
+FL_EXTERN ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type,
+                                ast_t* body);
+FL_EXTERN ast_t* ast_mk_fn_param(ast_t* id, ast_t* type, ast_t* def);
+FL_EXTERN ast_t* ast_mk_binop(ast_t* left, int op, ast_t* right);
+FL_EXTERN ast_t* ast_mk_assignament(ast_t* left, int op, ast_t* right);
+FL_EXTERN ast_t* ast_mk_call_expr(ast_t* callee, ast_t* arguments);
+FL_EXTERN ast_t* ast_mk_type_void();
+FL_EXTERN ast_t* ast_mk_type(string* id, ast_t* child);
+FL_EXTERN ast_t* ast_mk_type2(ast_t* id, ast_t* child);
+FL_EXTERN ast_t* ast_mk_comment(string* text);
+FL_EXTERN ast_t* ast_mk_lunary(ast_t* element, int operator);
+FL_EXTERN ast_t* ast_mk_runary(ast_t* element, int operator);
+FL_EXTERN ast_t* ast_mk_if(ast_t* test, ast_t* block, ast_t* alternate);
+FL_EXTERN ast_t* ast_mk_loop(ast_t* init, ast_t* pre_cond, ast_t* update,
+                             ast_t* bloc, ast_t* post_cond);
+FL_EXTERN ast_t* ast_mk_struct_decl(ast_t* id, ast_t* fields);
+FL_EXTERN ast_t* ast_mk_struct_decl_field(ast_t* id, ast_t* type);
+FL_EXTERN ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression);
+FL_EXTERN ast_t* ast_mk_sizeof(ast_t* type);
+FL_EXTERN ast_t* ast_mk_cast(ast_t* type, ast_t* element);
+FL_EXTERN ast_t* ast_mk_import(ast_t* string_lit);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast-query.c) */
+
+/* Return if the node is a literal
+ * Note: lunary + number is a literal (-8)
+ * Note: binop (number + number) is a literal (8 + 7)
+ * Etc...
+ * @node
+ * @return if @node is a literal
+ */
+FL_EXTERN bool ast_is_literal(ast_t* node);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast-reverse.c) */
+
+/* Reverse the tree calling @cb on each node.
+ * [typesystem](#typesystem) set parent, so this cannot be called before
+ *
+ * @node
+ * @cb
+ * @parent
+ * @level
+ * @userdata_in
+ * @userdata_out
+ */
+FL_EXTERN void ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent,
+                           size_t level, void* userdata_in, void* userdata_out);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast-search.c) */
+
+/* From give @node reverse the tree searching given @identifier
+ * @node
+ * @identifier
+ */
+FL_EXTERN ast_t* ast_search_id_decl(ast_t* node, string* identifier);
+
+/* From give @node reverse the tree search searching given function
+ * prototype
+ * @node
+ * @identifier
+ * @args
+ * @nargs
+ * @ret_ty
+ * @var_args
+ */
+FL_EXTERN ast_t* ast_search_fn(ast_t* node, string* identifier, size_t* args,
+                               size_t nargs, size_t ret_ty, bool var_args);
+
+/* Search a matching function prototype given "expression call"
+ * @id
+ * @args_call
+ */
+FL_EXTERN ast_t* ast_search_fn_wargs(string* id, ast_t* args_call);
+
+/* Search all function with given name
+ * @node
+ * @id
+ */
+FL_EXTERN array* ast_search_fns(ast_t* node, string* id);
+
+/* Reverse the tree and return first function found with given name
+ * @identifier
+ */
+FL_EXTERN ast_t* ast_search_fn_decl(ast_t* identifier);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast-static.c) */
+
+/* Return if the node is really a literal only
+ * TODO review if logic is duplicated by [ast_id_literal](#ast_id_literal)
+ * @node
+ * @id
+ */
+FL_EXTERN bool ast_is_static(ast_t* node);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast-traverse.c) */
+
+/* Traverse the tree calling @cb on each node
+ * @node
+ * @cb
+ * @parent
+ * @level
+ * @userdata_in
+ * @userdata_out
+ */
+FL_EXTERN void ast_traverse(ast_t* node, ast_cb_t cb, ast_t* parent,
+                            size_t level, void* userdata_in,
+                            void* userdata_out);
+
+/* Traverse the tree calling @cb on each node
+ * @node
+ * @cb
+ * @parent
+ * @level
+ * @userdata_in
+ * @userdata_out
+*/
+FL_EXTERN void ast_traverse_list(ast_t* node, ast_cb_t cb, ast_t* until,
+                                 size_t level, void* userdata_in,
+                                 void* userdata_out);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast.c) */
+
+/* Traverse the tree and set parent
+ * @root
+ */
+FL_EXTERN void ast_parent(ast_t* root);
+
+/* Get tyid given a @node
+ * TODO this should be removed, in pro of just `node->ty_id`
+ * @node
+ */
+FL_EXTERN size_t ast_get_typeid(ast_t* node);
+
+/* Return if the type of @node is a pointer (at first level!)
+ * @node
+ */
+FL_EXTERN bool ast_is_pointer(ast_t* node);
+
+/* cldoc:end-category() */
+
+//- codegen/*
+
 /* cldoc:begin-category(codegen-types.c) */
+
+/* Return if it's possible to bitcast given types
+ * This functions may need to be called twice swaping it's args
+ * to be sure...
+ *
+ * @a
+ * @b
+ */
 FL_EXTERN bool cg_bitcast(ty_t a, ty_t b);
+
+/* Codegen the type and return it
+ *
+ * @node
+ * @context
+ */
 FL_EXTERN LLVMTypeRef cg_get_type(ast_t* node, LLVMContextRef context);
-FL_EXTERN LLVMTypeRef cg_get_typeid(size_t id, LLVMContextRef context);
+
+/* Codegen the type and return it
+ *
+ * @tyid
+ * @context
+ */
+FL_EXTERN LLVMTypeRef cg_get_typeid(size_t tyid, LLVMContextRef context);
+
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(codegen-utils.c) */
-FL_EXTERN void cg_utils_store(ast_t* identifier, LLVMValueRef value,
-                              LLVMBuilderRef builder);
-/* cldoc:end-category() */
 
-/* cldoc:begin-category(debug.c) */
-// 4 by default
-extern int log_debug_level;
-/* cldoc:end-category() */
-
-void ast_position(ast_t* target, YYLTYPE start, YYLTYPE end);
-ast_t* ast_new();
-ast_t* ast_mk_program(ast_t* block);
-ast_t* ast_mk_root();
-ast_t* ast_mk_list();
-ast_t* ast_mk_list_push(ast_t* list, ast_t* node);
-ast_t* ast_mk_list_insert(ast_t* list, ast_t* node, size_t idx);
-ast_t* ast_mk_insert_before(ast_t* list, ast_t* search_item,
-                            ast_t* insert_item);
-ast_t* ast_mk_block(ast_t* body);
-ast_t* ast_mk_lit_id(string* str, bool resolve);
-ast_t* ast_mk_lit_null();
-ast_t* ast_mk_lit_string(char* str, bool interpolate);
-ast_t* ast_mk_lit_boolean(bool value);
-ast_t* ast_mk_return(ast_t* argument);
-ast_t* ast_mk_var_decl(ast_t* type, ast_t* id);
-ast_t* ast_mk_lit_integer(char* text);
-ast_t* ast_mk_lit_float(char* text);
-ast_t* ast_mk_binop(ast_t* left, int op, ast_t* right);
-ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body);
-ast_t* ast_mk_fn_param(ast_t* id, ast_t* type, ast_t* def);
-ast_t* ast_mk_assignament(ast_t* left, int op, ast_t* right);
-ast_t* ast_mk_call_expr(ast_t* callee, ast_t* arguments);
-ast_t* ast_mk_type_void();
-ast_t* ast_mk_type(string* id, ast_t* child);
-ast_t* ast_mk_type2(ast_t* id, ast_t* child);
-ast_t* ast_mk_comment(string* text);
-ast_t* ast_mk_lunary(ast_t* element, int operator);
-ast_t* ast_mk_runary(ast_t* element, int operator);
-ast_t* ast_mk_if(ast_t* test, ast_t* block, ast_t* alternate);
-ast_t* ast_mk_loop(ast_t* init, ast_t* pre_cond, ast_t* update, ast_t* block,
-                   ast_t* post_cond);
-ast_t* ast_mk_struct_decl(ast_t* id, ast_t* fields);
-ast_t* ast_mk_struct_decl_field(ast_t* id, ast_t* type);
-ast_t* ast_mk_break(ast_t* argument);
-ast_t* ast_mk_continue(ast_t* argument);
-ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression);
-ast_t* ast_mk_cast(ast_t* type, ast_t* element);
-ast_t* ast_mk_sizeof(ast_t* type);
-ast_t* ast_mk_import(ast_t* string_lit);
-ast_t* ast_mk_error(const char* message, char* type);
-
-/* cldoc:begin-category(typesystem/typesystem.c) */
-/** Pass all typesystem to given ast_t
- * First it will fetch all imports
- * Then register all types
- * Then apply inference and casting logics
+/* Store a value into the identifier declaration
+ *
+ * @node must be an identifier
+ * @value value to store
+ * @builder current LLVMBuilderRef
  */
-FL_EXTERN ast_t* typesystem(ast_t* root);
+FL_EXTERN void cg_utils_store(ast_t* node, LLVMValueRef value,
+                              LLVMBuilderRef builder);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(codegen.c) */
+
+/* Create a single (atm) module with the given tree
+ * It's use LLVM as backend.
+ * @root Node
+ * @module_name Module name
+ */
+FL_EXTERN LLVMModuleRef fl_codegen(ast_t* root, char* module_name);
+
 /* cldoc:end-category() */

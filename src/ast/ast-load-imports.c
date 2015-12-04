@@ -25,7 +25,7 @@
 
 #include "flang.h"
 
-ast_action_t ast_load_imports_cb(ast_t* node, ast_t* parent, size_t level,
+ast_action_t __trav_load_imports(ast_t* node, ast_t* parent, size_t level,
                                  void* userdata_in, void* userdata_out) {
   if (node->type == FL_AST_IMPORT && !node->import.imported) {
     assert(node->parent->type == FL_AST_LIST);
@@ -61,7 +61,7 @@ ast_t* ast_load_imports(ast_t* node) {
   size_t imported;
   do {
     imported = 0;
-    ast_traverse(node, ast_load_imports_cb, 0, 0, 0, (void*)&imported);
+    ast_traverse(node, __trav_load_imports, 0, 0, 0, (void*)&imported);
   } while (imported);
 
   return 0;

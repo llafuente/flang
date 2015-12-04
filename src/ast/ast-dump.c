@@ -145,8 +145,8 @@ void ast_dump_one(ast_t* node) {
   }
 }
 
-ast_action_t ast_dump_cb(ast_t* node, ast_t* parent, size_t level,
-                         void* userdata_in, void* userdata_out) {
+ast_action_t __ast_dump_cb(ast_t* node, ast_t* parent, size_t level,
+                           void* userdata_in, void* userdata_out) {
   if (!node) {
     log_warning("ast_dump: null\n");
     return true;
@@ -169,6 +169,6 @@ ast_action_t ast_dump_cb(ast_t* node, ast_t* parent, size_t level,
 
 void ast_dump(ast_t* node) {
   if (log_debug_level > 2) {
-    ast_traverse(node, ast_dump_cb, 0, 0, 0, 0);
+    ast_traverse(node, __ast_dump_cb, 0, 0, 0, 0);
   }
 }

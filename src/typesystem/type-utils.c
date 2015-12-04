@@ -268,7 +268,7 @@ size_t ty_create_fn(ast_t* decl) {
 size_t ty_get_fn_typeid(ast_t* id) {
   assert(id->type != FL_AST_LIT_IDENTIFIER);
 
-  ast_t* fdecl = ast_find_fn_decl(id);
+  ast_t* fdecl = ast_search_fn_decl(id);
 
   // TODO search globals and assert!
   if (fdecl) {

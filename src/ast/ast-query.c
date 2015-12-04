@@ -25,7 +25,7 @@
 
 #include "flang.h"
 
-ast_action_t ast_is_literal_cb(ast_t* node, ast_t* parent, size_t level,
+ast_action_t __trav_is_literal(ast_t* node, ast_t* parent, size_t level,
                                void* userdata_in, void* userdata_out) {
   switch (node->type) {
   case FL_AST_LIT_STRING:
@@ -51,6 +51,6 @@ ast_action_t ast_is_literal_cb(ast_t* node, ast_t* parent, size_t level,
 
 bool ast_is_literal(ast_t* node) {
   bool b = true; // starts true, if find something not static -> false
-  ast_traverse(node, ast_is_literal_cb, 0, 0, 0, (void*)&b);
+  ast_traverse(node, __trav_is_literal, 0, 0, 0, (void*)&b);
   return b;
 }

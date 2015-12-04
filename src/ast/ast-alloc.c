@@ -29,7 +29,8 @@ ast_t* ast_new() {
   return (ast_t*)pool_new(sizeof(ast_t));
   // return (ast_t*)calloc(1, sizeof(ast_t));
 }
-void ast_delete_list(ast_t** list) {
+
+void __ast_delete_list(ast_t** list) {
   size_t i = 0;
   ast_t* tmp;
 
@@ -43,13 +44,7 @@ void ast_delete_list(ast_t** list) {
   // free(list);
 }
 
-void ast_delete(ast_t* ast) {
-  ast_delete_props(ast);
-  // pool is used to handle memory on errors
-  // free(ast);
-}
-
-void ast_delete_props(ast_t* ast) {
+void __ast_delete_props(ast_t* ast) {
 
 #define SAFE_DEL(test)                                                         \
   if (test) {                                                                  \
@@ -59,7 +54,7 @@ void ast_delete_props(ast_t* ast) {
 
 #define SAFE_DEL_LIST(test)                                                    \
   if (test) {                                                                  \
-    ast_delete_list(test);                                                     \
+    __ast_delete_list(test);                                                   \
     test = 0;                                                                  \
   }
 
@@ -171,6 +166,12 @@ void ast_delete_props(ast_t* ast) {
   }
   default: {}
   }
+}
+
+void ast_delete(ast_t* node) {
+  __ast_delete_props(node);
+  // pool is used to handle memory on errors
+  // free(ast);
 }
 
 // TODO handle more types

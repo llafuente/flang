@@ -31,8 +31,8 @@ char* ast_err_buff = 0;
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
-void ast_print_error_lines(const string* line, st_len_t pos,
-                           const string* code) {
+void __ast_print_error_lines(const string* line, st_len_t pos,
+                             const string* code) {
   if (pos >= MAX(0, ast_err_node->first_line - 3) &&
       pos <= ast_err_node->last_line + 2) {
     fprintf(stderr, "%6d | %s\n", pos + 1, line->value);
@@ -57,7 +57,7 @@ bool ast_print_error(ast_t* node) {
     ast_err_message = ast_err_node->err.message->value;
 
     // TODO add context do not use global var
-    st_line_iterator(node->program.code, ast_print_error_lines);
+    st_line_iterator(node->program.code, __ast_print_error_lines);
     fprintf(stderr, "\n");
 
     // ast_dump(node);
@@ -111,7 +111,7 @@ void ast_raise_error(ast_t* node, char* message, ...) {
           node->last_column);
 
   // TODO add context do not use global var
-  st_line_iterator(root->program.code, ast_print_error_lines);
+  st_line_iterator(root->program.code, __ast_print_error_lines);
   fprintf(stderr, "\n\nStackTrace:\n");
 
   __sanitizer_print_stack_trace();

@@ -126,7 +126,7 @@ void ty_dump(size_t ty_id) {
   }
 }
 
-void ty_dump_cell(size_t ty_id, int indent) {
+void __ty_dump_cell(size_t ty_id, int indent) {
   ty_t ty = ts_type_table[ty_id];
 
   switch (ty.of) {
@@ -139,27 +139,27 @@ void ty_dump_cell(size_t ty_id, int indent) {
     break;
   case FL_POINTER:
     log_debug("%*s[%zu] Pointer -> %zu", indent, " ", ty_id, ty.ptr.to);
-    ty_dump_cell(ty.ptr.to, indent + 2);
+    __ty_dump_cell(ty.ptr.to, indent + 2);
     break;
   case FL_VECTOR:
     log_debug("%*s[%zu] Vector -> %zu", indent, " ", ty_id, ty.ptr.to);
-    ty_dump_cell(ty.vector.to, indent + 2);
+    __ty_dump_cell(ty.vector.to, indent + 2);
     break;
   case FL_STRUCT: {
     log_debug("%*s[%zu] Struct [%s]", indent, " ", ty_id,
               ty.structure.decl->structure.id->identifier.string->value);
     size_t i;
     for (i = 0; i < ty.structure.nfields; ++i) {
-      ty_dump_cell(ty.structure.fields[i], indent + 2);
+      __ty_dump_cell(ty.structure.fields[i], indent + 2);
     }
   } break;
   case FL_FUNCTION: {
     log_debug("%*sFunction [%s] arity(%zu) -> [%zu]", indent, " ",
               ty.id ? ty.id->value : "Anonymous", ty.func.nparams, ty.func.ret);
     size_t i;
-    ty_dump_cell(ty.func.ret, indent + 2);
+    __ty_dump_cell(ty.func.ret, indent + 2);
     for (i = 0; i < ty.func.nparams; ++i) {
-      ty_dump_cell(ty.func.params[i], indent + 2);
+      __ty_dump_cell(ty.func.params[i], indent + 2);
     }
   } break;
   case FL_INFER: {
@@ -173,6 +173,6 @@ void ty_dump_table() {
   size_t i;
 
   for (i = 0; i < ts_type_size_s; ++i) {
-    ty_dump_cell(i, 0);
+    __ty_dump_cell(i, 0);
   }
 }

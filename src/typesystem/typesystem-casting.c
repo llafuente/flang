@@ -25,6 +25,7 @@
 
 #include "flang.h"
 
+// TODO this should check if the type can be promoted
 bool ts_castable(size_t current, size_t expected) {
   // same obviously true, no type yet also true
   if (current == expected || !current) {
@@ -83,6 +84,8 @@ bool ts_castable(size_t current, size_t expected) {
 }
 
 ast_cast_operations_t ts_cast_operation(ast_t* node) {
+  assert(node->type == FL_AST_CAST);
+
   size_t expected = node->ty_id;
   size_t current = node->cast.element->ty_id;
   log_verbose("cast %zu to %zu", current, expected);
@@ -197,16 +200,7 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
   return 0;
 }
 
-ast_action_t ts_cast_operation_pass_cb(ast_t* node, ast_t* parent, size_t level,
-                                       void* userdata_in, void* userdata_out) {
-  if (node->type == FL_AST_CAST) {
-    node->cast.operation = ts_cast_operation(node);
-  }
-
-  return FL_AC_CONTINUE;
-}
-
-ast_t* ts_autocast(ast_t* node, size_t input, size_t output) {
+ast_t* __ts_autocast(ast_t* node, size_t input, size_t output) {
   string* name = st_newc("autocast", st_enc_ascii);
   size_t args_ty[1];
   args_ty[0] = input;
@@ -227,7 +221,7 @@ bool ts_cast_literal(ast_t* node, size_t type_id) {
   return false;
 }
 
-ast_t* ts_create_cast(ast_t* node, size_t type_id) {
+ast_t* __ts_create_cast(ast_t* node, size_t type_id) {
   // try to cast to "inference" type, just wait...
   if (!type_id) {
     return node;
@@ -240,10 +234,10 @@ ast_t* ts_create_cast(ast_t* node, size_t type_id) {
   }
 
   log_verbose("castable? %d", ts_castable(node->ty_id, type_id));
-  log_verbose("autocast? %p", ts_autocast(node, node->ty_id, type_id));
+  log_verbose("autocast? %p", __ts_autocast(node, node->ty_id, type_id));
 
   if (!ts_castable(node->ty_id, type_id) &&
-      !ts_autocast(node, node->ty_id, type_id)) {
+      !__ts_autocast(node, node->ty_id, type_id)) {
     ast_raise_error(node, "manual casting is required from %s to %s",
                     ty_to_string(node->ty_id)->value,
                     ty_to_string(type_id)->value);
@@ -257,23 +251,23 @@ ast_t* ts_create_cast(ast_t* node, size_t type_id) {
   return cast;
 }
 
-ast_t* ts_create_left_cast(ast_t* parent, ast_t* left) {
+ast_t* __ts_create_left_cast(ast_t* parent, ast_t* left) {
   assert(parent->type == FL_AST_EXPR_BINOP);
-  ast_t* cast = ts_create_cast(left, parent->ty_id);
+  ast_t* cast = __ts_create_cast(left, parent->ty_id);
   parent->binop.left = cast;
 
   return cast;
 }
 
-ast_t* ts_create_right_cast(ast_t* parent, ast_t* right) {
+ast_t* __ts_create_right_cast(ast_t* parent, ast_t* right) {
   assert(parent->type == FL_AST_EXPR_BINOP);
-  ast_t* cast = ts_create_cast(right, parent->ty_id);
+  ast_t* cast = __ts_create_cast(right, parent->ty_id);
   parent->binop.right = cast;
 
   return cast;
 }
 
-void ts_create_binop_cast(ast_t* bo) {
+void __ts_create_binop_cast(ast_t* bo) {
   assert(bo->type == FL_AST_EXPR_BINOP);
 
   ast_t* l = bo->binop.left;
@@ -283,13 +277,13 @@ void ts_create_binop_cast(ast_t* bo) {
   if (expected_ty_id == TS_BOOL) {
     // both must have the same type!
     if (ast_is_literal(l)) {
-      ast_t* cast = ts_create_cast(l, r->ty_id);
+      ast_t* cast = __ts_create_cast(l, r->ty_id);
       bo->binop.left = cast;
       return;
     }
 
     if (ast_is_literal(r)) {
-      ast_t* cast = ts_create_cast(r, l->ty_id);
+      ast_t* cast = __ts_create_cast(r, l->ty_id);
       bo->binop.right = cast;
       return;
     }
@@ -302,12 +296,12 @@ void ts_create_binop_cast(ast_t* bo) {
 
   if (expected_ty_id != l->ty_id) {
     // cast left side
-    ast_t* cast = ts_create_cast(l, expected_ty_id);
+    ast_t* cast = __ts_create_cast(l, expected_ty_id);
     bo->binop.left = cast;
   }
 
   if (expected_ty_id != r->ty_id) {
-    ast_t* cast = ts_create_cast(r, expected_ty_id);
+    ast_t* cast = __ts_create_cast(r, expected_ty_id);
     bo->binop.right = cast;
   }
 }
@@ -329,7 +323,7 @@ void ts_cast_return(ast_t* node) {
 
   size_t t = decl->func.ret_type->ty_id;
   if (t != node->ret.argument->ty_id) {
-    ast_t* cast = ts_create_cast(arg, t);
+    ast_t* cast = __ts_create_cast(arg, t);
     node->ret.argument = cast;
   }
 }
@@ -365,7 +359,7 @@ void ts_cast_assignament(ast_t* node) {
   if (l_type != r_type) {
     log_silly("assignament cast [%zu - %zu]", l_type, r_type);
     // cast will be validated later if it's posible
-    node->assignament.right = ts_create_cast(r, l_type);
+    node->assignament.right = __ts_create_cast(r, l_type);
   }
 
   node->ty_id = l_type;
@@ -426,7 +420,7 @@ void ts_cast_call(ast_t* node) {
     if (arg->ty_id != t->func.params[i]) {
       // cast right side
       log_debug("cast argument %zu != %zu", arg->ty_id, t->func.params[i]);
-      args->list.elements[i] = ts_create_cast(arg, t->func.params[i]);
+      args->list.elements[i] = __ts_create_cast(arg, t->func.params[i]);
     }
   }
 }
@@ -464,7 +458,7 @@ void ts_cast_binop(ast_t* node) {
 
     // both sides must be the same! the bigger one
     node->ty_id = TS_BOOL; // ts_promote_typeid(l_type, r_type);
-    ts_create_binop_cast(node);
+    __ts_create_binop_cast(node);
   } break;
   case '&':
   case '|':
@@ -485,14 +479,14 @@ void ts_cast_binop(ast_t* node) {
     if ((l_static && r_static) || (!l_static && !r_static)) {
       node->ty_id = ts_promote_typeid(l_type, r_type);
       log_verbose("bigger! %zu", node->ty_id);
-      ts_create_binop_cast(node);
+      __ts_create_binop_cast(node);
 
     } else if (l_static) {
       node->ty_id = r_type;
-      ts_create_left_cast(node, l);
+      __ts_create_left_cast(node, l);
     } else if (r_static) {
       node->ty_id = l_type;
-      ts_create_right_cast(node, r);
+      __ts_create_right_cast(node, r);
     }
   }
   }
@@ -527,7 +521,7 @@ void ts_cast_expr_member(ast_t* node) {
   } break;
   case FL_POINTER: {
     node->ty_id = type->ptr.to;
-    node->member.property = ts_create_cast(p, 9);
+    node->member.property = __ts_create_cast(p, 9);
   } break;
   case FL_VECTOR: {
     node->ty_id = type->vector.to;

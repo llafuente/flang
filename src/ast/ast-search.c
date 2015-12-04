@@ -25,7 +25,7 @@
 
 #include "flang.h"
 
-ast_action_t ast_search_id_decl_cb(ast_t* node, ast_t* parent, size_t level,
+ast_action_t __trav_search_id_decl(ast_t* node, ast_t* parent, size_t level,
                                    void* userdata_in, void* userdata_out) {
 #define COMPARE(x)                                                             \
   {                                                                            \
@@ -60,14 +60,14 @@ ast_action_t ast_search_id_decl_cb(ast_t* node, ast_t* parent, size_t level,
 ast_t* ast_search_id_decl(ast_t* node, string* identifier) {
   ast_t* ret = 0;
 
-  ast_reverse(node, ast_search_id_decl_cb, 0, 0, (void*)identifier,
+  ast_reverse(node, __trav_search_id_decl, 0, 0, (void*)identifier,
               (void*)&ret);
 
   return ret;
 }
 
-ast_action_t ast_search_fn_wargs_cb(ast_t* node, ast_t* parent, size_t level,
-                                    void* userdata_in, void* userdata_out) {
+ast_action_t __ast_search_fn(ast_t* node, ast_t* parent, size_t level,
+                             void* userdata_in, void* userdata_out) {
 
   if (node->type == FL_AST_DECL_FUNCTION) {
     void** ui = (void**)userdata_in;
@@ -115,7 +115,7 @@ ast_t* ast_search_fn(ast_t* node, string* identifier, size_t* args,
   input[3] = (void*)ret_ty;
   input[4] = (void*)var_args;
 
-  ast_reverse(node, ast_search_fn_wargs_cb, 0, 0, (void*)input, (void*)&ret);
+  ast_reverse(node, __ast_search_fn, 0, 0, (void*)input, (void*)&ret);
 
   return ret;
 }
@@ -187,8 +187,8 @@ ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
   return ret_decl;
 }
 
-ast_action_t ast_search_fns_cb(ast_t* node, ast_t* parent, size_t level,
-                               void* userdata_in, void* userdata_out) {
+ast_action_t __search_fns(ast_t* node, ast_t* parent, size_t level,
+                          void* userdata_in, void* userdata_out) {
 
   if (node->type == FL_AST_DECL_FUNCTION) {
     string* ast_search_id = (string*)userdata_in;
@@ -204,13 +204,14 @@ ast_action_t ast_search_fns_cb(ast_t* node, ast_t* parent, size_t level,
 
   return FL_AC_CONTINUE;
 }
+
 array* ast_search_fns(ast_t* node, string* id) {
   array* userdata = malloc(sizeof(array));
   array_new(userdata);
 
   log_verbose("ast_search_fns %s %p", id->value, node);
 
-  ast_reverse(node, ast_search_fns_cb, 0, 0, (void*)id, (void*)userdata);
+  ast_reverse(node, __search_fns, 0, 0, (void*)id, (void*)userdata);
 
   if (userdata->size) {
     return userdata;
@@ -219,4 +220,31 @@ array* ast_search_fns(ast_t* node, string* id) {
   array_delete(userdata);
   free(userdata);
   return 0;
+}
+
+ast_action_t __trav_search_fn_decl(ast_t* node, ast_t* parent, size_t level,
+                                   void* userdata_in, void* userdata_out) {
+
+  if (node->type == FL_AST_DECL_FUNCTION) {
+    string* id = (string*)userdata_in;
+
+    if (st_cmp(id, node->func.id->identifier.string) == 0) {
+      void** ret = (void**)userdata_out;
+      *ret = node;
+      return FL_AC_STOP;
+    }
+  }
+
+  return FL_AC_CONTINUE;
+}
+
+ast_t* ast_search_fn_decl(ast_t* identifier) {
+  assert(identifier->type == FL_AST_LIT_IDENTIFIER);
+
+  ast_t** ret;
+
+  ast_reverse(identifier, __trav_search_fn_decl, 0, 0,
+              (void*)identifier->identifier.string, (void*)ret);
+
+  return *ret;
 }

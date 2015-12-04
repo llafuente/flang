@@ -24,7 +24,8 @@
 */
 
 #include "flang.h"
-
+// TODO untested!
+// TODO not public yet!
 LLVMExecutionEngineRef cg_jit(LLVMModuleRef M) {
   LLVMExecutionEngineRef MCJIT;
   char* err_str;

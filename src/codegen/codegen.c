@@ -24,6 +24,30 @@
 */
 
 #include "flang.h"
+// predeclaration
+FL_EXTERN LLVMValueRef cg_ast(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_cast(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_cast(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_binop(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_lit_integer(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_lit_float(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_lit_boolean(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_lit_string(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_assignament(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_dtor_var(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_function(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_return(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_expr_call(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_runary(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_lunary(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_if(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_loop(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_left_identifier(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_right_identifier(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_right_member(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_left_member(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_lhs(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_sizeof(FL_CODEGEN_HEADER);
 
 /*
 LLVMValueRef F = LLVMAddFunction(M, name, Fty);

@@ -25,14 +25,16 @@
 
 #include "flang.h"
 
-ast_action_t ast_parent_cb(ast_t* node, ast_t* parent, size_t level,
-                           void* userdata_in, void* userdata_out) {
+ast_action_t __trav_set_parent(ast_t* node, ast_t* parent, size_t level,
+                               void* userdata_in, void* userdata_out) {
   node->parent = parent;
 
   return FL_AC_CONTINUE;
 }
 
-void ast_parent(ast_t* root) { ast_traverse(root, ast_parent_cb, 0, 0, 0, 0); }
+void ast_parent(ast_t* root) {
+  ast_traverse(root, __trav_set_parent, 0, 0, 0, 0);
+}
 
 size_t ast_get_typeid(ast_t* node) {
   assert(node != 0);
@@ -96,47 +98,7 @@ bool ast_is_pointer(ast_t* node) {
   return ts_type_table[id].of == FL_POINTER;
 }
 
-size_t ast_ret_type(ast_t* node) {
-  switch (node->type) {
-  case FL_AST_EXPR_ASSIGNAMENT:
-    return ast_ret_type(node->assignament.right);
-  case FL_AST_LIT_INTEGER:
-  case FL_AST_LIT_FLOAT:
-    return node->ty_id;
-  default: { log_error("ast_ret_type: cannot find type!"); }
-  }
-
-  return 0;
-}
-
-ast_action_t ast_find_fn_decl_cb(ast_t* node, ast_t* parent, size_t level,
-                                 void* userdata_in, void* userdata_out) {
-
-  if (node->type == FL_AST_DECL_FUNCTION) {
-    string* id = (string*)userdata_in;
-
-    if (st_cmp(id, node->func.id->identifier.string) == 0) {
-      void** ret = (void**)userdata_out;
-      *ret = node;
-      return FL_AC_STOP;
-    }
-  }
-
-  return FL_AC_CONTINUE;
-}
-
-ast_t* ast_find_fn_decl(ast_t* identifier) {
-  if (identifier->type != FL_AST_LIT_IDENTIFIER) {
-    log_error("(ast_find_fn_decl) must be an identifier!");
-  }
-  ast_t** ret;
-
-  ast_reverse(identifier, ast_find_fn_decl_cb, 0, 0,
-              (void*)identifier->identifier.string, (void*)ret);
-
-  return *ret;
-}
-
+// TODO this can be removed... not used
 FL_EXTERN size_t ast_get_struct_prop_idx(ast_t* decl, string* id) {
   size_t i;
   ast_t* list = decl->structure.fields;

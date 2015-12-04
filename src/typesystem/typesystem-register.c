@@ -25,7 +25,7 @@
 
 #include "flang.h"
 
-size_t get_type(ast_t* node) {
+size_t __ts_string_to_tyid(ast_t* node) {
   assert(node->type == FL_AST_TYPE);
 
   // empty var_decl for example
@@ -81,14 +81,14 @@ size_t get_type(ast_t* node) {
 
   if (strcmp(tcstr, "ptr") == 0) {
     assert(node->ty.child != 0);
-    size_t t = get_type(node->ty.child);
+    size_t t = __ts_string_to_tyid(node->ty.child);
     return node->ty_id = ty_create_wrapped(FL_POINTER, t);
   }
 
   if (strcmp(tcstr, "vector") == 0) {
     assert(node->ty.child != 0);
 
-    size_t t = get_type(node->ty.child);
+    size_t t = __ts_string_to_tyid(node->ty.child);
     return node->ty_id = ty_create_wrapped(FL_VECTOR, t);
   }
 
@@ -102,8 +102,8 @@ size_t get_type(ast_t* node) {
   return 0;
 }
 
-ast_action_t register_types(ast_t* node, ast_t* parent, size_t level,
-                            void* userdata_in, void* userdata_out) {
+ast_action_t __trav_register_types(ast_t* node, ast_t* parent, size_t level,
+                                   void* userdata_in, void* userdata_out) {
   if (node->ty_id)
     return FL_AC_CONTINUE;
 
@@ -121,7 +121,7 @@ ast_action_t register_types(ast_t* node, ast_t* parent, size_t level,
   case FL_AST_TYPE: {
     // check wrappers
     ast_t* p = node->parent;
-    get_type(node);
+    __ts_string_to_tyid(node);
 
     switch (p->type) {
     case FL_AST_DECL_FUNCTION:
@@ -162,6 +162,6 @@ ast_action_t register_types(ast_t* node, ast_t* parent, size_t level,
 
 // return error
 ast_t* ts_register_types(ast_t* node) {
-  ast_traverse(node, register_types, 0, 0, 0, 0);
+  ast_traverse(node, __trav_register_types, 0, 0, 0, 0);
   return node;
 }
