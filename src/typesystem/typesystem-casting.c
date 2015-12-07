@@ -445,6 +445,33 @@ void ts_cast_binop(ast_t* node) {
   bool l_fp = ty_is_fp(l_type);
   bool r_fp = ty_is_fp(r_type);
 
+  // here handle pointer math '+' & '-'
+  // also normalize the tree for codegen, pointer on the left
+  switch (node->binop.operator) {
+    case '-':
+    case '+': {
+      if (ty_is_pointer(l_type)) {
+        // rhs must be a numeric type
+        if (!ty_is_number(r_type)) {
+          ast_raise_error(node, "Invalid operants. left is (%s) but right is not numeric (%s).",
+        ty_to_string(l_type)->value, ty_to_string(r_type)->value);
+        }
+        node->ty_id = l_type;
+        return;
+      }
+      if (ty_is_pointer(r_type)) {
+        // lhs must be a numeric type
+        if (!ty_is_number(l_type)) {
+          ast_raise_error(node, "Invalid operants. right is (%s) but left is not numeric (%s).",
+        ty_to_string(r_type)->value, ty_to_string(l_type)->value);
+        }
+        node->binop.right = l;
+        node->binop.left = r;
+        node->ty_id = r_type;
+        return;
+      }
+    }
+  }
   // binop
   switch (node->binop.operator) {
   case TK_EQEQ:

@@ -439,14 +439,30 @@ LLVMValueRef cg_binop(FL_CODEGEN_HEADER) {
     slt: signed less than
     sle: signed less or equal
   */
-
   case '+': {
-    return use_fp ? LLVMBuildFAdd(builder, lhs, rhs, "add")
-                  : LLVMBuildAdd(builder, lhs, rhs, "addi");
+
+    if (ty_is_pointer(node->binop.left->ty_id)) {
+      // use pointer arithmetic
+      LLVMValueRef idxs[1];
+      // TODO i32 as pointer size -> should be platformer dependent
+      idxs[0] = rhs;
+      return LLVMBuildInBoundsGEP(builder, lhs, idxs, 1, "add");
+    } else {
+      return use_fp ? LLVMBuildFAdd(builder, lhs, rhs, "add")
+                    : LLVMBuildAdd(builder, lhs, rhs, "addi");
+                  }
   }
   case '-': {
-    return use_fp ? LLVMBuildFSub(builder, lhs, rhs, "sub")
-                  : LLVMBuildSub(builder, lhs, rhs, "subi");
+    if (ty_is_pointer(node->binop.left->ty_id)) {
+      // use pointer arithmetic
+      LLVMValueRef idxs[1];
+      // TODO i32 as pointer size -> should be platformer dependent
+      idxs[0] = LLVMBuildNeg(builder, rhs, "negate");;
+      return LLVMBuildInBoundsGEP(builder, lhs, idxs, 1, "add");
+    } else {
+      return use_fp ? LLVMBuildFSub(builder, lhs, rhs, "sub")
+                    : LLVMBuildSub(builder, lhs, rhs, "subi");
+                  }
   }
   case '*': {
     return use_fp ? LLVMBuildFMul(builder, lhs, rhs, "mul")
@@ -621,18 +637,28 @@ LLVMValueRef cg_expr_call(FL_CODEGEN_HEADER) {
 }
 
 LLVMValueRef cg_runary(FL_CODEGEN_HEADER) {
-  LLVMValueRef element = cg_ast_loaded("load_lunary", node->runary.element,
+  LLVMValueRef element = cg_ast_loaded("load_runary", node->runary.element,
                                        FL_CODEGEN_PASSTHROUGH);
 
   switch (node->runary.operator) {
   case TK_PLUSPLUS:
   case TK_MINUSMINUS: {
-    LLVMTypeRef type = LLVMTypeOf(element);
-    LLVMValueRef ret = LLVMBuildBinOp(
-        builder, ty_is_fp(node->ty_id) ? LLVMFAdd : LLVMAdd, element,
-        LLVMConstInt(type, node->lunary.operator== TK_PLUSPLUS ? 1 : -1, false),
-        "radd");
+    LLVMValueRef ret;
     ast_t* el = node->lunary.element;
+
+    if (ty_is_pointer(el->ty_id)) {
+      // use pointer arithmetic
+      LLVMValueRef idxs[1];
+      // TODO i32 as pointer size -> should be platformer dependent
+      idxs[0] = LLVMConstInt(cg_get_typeid(TS_I32, context), node->lunary.operator== TK_PLUSPLUS ? 1 : -1, false);
+      ret = LLVMBuildInBoundsGEP(builder, element, idxs, 1, "inc");
+    } else {
+      LLVMTypeRef type = LLVMTypeOf(element);
+      ret = LLVMBuildBinOp(
+          builder, ty_is_fp(node->ty_id) ? LLVMFAdd : LLVMAdd, element,
+          LLVMConstInt(type, node->lunary.operator== TK_PLUSPLUS ? 1 : -1, false),
+          "radd");
+        }
     if (el->type == FL_AST_LIT_IDENTIFIER) {
       cg_utils_store(el, ret, builder);
     }
@@ -663,12 +689,22 @@ LLVMValueRef cg_lunary(FL_CODEGEN_HEADER) {
     return LLVMBuildNot(builder, element, "not");
   case TK_PLUSPLUS:
   case TK_MINUSMINUS: {
-    LLVMTypeRef type = LLVMTypeOf(element);
-    LLVMValueRef ret = LLVMBuildBinOp(
-        builder, ty_is_fp(node->ty_id) ? LLVMFAdd : LLVMAdd, element,
-        LLVMConstInt(type, node->lunary.operator== TK_PLUSPLUS ? 1 : -1, false),
-        "ladd");
+    LLVMValueRef ret;
     ast_t* el = node->lunary.element;
+
+    if (ty_is_pointer(el->ty_id)) {
+      // use pointer arithmetic
+      LLVMValueRef idxs[1];
+      // TODO i32 as pointer size -> should be platformer dependent
+      idxs[0] = LLVMConstInt(cg_get_typeid(TS_I32, context), node->lunary.operator== TK_PLUSPLUS ? 1 : -1, false);
+      ret = LLVMBuildInBoundsGEP(builder, element, idxs, 1, "inc");
+    } else {
+      LLVMTypeRef type = LLVMTypeOf(element);
+      ret = LLVMBuildBinOp(
+          builder, ty_is_fp(node->ty_id) ? LLVMFAdd : LLVMAdd, element,
+          LLVMConstInt(type, node->lunary.operator== TK_PLUSPLUS ? 1 : -1, false),
+          "inc");
+    }
     if (el->type == FL_AST_LIT_IDENTIFIER) {
       cg_utils_store(el, ret, builder);
     }

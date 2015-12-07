@@ -74,9 +74,9 @@ void test_file_list(char** files, size_t nfiles, char* path) {
       printf("\033[2J"); // "clear screen"
     }
 
-    // if (i == 14) {
-    // log_debug_level = 10;
-    //}
+    if (i == 20) {
+      log_debug_level = 10;
+    }
 
     fl_file[0] = '\0';
     strcat(fl_file, path);
@@ -150,11 +150,12 @@ TASK_IMPL(flang_files) {
       "memory", "memory3", "expressions", "casting", "if", "loops", "loops2",
       "types", "pointers", "pointers2", "string", "functions",
       "function-pointer", "arithmetic", "autocast", "increment", "fibonacci",
-      "type-promotion-signed", "type-promotion-unsigned", "type-promotion-mix"
+      "type-promotion-signed", "type-promotion-unsigned", "type-promotion-mix",
+      "pointer-math"
       //,"promotion"
   };
 
-  test_file_list(test_files, 20, "../test/fl/");
+  test_file_list(test_files, 21, "../test/fl/");
 
   char* perf_files[] = {"array-reverse"};
 
