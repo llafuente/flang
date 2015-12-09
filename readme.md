@@ -30,14 +30,101 @@ Documentation of the language is not ready, but the code is documented.
 sh gen-doc.sh
 ```
 
-`doc.md` contain the documentation, that it's not yet ready to be in the git.
+`doc.md` will contain the documentation (it's not in the git yet).
 
 ## Compile process
 
-* flex/bison parse the file and build the AST
-* typesystem pass through the AST filling the gaps
-* generate IR from ast (codegen)
+* Flex/Bison parse the file and build the AST
+* Typesystem traverse the AST filling the gaps
+  * Register types
+  * Apply types to all nodes
+    * Inference
+    * Implicit casting
+  * Reduce the AST to it's minimal form
+* Codegen AST usgin LLVM-C
   * execute jit (exec-jit)
   * execute bitcode (exec-bit)
   * dump IR (exec-dump)
   * execuable (exec-full)
+
+## Support
+
+* Types.
+  * Integers (any size and signed) and boolean
+  * Structs (no union)
+  * Functions
+
+* Modules (in global scope, like #include in c)
+* Function polymorphism
+* Function pointer call
+* Pointers and pointer arithmetic
+* Basic inference
+* All c operators and same precedence (expect conditional expression)
+* autocast function. Bypass the typesystem casting alowing custom casts.
+
+## Todo
+
+Current todo list.
+* struct/function template (nothing fancy just type template)
+* stdin, stdout, stderr, stdlog
+* $log, $$log
+
+For the future (not far i hope)
+* switch
+* Lambdas
+* Type Any (box/unbox/unboxif)
+* conditional expression (? :)
+* operator overloading
+* export c header (flang is compatible with c)
+* REPL
+* Modules
+  * global prefix: prefix functions/global variables.
+  * import 'as'. (like a namespace)
+* structs
+  * setter(struct, string, type value)
+  * getter(struct, string) : type
+  * keys(struct) : string[]
+  * struct["xxxx"] = expr -> setter(struct, string, expr)
+  * debug(struct)
+  * default initialization
+  * extends (simple hierarchy)
+  * union
+* functions
+  * default arguments
+  * call with named arguments
+* unvar, initialized variable
+* Underscore in literals 999_99_9999L
+* until -> while(!)
+* break; Terminates the loop (most internal if none specified).
+* redo; Restarts this iteration, without checking loop condition.
+* next | continue; Jumps to next iteration.
+* retry; If retry appears in the iterator, the block, or the body of the for expression, restarts the invocation of the iterator call. Arguments to the iterator is re-evaluated.
+* forever{}
+* object
+  * Hashmap
+  * store Any
+* model
+  * is an object
+  * has a validation scheme
+  * have a state: pristine, dirty, error
+  * can get changes since last pristine
+  * have setters & getters
+  * observers
+  * autocast to object
+* native regex using pcr2
+* io using libuv
+
+
+> fori = 0 < x {} -> for var i=0; i < x; ++i {}
+
+## fix
+
+> ++(5 + 6)
+
+> ReferenceError: Invalid left-hand side expression in prefix operation
+
+## C differences
+
+There is no operator `,`, expressions cannot be chained with it.
+
+Types cannot demote without casting.
