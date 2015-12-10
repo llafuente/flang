@@ -192,6 +192,13 @@ FL_EXTERN string* fl_file_to_string(const char* filename);
 
 /* cldoc:begin-category(type-dump.c) */
 
+/* Get printf token given ty_id, only built-in atm.
+ *
+ * @ty_id type id
+ * @return printf token
+ */
+FL_EXTERN char* ty_to_printf(size_t ty_id);
+
 /* Get string representation of given type.
  * Do not need to free ther string, it's allocated in the pool.
  *
@@ -630,6 +637,7 @@ FL_EXTERN ast_t* ast_mk_block(ast_t* body);
 FL_EXTERN ast_t* ast_mk_lit_id(string* str, bool resolve);
 FL_EXTERN ast_t* ast_mk_lit_null();
 FL_EXTERN ast_t* ast_mk_lit_string(char* str, bool interpolate);
+FL_EXTERN ast_t* ast_mk_lit_string2(string* str, bool interpolate, bool escape);
 FL_EXTERN ast_t* ast_mk_lit_boolean(bool value);
 FL_EXTERN ast_t* ast_mk_lit_integer(char* text);
 FL_EXTERN ast_t* ast_mk_lit_float(char* text);
@@ -658,6 +666,7 @@ FL_EXTERN ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression);
 FL_EXTERN ast_t* ast_mk_sizeof(ast_t* type);
 FL_EXTERN ast_t* ast_mk_cast(ast_t* type, ast_t* element);
 FL_EXTERN ast_t* ast_mk_import(ast_t* string_lit);
+FL_EXTERN ast_t* ast_mk_log(ast_t* list);
 
 /* cldoc:end-category() */
 
@@ -671,6 +680,17 @@ FL_EXTERN ast_t* ast_mk_import(ast_t* string_lit);
  * @return if @node is a literal
  */
 FL_EXTERN bool ast_is_literal(ast_t* node);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast-reduce.c) */
+
+/* Reduce some tree nodes, so the codegen isn't redundant
+ *
+ * @node should be root
+ * @return node o error
+ */
+FL_EXTERN ast_t* ast_reduce(ast_t* node);
 
 /* cldoc:end-category() */
 
@@ -688,6 +708,20 @@ FL_EXTERN bool ast_is_literal(ast_t* node);
  */
 FL_EXTERN void ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent,
                            size_t level, void* userdata_in, void* userdata_out);
+/* Return root node
+ * A root node is the program or the module
+ *
+ * @node
+ * @return root node
+ */
+FL_EXTERN ast_t* ast_get_root(ast_t* node);
+/* Get the string piece of code given a node
+ * Does not always work, because some node are auto-generated...
+ *
+ * @node
+ * @return root node
+ */
+FL_EXTERN string* ast_get_code(ast_t* node);
 
 /* cldoc:end-category() */
 

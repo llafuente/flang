@@ -138,6 +138,9 @@ void ast_dump_one(ast_t* node) {
   case FL_AST_EXPR_SIZEOF:
     printf("sizeof T(%zu)", node->ty_id);
     break;
+  case FL_AST_STMT_LOG:
+    printf("log");
+    break;
   case FL_AST_CAST:
     printf("cast T(%zu) O(%u)", node->ty_id, node->cast.operation);
     break;

@@ -118,6 +118,7 @@ where    { SET_LOCATION; return TK_WHERE; }
 while    { SET_LOCATION; return TK_WHILE; }
 do       { SET_LOCATION; return TK_DO; }
 sizeof   { SET_LOCATION; return TK_SIZEOF; }
+\$log    { SET_LOCATION; return TK_LOG; }
 
 false    { SET_LOCATION; return TK_FALSE; }
 true     { SET_LOCATION; return TK_TRUE; }

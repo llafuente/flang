@@ -1,0 +1,4 @@
+$log 1+2+3;
+$log "string got duplicated, funny?";
+var i32 a;
+$log a = 1;

@@ -51,7 +51,7 @@
 %token <token> TK_FFI TK_FOR TK_IF TK_IN TK_MATCH
 %token <token> TK_IMPORT TK_PUB TK_REF TK_RETURN TK_STATIC
 %token <token> TK_STRUCT TK_TYPE TK_TYPEOF TK_USE
-%token <token> TK_VAR TK_WHERE TK_WHILE TK_DO TK_SIZEOF
+%token <token> TK_VAR TK_WHERE TK_WHILE TK_DO TK_SIZEOF TK_LOG
 
 %token <token> TK_FALSE TK_TRUE TK_NULL
 
@@ -80,7 +80,7 @@
 %type <node> program stmts
 %type <node> stmt var_decl maybe_argument_expression_list argument_expression_list comment
 %type <node> struct_decl struct_decl_fields struct_decl_fields_list struct_decl_field
-%type <node> block maybe_stmts
+%type <node> block maybe_stmts log_expression
 
 %type <node> expression maybe_expression
 %type <node> assignment_expression
@@ -205,6 +205,7 @@ stmt
   | '{' stmts '}' {
     $$ = ast_mk_block($2);
   }
+  | log_expression ';'
   | expression ';'
   | comment
   | expr_if
@@ -624,6 +625,12 @@ argument_expression_list
 block
   : '{' maybe_stmts '}' {
     $$ = ast_mk_block($2);
+  }
+  ;
+
+log_expression
+  : TK_LOG argument_expression_list {
+    $$ = ast_mk_log($2);
   }
   ;
 

@@ -37,8 +37,7 @@ TASK_IMPL(codegen_expressions) {
   TEST_CODEGEN_OK("expr 04", "var i64 c; c = 1; c = 1;", {});
   TEST_CODEGEN_OK("expr 05", "var i64 a; var i64 b; a = b = 1;", {});
   TEST_CODEGEN_OK("expr 06", "var i64 a; var i64 b; a = 1; b = a + 1;", {});
-
-  // TEST_CODEGEN_OK("expr 04", "printf(\"%f\", 1 + 2);", {});
+  TEST_CODEGEN_OK("expr 07", "printf(\"%f\", 1 + 2);", {});
 
   TEST_CODEGEN_OK("type infer 01", "var x; var y; x = y = 1;", {});
   TEST_CODEGEN_OK("type infer 02", "var x; var y; x = 1; y = x + 1;", {});
@@ -97,6 +96,12 @@ TASK_IMPL(codegen_expressions) {
                                           "var i64 b = 1;\n"
                                           "a = cast(i32) b;",
                          {});
+
+  TEST_CODEGEN_OK(
+      "expressions 04", "$log 1+2+3;",
+      {
+       // ASSERT(body[2]->type == FL_AST_STMT_LOG, "root is a log stmt");
+      });
 
   return 0;
 }

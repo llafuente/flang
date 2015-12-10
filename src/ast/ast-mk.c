@@ -152,6 +152,22 @@ ast_t* ast_mk_lit_string(char* str, bool interpolate) {
   return node;
 }
 
+ast_t* ast_mk_lit_string2(string* str, bool interpolate, bool escape) {
+  // printf("ast_mk_lit_string\n");
+  ast_t* node = ast_new();
+  node->type = FL_AST_LIT_STRING;
+  node->ty_id = TS_STRING;
+  if (escape) {
+    node->string.value = st_unescape(str);
+  } else {
+
+    node->string.value = str;
+  }
+  node->string.quoted = interpolate; // TODO rename
+
+  return node;
+}
+
 ast_t* ast_mk_lit_boolean(bool value) {
   // printf("ast_mk_lit_boolean\n");
   ast_t* node = ast_new();
@@ -469,6 +485,17 @@ ast_t* ast_mk_import(ast_t* string_lit) {
   node->type = FL_AST_IMPORT;
 
   node->import.path = string_lit;
+
+  return node;
+}
+
+ast_t* ast_mk_log(ast_t* list) {
+  // printf("ast_mk_import\n");
+  ast_t* node = ast_new();
+  node->type = FL_AST_STMT_LOG;
+  node->log.print_expression = true; // TODO how to customize?
+
+  node->log.list = list;
 
   return node;
 }

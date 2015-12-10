@@ -48,6 +48,7 @@ FL_EXTERN LLVMValueRef cg_right_member(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef cg_left_member(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef cg_lhs(FL_CODEGEN_HEADER);
 FL_EXTERN LLVMValueRef cg_sizeof(FL_CODEGEN_HEADER);
+FL_EXTERN LLVMValueRef cg_log(FL_CODEGEN_HEADER);
 
 /*
 LLVMValueRef F = LLVMAddFunction(M, name, Fty);
@@ -202,7 +203,14 @@ LLVMValueRef cg_ast(FL_CODEGEN_HEADER) {
   case FL_AST_DECL_STRUCT:
     // ignore it, will be created on first use
     break;
-  default: {}
+  case FL_AST_STMT_LOG:
+    return cg_log(FL_CODEGEN_HEADER_SEND);
+    break;
+  // this node don't required codegen
+  case FL_AST_IMPORT:
+  case FL_AST_STMT_COMMENT:
+    break;
+  default: { ast_raise_error(node, "unhandled node type at codegen"); }
     // log_error("(codegen) ast->type not handled %d", node->type);
   }
   return 0;
@@ -450,19 +458,20 @@ LLVMValueRef cg_binop(FL_CODEGEN_HEADER) {
     } else {
       return use_fp ? LLVMBuildFAdd(builder, lhs, rhs, "add")
                     : LLVMBuildAdd(builder, lhs, rhs, "addi");
-                  }
+    }
   }
   case '-': {
     if (ty_is_pointer(node->binop.left->ty_id)) {
       // use pointer arithmetic
       LLVMValueRef idxs[1];
       // TODO i32 as pointer size -> should be platformer dependent
-      idxs[0] = LLVMBuildNeg(builder, rhs, "negate");;
+      idxs[0] = LLVMBuildNeg(builder, rhs, "negate");
+
       return LLVMBuildInBoundsGEP(builder, lhs, idxs, 1, "add");
     } else {
       return use_fp ? LLVMBuildFSub(builder, lhs, rhs, "sub")
                     : LLVMBuildSub(builder, lhs, rhs, "subi");
-                  }
+    }
   }
   case '*': {
     return use_fp ? LLVMBuildFMul(builder, lhs, rhs, "mul")
@@ -650,15 +659,18 @@ LLVMValueRef cg_runary(FL_CODEGEN_HEADER) {
       // use pointer arithmetic
       LLVMValueRef idxs[1];
       // TODO i32 as pointer size -> should be platformer dependent
-      idxs[0] = LLVMConstInt(cg_get_typeid(TS_I32, context), node->lunary.operator== TK_PLUSPLUS ? 1 : -1, false);
+      idxs[0] =
+          LLVMConstInt(cg_get_typeid(TS_I32, context),
+                       node->lunary.operator== TK_PLUSPLUS ? 1 : -1, false);
       ret = LLVMBuildInBoundsGEP(builder, element, idxs, 1, "inc");
     } else {
       LLVMTypeRef type = LLVMTypeOf(element);
       ret = LLVMBuildBinOp(
           builder, ty_is_fp(node->ty_id) ? LLVMFAdd : LLVMAdd, element,
-          LLVMConstInt(type, node->lunary.operator== TK_PLUSPLUS ? 1 : -1, false),
+          LLVMConstInt(type, node->lunary.operator== TK_PLUSPLUS ? 1 : -1,
+                       false),
           "radd");
-        }
+    }
     if (el->type == FL_AST_LIT_IDENTIFIER) {
       cg_utils_store(el, ret, builder);
     }
@@ -696,13 +708,16 @@ LLVMValueRef cg_lunary(FL_CODEGEN_HEADER) {
       // use pointer arithmetic
       LLVMValueRef idxs[1];
       // TODO i32 as pointer size -> should be platformer dependent
-      idxs[0] = LLVMConstInt(cg_get_typeid(TS_I32, context), node->lunary.operator== TK_PLUSPLUS ? 1 : -1, false);
+      idxs[0] =
+          LLVMConstInt(cg_get_typeid(TS_I32, context),
+                       node->lunary.operator== TK_PLUSPLUS ? 1 : -1, false);
       ret = LLVMBuildInBoundsGEP(builder, element, idxs, 1, "inc");
     } else {
       LLVMTypeRef type = LLVMTypeOf(element);
       ret = LLVMBuildBinOp(
           builder, ty_is_fp(node->ty_id) ? LLVMFAdd : LLVMAdd, element,
-          LLVMConstInt(type, node->lunary.operator== TK_PLUSPLUS ? 1 : -1, false),
+          LLVMConstInt(type, node->lunary.operator== TK_PLUSPLUS ? 1 : -1,
+                       false),
           "inc");
     }
     if (el->type == FL_AST_LIT_IDENTIFIER) {
@@ -962,4 +977,19 @@ LLVMValueRef cg_lhs(FL_CODEGEN_HEADER) {
 
 LLVMValueRef cg_sizeof(FL_CODEGEN_HEADER) {
   return LLVMSizeOf(cg_get_type(node->sof.type, context));
+}
+
+LLVMValueRef cg_log(FL_CODEGEN_HEADER) {
+  return 0;
+  string* code = ast_get_code(node);
+  ast_t* list = node->log.list;
+
+  size_t i;
+  for (i = 0; i < list->list.count; ++i) {
+    ast_t* el = list->list.elements[i];
+    LLVMValueRef cgel = cg_ast_loaded("log", el, FL_CODEGEN_PASSTHROUGH);
+    string* code = ast_get_code(el);
+  }
+
+  return 0;
 }

@@ -25,6 +25,32 @@
 
 #include "flang.h"
 
+// TODO add a new param, that will require 'debug' method call
+char* ty_to_printf(size_t ty_id) {
+  // only builtin atm
+  switch (ty_id) {
+  case TS_I8:
+  case TS_I16:
+    return "%d";
+  case TS_U8:
+  case TS_U16:
+    return "%u";
+  case TS_I32:
+  case TS_I64:
+    return "%ld";
+  case TS_U32:
+  case TS_U64:
+    return "%zu";
+  case TS_F32:
+  case TS_F64:
+    return "%f";
+  case TS_STRING:
+    // case TS_CSTR:
+    return "%s";
+  }
+  return "";
+}
+
 string* ty_to_string(size_t ty_id) {
   ty_t ty = ts_type_table[ty_id];
   // cached?

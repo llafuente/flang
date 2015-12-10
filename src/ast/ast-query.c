@@ -54,3 +54,56 @@ bool ast_is_literal(ast_t* node) {
   ast_traverse(node, __trav_is_literal, 0, 0, 0, (void*)&b);
   return b;
 }
+
+ast_t* ast_get_root(ast_t* node) {
+  ast_t* root = node->parent;
+  while (root) {
+    root = root->parent;
+    if (root->type == FL_AST_PROGRAM || root->type == FL_AST_MODULE) {
+      return root;
+    }
+  }
+
+  return 0;
+}
+
+// TODO UTF-8 support
+string* ast_get_code(ast_t* node) {
+  ast_t* root = ast_get_root(node);
+  size_t max = root->program.code->used;
+  char* start = root->program.code->value;
+  char* end = 0;
+  size_t line = 1;
+  size_t column = 1;
+  size_t i;
+  printf("searching %d:%d\n ", node->first_line, node->first_column);
+  for (i = 0; i < max; ++i) {
+    if (*start == '\n') {
+      ++line;
+      column = 0;
+    }
+    ++column;
+    ++start;
+
+    if (node->first_line == line && node->first_column == column) {
+      break; // we arrive to start location
+    }
+  }
+  end = start;
+  for (; i < max; ++i) {
+    if (*end == '\n') {
+      ++line;
+      column = 0;
+    }
+    ++column;
+    ++end;
+
+    if (node->last_line == line && node->last_column == column) {
+      break; // we arrive to start location
+    }
+  }
+
+  string* ret = st_new_subc(start, end - start + 1, st_enc_utf8);
+
+  return ret;
+}

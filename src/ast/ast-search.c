@@ -190,6 +190,8 @@ ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
 ast_action_t __search_fns(ast_t* node, ast_t* parent, size_t level,
                           void* userdata_in, void* userdata_out) {
 
+  log_verbose("traverse %d", node->type);
+
   if (node->type == FL_AST_DECL_FUNCTION) {
     string* ast_search_id = (string*)userdata_in;
     log_verbose("'%s' == '%s'", ast_search_id->value,

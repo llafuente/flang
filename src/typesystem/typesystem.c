@@ -35,5 +35,8 @@ ast_t* typesystem(ast_t* root) {
   // do inference
   root = ts_pass(root);
 
+  // reduce ast to it's minimal form
+  root = ast_reduce(root);
+
   return root;
 }

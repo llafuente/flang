@@ -298,5 +298,10 @@ struct ast {
 
       bool imported;
     } import;
+
+    struct ast_stmt_log {
+      bool print_expression;
+      ast_t* list;
+    } log;
   };
 };
