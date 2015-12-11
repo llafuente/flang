@@ -269,7 +269,8 @@ ast_t* ast_mk_var_decl(ast_t* type, ast_t* id) {
   return node;
 }
 
-ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body) {
+ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body,
+                      ast_t* attributes) {
   // printf("ast_mk_fn_decl\n");
   ast_t* node = ast_new();
   node->type = FL_AST_DECL_FUNCTION;
@@ -278,6 +279,7 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body) {
   node->func.ret_type = ret_type ? ret_type : ast_mk_type_void();
   node->func.params = params ? params : ast_mk_list();
   node->func.body = body;
+  node->func.attributes = attributes ? attributes : ast_mk_list();
 
   return node;
 }
@@ -496,6 +498,16 @@ ast_t* ast_mk_log(ast_t* list) {
   node->log.print_expression = true; // TODO how to customize?
 
   node->log.list = list;
+
+  return node;
+}
+
+ast_t* ast_mk_attribute(ast_t* id, ast_t* value) {
+  // printf("ast_mk_log\n");
+  ast_t* node = ast_new();
+  node->type = FL_AST_ATTRIBUTE;
+  node->attr.id = id;
+  node->attr.value = value;
 
   return node;
 }

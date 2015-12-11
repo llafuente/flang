@@ -63,6 +63,14 @@ TASK_IMPL(parser_functions) {
   TEST_PARSER_ERROR("function err 05", "fn x () { fn (){}; }",
                     "syntax error, unexpected '(', expecting AST_IDENT",
                     {/*CHK_ERROR_RANGE(err, 14, 1, 15, 1);*/});
+
+  TEST_PARSER_ERROR(
+      "function err 05", "ffi fn x () { var x; }",
+      "syntax error, ffi cannot have a body and must have declared return type",
+      {});
+
+  TEST_PARSER_ERROR("function err 05", "ffi fn x () : i32 { var x; }",
+                    "syntax error, ffi cannot have a body", {});
   // TODO 'template'
   TEST_PARSER_OK("function 03", "var i8 zz; fn x(i8 arg1, i8 arg2) : i8 {"
                                 "return arg1 + arg2;"
@@ -79,6 +87,14 @@ TASK_IMPL(parser_functions) {
 
   TEST_PARSER_OK("function 06", "function t(i8 i) {} var i32 i; i = 0;", {
     ASSERT(body[2]->assignament.left->ty_id == TS_I32, "i is i32");
+  });
+
+  TEST_PARSER_OK("function 07", "ffi fn printf(ptr(i8) format) : i32;",
+                 { ASSERT(body[0]->func.ffi == true, "function is ffi"); });
+
+  TEST_PARSER_OK("function 07", "ffi fn printf(ptr(i8) format, ...) : i32;", {
+    ASSERT(body[0]->func.ffi == true, "function is ffi");
+    ASSERT(body[0]->func.varargs == true, "function is varargs");
   });
 
   return 0;

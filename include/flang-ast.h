@@ -89,6 +89,7 @@ enum ast_types {
 
   FL_AST_STMT_COMMENT = 100,
   FL_AST_STMT_LOG = 101,
+  FL_AST_ATTRIBUTE = 102,
 
   FL_AST_ERROR = 255
 };
@@ -226,6 +227,7 @@ struct ast {
       ast_t* params;
       ast_t* body;
       ast_t* ret_type;
+      ast_t* attributes;
       bool varargs;
       bool ffi; // TODO maybe ffi_type, 0 means flang, 1 means c...
 
@@ -303,5 +305,10 @@ struct ast {
       bool print_expression;
       ast_t* list;
     } log;
+
+    struct ast_attribute {
+      ast_t* id;
+      ast_t* value;
+    } attr;
   };
 };

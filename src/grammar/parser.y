@@ -105,7 +105,8 @@
 %type <node> expr_if block_or_if
 /* loops */
 %type <node> expr_while expr_dowhile expr_for import_stmt
-%type <node> fn_decl fn_parameters fn_parameter_list fn_parameter
+%type <node> attributes attribute attributes_and_fn
+%type <node> fn_full_decl fn_partial_decl fn_decl fn_parameters fn_parameter_list fn_parameter
 
 %type <token> assignament_operator equality_operator relational_operator additive_operator multiplicative_operator unary_operator
 
@@ -307,29 +308,92 @@ struct_decl_field
   : type ident { $$ = ast_mk_struct_decl_field($2, $1); ast_position($$, @1, @2); }
   | ident      { $$ = ast_mk_struct_decl_field($1, 0);  ast_position($$, @1, @1); }
 
-fn_decl
-  /* TODO force parameter with types! */
-  : TK_FFI TK_FN ident fn_parameters ':' type {
-    $$ = ast_mk_fn_decl($3, $4, $6, 0);
-    $$->func.ffi = true;
-    if ($4->parent == 1) {
-      $$->func.varargs = true;
-    }
-    ast_position($$, @1, @6);
+
+attributes
+  : attribute {
+    $$ = ast_mk_list();
+    ast_mk_list_push($$, $1);
   }
-  | TK_FN ident fn_parameters ':' type block {
-    $$ = ast_mk_fn_decl($2, $3, $5, $6);
-    if ($3->parent == 1) {
-      $$->func.varargs = true;
-    }
-    ast_position($$, @1, @6);
+  | attributes attribute {
+    ast_mk_list_push($1, $2);
+    $$ = $1;
   }
-  | TK_FN ident fn_parameters block {
-    $$ = ast_mk_fn_decl($2, $3, 0, $4);
-    if ($3->parent == 1) {
-      $$->func.varargs = true;
-    }
+  ;
+
+attributes_and_fn
+  : attributes TK_FN { $$ = $1; }
+  | TK_FN { $$ = 0; }
+  ;
+
+
+attribute
+  : '#' ident '=' literal {
+    $$ = ast_mk_attribute($2, $4);
     ast_position($$, @1, @4);
+
+    // TODO do not allow attributes to repeat
+  }
+  | '#' ident {
+    $$ = ast_mk_attribute($2, 0);
+    ast_position($$, @1, @2);
+  }
+  | TK_FFI {
+    ast_t* id = ast_mk_lit_id(st_newc("ffi", st_enc_utf8), false);
+    $$ = ast_mk_attribute(id, 0);
+    ast_position(id, @1, @1);
+    ast_position($$, @1, @1);
+  }
+  ;
+
+fn_partial_decl
+  : attributes_and_fn ident fn_parameters {
+    $$ = ast_mk_fn_decl($2, $3, 0, 0, $1);
+    if ($3->parent == 1) {
+      $$->func.varargs = true;
+    }
+
+    if ($1) {
+      if (ast_get_attribute($1, st_newc("ffi", st_enc_utf8))) {
+        $$->func.ffi = true;
+      }
+    }
+
+    ast_position($$, @1, @3);
+  }
+  ;
+
+fn_full_decl
+  : fn_partial_decl ':' type {
+    $$ = $1;
+    $$->func.ret_type = $3;
+    ast_position($$, @1, @3);
+  }
+  ;
+
+fn_decl
+  : fn_full_decl block {
+    $$ = $1;
+    $$->func.body = $2;
+
+    // cannot be a ffi funcion with a body!
+    if ($1->func.ffi) {
+      yyerror(root, "syntax error, ffi cannot have a body"); YYERROR;
+    }
+
+    ast_position($$, @1, @2);
+  }
+  | fn_full_decl {
+    $$ = $1;
+  }
+  | fn_partial_decl block {
+    $$ = $1;
+    $$->func.body = $2;
+
+    if ($1->func.ffi) {
+      yyerror(root, "syntax error, ffi cannot have a body and must have declared return type"); YYERROR;
+    }
+
+    ast_position($$, @1, @2);
   }
   ;
 

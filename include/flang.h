@@ -608,8 +608,16 @@ FL_EXTERN void ast_raise_error(ast_t* node, char* message, ...);
 
 /* Get tyid from given AST Identifier
  * @id Identifier node
+ * @return type id
  */
 FL_EXTERN size_t ast_get_ident_typeid(ast_t* id);
+
+/* Get attribute with given id
+ * @list list of attributes
+ * @string attribute id
+ * @return node if found, 0 otherwise
+ */
+FL_EXTERN ast_t* ast_get_attribute(ast_t* list, string* needle);
 
 /* cldoc:end-category() */
 
@@ -646,7 +654,7 @@ FL_EXTERN ast_t* ast_mk_break(ast_t* argument);
 FL_EXTERN ast_t* ast_mk_continue(ast_t* argument);
 FL_EXTERN ast_t* ast_mk_var_decl(ast_t* type, ast_t* id);
 FL_EXTERN ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type,
-                                ast_t* body);
+                                ast_t* body, ast_t* attibutes);
 FL_EXTERN ast_t* ast_mk_fn_param(ast_t* id, ast_t* type, ast_t* def);
 FL_EXTERN ast_t* ast_mk_binop(ast_t* left, int op, ast_t* right);
 FL_EXTERN ast_t* ast_mk_assignament(ast_t* left, int op, ast_t* right);
@@ -667,6 +675,7 @@ FL_EXTERN ast_t* ast_mk_sizeof(ast_t* type);
 FL_EXTERN ast_t* ast_mk_cast(ast_t* type, ast_t* element);
 FL_EXTERN ast_t* ast_mk_import(ast_t* string_lit);
 FL_EXTERN ast_t* ast_mk_log(ast_t* list);
+FL_EXTERN ast_t* ast_mk_attribute(ast_t* id, ast_t* value);
 
 /* cldoc:end-category() */
 

@@ -39,3 +39,21 @@ size_t ast_get_ident_typeid(ast_t* id) {
 
   return ast_get_typeid(decl);
 }
+
+ast_t* ast_get_attribute(ast_t* list, string* needle) {
+  assert(list->type == FL_AST_LIST);
+  ast_t* attr;
+  size_t i;
+
+  for (i = 0; i < list->list.count; ++i) {
+    // exit when reach parent
+    attr = list->list.elements[i];
+    assert(attr->type == FL_AST_ATRRIBUTE);
+
+    if (st_cmp(needle, attr->attr.id->identifier.string) == 0) {
+      return attr;
+    }
+  }
+
+  return 0;
+}

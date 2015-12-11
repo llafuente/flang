@@ -61,13 +61,15 @@ sh gen-doc.sh
 * Basic inference
 * All c operators and same precedence (expect conditional expression)
 * autocast function. Bypass the typesystem casting alowing custom casts.
+* debug capabilities
+  * $log: print the code and the return value of the given expression
 
 ## Todo
 
 Current todo list.
 * struct/function template (nothing fancy just type template)
 * stdin, stdout, stderr, stdlog
-* $log, $$log
+* $$log: print the code, the expression with all value inputs and the final value of the expression.
 
 For the future (not far i hope)
 * switch
@@ -92,6 +94,9 @@ For the future (not far i hope)
 * functions
   * default arguments
   * call with named arguments
+  * get_arguments (name & type)
+  * arguments (like JS in an array of any)
+  * keyword to force return type to be assigned
 * unvar, initialized variable
 * Underscore in literals 999_99_9999L
 * until -> while(!)
@@ -125,6 +130,8 @@ For the future (not far i hope)
 
 ## C differences
 
-There is no operator `,`, expressions cannot be chained with it.
+Apart from syntax...
 
-Types cannot demote without casting.
+* No operator `,`
+* Braces are mandatory, for version control reasons
+* Types cannot demote without casting.
