@@ -135,3 +135,14 @@ Apart from syntax...
 * No operator `,`
 * Braces are mandatory, for version control reasons
 * Types cannot demote without casting.
+* Function polymorphism is allowed. C function names must be unique, so the user must provide an unique name for those function is you want to use it safely in c
+  ```
+  #id=sum_i8_i8
+  fn sum(i8 a, i8 b): i8 {
+    return a + b;
+  }
+  #id=sum_i32_i32
+  fn sum(i32 a, i32 b): i32 {
+    return a + b;
+  }
+  ```

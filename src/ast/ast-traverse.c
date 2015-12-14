@@ -115,6 +115,7 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
     TRAVERSE(ast->var.type);
   } break;
   case FL_AST_DECL_FUNCTION: {
+    TRAVERSE(ast->func.attributes);
     TRAVERSE(ast->func.id);
     TRAVERSE(ast->func.ret_type);
     TRAVERSE(ast->func.params);
@@ -160,6 +161,10 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
   } break;
   case FL_AST_STMT_LOG: {
     TRAVERSE(ast->log.list);
+  } break;
+  case FL_AST_ATTRIBUTE: {
+    TRAVERSE(ast->attr.id);
+    TRAVERSE(ast->attr.value);
   } break;
   default: {}
   }

@@ -279,7 +279,31 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body,
   node->func.ret_type = ret_type ? ret_type : ast_mk_type_void();
   node->func.params = params ? params : ast_mk_list();
   node->func.body = body;
-  node->func.attributes = attributes ? attributes : ast_mk_list();
+  if (attributes) {
+    node->func.attributes = attributes;
+    ast_t* id = ast_get_attribute(attributes, st_newc("id", st_enc_utf8));
+    if (id) {
+      node->func.uid = id->attr.value->identifier.string;
+    }
+
+    // do not resolve!
+    ast_t* attr_id;
+    ast_t* attr_val;
+    size_t i;
+    for (i = 0; i < attributes->list.count; ++i) {
+      attr_id = attributes->list.elements[i]->attr.id;
+      if (attr_id->type == FL_AST_LIT_IDENTIFIER) {
+        attr_id->identifier.resolve = false;
+      }
+
+      attr_val = attributes->list.elements[i]->attr.value;
+      if (attr_val && attr_val->type == FL_AST_LIT_IDENTIFIER) {
+        attr_val->identifier.resolve = false;
+      }
+    }
+  } else {
+    node->func.attributes = ast_mk_list();
+  }
 
   return node;
 }

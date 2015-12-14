@@ -203,7 +203,8 @@ size_t ty_create_fn(ast_t* decl) {
   if (ty_get_type_by_name(id)) {
     if (decl->func.uid) {
       if (ty_get_type_by_name(decl->func.uid)) {
-        log_error("uid collision!");
+        // TODO display the decl that collide
+        ast_raise_error(decl, "Function #id collision found.");
       }
     } else {
       // create a unique name!
@@ -212,9 +213,9 @@ size_t ty_create_fn(ast_t* decl) {
         st_delete(&uid);
         uid = st_concat_random(id, 10);
       }
+      decl->func.uid = uid;
     }
-    decl->func.uid = uid;
-  } else {
+  } else if (!decl->func.uid) {
     decl->func.uid = st_clone(id); // TODO this should be uid ?
   }
 

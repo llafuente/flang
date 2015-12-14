@@ -332,6 +332,7 @@ attribute
     ast_position($$, @1, @4);
 
     // TODO do not allow attributes to repeat
+    // TODO id must have a lit_id literal
   }
   | '#' ident {
     $$ = ast_mk_attribute($2, 0);

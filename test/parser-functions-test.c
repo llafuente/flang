@@ -92,10 +92,33 @@ TASK_IMPL(parser_functions) {
   TEST_PARSER_OK("function 07", "ffi fn printf(ptr(i8) format) : i32;",
                  { ASSERT(body[0]->func.ffi == true, "function is ffi"); });
 
-  TEST_PARSER_OK("function 07", "ffi fn printf(ptr(i8) format, ...) : i32;", {
+  TEST_PARSER_OK("function 08", "ffi fn printf(ptr(i8) format, ...) : i32;", {
     ASSERT(body[0]->func.ffi == true, "function is ffi");
     ASSERT(body[0]->func.varargs == true, "function is varargs");
   });
+
+  log_debug_level = 10;
+  TEST_PARSER_OK(
+      "poly 01", "#id=sum_i32\n"
+                 "fn sum(i32 a, i32 b) : i32 {"
+                 "  return a + b;"
+                 "}"
+                 "#id=sum_i8\n"
+                 "fn sum(i8 a, i8 b) : i8 {"
+                 "  return a + b;"
+                 "}",
+      {
+        ast_dump(root);
+        ASSERT(body[0]->func.ffi == false, "function is not ffi");
+        ASSERT(body[0]->func.varargs == false, "function is not varargs");
+        ASSERT(strcmp(body[0]->func.uid->value, "sum_i32") == 0,
+               "function uid is what we manually set");
+
+        ASSERT(body[1]->func.ffi == false, "function is not ffi");
+        ASSERT(body[1]->func.varargs == false, "function is not varargs");
+        ASSERT(strcmp(body[1]->func.uid->value, "sum_i8") == 0,
+               "function uid is what we manually set");
+      });
 
   return 0;
 }
