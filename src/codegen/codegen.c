@@ -250,34 +250,34 @@ LLVMValueRef cg_cast(FL_CODEGEN_HEADER) {
   }
   case FL_CAST_FPTOSI:
     return LLVMBuildFPToSI(builder, element,
-                           cg_get_typeid(node->ty_id, context), "cast");
+                           cg_get_typeid(node, node->ty_id, context), "cast");
   case FL_CAST_FPTOUI:
     return LLVMBuildFPToUI(builder, element,
-                           cg_get_typeid(node->ty_id, context), "cast");
+                           cg_get_typeid(node, node->ty_id, context), "cast");
   case FL_CAST_SITOFP:
     return LLVMBuildSIToFP(builder, element,
-                           cg_get_typeid(node->ty_id, context), "cast");
+                           cg_get_typeid(node, node->ty_id, context), "cast");
   case FL_CAST_UITOFP:
     return LLVMBuildUIToFP(builder, element,
-                           cg_get_typeid(node->ty_id, context), "cast");
+                           cg_get_typeid(node, node->ty_id, context), "cast");
   case FL_CAST_FPEXT:
-    return LLVMBuildFPExt(builder, element, cg_get_typeid(node->ty_id, context),
-                          "cast");
+    return LLVMBuildFPExt(builder, element,
+                          cg_get_typeid(node, node->ty_id, context), "cast");
   case FL_CAST_SEXT:
-    return LLVMBuildSExt(builder, element, cg_get_typeid(node->ty_id, context),
-                         "cast");
+    return LLVMBuildSExt(builder, element,
+                         cg_get_typeid(node, node->ty_id, context), "cast");
   case FL_CAST_ZEXT:
-    return LLVMBuildZExt(builder, element, cg_get_typeid(node->ty_id, context),
-                         "cast");
+    return LLVMBuildZExt(builder, element,
+                         cg_get_typeid(node, node->ty_id, context), "cast");
   case FL_CAST_FPTRUNC:
     return LLVMBuildFPTrunc(builder, element,
-                            cg_get_typeid(node->ty_id, context), "cast");
+                            cg_get_typeid(node, node->ty_id, context), "cast");
   case FL_CAST_TRUNC:
-    return LLVMBuildTrunc(builder, element, cg_get_typeid(node->ty_id, context),
-                          "cast");
+    return LLVMBuildTrunc(builder, element,
+                          cg_get_typeid(node, node->ty_id, context), "cast");
   case FL_CAST_BITCAST:
     return LLVMBuildBitCast(builder, element,
-                            cg_get_typeid(node->ty_id, context), "cast");
+                            cg_get_typeid(node, node->ty_id, context), "cast");
   // remove warning!
   case FL_CAST_AUTO: {
     return element;
@@ -288,7 +288,7 @@ LLVMValueRef cg_cast(FL_CODEGEN_HEADER) {
 LLVMValueRef cg_lit_float(FL_CODEGEN_HEADER) {
   log_debug("float T(%zu)", node->ty_id);
 
-  LLVMTypeRef tref = cg_get_typeid(node->ty_id, context);
+  LLVMTypeRef tref = cg_get_typeid(node, node->ty_id, context);
   return LLVMConstReal(tref, node->decimal.value);
 }
 
@@ -300,7 +300,7 @@ LLVMValueRef cg_lit_integer(FL_CODEGEN_HEADER) {
   // size_t ty = node->numeric.ty_id;
   ty_t t = ts_type_table[ty];
 
-  LLVMTypeRef tref = cg_get_typeid(ty, context);
+  LLVMTypeRef tref = cg_get_typeid(node, ty, context);
 
   // TODO happens on cast, this should be promoted to AST_LIT_DECIMAL?
   if (t.number.fp) {
@@ -319,7 +319,8 @@ LLVMValueRef cg_lit_integer(FL_CODEGEN_HEADER) {
 LLVMValueRef cg_lit_boolean(FL_CODEGEN_HEADER) {
   ty_t t = ts_type_table[2];
 
-  return LLVMConstInt(cg_get_typeid(2, context), node->boolean.value, false);
+  return LLVMConstInt(cg_get_typeid(node, 2, context), node->boolean.value,
+                      false);
 }
 
 LLVMValueRef cg_lit_string(FL_CODEGEN_HEADER) {
@@ -533,7 +534,7 @@ LLVMValueRef cg_function(FL_CODEGEN_HEADER) {
       }
 
       log_debug("parameter %zu of type %zu", i, tmp->param.id->ty_id);
-      param_types[i++] = cg_get_typeid(tmp->param.id->ty_id, context);
+      param_types[i++] = cg_get_typeid(node, tmp->param.id->ty_id, context);
     }
   }
 
@@ -660,7 +661,7 @@ LLVMValueRef cg_runary(FL_CODEGEN_HEADER) {
       LLVMValueRef idxs[1];
       // TODO i32 as pointer size -> should be platformer dependent
       idxs[0] =
-          LLVMConstInt(cg_get_typeid(TS_I32, context),
+          LLVMConstInt(cg_get_typeid(node, TS_I32, context),
                        node->lunary.operator== TK_PLUSPLUS ? 1 : -1, false);
       ret = LLVMBuildInBoundsGEP(builder, element, idxs, 1, "inc");
     } else {
@@ -709,7 +710,7 @@ LLVMValueRef cg_lunary(FL_CODEGEN_HEADER) {
       LLVMValueRef idxs[1];
       // TODO i32 as pointer size -> should be platformer dependent
       idxs[0] =
-          LLVMConstInt(cg_get_typeid(TS_I32, context),
+          LLVMConstInt(cg_get_typeid(node, TS_I32, context),
                        node->lunary.operator== TK_PLUSPLUS ? 1 : -1, false);
       ret = LLVMBuildInBoundsGEP(builder, element, idxs, 1, "inc");
     } else {

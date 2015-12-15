@@ -39,6 +39,7 @@ void ts_init() {
 
     // 0 means infer!
     ts_type_table[0].of = FL_INFER;
+    ts_type_table[0].id = st_newc("auto", st_enc_ascii);
     // [1] void
     ts_type_table[TS_VOID].of = FL_VOID;
     ts_type_table[TS_VOID].id = st_newc("void", st_enc_ascii);

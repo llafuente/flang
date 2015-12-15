@@ -112,6 +112,52 @@ ast_action_t __ts_inference_dtors(ast_t* node, ast_t* parent, size_t level,
   return FL_AC_CONTINUE;
 }
 
+ast_action_t __ts_inference_fn_ret(ast_t* node, ast_t* parent, size_t level,
+                                   void* userdata_in, void* userdata_out) {
+  if (node->type == FL_AST_DECL_FUNCTION && node->func.ret_type->ty_id == 0) {
+    ast_t* ret = node->func.ret_type;
+    ast_t* body = node->func.body;
+    array* list = ast_search_node_type(node, FL_AST_STMT_RETURN);
+
+    if (list) {
+      size_t i = 0;
+      ast_t* el;
+      size_t ct = 0;
+
+      for (; i < list->size; ++i) {
+        el = ((ast_t*)list->data[i])->ret.argument;
+        ast_dump(el);
+        if (!el->ty_id) {
+          // this need inference...
+          // wait for later...
+          array_delete(list);
+          free(list);
+          return FL_AC_CONTINUE;
+        } else if (ct && ct != el->ty_id) {
+          // TODO can we be more specific
+          // double type? error!
+          ast_raise_error(node, "Multiple return types found.");
+        } else {
+          ct = el->ty_id;
+        }
+      }
+      node->func.ret_type->ty_id = ct;
+
+      array_delete(list);
+      free(list);
+    } else {
+      // add return at last statement, and type to void
+      node->func.ret_type->ty_id = TS_VOID;
+      ast_mk_list_push(body->block.body,
+                       ast_mk_return(ast_mk_lit_integer("0")));
+      ast_parent(node);
+      ast_dump(node);
+    }
+  }
+
+  return FL_AC_CONTINUE;
+}
+
 // return error
 ast_t* ts_inference(ast_t* node) {
   // var x = 10; <- double
@@ -124,6 +170,7 @@ ast_t* ts_inference(ast_t* node) {
   do {
     modified = 0;
     ast_traverse(node, __ts_inference_dtors, 0, 0, 0, (void*)&modified);
+    ast_traverse(node, __ts_inference_fn_ret, 0, 0, 0, (void*)&modified);
   } while (modified);
 
   return 0;

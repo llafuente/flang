@@ -70,5 +70,9 @@ TASK_IMPL(codegen_functions) {
                                  "y = &ftype;"
                                  "y();",
                   {});
+
+  TEST_CODEGEN_OK("function 08", "fn no_ret_ok() {"
+                                 "}",
+                  {});
   return 0;
 }

@@ -190,7 +190,7 @@ ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
 ast_action_t __search_fns(ast_t* node, ast_t* parent, size_t level,
                           void* userdata_in, void* userdata_out) {
 
-  log_verbose("traverse %d", node->type);
+  // log_verbose("traverse %d", node->type);
 
   if (node->type == FL_AST_DECL_FUNCTION) {
     string* ast_search_id = (string*)userdata_in;
@@ -249,4 +249,28 @@ ast_t* ast_search_fn_decl(ast_t* identifier) {
               (void*)identifier->identifier.string, (void*)ret);
 
   return *ret;
+}
+
+ast_action_t __trav_get_list_node(ast_t* node, ast_t* parent, size_t level,
+                                  void* userdata_in, void* userdata_out) {
+  if (node->type == *(ast_types_t*)userdata_in) {
+    array_append((array*)userdata_out, node);
+  }
+
+  return FL_AC_CONTINUE;
+}
+
+array* ast_search_node_type(ast_t* node, ast_types_t t) {
+  array* userdata = malloc(sizeof(array));
+  array_new(userdata);
+
+  ast_traverse(node, __trav_get_list_node, 0, 0, (void*)&t, (void*)userdata);
+
+  if (userdata->size) {
+    return userdata;
+  }
+
+  array_delete(userdata);
+  free(userdata);
+  return 0;
 }

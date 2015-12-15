@@ -51,7 +51,7 @@
 %token <token> TK_FFI TK_FOR TK_IF TK_IN TK_MATCH
 %token <token> TK_IMPORT TK_PUB TK_REF TK_RETURN TK_STATIC
 %token <token> TK_STRUCT TK_TYPE TK_TYPEOF TK_USE
-%token <token> TK_VAR TK_WHERE TK_WHILE TK_DO TK_SIZEOF TK_LOG
+%token <token> TK_VAR TK_GLOBAL TK_WHERE TK_WHILE TK_DO TK_SIZEOF TK_LOG
 
 %token <token> TK_FALSE TK_TRUE TK_NULL
 
@@ -250,7 +250,7 @@ import_stmt
 var_decl
   : TK_VAR type ident '=' expression {
     $$ = ast_mk_list();
-    ast_t* decl = ast_mk_var_decl($2, $3);
+    ast_t* decl = ast_mk_var_decl($2, $3, AST_VAR_LOCAL);
     ast_position(decl, @1, @3);
     ast_mk_list_push($$, decl);
     ast_t* assignament = ast_mk_assignament(ast_clone(decl->var.id), '=', $5);
@@ -260,7 +260,7 @@ var_decl
   }
   | TK_VAR ident '=' expression {
     $$ = ast_mk_list();
-    ast_t* decl = ast_mk_var_decl(0, $2);
+    ast_t* decl = ast_mk_var_decl(0, $2, AST_VAR_LOCAL);
     ast_position(decl, @1, @2);
     ast_mk_list_push($$, decl);
     ast_t* assignament = ast_mk_assignament(ast_clone(decl->var.id), '=', $4);
@@ -269,11 +269,25 @@ var_decl
     ast_position($$, @1, @4);
   }
   | TK_VAR type ident {
-    $$ = ast_mk_var_decl($2, $3);
+    $$ = ast_mk_var_decl($2, $3, AST_VAR_LOCAL);
     ast_position($$, @1, @3);
   }
   | TK_VAR ident {
-    $$ = ast_mk_var_decl(0, $2);
+    $$ = ast_mk_var_decl(0, $2, AST_VAR_LOCAL);
+    ast_position($$, @1, @2);
+  }
+  | TK_GLOBAL type ident '=' expression {
+    $$ = ast_mk_list();
+    ast_t* decl = ast_mk_var_decl($2, $3, AST_VAR_GLOBAL);
+    ast_position(decl, @1, @3);
+    ast_mk_list_push($$, decl);
+    ast_t* assignament = ast_mk_assignament(ast_clone(decl->var.id), '=', $5);
+    ast_position(assignament, @3, @5);
+    ast_mk_list_push($$, assignament);
+    ast_position($$, @1, @5);
+  }
+  | TK_GLOBAL ident {
+    $$ = ast_mk_var_decl(0, $2, AST_VAR_GLOBAL);
     ast_position($$, @1, @2);
   }
   ;

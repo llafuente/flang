@@ -114,6 +114,7 @@ type     { SET_LOCATION; return TK_TYPE; }
 typeof   { SET_LOCATION; return TK_TYPEOF; }
 use      { SET_LOCATION; return TK_USE; }
 var      { SET_LOCATION; return TK_VAR; }
+global   { SET_LOCATION; return TK_GLOBAL; }
 where    { SET_LOCATION; return TK_WHERE; }
 while    { SET_LOCATION; return TK_WHILE; }
 do       { SET_LOCATION; return TK_DO; }

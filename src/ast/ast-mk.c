@@ -72,12 +72,16 @@ ast_t* ast_mk_list() {
 
 ast_t* ast_mk_list_push(ast_t* list, ast_t* node) {
   // printf("ast_mk_list_push [%p]\n", list);
+  assert(list->type == FL_AST_LIST);
+
   list->list.elements[list->list.count++] = node;
   return list;
 }
 
 ast_t* ast_mk_list_insert(ast_t* list, ast_t* node, size_t idx) {
   // printf("ast_mk_list_push [%p]\n", list);
+  assert(list->type == FL_AST_LIST);
+
   size_t count = list->list.count;
   assert(count > idx);
 
@@ -258,13 +262,14 @@ ast_t* ast_mk_continue(ast_t* argument) {
   return node;
 }
 
-ast_t* ast_mk_var_decl(ast_t* type, ast_t* id) {
+ast_t* ast_mk_var_decl(ast_t* type, ast_t* id, ast_var_context_t context) {
   // printf("ast_mk_var_decl\n");
   ast_t* node = ast_new();
   node->type = FL_AST_DTOR_VAR;
 
   node->var.id = id;
   node->var.type = type ? type : ast_mk_type(0, 0);
+  node->var.context = context;
 
   return node;
 }
@@ -276,7 +281,7 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body,
   node->type = FL_AST_DECL_FUNCTION;
 
   node->func.id = id;
-  node->func.ret_type = ret_type ? ret_type : ast_mk_type_void();
+  node->func.ret_type = ret_type ? ret_type : ast_mk_type_auto();
   node->func.params = params ? params : ast_mk_list();
   node->func.body = body;
   if (attributes) {
@@ -356,6 +361,10 @@ ast_t* ast_mk_call_expr(ast_t* callee, ast_t* arguments) {
   node->call.narguments = arguments ? arguments->list.count : 0;
 
   return node;
+}
+
+ast_t* ast_mk_type_auto() {
+  return ast_mk_type(st_newc("auto", st_enc_utf8), 0);
 }
 
 ast_t* ast_mk_type_void() {

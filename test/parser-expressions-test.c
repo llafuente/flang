@@ -136,6 +136,9 @@ TASK_IMPL(parser_expressions) {
            "right: FL_AST_LIT_IDENTIFIER");
   });
 
+  TEST_PARSER_OK("assignament 01", "global i8 a = 1; fn abc() { return a; }",
+                 {});
+
   TEST_PARSER_OK("assignament 01", "var i8 a; var i8 b; a =b;", {
     ASSERT(body[2]->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
   });

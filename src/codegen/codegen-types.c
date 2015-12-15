@@ -44,10 +44,10 @@ bool cg_bitcast(ty_t a, ty_t b) {
 }
 
 LLVMTypeRef cg_get_type(ast_t* node, LLVMContextRef context) {
-  return cg_get_typeid(node->ty_id, context);
+  return cg_get_typeid(node, node->ty_id, context);
 }
 
-LLVMTypeRef cg_get_typeid(size_t id, LLVMContextRef context) {
+LLVMTypeRef cg_get_typeid(ast_t* node, size_t id, LLVMContextRef context) {
   ty_t* t = &ts_type_table[id];
 
   if (t->codegen) {
@@ -79,7 +79,8 @@ LLVMTypeRef cg_get_typeid(size_t id, LLVMContextRef context) {
     }
     break;
   case FL_POINTER:
-    t->codegen = (void*)LLVMPointerType(cg_get_typeid(t->ptr.to, context), 0);
+    t->codegen =
+        (void*)LLVMPointerType(cg_get_typeid(node, t->ptr.to, context), 0);
     break;
   case FL_STRUCT: {
     log_verbose("codegen struct '%s'", t->id->value);
@@ -92,29 +93,29 @@ LLVMTypeRef cg_get_typeid(size_t id, LLVMContextRef context) {
     LLVMTypeRef* types = malloc(count * sizeof(LLVMTypeRef));
     for (i = 0; i < count; ++i) {
       // types[i] = cg_get_typeid(l->list.elements[i]->ty_id, context);
-      types[i] = cg_get_typeid(t->structure.fields[i], context);
+      types[i] = cg_get_typeid(node, t->structure.fields[i], context);
     }
     LLVMStructSetBody(t->codegen, types, count, 0);
     free(types);
   } break;
   case FL_VECTOR: {
-    t->codegen =
-        LLVMArrayType(cg_get_typeid(t->vector.to, context), t->vector.length);
+    t->codegen = LLVMArrayType(cg_get_typeid(node, t->vector.to, context),
+                               t->vector.length);
   } break;
   case FL_FUNCTION: {
     LLVMTypeRef params[t->func.nparams];
     size_t i;
     for (i = 0; i < t->func.nparams; ++i) {
-      params[i] = cg_get_typeid(t->func.params[i], context);
+      params[i] = cg_get_typeid(node, t->func.params[i], context);
     }
 
-    t->codegen = LLVMFunctionType(cg_get_typeid(t->func.ret, context), params,
-                                  t->func.nparams, t->func.varargs);
+    t->codegen = LLVMFunctionType(cg_get_typeid(node, t->func.ret, context),
+                                  params, t->func.nparams, t->func.varargs);
     break;
   }
   default: {
-    ty_dump(id);
-    log_error("type not handled yet [%zu]", id);
+    ast_raise_error(node, "invalid type [%s] typesystem fail",
+                    ty_to_string(node->ty_id)->value);
   }
   }
 

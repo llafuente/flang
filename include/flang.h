@@ -78,6 +78,9 @@ typedef enum ast_types ast_types_t;
 enum ast_cast_operations;
 typedef enum ast_cast_operations ast_cast_operations_t;
 
+enum ast_var_context;
+typedef enum ast_var_context ast_var_context_t;
+
 enum ast_action;
 typedef enum ast_action ast_action_t;
 struct ast;
@@ -652,13 +655,15 @@ FL_EXTERN ast_t* ast_mk_lit_float(char* text);
 FL_EXTERN ast_t* ast_mk_return(ast_t* argument);
 FL_EXTERN ast_t* ast_mk_break(ast_t* argument);
 FL_EXTERN ast_t* ast_mk_continue(ast_t* argument);
-FL_EXTERN ast_t* ast_mk_var_decl(ast_t* type, ast_t* id);
+FL_EXTERN ast_t* ast_mk_var_decl(ast_t* type, ast_t* id,
+                                 ast_var_context_t context);
 FL_EXTERN ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type,
                                 ast_t* body, ast_t* attibutes);
 FL_EXTERN ast_t* ast_mk_fn_param(ast_t* id, ast_t* type, ast_t* def);
 FL_EXTERN ast_t* ast_mk_binop(ast_t* left, int op, ast_t* right);
 FL_EXTERN ast_t* ast_mk_assignament(ast_t* left, int op, ast_t* right);
 FL_EXTERN ast_t* ast_mk_call_expr(ast_t* callee, ast_t* arguments);
+FL_EXTERN ast_t* ast_mk_type_auto();
 FL_EXTERN ast_t* ast_mk_type_void();
 FL_EXTERN ast_t* ast_mk_type(string* id, ast_t* child);
 FL_EXTERN ast_t* ast_mk_type2(ast_t* id, ast_t* child);
@@ -771,6 +776,13 @@ FL_EXTERN array* ast_search_fns(ast_t* node, string* id);
  */
 FL_EXTERN ast_t* ast_search_fn_decl(ast_t* identifier);
 
+/* Traverse given tree and return all aparences of t
+ * @node
+ * @t
+ * @return array or null
+ */
+FL_EXTERN array* ast_search_node_type(ast_t* node, ast_types_t t);
+
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(ast-static.c) */
@@ -857,7 +869,8 @@ FL_EXTERN LLVMTypeRef cg_get_type(ast_t* node, LLVMContextRef context);
  * @tyid
  * @context
  */
-FL_EXTERN LLVMTypeRef cg_get_typeid(size_t tyid, LLVMContextRef context);
+FL_EXTERN LLVMTypeRef
+cg_get_typeid(ast_t* node, size_t tyid, LLVMContextRef context);
 
 /* cldoc:end-category() */
 

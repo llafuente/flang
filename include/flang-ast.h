@@ -40,6 +40,12 @@ enum ast_cast_operations {
   FL_CAST_AUTO,    // Function call
 };
 
+enum ast_var_context {
+  AST_VAR_LOCAL = 1,
+  AST_VAR_GLOBAL
+  // AST_VAR_LAMBDA
+};
+
 enum ast_types {
   FL_AST_PROGRAM = 1,
   FL_AST_IMPORT = 2,
@@ -201,6 +207,7 @@ struct ast {
       // TODO add type
       ast_t* id;
       ast_t* type;
+      ast_var_context_t context;
 
       LLVMValueRef alloca;
     } var;

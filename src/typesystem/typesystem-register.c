@@ -37,6 +37,9 @@ size_t __ts_string_to_tyid(ast_t* node) {
   char* tcstr = t_str->value;
 
   // built-in
+  if (strcmp(tcstr, "auto") == 0) {
+    return node->ty_id = 0;
+  }
   if (strcmp(tcstr, "bool") == 0) {
     return node->ty_id = TS_BOOL;
   }

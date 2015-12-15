@@ -97,7 +97,6 @@ TASK_IMPL(parser_functions) {
     ASSERT(body[0]->func.varargs == true, "function is varargs");
   });
 
-  log_debug_level = 10;
   TEST_PARSER_OK(
       "poly 01", "#id=sum_i32\n"
                  "fn sum(i32 a, i32 b) : i32 {"
