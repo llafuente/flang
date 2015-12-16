@@ -23,36 +23,52 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/// @file
-
+#include "flang.h"
 #include "tasks.h"
-#include "fixtures.h"
-#include "ext/array.h"
+#include "test.h"
+void hash_dump(hash_t* ht) { printf("ht->size %d\n", ht->size); }
+// TODO review if ";" is required
+TASK_IMPL(hash) {
+  size_t a = 1, b = 2, c = 3;
+  hash_t* ht = malloc(sizeof(hash_t));
 
-int main(int argc, const char* argv[]) {
-  printf("    ###############\n");
-  printf("    ## unit test ##\n");
-  printf("    ###############\n");
+  ASSERT(hash_new(ht, 101) == 0, "new hash failed");
+  hash_dump(ht);
+  printf("h->size out = %d\n", (ht)->size);
 
-  TASK_RUN(hash);
-  TASK_RUN(typesystem);
+  hash_set_cp(ht, "test", &a, sizeof(size_t));
+  size_t* x = hash_get(ht, "test");
+  ASSERT(*x == a, "test = 1");
 
-  /*
-  TASK_RUN(parser_literals);
-  */
-  TASK_RUN(parser_expressions);
-  TASK_RUN(parser_variables);
-  TASK_RUN(parser_functions);
-  TASK_RUN(parser_types);
-  TASK_RUN(parser_if);
-  TASK_RUN(parser_loops);
+  hash_set(ht, "test2", &b);
+  x = hash_get(ht, "test2");
+  ASSERT(*x == b, "test2 = 2");
 
-  TASK_RUN(codegen_expressions);
-  TASK_RUN(codegen_functions);
+  hash_set(ht, "test3", &c);
+  x = hash_get(ht, "test3");
+  ASSERT(*x == c, "test3 = 2");
 
-  TASK_RUN(flang_files);
+  size_t* number = malloc(sizeof(size_t));
+  *number = 101;
 
-  printf("\nOK\n");
+  hash_set_cp(ht, "test4", number, sizeof(size_t));
+  x = hash_get(ht, "test4");
+  ASSERT(*x == *number, "test4 = 2");
+
+  hash_set(ht, "test5", number);
+  x = hash_get(ht, "test5");
+  ASSERT(*x == *number, "test5 = 2");
+
+  free(number);
+  x = hash_get(ht, "test4"); // works
+  ASSERT(*x == 101, "test4 = 2");
+
+  // this test is commented because cannot be tested
+  // x = hash_get(ht, "test5"); // usage after free
+  // ASSERT(*x == *number, "test4 = 2");
+
+  hash_delete(ht);
+  free(ht);
 
   return 0;
 }

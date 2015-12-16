@@ -2,6 +2,17 @@
 import "core/string"; // into global space
 import "core/ffi-c"; // into global space
 
+/*
+#anon
+struct flang_version {
+  i32 minor,
+  i32 mayor
+};
+
+global i32 version = {minor: 0, mayor: 0};
+global i32 version = {0,0};
+*/
+
 fn alloc(u64 amount_of_bytes) : ptr(void) {
   return malloc(amount_of_bytes);
 }

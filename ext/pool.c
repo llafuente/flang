@@ -12,7 +12,7 @@ void pool_init(size_t bytes) {
 }
 
 void pool_new_page(size_t bytes) {
-  pool_page_t* page = (pool_page_t*) calloc(sizeof(pool_page_t) + bytes, 1);
+  pool_page_t* page = (pool_page_t*)calloc(sizeof(pool_page_t) + bytes, 1);
   page->next = page->ptr;
   page->free = bytes;
   array_append(pool_pages, (void*)page);
@@ -29,7 +29,7 @@ void* pool_new(size_t bytes) {
   size_t i = 0;
   for (; i < pool_pages->size; ++i) {
     pool_page_t* p = (pool_page_t*)pool_pages->data[i];
-    //printf("%zu - enough? %zu > %zu\n",i,  p->free, bytes);
+    // printf("%zu - enough? %zu > %zu\n",i,  p->free, bytes);
     if (p->free >= bytes) {
       void* ret = p->next;
 
@@ -44,11 +44,8 @@ void* pool_new(size_t bytes) {
   return pool_new(bytes);
 }
 
-void* pool_realloc(void* ptr, size_t bytes) {
-  return pool_new(bytes);
-}
-void pool_free(void* ptr) {
-}
+void* pool_realloc(void* ptr, size_t bytes) { return pool_new(bytes); }
+void pool_free(void* ptr) {}
 
 void pool_destroy() {
   size_t i = 0;

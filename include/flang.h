@@ -67,6 +67,7 @@ extern void __sanitizer_print_stack_trace();
 #include "ext/uthash.h"
 #include "ext/array.h"
 #include "ext/pool.h"
+#include "ext/hash.h"
 
 //-
 //- type pre-declaration

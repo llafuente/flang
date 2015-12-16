@@ -34,6 +34,7 @@ COMPILER_SOURCES = src/flang.c \
                 src/typesystem/type-utils.c \
                 src/debug.c \
                 ext/array.c \
+                ext/hash.c \
                 ext/pool.c
 
 AM_CPPFLAGS = -I$(top_srcdir)/include \
@@ -57,6 +58,7 @@ flang_LDFLAGS = $(LLVM_LINK_FLAGS) -lstdc++ -Wl -L/usr/local/lib '-lstringc'
 flang_LDADD =
 
 SOURCES_TEST = test/tasks.c \
+               test/hash-test.c \
                test/typesystem-test.c \
                test/parser-literals.c \
                test/parser-expressions-test.c \
