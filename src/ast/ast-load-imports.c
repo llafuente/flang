@@ -24,16 +24,34 @@
 */
 
 #include "flang.h"
+#include <libgen.h>
 
 ast_action_t __trav_load_imports(ast_t* node, ast_t* parent, size_t level,
                                  void* userdata_in, void* userdata_out) {
   if (node->type == FL_AST_IMPORT && !node->import.imported) {
     assert(node->parent->type == FL_AST_LIST);
 
+    char* file = node->import.path->string.value->value;
+
     char filepath[1024] = "";
-    strcat(filepath, "./../");
-    strcat(filepath, node->import.path->string.value->value);
-    strcat(filepath, ".fl");
+
+    if (file[0] == '.' && file[1] == '/') {
+      char* file2 = strdup(file);
+      ast_t* root = ast_get_root(node);
+
+      ast_dump(root);
+      printf("??? %s\n\n\n", root->program.file);
+
+      strcat(filepath, dirname(root->program.file));
+      strcat(filepath, "/");
+      strcat(filepath, file + 2);
+      strcat(filepath, ".fl");
+      free(file2);
+    } else {
+      strcat(filepath, "./../");
+      strcat(filepath, file);
+      strcat(filepath, ".fl");
+    }
 
     // printf("load module %s\n", filepath);
 

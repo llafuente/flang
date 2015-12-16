@@ -56,7 +56,7 @@ bool ast_is_literal(ast_t* node) {
 }
 
 ast_t* ast_get_root(ast_t* node) {
-  ast_t* root = node->parent;
+  ast_t* root = node;
   while (root) {
     root = root->parent;
     if (root->type == FL_AST_PROGRAM || root->type == FL_AST_MODULE) {
