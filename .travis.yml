@@ -1,0 +1,6 @@
+compiler:
+  - clang
+  - gcc
+install: sh install.sh
+language: c
+script: sh ./autogen.sh && ./configure && make && make test
