@@ -25,20 +25,17 @@
 
 #include "flang.h"
 
-ast_t* ast_err_node = 0;
-char* ast_err_message = 0;
-char* ast_err_buff = 0;
-
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 void __ast_print_error_lines(const string* line, st_len_t pos,
                              const string* code) {
-  if (pos >= MAX(0, ast_err_node->first_line - 3) &&
-      pos <= ast_err_node->last_line + 2) {
+  if (pos >= MAX(0, ast_last_error_node->first_line - 3) &&
+      pos <= ast_last_error_node->last_line + 2) {
     fprintf(stderr, "%6d | %s\n", pos + 1, line->value);
-    if (pos == ast_err_node->first_line - 1) {
+    if (pos == ast_last_error_node->first_line - 1) {
       fprintf(stderr, "%*s\x1B[32m^-- %s\x1B[39m\n",
-              (int)(9 + ast_err_node->first_column), " ", ast_err_message);
+              (int)(9 + ast_last_error_node->first_column), " ",
+              ast_last_error_message);
     }
   }
 }
@@ -53,8 +50,8 @@ bool ast_print_error(ast_t* node) {
             err->first_line, err->first_column, err->last_line,
             err->last_column);
 
-    ast_err_node = err;
-    ast_err_message = ast_err_node->err.message->value;
+    ast_last_error_node = err;
+    ast_last_error_message = ast_last_error_node->err.message->value;
 
     // TODO add context do not use global var
     st_line_iterator(node->program.code, __ast_print_error_lines);
@@ -67,10 +64,42 @@ bool ast_print_error(ast_t* node) {
   return false;
 }
 
-void ast_raise_error(ast_t* node, char* message, ...) {
+void ast_print_error_at(ast_t* node, char* message) {
   log_debug_level = 99;
 
-  char buffer[1024];
+  ast_t* root = ast_get_root(node);
+  ast_dump(node); // even node parent or root?!
+
+  // search a decent node to display 'error area'
+  ast_last_error_node = node;
+  ast_last_error_message = message;
+
+  if (!node->first_line && !node->first_column && !node->last_line &&
+      !node->last_column) {
+    do {
+      node = node->parent;
+    } while (!node->first_line && !node->first_column && !node->last_line &&
+             !node->last_column);
+    ast_last_error_node->first_line = node->first_line;
+    ast_last_error_node->first_column = node->first_column;
+    ast_last_error_node->last_line = node->last_line;
+    ast_last_error_node->last_column = node->last_column;
+  }
+
+  fprintf(stderr, "File & Line: %s:%d:%d @ %d:%d\n\n", root->program.file,
+          node->first_line, node->first_column, node->last_line,
+          node->last_column);
+
+  // TODO add context do not use global var
+  st_line_iterator(root->program.code, __ast_print_error_lines);
+}
+
+void ast_raise_error(ast_t* node, char* message, ...) {
+  // just once!
+  if (ast_last_error_message)
+    return;
+
+  char* buffer = (char*)pool_new(1024);
   va_list args;
   va_start(args, message);
   vsprintf(buffer, message, args);
@@ -80,40 +109,12 @@ void ast_raise_error(ast_t* node, char* message, ...) {
 
   if (!node) {
     __sanitizer_print_stack_trace();
-    exit(6);
     return;
   }
-  ast_t* root = node;
-  while (root->type != FL_AST_PROGRAM && root->type != FL_AST_MODULE) {
-    root = root->parent;
-  }
 
-  ast_dump(node); // even node parent or root?!
+  ast_print_error_at(node, buffer);
 
-  // search a decent node to display 'error area'
-  ast_err_node = node;
-  ast_err_message = buffer;
-
-  if (!node->first_line && !node->first_column && !node->last_line &&
-      !node->last_column) {
-    do {
-      node = node->parent;
-    } while (!node->first_line && !node->first_column && !node->last_line &&
-             !node->last_column);
-    ast_err_node->first_line = node->first_line;
-    ast_err_node->first_column = node->first_column;
-    ast_err_node->last_line = node->last_line;
-    ast_err_node->last_column = node->last_column;
-  }
-
-  fprintf(stderr, "File & Line: %s:%d:%d @ %d:%d\n\n", root->program.file,
-          node->first_line, node->first_column, node->last_line,
-          node->last_column);
-
-  // TODO add context do not use global var
-  st_line_iterator(root->program.code, __ast_print_error_lines);
   fprintf(stderr, "\n\nStackTrace:\n");
 
   __sanitizer_print_stack_trace();
-  exit(6);
 }

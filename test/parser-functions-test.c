@@ -69,6 +69,12 @@ TASK_IMPL(parser_functions) {
       "syntax error, ffi cannot have a body and must have declared return type",
       {});
 
+  // TODO maybe we can be more specific
+  // TODO why this not fail? "fn x( i8 arg1 , i8 arg2 ) : i8 ;",
+  // declaration only is for ffi
+  TEST_PARSER_ERROR("function err 06", "fn printf2( ptr(i8) format, ... ) ;",
+                    "syntax error, unexpected ';', expecting '{' or ':'", {});
+
   TEST_PARSER_ERROR("function err 05", "ffi fn x () : i32 { var x; }",
                     "syntax error, ffi cannot have a body", {});
   // TODO 'template'
@@ -76,12 +82,6 @@ TASK_IMPL(parser_functions) {
                                 "return arg1 + arg2;"
                                 "}",
                  {});
-
-  /* declaration only is for ffi
-  TEST_PARSER_OK("function 04", "fn x( i8 arg1 , i8 arg2 ) : i8 ;"
-                                "fn printf2( ptr(i8) format, ... ) ;",
-                 {});
-  */
 
   TEST_PARSER_OK("function 05", "function test_i32() {}", {});
 

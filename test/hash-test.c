@@ -67,6 +67,9 @@ TASK_IMPL(hash) {
   // x = hash_get(ht, "test5"); // usage after free
   // ASSERT(*x == *number, "test4 = 2");
 
+  x = hash_get(ht, "testx");
+  ASSERT(x == 0, "testx is null");
+
   hash_delete(ht);
   free(ht);
 

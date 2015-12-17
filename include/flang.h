@@ -128,6 +128,8 @@ typedef ast_action_t (*ast_cb_t)(ast_t* node, ast_t* parent, size_t level,
 /* cldoc:begin-category(flang.c) */
 
 extern array* identifiers;
+extern char* ast_last_error_message;
+extern ast_t* ast_last_error_node;
 
 /* Initiaze global variables and memory pool.
  * Must be called before anything else.
@@ -599,6 +601,12 @@ FL_EXTERN void ast_dump(ast_t* node);
  * @node
  */
 FL_EXTERN bool ast_print_error(ast_t* node);
+
+/* Print an error an trace to stderr, then exit
+ * @node
+ * @message
+ */
+FL_EXTERN void ast_print_error_at(ast_t* node, char* message);
 
 /* Print an error an trace to stderr, then exit
  * @node

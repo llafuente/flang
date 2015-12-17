@@ -112,7 +112,7 @@ TASK_IMPL(parser_expressions) {
            "FL_AST_LIT_INTEGER");
     ASSERT(body[0]->lunary.operator== '-', "operator '-'");
   });
-  /* TODO right unary
+
   TEST_PARSER_OK("unary 02", "var i64 xxx; xxx++;", {
     ASSERT(body[1]->type == FL_AST_EXPR_RUNARY, "ast is FL_AST_EXPR_RUNARY");
 
@@ -120,7 +120,6 @@ TASK_IMPL(parser_expressions) {
            "FL_AST_LIT_IDENTIFIER");
     ASSERT(body[1]->lunary.operator== TK_PLUSPLUS, "operator TK_PLUSPLUS");
   });
-  */
 
   TEST_PARSER_OK("assignament 01", "var i8 a; var i8 b; a=b;", {
     ASSERT(body[2]->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
@@ -159,7 +158,7 @@ TASK_IMPL(parser_expressions) {
     ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
   });
 
-  // TODO fix, should be string
+  // TODO fix, should be string type
   TEST_PARSER_OK(
       "function call 01", "fn printf(ptr(i8) str) {}"
                           "printf ( \"xxx\" );",
@@ -203,7 +202,8 @@ TASK_IMPL(parser_expressions) {
 
   // TODO test this err
   // TEST_PARSER_OK("equality 2", "var i32 i;\ni = 1;\ni == 5.0;", {});
-  TEST_PARSER_OK("equality 2", "var i32 i;\ni = 1;\ni == 5;", {});
+
+  TEST_PARSER_OK("equality 3", "var i32 i;\ni = 1;\ni == 5;", {});
 
   // TODO illustrate typesystem vs inference war, fix it!
   TEST_PARSER_OK("member access", "struct xxx {i8 b};"
@@ -221,8 +221,8 @@ TASK_IMPL(parser_expressions) {
                    ASSERT(body[2]->ty_id == TS_I64, "assignament type TS_I64");
                    */
                  });
-
   /*
+    // TODO fix expr call with member / not identifier
     TEST_PARSER_OK("member access", "var h; h = s.hello.world();", {});
     TEST_PARSER_OK("member access", "var h; h = s.hello.world(15, 20);", {});
 
@@ -271,14 +271,10 @@ TASK_IMPL(parser_expressions) {
     ASSERT(expr_r->type == FL_AST_LIT_INTEGER, "left id literal");
   });
 
-  /* TODO ast_raise should return an error so err can be tested!
-  TEST_PARSER_ERROR("type demotion",
-                    "var i32 a = 1;\n"
-                    "var i64 b = 1;\n"
-                    "a = b;",
-                    "manual casting required",
-                    {});
-  */
+  TEST_PARSER_ERROR("type demotion", "var i32 a = 1;\n"
+                                     "var i64 b = 1;\n"
+                                     "a = b;",
+                    "manual casting is required from i64 to i32", {});
 
   return 0;
 }

@@ -28,10 +28,18 @@
 array* identifiers;
 extern int yycolumn;
 extern int yylineno;
+
+char* ast_last_error_message = 0;
+ast_t* ast_last_error_node = 0;
+
 void flang_init() {
   // reset flex/bison
   yycolumn = 1;
   yylineno = 1;
+
+  // reset error state
+  ast_last_error_message = 0;
+  ast_last_error_node = 0;
 
   pool_init(2048);
 

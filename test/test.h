@@ -73,8 +73,13 @@
     ASSERT(root->type == FL_AST_PROGRAM, "root is a program");                 \
     ast_t* err = root->program.body;                                           \
     ast_dump(root);                                                            \
-    ASSERT(err->type == FL_AST_ERROR, "body is an error");                     \
-    ASSERT(strcmp(err->err.message->value, msg) == 0, "error message match");  \
+    if (err->type == FL_AST_ERROR) {                                           \
+      ASSERT(strcmp(err->err.message->value, msg) == 0,                        \
+             "error message match");                                           \
+    } else {                                                                   \
+      root = typesystem(root);                                                 \
+      ASSERT(strcmp(ast_last_error_message, msg) == 0, "error message match"); \
+    }                                                                          \
     code_block;                                                                \
     flang_exit(root);                                                          \
   }

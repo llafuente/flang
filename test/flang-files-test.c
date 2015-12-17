@@ -75,7 +75,7 @@ void test_file_list(char** files, size_t nfiles, char* path) {
     }
 
     if (i == 21) {
-      log_debug_level = 10;
+      // log_debug_level = 10;
     }
 
     fl_file[0] = '\0';
