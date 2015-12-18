@@ -44,6 +44,7 @@ void flang_init() {
   pool_init(2048);
 
   st_replace_allocators(pool_new, pool_realloc, pool_free);
+  hash_replace_allocators(pool_new, pool_realloc, pool_free);
 
   identifiers = malloc(sizeof(array));
   array_new(identifiers);

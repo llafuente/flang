@@ -1,5 +1,45 @@
 #include "hash.h"
 
+hash_malloc_func __hash_replaced_malloc = 0;
+hash_free_func __hash_replaced_free = 0;
+hash_realloc_func __hash_replaced_realloc = 0;
+
+void* __hash_malloc(size_t size) {
+  if (__hash_replaced_malloc)
+    return (*__hash_replaced_malloc)(size);
+  return malloc(size);
+}
+
+void __hash_free(void* ptr) {
+  if (__hash_replaced_free)
+    (*__hash_replaced_free)(ptr);
+  else
+    free(ptr);
+}
+
+void* __hash_realloc(void* ptr, size_t size) {
+  if (__hash_replaced_realloc)
+    return (*__hash_replaced_realloc)(ptr, size);
+
+  return realloc(ptr, size);
+}
+
+void hash_replace_allocators(hash_malloc_func malloc_func,
+                             hash_realloc_func realloc_func,
+                             hash_free_func free_func) {
+  if (malloc_func) {
+    __hash_replaced_malloc = malloc_func;
+  }
+
+  if (realloc_func) {
+    __hash_replaced_realloc = realloc_func;
+  }
+
+  if (free_func) {
+    __hash_replaced_free = free_func;
+  }
+}
+
 // Function to destroy the hash table
 void hash_delete(hash_t* ht) {
   int i;
@@ -7,18 +47,18 @@ void hash_delete(hash_t* ht) {
   // Free each not empty position of the hash table
   for (i = 0; i < ht->size; i++) {
     if (ht->table[i] != 0) {
-      free(ht->table[i]->key);
       if (ht->table[i]->bycopy) {
-        free(ht->table[i]->value);
+        __hash_free(ht->table[i]->key);
+        __hash_free(ht->table[i]->value);
       }
-      free(ht->table[i]);
+      __hash_free(ht->table[i]);
       ht->table[i] = 0;
     }
   }
-  free(ht->table);
+  __hash_free(ht->table);
 
   // Next free the hash itself
-  // free(ht);
+  // __hash_free(ht);
   // ht = 0;
 }
 
@@ -30,7 +70,7 @@ int hash_new(hash_t* ht, int size) {
   }
 
   // Allocation of the pointer of the linked lists of each hashCode
-  if ((ht->table = malloc(sizeof(struct hash_entry_s*) * size)) == 0) {
+  if ((ht->table = __hash_malloc(sizeof(struct hash_entry_s*) * size)) == 0) {
     return 1;
   }
 
@@ -58,7 +98,7 @@ static int hash_function(hash_t* ht, char* key) {
     hash_val += key[index];
     index++;
   }
-  printf("size %zu\n", ht->size);
+
   return hash_val % ht->size;
 }
 
@@ -67,14 +107,11 @@ hash_entry_t* hash_new_entry(hash_t* ht, char* key, void* value) {
 
   hash_entry_t* new_entry;
 
-  if ((new_entry = malloc(sizeof(struct hash_entry_s))) == 0) {
+  if ((new_entry = __hash_malloc(sizeof(struct hash_entry_s))) == 0) {
     return 0;
   }
-
-  if ((new_entry->key = strdup(key)) == 0) {
-    return 0;
-  }
-
+  // do not clone value or key
+  new_entry->key = key;
   new_entry->value = value;
 
   new_entry->next = 0;
@@ -86,7 +123,7 @@ hash_entry_t* hash_new_entry_cp(hash_t* ht, char* key, void* value, int size) {
 
   hash_entry_t* new_entry;
 
-  if ((new_entry = malloc(sizeof(struct hash_entry_s))) == 0) {
+  if ((new_entry = __hash_malloc(sizeof(struct hash_entry_s))) == 0) {
     return 0;
   }
 
@@ -94,7 +131,7 @@ hash_entry_t* hash_new_entry_cp(hash_t* ht, char* key, void* value, int size) {
     return 0;
   }
 
-  if ((new_entry->value = malloc(size)) == 0) {
+  if ((new_entry->value = __hash_malloc(size)) == 0) {
     return 0;
   }
 
@@ -133,7 +170,7 @@ void hash_set(hash_t* ht, char* key, void* value) {
   if (current_item != 0 && current_item->key != 0 &&
       strcmp(key, current_item->key) == 0) {
     if (current_item->bycopy) {
-      free(current_item->value);
+      __hash_free(current_item->value);
     }
 
     current_item->bycopy = false;
@@ -189,10 +226,10 @@ void hash_set_cp(hash_t* ht, char* key, void* value, int size) {
   if (current_item != 0 && current_item->key != 0 &&
       strcmp(key, current_item->key) == 0) {
 
-    free(current_item->value);
+    __hash_free(current_item->value);
 
     // TODO use library for error handling later
-    if ((current_item->value = malloc(size)) == 0) {
+    if ((current_item->value = __hash_malloc(size)) == 0) {
       exit(1);
     }
 

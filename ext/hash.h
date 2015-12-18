@@ -7,6 +7,10 @@
 #include <string.h>
 #include <stdbool.h>
 
+typedef void* (*hash_malloc_func)(size_t size);
+typedef void (*hash_free_func)(void* ptr);
+typedef void* (*hash_realloc_func)(void* ptr, size_t size);
+
 struct hash_entry_s {
   char* key;
   void* value;
@@ -22,6 +26,10 @@ struct hash_s {
 };
 
 typedef struct hash_s hash_t;
+
+void hash_replace_allocators(hash_malloc_func malloc_func,
+                             hash_realloc_func realloc_func,
+                             hash_free_func free_func);
 
 // Function to create a hash with the given size
 int hash_new(hash_t* ht, int size);
