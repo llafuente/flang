@@ -54,8 +54,8 @@ char* ty_to_printf(size_t ty_id) {
 string* ty_to_string(size_t ty_id) {
   ty_t ty = ts_type_table[ty_id];
   // cached?
-  if (ty.id) {
-    return ty.id;
+  if (ty.decl) {
+    return ty.decl;
   }
 
   string* buffer = st_new(64, st_enc_utf8);
@@ -73,12 +73,14 @@ string* ty_to_string(size_t ty_id) {
     break;
   case FL_STRUCT: {
     st_append_c(&buffer, "struct ");
-    st_append(&buffer, ty.structure.decl->structure.id->identifier.string);
+    st_append(&buffer, ty.id);
     st_append_c(&buffer, " { ");
 
     size_t i;
     for (i = 0; i < ty.structure.nfields; ++i) {
       st_append(&buffer, ty_to_string(ty.structure.fields[i]));
+      st_append_c(&buffer, " ");
+      st_append(&buffer, ty.structure.properties[i]);
       st_append_c(&buffer, ", ");
     }
     st_append_c(&buffer, "}");
@@ -98,7 +100,7 @@ string* ty_to_string(size_t ty_id) {
     st_append(&buffer, ty_to_string(ty.func.ret));
   } break;
   }
-  return ty.id = buffer;
+  return ty.decl = buffer;
 }
 
 // TODO buffered version

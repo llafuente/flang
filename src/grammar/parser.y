@@ -163,7 +163,7 @@ program
     //printf("stmts addr: %p\n", $1);
 
     ast_t* block = ast_mk_block($1);
-    block->block.global_scope = true;
+    block->block.type = AST_BLOCK_GLOBAL;
     ast_position(block, @1, @1);
     (*root)->program.body = block;
   }

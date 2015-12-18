@@ -147,3 +147,13 @@ fn sum(i32 a, i32 b): i32 {
   return a + b;
 }
 ```
+
+* There is no typedef.
+
+  Normally `struct a{...}` has: `typedef struct a a_t`.
+
+  Flang declaration of a type is the definition (with the same name).
+
+  That implies that there is no need to use `struct a`, `a` is enough.
+
+  Any type works the same even functions.

@@ -67,6 +67,7 @@ enum ts_types {
 // type must be unique
 struct ts_type {
   string* id;
+  string* decl;
 
   ts_types_t of;
   void* codegen; // cache for codegen.
@@ -103,6 +104,7 @@ struct ts_type {
 
     struct ts_type_struct {
       size_t* fields;
+      string** properties;
       size_t nfields;
 
       ast_t* decl;

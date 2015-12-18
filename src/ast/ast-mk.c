@@ -115,6 +115,15 @@ ast_t* ast_mk_block(ast_t* body) {
 
   node->block.body = body;
 
+  node->block.types = pool_new(sizeof(hash_t));
+  hash_new(node->block.types, 10);
+
+  node->block.functions = pool_new(sizeof(hash_t));
+  hash_new(node->block.functions, 10);
+
+  node->block.variables = pool_new(sizeof(hash_t));
+  hash_new(node->block.variables, 10);
+
   return node;
 }
 
@@ -283,7 +292,12 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body,
   node->func.id = id;
   node->func.ret_type = ret_type ? ret_type : ast_mk_type_auto();
   node->func.params = params ? params : ast_mk_list();
-  node->func.body = body;
+
+  if (body) {
+    node->func.body = body;
+    node->func.body = AST_BLOCK_FUNCTION;
+  }
+
   if (attributes) {
     node->func.attributes = attributes;
     ast_t* id = ast_get_attribute(attributes, st_newc("id", st_enc_utf8));

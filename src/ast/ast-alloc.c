@@ -76,6 +76,9 @@ void __ast_delete_props(ast_t* ast) {
   } break;
   case FL_AST_BLOCK: {
     SAFE_DEL(ast->block.body);
+    // hash_delete(ast->block.types);
+    // hash_delete(ast->block.functions);
+    // hash_delete(ast->block.variables);
   } break;
   case FL_AST_LIST: {
     SAFE_DEL_LIST(ast->list.elements);

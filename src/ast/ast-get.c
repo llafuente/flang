@@ -57,3 +57,29 @@ ast_t* ast_get_attribute(ast_t* list, string* needle) {
 
   return 0;
 }
+
+ast_t* ast_get_global_scope(ast_t* node) {
+  ast_t* blk = node;
+  while (blk) {
+    blk = blk->parent;
+    if (blk->type == FL_AST_BLOCK && blk->block.type == AST_BLOCK_GLOBAL) {
+      return blk;
+    }
+  }
+
+  return 0;
+}
+
+ast_t* ast_get_scope(ast_t* node) {
+  ast_t* blk = node;
+  while (blk) {
+    blk = blk->parent;
+    printf("%d\n", blk->type);
+    if (blk->type == FL_AST_BLOCK) {
+      printf("found!\n");
+      return blk;
+    }
+  }
+
+  return 0;
+}

@@ -106,12 +106,12 @@ size_t ty_get_struct_prop_idx(size_t id, string* property) {
     log_error("type [%zu] is not an struct", id);
   }
 
-  ast_t* list = ts_type_table[id].structure.decl->structure.fields;
+  ty_t t = ts_type_table[id];
+  ast_t** properties = t.structure.properties;
 
   size_t i;
-  for (i = 0; i < list->list.count; ++i) {
-    if (st_cmp(list->list.elements[i]->field.id->identifier.string, property) ==
-        0) {
+  for (i = 0; i < t.structure.nfields; ++i) {
+    if (st_cmp((const string*)properties[i], property) == 0) {
       return i;
     }
   }
@@ -126,13 +126,13 @@ size_t ty_get_struct_prop_type(size_t id, string* property) {
     log_error("type [%zu] is not an struct", id);
   }
 
-  ast_t* list = ts_type_table[id].structure.decl->structure.fields;
+  ty_t t = ts_type_table[id];
+  ast_t** properties = t.structure.properties;
 
   size_t i;
-  for (i = 0; i < list->list.count; ++i) {
-    if (st_cmp(list->list.elements[i]->field.id->identifier.string, property) ==
-        0) {
-      return ts_type_table[id].structure.fields[i];
+  for (i = 0; i < t.structure.nfields; ++i) {
+    if (st_cmp((const string*)properties[i], property) == 0) {
+      return t.structure.fields[i];
     }
   }
 
@@ -161,25 +161,13 @@ size_t ty_create_struct(ast_t* decl) {
   ast_t* list = decl->structure.fields;
   size_t length = list->list.count;
   size_t* fields = calloc(length, sizeof(size_t));
+  string** properties = calloc(length, sizeof(string*));
   string* id = decl->structure.id->identifier.string;
 
+  ast_t** elements = list->list.elements;
   for (i = 0; i < length; ++i) {
-    fields[i] = list->list.elements[i]->field.type->ty_id;
-  }
-
-  for (i = 0; i < ts_type_size_s; ++i) {
-    // struct and same length?
-    if (ts_type_table[i].of == FL_STRUCT &&
-        ts_type_table[i].structure.nfields == length) {
-      if (0 == memcmp(fields, ts_type_table[i].structure.fields,
-                      sizeof(size_t) * length)) {
-        free(fields);
-
-        log_debug("SET type [%zu] = '%s'", i, id->value);
-        ty_create_named(id, decl, i);
-        return i;
-      }
-    }
+    fields[i] = elements[i]->field.type->ty_id;
+    properties[i] = elements[i]->field.id->identifier.string;
   }
 
   // add it!
@@ -188,11 +176,44 @@ size_t ty_create_struct(ast_t* decl) {
   ts_type_table[i].id = id;
   ts_type_table[i].structure.decl = decl;
   ts_type_table[i].structure.fields = fields;
+  ts_type_table[i].structure.properties = properties;
   ts_type_table[i].structure.nfields = length;
 
   log_debug("SET type [%zu] = '%s'", i, id->value);
   ty_create_named(id, decl, i);
+
+  // search nearest scope and add it
+  ast_t* x = ast_get_scope(decl);
+  log_debug_level = 10;
+  ast_dump(x);
+  hash_set(x->block.types, id->value, i);
+
   return i;
+}
+
+bool ty_compatible_struct(size_t a, size_t b) {
+  ty_t at = ts_type_table[a];
+  ty_t bt = ts_type_table[b];
+  assert(at.of == FL_STRUCT);
+  assert(bt.of == FL_STRUCT);
+
+  // must be <= in length
+  // if (at.structure.nfields > bt.structure.nfields) {
+  //  return false;
+  //}
+  size_t i;
+  for (i = 0; i < at.structure.nfields; ++i) {
+    // reach the end of b, and all is compatible!
+    if (i == bt.structure.nfields) {
+      return true;
+    }
+
+    if (at.structure.fields[i] != bt.structure.fields[i]) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 size_t ty_create_fn(ast_t* decl) {

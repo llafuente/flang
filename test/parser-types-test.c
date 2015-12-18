@@ -109,17 +109,17 @@ TASK_IMPL(parser_types) {
                                    "}",
                  { ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid"); });
 
-  TEST_PARSER_OK("unique 02", "struct test {"
-                              "i8 t1,"
-                              "i32 t2"
-                              "}"
-                              "struct test2 {"
-                              "i8 t1,"
-                              "i32 t2"
-                              "}",
+  TEST_PARSER_OK("struct not unique 01", "struct test {"
+                                         "i8 t1,"
+                                         "i32 t2"
+                                         "}"
+                                         "struct test2 {"
+                                         "i8 t1,"
+                                         "i32 t2"
+                                         "}",
                  {
                    ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid struct 1");
-                   ASSERT(body[1]->ty_id == TEST_TYPEID, "typeid struct 2");
+                   ASSERT(body[1]->ty_id == TEST_TYPEID + 1, "typeid struct 2");
                  });
 
   TEST_PARSER_OK("struct type usage", "struct test {"
@@ -166,5 +166,14 @@ TASK_IMPL(parser_types) {
                                     "struct a { i8 b, };"
                                     "var a invalid;",
                     "Found many types with the same name", {});
+
+  TEST_PARSER_ERROR("empty struct", "struct a { i8 b, };"
+                                    "struct b { i8 b, };"
+                                    "var a _a;"
+                                    "var b _b;"
+                                    "_b = _a;",
+                    "manual casting is required from struct a { i8 b, } to "
+                    "struct b { i8 b, }",
+                    {});
   return 0;
 }

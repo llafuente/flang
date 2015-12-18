@@ -136,6 +136,15 @@ struct ast {
     struct ast_block {
       // list of statements
       ast_t* body;
+
+      ast_t* parent_scope;
+
+      enum { AST_BLOCK_NORMAL, AST_BLOCK_FUNCTION, AST_BLOCK_GLOBAL } type;
+
+      hash_t* types;
+      hash_t* functions;
+      hash_t* variables;
+
     } block;
 
     struct ast_list {
@@ -230,7 +239,7 @@ struct ast {
     struct ast_decl_function {
       // TODO use ty_t*
       ast_t* id;
-      string* uid; // realname in the module
+      string* uid; // final name
       ast_t* params;
       ast_t* body;
       ast_t* ret_type;

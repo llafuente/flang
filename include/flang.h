@@ -323,7 +323,6 @@ FL_EXTERN size_t ty_get_struct_prop_type(size_t tyid, string* property);
 FL_EXTERN void ty_create_named(string* id, ast_t* decl, size_t tyid);
 
 /* Create a new type given a struct declaration.
- * Ensure uniqueness of the returned ty_id
  * If the type should be indexed (~public) use:
  *[ty_create_named](#ty_create_named)
  *
@@ -331,6 +330,14 @@ FL_EXTERN void ty_create_named(string* id, ast_t* decl, size_t tyid);
  * @return type id
  */
 FL_EXTERN size_t ty_create_struct(ast_t* decl);
+
+/* Check if both structs are compatible/castable
+ *
+ * @a
+ * @b
+ * @return type id
+ */
+FL_EXTERN bool ty_compatible_struct(size_t a, size_t b);
 
 /* Create a new type given a function declaration.
  * Ensure uniqueness of the returned ty_id
@@ -630,6 +637,12 @@ FL_EXTERN size_t ast_get_ident_typeid(ast_t* id);
  * @return node if found, 0 otherwise
  */
 FL_EXTERN ast_t* ast_get_attribute(ast_t* list, string* needle);
+
+/* Reverse the tree searching nearest scope
+ * @node
+ * @return neasert scope
+ */
+FL_EXTERN ast_t* ast_get_scope(ast_t* node);
 
 /* cldoc:end-category() */
 
