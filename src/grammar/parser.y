@@ -163,7 +163,7 @@ program
     //printf("stmts addr: %p\n", $1);
 
     ast_t* block = ast_mk_block($1);
-    block->block.type = AST_BLOCK_GLOBAL;
+    block->block.scope = AST_SCOPE_GLOBAL;
     ast_position(block, @1, @1);
     (*root)->program.body = block;
   }
@@ -251,7 +251,7 @@ import_stmt
 var_decl
   : TK_VAR type ident '=' expression {
     $$ = ast_mk_list();
-    ast_t* decl = ast_mk_var_decl($2, $3, AST_VAR_LOCAL);
+    ast_t* decl = ast_mk_var_decl($2, $3, AST_SCOPE_BLOCK);
     ast_position(decl, @1, @3);
     ast_mk_list_push($$, decl);
     ast_t* assignament = ast_mk_assignament(ast_clone(decl->var.id), '=', $5);
@@ -261,7 +261,7 @@ var_decl
   }
   | TK_VAR ident '=' expression {
     $$ = ast_mk_list();
-    ast_t* decl = ast_mk_var_decl(0, $2, AST_VAR_LOCAL);
+    ast_t* decl = ast_mk_var_decl(0, $2, AST_SCOPE_BLOCK);
     ast_position(decl, @1, @2);
     ast_mk_list_push($$, decl);
     ast_t* assignament = ast_mk_assignament(ast_clone(decl->var.id), '=', $4);
@@ -270,16 +270,16 @@ var_decl
     ast_position($$, @1, @4);
   }
   | TK_VAR type ident {
-    $$ = ast_mk_var_decl($2, $3, AST_VAR_LOCAL);
+    $$ = ast_mk_var_decl($2, $3, AST_SCOPE_BLOCK);
     ast_position($$, @1, @3);
   }
   | TK_VAR ident {
-    $$ = ast_mk_var_decl(0, $2, AST_VAR_LOCAL);
+    $$ = ast_mk_var_decl(0, $2, AST_SCOPE_BLOCK);
     ast_position($$, @1, @2);
   }
   | TK_GLOBAL type ident '=' expression {
     $$ = ast_mk_list();
-    ast_t* decl = ast_mk_var_decl($2, $3, AST_VAR_GLOBAL);
+    ast_t* decl = ast_mk_var_decl($2, $3, AST_SCOPE_GLOBAL);
     ast_position(decl, @1, @3);
     ast_mk_list_push($$, decl);
     ast_t* assignament = ast_mk_assignament(ast_clone(decl->var.id), '=', $5);
@@ -288,7 +288,7 @@ var_decl
     ast_position($$, @1, @5);
   }
   | TK_GLOBAL ident {
-    $$ = ast_mk_var_decl(0, $2, AST_VAR_GLOBAL);
+    $$ = ast_mk_var_decl(0, $2, AST_SCOPE_GLOBAL);
     ast_position($$, @1, @2);
   }
   ;
@@ -389,7 +389,7 @@ fn_full_decl
 fn_decl
   : fn_full_decl block {
     $$ = $1;
-    $$->func.body = $2;
+    ast_mk_fn_decl_body($$, $2);
 
     // cannot be a ffi funcion with a body!
     if ($1->func.ffi) {
@@ -403,7 +403,7 @@ fn_decl
   }
   | fn_partial_decl block {
     $$ = $1;
-    $$->func.body = $2;
+    ast_mk_fn_decl_body($$, $2);
 
     if ($1->func.ffi) {
       yyerror(root, "syntax error, ffi cannot have a body and must have declared return type"); YYERROR;

@@ -25,6 +25,17 @@
 
 #include "flang.h"
 
+char __ast_cbuffer[1024];
+void __ast_block_hash_append_cb(char* key, void* decl) {
+  strcat(__ast_cbuffer, key);
+  strcat(__ast_cbuffer, ",");
+}
+char* __ast_block_hash_append(hash_t* ht) {
+  __ast_cbuffer[0] = 0;
+  hash_each(ht, __ast_block_hash_append_cb);
+  return __ast_cbuffer;
+}
+
 void ast_dump_one(ast_t* node) {
   assert(node != 0);
 
@@ -45,7 +56,11 @@ void ast_dump_one(ast_t* node) {
     printf("module [path='%s']", node->program.file);
     break;
   case FL_AST_BLOCK:
+    // traverse do not follow scope hashes
+    // so we print it here
     printf("block");
+    printf(" types [%s]", __ast_block_hash_append(node->block.types));
+    printf(" variables [%s]", __ast_block_hash_append(node->block.variables));
     break;
   case FL_AST_LIST:
     printf("list [count=%zu]", node->list.count);
@@ -99,7 +114,8 @@ void ast_dump_one(ast_t* node) {
            node->member.idx, node->member.expression);
     break;
   case FL_AST_DTOR_VAR:
-    printf("variable T(%zu)", node->ty_id);
+    printf("variable T(%zu) scope(%s)", node->ty_id,
+           node->var.scope == AST_SCOPE_BLOCK ? "block" : "global");
     break;
   case FL_AST_TYPE:
     printf("type T(%zu)", node->ty_id);

@@ -79,9 +79,6 @@ typedef enum ast_types ast_types_t;
 enum ast_cast_operations;
 typedef enum ast_cast_operations ast_cast_operations_t;
 
-enum ast_var_context;
-typedef enum ast_var_context ast_var_context_t;
-
 enum ast_action;
 typedef enum ast_action ast_action_t;
 struct ast;
@@ -374,6 +371,12 @@ FL_EXTERN ts_type_hash_t* ty_get_type_by_name(string* id);
  */
 FL_EXTERN size_t ty_get_typeid_by_name(ast_t* node);
 
+/* Register variable in desired scope
+ *
+ * @decl
+ */
+FL_EXTERN void ty_create_var(ast_t* decl);
+
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(typesystem-alloc.c) */
@@ -638,11 +641,23 @@ FL_EXTERN size_t ast_get_ident_typeid(ast_t* id);
  */
 FL_EXTERN ast_t* ast_get_attribute(ast_t* list, string* needle);
 
+/* Reverse the tree a get the global scope
+ * @node
+ * @return node if found, 0 otherwise
+ */
+FL_EXTERN ast_t* ast_get_global_scope(ast_t* node);
+
 /* Reverse the tree searching nearest scope
  * @node
  * @return neasert scope
  */
 FL_EXTERN ast_t* ast_get_scope(ast_t* node);
+
+/* Get location as string
+ * @node
+ * @return string location
+ */
+FL_EXTERN string* ast_get_location(ast_t* node);
 
 /* cldoc:end-category() */
 
@@ -677,10 +692,10 @@ FL_EXTERN ast_t* ast_mk_lit_float(char* text);
 FL_EXTERN ast_t* ast_mk_return(ast_t* argument);
 FL_EXTERN ast_t* ast_mk_break(ast_t* argument);
 FL_EXTERN ast_t* ast_mk_continue(ast_t* argument);
-FL_EXTERN ast_t* ast_mk_var_decl(ast_t* type, ast_t* id,
-                                 ast_var_context_t context);
+FL_EXTERN ast_t* ast_mk_var_decl(ast_t* type, ast_t* id, ast_scope_t scope);
 FL_EXTERN ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type,
                                 ast_t* body, ast_t* attibutes);
+FL_EXTERN void ast_mk_fn_decl_body(ast_t* fn, ast_t* body);
 FL_EXTERN ast_t* ast_mk_fn_param(ast_t* id, ast_t* type, ast_t* def);
 FL_EXTERN ast_t* ast_mk_binop(ast_t* left, int op, ast_t* right);
 FL_EXTERN ast_t* ast_mk_assignament(ast_t* left, int op, ast_t* right);

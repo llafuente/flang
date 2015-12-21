@@ -46,6 +46,7 @@ int main(int argc, const char* argv[]) {
   TASK_RUN(parser_types);
   TASK_RUN(parser_if);
   TASK_RUN(parser_loops);
+  TASK_RUN(parser_scopes);
 
   TASK_RUN(codegen_expressions);
   TASK_RUN(codegen_functions);

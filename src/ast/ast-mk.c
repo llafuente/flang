@@ -271,14 +271,14 @@ ast_t* ast_mk_continue(ast_t* argument) {
   return node;
 }
 
-ast_t* ast_mk_var_decl(ast_t* type, ast_t* id, ast_var_context_t context) {
+ast_t* ast_mk_var_decl(ast_t* type, ast_t* id, ast_scope_t scope) {
   // printf("ast_mk_var_decl\n");
   ast_t* node = ast_new();
   node->type = FL_AST_DTOR_VAR;
 
   node->var.id = id;
   node->var.type = type ? type : ast_mk_type(0, 0);
-  node->var.context = context;
+  node->var.scope = scope;
 
   return node;
 }
@@ -291,11 +291,10 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body,
 
   node->func.id = id;
   node->func.ret_type = ret_type ? ret_type : ast_mk_type_auto();
-  node->func.params = params ? params : ast_mk_list();
+  node->func.params = params = params ? params : ast_mk_list();
 
   if (body) {
-    node->func.body = body;
-    node->func.body = AST_BLOCK_FUNCTION;
+    ast_mk_fn_decl_body(node, body);
   }
 
   if (attributes) {
@@ -325,6 +324,22 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body,
   }
 
   return node;
+}
+
+void ast_mk_fn_decl_body(ast_t* fn, ast_t* body) {
+  // TODO maybe function scope
+  body->block.scope = AST_SCOPE_BLOCK;
+  size_t i = 0;
+
+  ast_t* params = fn->func.params;
+  ast_t* p;
+  // TODO this could be moved to type register pass...
+  for (; i < params->list.count; ++i) {
+    p = params->list.elements[i];
+    hash_set(body->block.variables, p->param.id->identifier.string->value, p);
+  }
+
+  fn->func.body = body;
 }
 
 ast_t* ast_mk_fn_param(ast_t* id, ast_t* type, ast_t* def) {

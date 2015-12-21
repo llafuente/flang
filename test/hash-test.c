@@ -26,6 +26,10 @@
 #include "flang.h"
 #include "tasks.h"
 #include "test.h"
+
+size_t __hash_counter_it = 0;
+void __hash_counter(char* key, void* ptr) { ++__hash_counter_it; }
+
 void hash_dump(hash_t* ht) { printf("ht->size %d\n", ht->size); }
 // TODO review if ";" is required
 TASK_IMPL(hash) {
@@ -36,9 +40,9 @@ TASK_IMPL(hash) {
   hash_dump(ht);
   printf("h->size out = %d\n", (ht)->size);
 
-  hash_set_cp(ht, "test", &a, sizeof(size_t));
-  size_t* x = hash_get(ht, "test");
-  ASSERT(*x == a, "test = 1");
+  hash_set_cp(ht, "test1", &a, sizeof(size_t));
+  size_t* x = hash_get(ht, "test1");
+  ASSERT(*x == a, "test1 = 1");
 
   hash_set(ht, "test2", &b);
   x = hash_get(ht, "test2");
@@ -69,6 +73,10 @@ TASK_IMPL(hash) {
 
   x = hash_get(ht, "testx");
   ASSERT(x == 0, "testx is null");
+
+  hash_each(ht, __hash_counter);
+
+  ASSERT(__hash_counter_it == 5, "hash size!");
 
   hash_delete(ht);
   free(ht);

@@ -34,7 +34,7 @@ void __ast_print_error_lines(const string* line, st_len_t pos,
     fprintf(stderr, "%6d | %s\n", pos + 1, line->value);
     if (pos == ast_last_error_node->first_line - 1) {
       fprintf(stderr, "%*s\x1B[32m^-- %s\x1B[39m\n",
-              (int)(9 + ast_last_error_node->first_column), " ",
+              (int)(8 + ast_last_error_node->first_column), " ",
               ast_last_error_message);
     }
   }

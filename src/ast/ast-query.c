@@ -76,7 +76,7 @@ string* ast_get_code(ast_t* node) {
   size_t line = 1;
   size_t column = 1;
   size_t i;
-  printf("searching %d:%d\n ", node->first_line, node->first_column);
+
   for (i = 0; i < max; ++i) {
     if (*start == '\n') {
       ++line;

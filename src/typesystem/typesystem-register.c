@@ -95,11 +95,25 @@ size_t __ts_string_to_tyid(ast_t* node) {
     return node->ty_id = ty_create_wrapped(FL_VECTOR, t);
   }
 
+  char* id = node->identifier.string->value;
+  ast_t* scope = node;
+  ast_t* el = node;
+
+  do {
+    scope = ast_get_scope(scope);
+    el = hash_get(scope->block.types, tcstr);
+    if (el != 0) {
+      return node->ty_id = el->ty_id;
+    }
+  } while (scope->block.scope != AST_SCOPE_GLOBAL);
+
   // search named types
+  /*
   size_t t = ty_get_typeid_by_name(node->ty.id);
   if (t) {
     return node->ty_id = t;
   }
+  */
 
   printf("delayed type!?");
   return 0;
@@ -134,6 +148,7 @@ ast_action_t __trav_register_types(ast_t* node, ast_t* parent, size_t level,
     case FL_AST_DTOR_VAR:
       p->ty_id = node->ty_id;
       p->var.id->ty_id = node->ty_id;
+      ty_create_var(p);
       break;
 
     case FL_AST_PARAMETER:
@@ -163,6 +178,7 @@ ast_action_t __trav_register_types(ast_t* node, ast_t* parent, size_t level,
   return FL_AC_CONTINUE;
 }
 
+// TODO performance, this should be deep-verse instead of traverse
 // return error
 ast_t* ts_register_types(ast_t* node) {
   ast_traverse(node, __trav_register_types, 0, 0, 0, 0);

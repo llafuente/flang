@@ -279,3 +279,16 @@ void* hash_get(hash_t* ht, char* key) {
     return entry->value;
   }
 }
+
+bool hash_has(hash_t* ht, char* key) { return hash_get(ht, key) != 0; }
+
+void hash_each(hash_t* ht, hash_each_func each) {
+  int i;
+
+  // Free each not empty position of the hash table
+  for (i = 0; i < ht->size; i++) {
+    if (ht->table[i] != 0) {
+      each(ht->table[i]->key, ht->table[i]->value);
+    }
+  }
+}

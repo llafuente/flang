@@ -40,11 +40,8 @@ enum ast_cast_operations {
   FL_CAST_AUTO,    // Function call
 };
 
-enum ast_var_context {
-  AST_VAR_LOCAL = 1,
-  AST_VAR_GLOBAL
-  // AST_VAR_LAMBDA
-};
+enum ast_scope { AST_SCOPE_BLOCK = 1, AST_SCOPE_FUNCTION, AST_SCOPE_GLOBAL };
+typedef enum ast_scope ast_scope_t;
 
 enum ast_types {
   FL_AST_PROGRAM = 1,
@@ -139,11 +136,11 @@ struct ast {
 
       ast_t* parent_scope;
 
-      enum { AST_BLOCK_NORMAL, AST_BLOCK_FUNCTION, AST_BLOCK_GLOBAL } type;
+      ast_scope_t scope;
 
-      hash_t* types;
-      hash_t* functions;
-      hash_t* variables;
+      hash_t* types;     // size_t with the type id
+      hash_t* functions; // TODO array of decl?
+      hash_t* variables; // ast_t* to declaration
 
     } block;
 
@@ -216,7 +213,7 @@ struct ast {
       // TODO add type
       ast_t* id;
       ast_t* type;
-      ast_var_context_t context;
+      ast_scope_t scope;
 
       LLVMValueRef alloca;
     } var;

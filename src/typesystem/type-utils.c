@@ -107,7 +107,7 @@ size_t ty_get_struct_prop_idx(size_t id, string* property) {
   }
 
   ty_t t = ts_type_table[id];
-  ast_t** properties = t.structure.properties;
+  string** properties = t.structure.properties;
 
   size_t i;
   for (i = 0; i < t.structure.nfields; ++i) {
@@ -127,7 +127,7 @@ size_t ty_get_struct_prop_type(size_t id, string* property) {
   }
 
   ty_t t = ts_type_table[id];
-  ast_t** properties = t.structure.properties;
+  string** properties = t.structure.properties;
 
   size_t i;
   for (i = 0; i < t.structure.nfields; ++i) {
@@ -184,9 +184,8 @@ size_t ty_create_struct(ast_t* decl) {
 
   // search nearest scope and add it
   ast_t* x = ast_get_scope(decl);
-  log_debug_level = 10;
-  ast_dump(x);
-  hash_set(x->block.types, id->value, i);
+  // TODO review casting, it works, but it's ok ?
+  hash_set(x->block.types, id->value, decl);
 
   return i;
 }
@@ -325,4 +324,47 @@ size_t ty_get_typeid_by_name(ast_t* node) {
 
   ast_t* ast = (ast_t*)array_get(&s->list, 0);
   return ast->ty_id;
+}
+
+// transfer list ownership
+void ty_create_var(ast_t* decl) {
+  assert(decl->type == FL_AST_DTOR_VAR);
+
+  char* cstr = decl->var.id->identifier.string->value;
+  ast_t* attach_to;
+  ast_t* from;
+  switch (decl->var.scope) {
+  case AST_SCOPE_BLOCK:
+    from = attach_to = ast_get_scope(decl);
+    break;
+  case AST_SCOPE_GLOBAL:
+    from = attach_to = ast_get_global_scope(decl);
+    break;
+  default: {} // avoid warning
+  }
+  // redefinition?
+  ast_t* redef;
+  do {
+    if (from->block.scope != AST_SCOPE_GLOBAL) {
+      from = ast_get_scope(from);
+    }
+
+    redef = (ast_t*)hash_get(from->block.variables, cstr);
+    if (redef) {
+      ast_raise_error(redef,
+                      "Variable '%s' redefinition, previously defined at %s",
+                      cstr, ast_get_location(redef)->value);
+    }
+
+    redef = (ast_t*)hash_get(from->block.types, cstr);
+    if (redef) {
+      ast_raise_error(
+          redef,
+          "Variable name '%s' in use by a type, previously defined at %s", cstr,
+          ast_get_location(redef)->value);
+    }
+
+  } while (from->block.scope != AST_SCOPE_GLOBAL);
+
+  hash_set(attach_to->block.variables, cstr, decl);
 }

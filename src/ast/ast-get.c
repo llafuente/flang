@@ -62,7 +62,7 @@ ast_t* ast_get_global_scope(ast_t* node) {
   ast_t* blk = node;
   while (blk) {
     blk = blk->parent;
-    if (blk->type == FL_AST_BLOCK && blk->block.type == AST_BLOCK_GLOBAL) {
+    if (blk->type == FL_AST_BLOCK && blk->block.scope == AST_SCOPE_GLOBAL) {
       return blk;
     }
   }
@@ -74,12 +74,21 @@ ast_t* ast_get_scope(ast_t* node) {
   ast_t* blk = node;
   while (blk) {
     blk = blk->parent;
-    printf("%d\n", blk->type);
     if (blk->type == FL_AST_BLOCK) {
-      printf("found!\n");
       return blk;
     }
   }
 
   return 0;
+}
+
+string* ast_get_location(ast_t* node) {
+  ast_t* root = ast_get_root(node);
+  char buffer[1024];
+  sprintf(buffer, "%s:%d:%d",
+          root->program.file ? root->program.file : "unkownfile",
+          node->first_line, node->first_column);
+
+  string* ret = st_newc(buffer, st_enc_utf8);
+  return ret;
 }
