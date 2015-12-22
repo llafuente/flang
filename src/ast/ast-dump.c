@@ -59,8 +59,9 @@ void ast_dump_one(ast_t* node) {
     // traverse do not follow scope hashes
     // so we print it here
     printf("block");
-    printf(" types [%s]", __ast_block_hash_append(node->block.types));
-    printf(" variables [%s]", __ast_block_hash_append(node->block.variables));
+    printf(" tys [%s]", __ast_block_hash_append(node->block.types));
+    printf(" vars [%s]", __ast_block_hash_append(node->block.variables));
+    printf(" fns [%s]", __ast_block_hash_append(node->block.functions));
     break;
   case FL_AST_LIST:
     printf("list [count=%zu]", node->list.count);

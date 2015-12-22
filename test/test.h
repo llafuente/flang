@@ -59,6 +59,7 @@
     ast_t* root = fl_parse_utf8(code);                                         \
     CHK_BODY(root);                                                            \
     root = typesystem(root);                                                   \
+    ast_t* mainblock = root->program.body;                                     \
     ast_t** body = root->program.body->block.body->list.elements;              \
     code_block;                                                                \
     flang_exit(root);                                                          \

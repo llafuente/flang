@@ -45,12 +45,14 @@ void flang_init() {
 
   st_replace_allocators(pool_new, pool_realloc, pool_free);
   hash_replace_allocators(pool_new, pool_realloc, pool_free);
+  array_replace_allocators(pool_new, pool_realloc, pool_free);
 
   identifiers = malloc(sizeof(array));
   array_new(identifiers);
 
   ts_init();
 }
+
 void flang_exit(ast_t* root) {
   ast_delete(root);
   pool_destroy();
@@ -62,4 +64,6 @@ void flang_exit(ast_t* root) {
 
   st_memfree();
   st_replace_allocators(malloc, realloc, free);
+  hash_replace_allocators(malloc, realloc, free);
+  array_replace_allocators(malloc, realloc, free);
 }

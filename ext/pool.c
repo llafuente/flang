@@ -4,9 +4,16 @@
 array* pool_pages = 0;
 size_t pool_page_size = 0;
 
+// TODO NOTE pool handle array mem manually, realloc with crash the app
+// so increase capacity, or find another way to append...
+
 void pool_init(size_t bytes) {
   pool_pages = malloc(sizeof(array));
-  array_new(pool_pages);
+  // array_new(pool_pages);
+  pool_pages->size = 0;
+  pool_pages->capacity = 100;
+  pool_pages->data = malloc(sizeof(ARRAY_T) * 100);
+
   pool_new_page(bytes);
   pool_page_size = bytes;
 }
@@ -53,7 +60,7 @@ void pool_destroy() {
     free(pool_pages->data[i]);
   }
 
-  array_delete(pool_pages);
+  free(pool_pages->data);
   free(pool_pages);
   pool_pages = 0;
 }

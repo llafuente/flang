@@ -278,10 +278,51 @@ size_t ty_create_fn(ast_t* decl) {
 
   log_debug("SET fn type [%zu] = '%s'", i, id->value);
   ty_create_named(id, decl, i);
+
   /*
   size_t t = ht_get(ts_hashtable, id->value);
   assert(t != i);
   */
+  char* cstr = id->value;
+  ast_t* attach_to;
+  ast_t* from;
+  from = attach_to = ast_get_scope(decl);
+
+  ast_t* redef;
+  do {
+    if (from->block.scope != AST_SCOPE_GLOBAL) {
+      from = ast_get_scope(from);
+    }
+
+    // a function cannot collide with a variable
+    redef = (ast_t*)hash_get(from->block.variables, cstr);
+    if (redef) {
+      ast_raise_error(
+          redef,
+          "Function name '%s' in use by a variable, previously defined at %s",
+          cstr, ast_get_location(redef)->value);
+    }
+
+    // a function cannot collide with a struct
+    redef = (ast_t*)hash_get(from->block.types, cstr);
+    if (redef && redef->type != FL_AST_DECL_FUNCTION) {
+      ast_raise_error(
+          redef,
+          "Function name '%s' in use by a type, previously defined at %s", cstr,
+          ast_get_location(redef)->value);
+    }
+
+  } while (from->block.scope != AST_SCOPE_GLOBAL);
+
+  array* lfunc = hash_get(attach_to->block.functions, cstr);
+  if (!lfunc) {
+    lfunc = pool_new(sizeof(array));
+    array_new(lfunc);
+    hash_set(attach_to->block.functions, cstr, lfunc);
+  }
+  array_append(lfunc, decl);
+  hash_set(attach_to->block.types, cstr, decl);
+
   return i;
 }
 

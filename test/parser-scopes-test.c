@@ -34,14 +34,14 @@ TASK_IMPL(parser_scopes) {
   TEST_PARSER_OK("scope 01 - test", "var a; var b; var c;"
                                     "struct x { i8 b };",
                  {
-                   ASSERT(hash_has(root->program.body->block.variables, "a"),
+                   ASSERT(hash_has(mainblock->block.variables, "a"),
                           "a exists in global scope");
-                   ASSERT(hash_has(root->program.body->block.variables, "b"),
+                   ASSERT(hash_has(mainblock->block.variables, "b"),
                           "b exists in global scope");
-                   ASSERT(hash_has(root->program.body->block.variables, "c"),
+                   ASSERT(hash_has(mainblock->block.variables, "c"),
                           "c exists in global scope");
 
-                   ASSERT(hash_has(root->program.body->block.types, "x"),
+                   ASSERT(hash_has(mainblock->block.types, "x"),
                           "x type exists in global scope");
                  });
 
@@ -51,19 +51,16 @@ TASK_IMPL(parser_scopes) {
   });
 
   TEST_PARSER_OK("scope 03 - global", "{ global i32 a = 1; }", {
-    ASSERT(hash_has(root->program.body->block.variables, "a"),
+    ASSERT(hash_has(mainblock->block.variables, "a"),
            "a exists in global scope");
   });
 
-  log_debug_level = 10;
   TEST_PARSER_OK("scope 04 - function", "fn x (i8 a, i8 b) {"
                                         "var i8 c;"
                                         "}",
                  {
-                   ast_dump(root);
                    ASSERT(hash_has(body[0]->func.body->block.variables, "c"),
                           "c exists in fn block");
-                   ;
                    ASSERT(hash_has(body[0]->func.body->block.variables, "a"),
                           "a exists in fn block");
                    ASSERT(hash_has(body[0]->func.body->block.variables, "b"),
@@ -79,7 +76,6 @@ TASK_IMPL(parser_scopes) {
                              "var x c;"
                              "}",
       {
-        ast_dump(root);
         ASSERT(hash_has(body[0]->block.variables, "c"),
                "c var exists in 1st block");
         ASSERT(hash_has(body[0]->block.types, "x"),
@@ -96,6 +92,16 @@ TASK_IMPL(parser_scopes) {
         ASSERT(body[1]->block.body->list.elements[1]->ty_id == t2->ty_id,
                "2nd block c type ok");
       });
+
+  TEST_PARSER_OK("scope 05 - polymorh", "fn x (i8 a, i8 b) {}"
+                                        "fn x (i32 a, i32 b) {}",
+                 {
+                   ast_dump(root);
+                   ASSERT(hash_has(mainblock->block.functions, "x"),
+                          "x exists in fn block");
+                   ASSERT(hash_has(mainblock->block.types, "x"),
+                          "x exists in fn block");
+                 });
 
   TEST_PARSER_ERROR("var redef 01", "struct a {i32 b };\n"
                                     "var i32 a = 2;\n",
@@ -117,6 +123,24 @@ TASK_IMPL(parser_scopes) {
       "var redef 03", "var i32 b = 1;\n"
                       "fn x() { global i32 b = 2; }\n",
       "Variable 'b' redefinition, previously defined at unkownfile:1:1", {});
+
+  TEST_PARSER_ERROR("var redef 04", "var i32 b = 1;\n"
+                                    "fn b() {}\n",
+                    "Function name 'b' in use by a variable, previously "
+                    "defined at unkownfile:1:1",
+                    {});
+
+  TEST_PARSER_ERROR("var redef 05", "fn b() {}\n"
+                                    "var i32 b = 1;\n",
+                    "Variable name 'b' in use by a type, previously defined at "
+                    "unkownfile:1:1",
+                    {});
+
+  TEST_PARSER_ERROR("var redef 06", "struct b {i8 x};\n"
+                                    "fn b() {}\n",
+                    "Function name 'b' in use by a type, previously defined at "
+                    "unkownfile:1:1",
+                    {});
 
   return 0;
 }
