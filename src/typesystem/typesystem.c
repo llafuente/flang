@@ -26,8 +26,6 @@
 #include "flang.h"
 
 ast_t* typesystem(ast_t* root) {
-  ast_parent(root);
-
   ast_load_imports(root);
 
   ts_register_types(root);

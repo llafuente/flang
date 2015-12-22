@@ -25,8 +25,8 @@
 
 #include "flang.h"
 
-ast_action_t __ts_pass_cb(ast_t* node, ast_t* parent, size_t level,
-                          void* userdata_in, void* userdata_out) {
+ast_action_t __trav_casting(ast_t* node, ast_t* parent, size_t level,
+                            void* userdata_in, void* userdata_out) {
   switch (node->type) {
   case FL_AST_STMT_RETURN: {
     ts_cast_return(node);
@@ -93,22 +93,27 @@ ast_action_t __ts_cast_operation_pass_cb(ast_t* node, ast_t* parent,
   return FL_AC_CONTINUE;
 }
 
-// TODO this may be public?
-ast_t* __ts_enforece_types(ast_t* node) {
+ast_t* ts_pass(ast_t* node) {
+  log_debug("(typesystem) ts_inference");
+  ts_inference(node);
+  if (ast_last_error_node != 0) {
+    return node;
+  }
+
+  log_debug("(typesystem) casting");
   // first create casting
-  ast_traverse(node, __ts_pass_cb, 0, 0, 0, 0);
+  ast_traverse(node, __trav_casting, 0, 0, 0, 0);
+  if (ast_last_error_node != 0) {
+    return node;
+  }
+
   // validate casting, and assign a valid operation
   ast_traverse(node, __ts_cast_operation_pass_cb, 0, 0, 0, 0);
+  if (ast_last_error_node != 0) {
+    return node;
+  }
 
-  return node;
-}
-
-ast_t* ts_pass(ast_t* node) {
-  log_debug("(parser) inference");
-  ts_inference(node);
-  log_debug("(parser) type it");
-  __ts_enforece_types(node);
-  log_debug("done!");
+  log_debug("(typesystem) done!");
 
   return node; // TODO this should be the error
 }

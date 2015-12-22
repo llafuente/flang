@@ -23,11 +23,6 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/*
-#undef NDEBUG
-#include <assert.h>
-*/
-
 #ifndef ASAN
 #error : ASAN must be either 0 or 1, use -DASAN=X
 #endif
@@ -35,11 +30,15 @@
 extern void __sanitizer_print_stack_trace();
 
 #if ASAN == 1
+#undef NDEBUG
 #define assert(check)                                                          \
-  if (!(check)) {                                                              \
-    __sanitizer_print_stack_trace();                                           \
+  {                                                                            \
+    fprintf("assert check: %s\n", #check);                                     \
+    if (!(check)) {                                                            \
+      fprintf("assert failed: %s\n", #check);                                  \
+      __sanitizer_print_stack_trace();                                         \
+    }                                                                          \
   }
-//    fprintf("assert: %s\n", #check);
 
 #else
 #undef NDEBUG
@@ -715,7 +714,7 @@ FL_EXTERN ast_t* ast_mk_struct_decl_field(ast_t* id, ast_t* type);
 FL_EXTERN ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression);
 FL_EXTERN ast_t* ast_mk_sizeof(ast_t* type);
 FL_EXTERN ast_t* ast_mk_cast(ast_t* type, ast_t* element);
-FL_EXTERN ast_t* ast_mk_import(ast_t* string_lit);
+FL_EXTERN ast_t* ast_mk_import(ast_t* string_lit, bool foward);
 FL_EXTERN ast_t* ast_mk_log(ast_t* list);
 FL_EXTERN ast_t* ast_mk_attribute(ast_t* id, ast_t* value);
 

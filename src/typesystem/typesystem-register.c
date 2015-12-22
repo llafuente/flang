@@ -137,6 +137,7 @@ ast_action_t __trav_register_types(ast_t* node, ast_t* parent, size_t level,
     break;
   case FL_AST_TYPE: {
     // check wrappers
+    ast_dump(node->parent);
     ast_t* p = node->parent;
     __ts_string_to_tyid(node);
 

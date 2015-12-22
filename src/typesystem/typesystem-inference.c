@@ -151,7 +151,6 @@ ast_action_t __ts_inference_fn_ret(ast_t* node, ast_t* parent, size_t level,
       ast_mk_list_push(body->block.body,
                        ast_mk_return(ast_mk_lit_integer("0")));
       ast_parent(node);
-      ast_dump(node);
     }
   }
 

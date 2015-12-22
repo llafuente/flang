@@ -97,8 +97,6 @@ LLVMModuleRef fl_codegen(ast_t* root, char* module_name) {
 
   LLVMPositionBuilderAtEnd(builder, main_block);
 
-  // node must have parent, because we need to search backwards
-  ast_parent(root);
   LLVMValueRef* parent = &main_function;
   LLVMBasicBlockRef* current_block;
   current_block = &main_block;

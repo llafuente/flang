@@ -1,6 +1,6 @@
 /* string must be first atm */
-import "core/string"; // into global space
-import "core/ffi-c"; // into global space
+forward import "core/string"; // into global space
+forward import "core/ffi-c"; // into global space
 
 /*
 #anon

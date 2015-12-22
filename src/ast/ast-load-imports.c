@@ -29,7 +29,7 @@
 ast_action_t __trav_load_imports(ast_t* node, ast_t* parent, size_t level,
                                  void* userdata_in, void* userdata_out) {
   if (node->type == FL_AST_IMPORT && !node->import.imported) {
-    assert(node->parent->type == FL_AST_LIST);
+    assert(parent->type == FL_AST_LIST);
 
     char* file = node->import.path->string.value->value;
 
@@ -38,9 +38,6 @@ ast_action_t __trav_load_imports(ast_t* node, ast_t* parent, size_t level,
     if (file[0] == '.' && file[1] == '/') {
       char* file2 = strdup(file);
       ast_t* root = ast_get_root(node);
-
-      ast_dump(root);
-      printf("??? %s\n\n\n", root->program.file);
 
       strcat(filepath, dirname(root->program.file));
       strcat(filepath, "/");
@@ -56,19 +53,28 @@ ast_action_t __trav_load_imports(ast_t* node, ast_t* parent, size_t level,
     // printf("load module %s\n", filepath);
 
     ast_t* module = fl_parse_file(filepath);
+
     if (ast_print_error(module)) {
       fl_fatal_error("Failed to load module: %s\n", filepath);
     }
 
     module->type = FL_AST_MODULE;
 
-    ast_mk_insert_before(node->parent, node, module);
+    ast_mk_insert_before(parent, node, module);
 
     node->import.imported = true;
-    ast_parent(module); // update parents
-    node->parent = module->parent;
+
+    module->parent = parent;
+
+    assert(module->parent != 0);
 
     ((*(size_t*)userdata_out))++;
+
+    if (node->import.forward) {
+      module->program.body->block.scope = AST_SCOPE_TRANSPARENT;
+    } else {
+      module->program.body->block.scope = AST_SCOPE_BLOCK;
+    }
   }
 
   return FL_AC_CONTINUE;

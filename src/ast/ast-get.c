@@ -48,7 +48,7 @@ ast_t* ast_get_attribute(ast_t* list, string* needle) {
   for (i = 0; i < list->list.count; ++i) {
     // exit when reach parent
     attr = list->list.elements[i];
-    assert(attr->type == FL_AST_ATRRIBUTE);
+    assert(attr->type == FL_AST_ATTRIBUTE);
 
     if (st_cmp(needle, attr->attr.id->identifier.string) == 0) {
       return attr;
@@ -74,7 +74,9 @@ ast_t* ast_get_scope(ast_t* node) {
   ast_t* blk = node;
   while (blk) {
     blk = blk->parent;
-    if (blk->type == FL_AST_BLOCK) {
+    assert(blk != 0);
+    if (blk->type == FL_AST_BLOCK &&
+        blk->block.scope != AST_SCOPE_TRANSPARENT) {
       return blk;
     }
   }

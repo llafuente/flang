@@ -31,7 +31,7 @@ void __fl_attach_core(ast_t* root) {
   ast_t* block = root->program.body;
 
   if (block->type != FL_AST_ERROR) {
-    ast_t* import = ast_mk_import(ast_mk_lit_string("core/core", false));
+    ast_t* import = ast_mk_import(ast_mk_lit_string("core/core", false), true);
     ast_mk_list_insert(block->block.body, import, 0);
   }
 }
@@ -48,7 +48,7 @@ ast_t* __fl_parse(string* code, const char* file) {
 
   return root;
 }
-// TODO parse core!
+
 ast_t* fl_parse_utf8(char* str) {
   st_size_t cap;
   size_t len = st_utf8_length(str, &cap);
@@ -57,19 +57,26 @@ ast_t* fl_parse_utf8(char* str) {
   st_copyc(&code, str, st_enc_utf8);
   st_append_char(&code, 0);
 
-  return __fl_parse(code, 0);
+  ast_t* root = __fl_parse(code, 0);
+  ast_parent(root);
+
+  return root;
 }
 
 ast_t* fl_parse_main_utf8(char* str) {
   ast_t* root = fl_parse_utf8(str);
   __fl_attach_core(root);
+  ast_parent(root);
 
   return root;
 }
 
 ast_t* fl_parse_file(const char* filename) {
   string* code = fl_file_to_string(filename);
-  return __fl_parse(code, filename);
+  ast_t* root = __fl_parse(code, filename);
+  ast_parent(root);
+
+  return root;
 }
 
 string* fl_file_to_string(const char* filename) {
@@ -106,6 +113,7 @@ ast_t* fl_parse_main_file(const char* filename) {
 
   assert(root->type == FL_AST_PROGRAM);
   __fl_attach_core(root);
+  ast_parent(root);
 
   return root;
 }

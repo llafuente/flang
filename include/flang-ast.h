@@ -40,7 +40,12 @@ enum ast_cast_operations {
   FL_CAST_AUTO,    // Function call
 };
 
-enum ast_scope { AST_SCOPE_BLOCK = 1, AST_SCOPE_FUNCTION, AST_SCOPE_GLOBAL };
+enum ast_scope {
+  AST_SCOPE_GLOBAL = 1,
+  AST_SCOPE_BLOCK,
+  AST_SCOPE_FUNCTION,
+  AST_SCOPE_TRANSPARENT
+};
 typedef enum ast_scope ast_scope_t;
 
 enum ast_types {
@@ -309,6 +314,7 @@ struct ast {
 
     struct ast_import {
       // string literal
+      bool forward;
       ast_t* path;
 
       bool imported;

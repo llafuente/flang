@@ -65,6 +65,7 @@ bool ast_print_error(ast_t* node) {
 }
 
 void ast_print_error_at(ast_t* node, char* message) {
+  int bk = log_debug_level;
   log_debug_level = 99;
 
   ast_t* root = ast_get_root(node);
@@ -92,6 +93,8 @@ void ast_print_error_at(ast_t* node, char* message) {
 
   // TODO add context do not use global var
   st_line_iterator(root->program.code, __ast_print_error_lines);
+
+  log_debug_level = bk;
 }
 
 void ast_raise_error(ast_t* node, char* message, ...) {

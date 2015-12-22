@@ -289,7 +289,10 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body,
   ast_t* node = ast_new();
   node->type = FL_AST_DECL_FUNCTION;
 
+  // function id not need to be resolved
+  id->identifier.resolve = false;
   node->func.id = id;
+
   node->func.ret_type = ret_type ? ret_type : ast_mk_type_auto();
   node->func.params = params = params ? params : ast_mk_list();
 
@@ -347,6 +350,7 @@ ast_t* ast_mk_fn_param(ast_t* id, ast_t* type, ast_t* def) {
   ast_t* node = ast_new();
   node->type = FL_AST_PARAMETER;
 
+  id->identifier.resolve = false;
   node->param.id = id;
   node->param.type = type;
   node->param.def = def;
@@ -543,18 +547,19 @@ ast_t* ast_mk_cast(ast_t* type, ast_t* element) {
   return node;
 }
 
-ast_t* ast_mk_import(ast_t* string_lit) {
+ast_t* ast_mk_import(ast_t* string_lit, bool forward) {
   // printf("ast_mk_import\n");
   ast_t* node = ast_new();
   node->type = FL_AST_IMPORT;
 
   node->import.path = string_lit;
+  node->import.forward = forward;
 
   return node;
 }
 
 ast_t* ast_mk_log(ast_t* list) {
-  // printf("ast_mk_import\n");
+  // printf("ast_mk_log\n");
   ast_t* node = ast_new();
   node->type = FL_AST_STMT_LOG;
   node->log.print_expression = true; // TODO how to customize?

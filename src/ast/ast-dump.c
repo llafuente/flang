@@ -50,7 +50,8 @@ void ast_dump_one(ast_t* node) {
     // printf("\n%s\n", node->program.code->value);
     break;
   case FL_AST_IMPORT:
-    printf("import [path='%s']", node->import.path->string.value->value);
+    printf("import [path='%s' forward=%d]",
+           node->import.path->string.value->value, node->import.forward);
     break;
   case FL_AST_MODULE:
     printf("module [path='%s']", node->program.file);
@@ -58,7 +59,7 @@ void ast_dump_one(ast_t* node) {
   case FL_AST_BLOCK:
     // traverse do not follow scope hashes
     // so we print it here
-    printf("block");
+    printf("block [%d]", node->block.scope);
     printf(" tys [%s]", __ast_block_hash_append(node->block.types));
     printf(" vars [%s]", __ast_block_hash_append(node->block.variables));
     printf(" fns [%s]", __ast_block_hash_append(node->block.functions));

@@ -59,11 +59,28 @@ ast_action_t __trav_search_id_decl(ast_t* node, ast_t* parent, size_t level,
 
 ast_t* ast_search_id_decl(ast_t* node, string* identifier) {
   ast_t* ret = 0;
+  array* arr = 0;
 
-  ast_reverse(node, __trav_search_id_decl, 0, 0, (void*)identifier,
-              (void*)&ret);
+  char* cstr = identifier->value;
 
-  return ret;
+  do {
+    node = ast_get_scope(node);
+
+    // found a variable!
+    ret = (ast_t*)hash_get(node->block.variables, cstr);
+    if (ret) {
+      return ret;
+    }
+
+    // a function cannot collide with a struct
+    arr = hash_get(node->block.functions, cstr);
+    if (arr) {
+      return (ast_t*)array_get(arr, 0);
+    }
+
+  } while (node->block.scope != AST_SCOPE_GLOBAL);
+
+  return 0;
 }
 
 ast_action_t __ast_search_fn(ast_t* node, ast_t* parent, size_t level,

@@ -49,7 +49,7 @@
 %token <token> TK_UNDERSCORE TK_AS TK_ANY TK_BREAK TK_CONST
 %token <token> TK_CONTINUE TK_ELSE TK_ENUM TK_FN
 %token <token> TK_FFI TK_FOR TK_IF TK_IN TK_MATCH
-%token <token> TK_IMPORT TK_PUB TK_REF TK_RETURN TK_STATIC
+%token <token> TK_IMPORT TK_FORWARD TK_PUB TK_REF TK_RETURN TK_STATIC
 %token <token> TK_STRUCT TK_TYPE TK_TYPEOF TK_USE
 %token <token> TK_VAR TK_GLOBAL TK_WHERE TK_WHILE TK_DO TK_SIZEOF TK_LOG
 
@@ -243,8 +243,12 @@ stmt
 
 import_stmt
   : TK_IMPORT lit_string {
-    $$ = ast_mk_import($2);
+    $$ = ast_mk_import($2, false);
     ast_position($$, @1, @2);
+  }
+  | TK_FORWARD TK_IMPORT lit_string {
+    $$ = ast_mk_import($3, true);
+    ast_position($$, @1, @3);
   }
   ;
 
