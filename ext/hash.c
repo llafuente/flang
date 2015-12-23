@@ -43,23 +43,26 @@ void hash_replace_allocators(hash_malloc_func malloc_func,
 // Function to destroy the hash table
 void hash_delete(hash_t* ht) {
   int i;
+  hash_entry_t* entry;
+  hash_entry_t* next;
 
   // Free each not empty position of the hash table
   for (i = 0; i < ht->size; i++) {
-    if (ht->table[i] != 0) {
-      if (ht->table[i]->bycopy) {
-        __hash_free(ht->table[i]->key);
-        __hash_free(ht->table[i]->value);
-      }
-      __hash_free(ht->table[i]);
-      ht->table[i] = 0;
+    entry = ht->table[i];
+    if (entry != 0) {
+      do {
+        if (entry->bycopy) {
+          __hash_free(entry->key);
+          __hash_free(entry->value);
+        }
+        next = entry->next;
+        __hash_free(entry);
+        entry = next;
+      } while (entry != 0);
     }
   }
   __hash_free(ht->table);
-
-  // Next free the hash itself
-  // __hash_free(ht);
-  // ht = 0;
+  ht->table = 0; // no dangling
 }
 
 // Function to create a hash with the given size
@@ -275,20 +278,25 @@ void* hash_get(hash_t* ht, char* key) {
   // If nothing was found return null
   if (entry == 0 || entry->key == 0 || strcmp(key, entry->key) != 0) {
     return 0;
-  } else {
-    return entry->value;
   }
+
+  return entry->value;
 }
 
 bool hash_has(hash_t* ht, char* key) { return hash_get(ht, key) != 0; }
 
 void hash_each(hash_t* ht, hash_each_func each) {
   int i;
+  hash_entry_t* entry;
 
   // Free each not empty position of the hash table
   for (i = 0; i < ht->size; i++) {
-    if (ht->table[i] != 0) {
-      each(ht->table[i]->key, ht->table[i]->value);
+    entry = ht->table[i];
+    if (entry != 0) {
+      do {
+        each(entry->key, entry->value);
+        entry = entry->next;
+      } while (entry != 0);
     }
   }
 }
