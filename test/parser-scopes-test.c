@@ -103,6 +103,17 @@ TASK_IMPL(parser_scopes) {
                           "x exists in fn block");
                  });
 
+  TEST_PARSER_OK("scope 06 - two decls", "function test_i32() {}\n"
+                                         "function test_i64() {}\n"
+                                         "test_i32();\n"
+                                         "test_i64();\n",
+                 {
+                   ASSERT(hash_has(mainblock->block.functions, "test_i32"),
+                          "test_i32 exists in fn block");
+                   ASSERT(hash_has(mainblock->block.functions, "test_i64"),
+                          "test_i64 exists in fn block");
+                 });
+
   TEST_PARSER_ERROR("var redef 01", "struct a {i32 b };\n"
                                     "var i32 a = 2;\n",
                     "Variable name 'a' in use by a type, previously defined at "

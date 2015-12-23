@@ -127,11 +127,11 @@ void test_file_list(char** files, size_t nfiles, char* path) {
 
     if (strcmp(output->value, output_cmp->value) != 0) {
       // save output to diff!
-      printf("lli output \n--\n%s\n--\nexpected output \n--\n%s\n--\n",
-             output->value, output_cmp->value);
-
-      ASSERT(false, files[i]);
-      assert(false);
+      fprintf(
+          stderr,
+          "file: %s lli output \n--\n%s\n--\nexpected output \n--\n%s\n--\n",
+          files[i], output->value, output_cmp->value);
+      exit(1);
     }
     st_delete(&output);
     st_delete(&output_cmp);
@@ -155,7 +155,7 @@ TASK_IMPL(flang_files) {
       //,"promotion"
   };
 
-  test_file_list(test_files, 23, "../test/fl/");
+  test_file_list(test_files, 22, "../test/fl/");
 
   char* perf_files[] = {"array-reverse"};
 

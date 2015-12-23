@@ -38,7 +38,9 @@ ast_action_t __trav_casting(ast_t* node, ast_t* parent, size_t level,
     if (node->identifier.resolve) {
       node->identifier.decl = ast_search_id_decl(node, node->identifier.string);
       if (!node->identifier.decl) {
-        ast_raise_error(node, "Cannot find declaration");
+        ast_mindump(ast_get_root(node));
+        ast_raise_error(node, "Cannot find declaration: '%s'",
+                        node->identifier.string->value);
       }
 
       if (node->parent->type != FL_AST_EXPR_CALL &&

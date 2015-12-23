@@ -191,6 +191,25 @@ ast_action_t __ast_dump_cb(ast_t* node, ast_t* parent, size_t level,
   return FL_AC_CONTINUE;
 }
 
+ast_action_t __ast_mindump_cb(ast_t* node, ast_t* parent, size_t level,
+                              void* userdata_in, void* userdata_out) {
+  if (!node) {
+    log_warning("ast_dump: null\n");
+    return true;
+  }
+
+  if (node->type == FL_AST_MODULE) {
+    return FL_AC_SKIP;
+  }
+
+  return __ast_dump_cb(node, parent, level, userdata_in, userdata_out);
+}
+
+void ast_mindump(ast_t* node) {
+  if (log_debug_level > 2) {
+    ast_traverse(node, __ast_mindump_cb, 0, 0, 0, 0);
+  }
+}
 void ast_dump(ast_t* node) {
   if (log_debug_level > 2) {
     ast_traverse(node, __ast_dump_cb, 0, 0, 0, 0);

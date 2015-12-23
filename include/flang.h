@@ -63,7 +63,6 @@ extern void __sanitizer_print_stack_trace();
 #include <llvm-c/Transforms/Scalar.h>
 #include <llvm-c/BitWriter.h>
 
-#include "ext/uthash.h"
 #include "ext/array.h"
 #include "ext/pool.h"
 #include "ext/hash.h"
@@ -88,9 +87,6 @@ typedef struct ts_type ty_t;
 
 enum ts_types;
 typedef enum ts_types ts_types_t;
-
-struct ts_type_hash;
-typedef struct ts_type_hash ts_type_hash_t;
 
 // callback type for [ast_traverse](#ast_traverse) & [ast_reverse](#ast_reverse)
 typedef ast_action_t (*ast_cb_t)(ast_t* node, ast_t* parent, size_t level,
@@ -353,23 +349,6 @@ FL_EXTERN size_t ty_create_fn(ast_t* decl);
  */
 FL_EXTERN size_t ty_get_fn_typeid(ast_t* id);
 
-/* Given a type name return the hash item
- *
- * @id type name
- * @return hash item or null
- */
-FL_EXTERN ts_type_hash_t* ty_get_type_by_name(string* id);
-
-/* Given an identifier literal, traverse the tree searching
- * all types. Raise an error if more than one type is found.
- *
- * TODO move it to ast-query.c?
- *
- * @id type name
- * @return type id, 0 if not found
- */
-FL_EXTERN size_t ty_get_typeid_by_name(ast_t* node);
-
 /* Register variable in desired scope
  *
  * @decl
@@ -383,8 +362,6 @@ FL_EXTERN void ty_create_var(ast_t* decl);
 extern ty_t* ts_type_table;
 
 extern size_t ts_type_size_s;
-
-extern ts_type_hash_t* ts_hashtable;
 
 /* Intialize type system global variables
  * Do not call this directly use: [flang_init](#flang_init)
@@ -601,6 +578,11 @@ FL_EXTERN void ast_dump_one(ast_t* node);
  * @node
  */
 FL_EXTERN void ast_dump(ast_t* node);
+
+/* Debug: Recursive print to stderr a node as text (do not follow imports)
+ * @node
+ */
+FL_EXTERN void ast_mindump(ast_t* node);
 
 /* cldoc:end-category() */
 

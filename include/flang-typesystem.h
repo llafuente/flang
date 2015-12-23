@@ -118,9 +118,3 @@ struct ts_type {
     } enu;
   };
 };
-
-struct ts_type_hash {
-  array list;        // of ast_t* decl;
-  UT_hash_handle hh; // makes this structure hashable
-  char name[64];     // key (string is WITHIN the structure)
-};

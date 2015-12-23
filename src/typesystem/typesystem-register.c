@@ -107,14 +107,6 @@ size_t __ts_string_to_tyid(ast_t* node) {
     }
   } while (scope->block.scope != AST_SCOPE_GLOBAL);
 
-  // search named types
-  /*
-  size_t t = ty_get_typeid_by_name(node->ty.id);
-  if (t) {
-    return node->ty_id = t;
-  }
-  */
-
   printf("delayed type!?");
   return 0;
 }

@@ -111,7 +111,6 @@ struct ast {
   ast_types_t type;
   ast_t* parent;
 
-  // type id in ts_hashtable
   size_t ty_id;
 
   // codegen
@@ -146,6 +145,8 @@ struct ast {
       hash_t* types;     // size_t with the type id
       hash_t* functions; // TODO array of decl?
       hash_t* variables; // ast_t* to declaration
+
+      hash_t* uids; // bool, allocated by parser.y
 
     } block;
 

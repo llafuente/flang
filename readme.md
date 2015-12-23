@@ -135,7 +135,7 @@ Apart from syntax...
 * No operator `,`
 * Braces are mandatory, for version control reasons
 * Types cannot demote without casting.
-* Function polymorphism is allowed. So proper naming must be used for the C interface.
+* Function polymorphism is allowed. So proper naming should be used for the C interface adding `#id` attribute.
 
 ```
 #id=sum_i8_i8
@@ -157,3 +157,18 @@ fn sum(i32 a, i32 b): i32 {
   That implies that there is no need to use `struct a`, `a` is enough.
 
   Any type works the same even functions.
+
+* flang use modules, not #includes
+
+```
+import "path/to/file"; // without extension
+```
+
+When you are building a module, most of the time the final user will need staff you import. In that case `forward import` like we do in core.
+
+```
+forward import "path/to/file"; // without extension
+```
+
+* imports are scoped.
+* `forward import` can only be used at program level.

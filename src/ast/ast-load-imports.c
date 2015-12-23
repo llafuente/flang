@@ -71,6 +71,13 @@ ast_action_t __trav_load_imports(ast_t* node, ast_t* parent, size_t level,
     ((*(size_t*)userdata_out))++;
 
     if (node->import.forward) {
+      // check that i'm at program scope level.
+      ast_t* pr = parent->parent->parent; // list -> block -> program/module
+      if (pr->type != FL_AST_MODULE && pr->type != FL_AST_PROGRAM) {
+        ast_raise_error(node,
+                        "Cannot foward this import, must be at program level");
+      }
+
       module->program.body->block.scope = AST_SCOPE_TRANSPARENT;
     } else {
       module->program.body->block.scope = AST_SCOPE_BLOCK;

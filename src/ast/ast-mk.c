@@ -124,6 +124,8 @@ ast_t* ast_mk_block(ast_t* body) {
   node->block.variables = pool_new(sizeof(hash_t));
   hash_new(node->block.variables, 10);
 
+  // uids; is allocated by parser.y, only on global
+
   return node;
 }
 

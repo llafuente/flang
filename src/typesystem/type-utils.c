@@ -139,21 +139,6 @@ size_t ty_get_struct_prop_type(size_t id, string* property) {
   return 0;
 }
 
-void ty_create_named(string* id, ast_t* decl, size_t type_id) {
-  ts_type_hash_t* t = ty_get_type_by_name(id);
-
-  if (!t) {
-    t = (ts_type_hash_t*)calloc(1, sizeof(ts_type_hash_t));
-    array_new(&t->list);
-
-    strncpy(t->name, id->value, 64);
-
-    HASH_ADD_STR(ts_hashtable, name, t);
-  }
-
-  array_append(&t->list, decl);
-}
-
 // transfer list ownership
 size_t ty_create_struct(ast_t* decl) {
   size_t i;
@@ -180,7 +165,6 @@ size_t ty_create_struct(ast_t* decl) {
   ts_type_table[i].structure.nfields = length;
 
   log_debug("SET type [%zu] = '%s'", i, id->value);
-  ty_create_named(id, decl, i);
 
   // search nearest scope and add it
   ast_t* x = ast_get_scope(decl);
@@ -217,26 +201,36 @@ bool ty_compatible_struct(size_t a, size_t b) {
 
 size_t ty_create_fn(ast_t* decl) {
   string* id = decl->func.id->identifier.string;
+  char* cstr = id->value;
   string* uid;
 
+  ast_t* rscope = ast_get_global_scope(decl);
+
+  ast_t* t = hash_get(rscope->block.uids, cstr);
+
   // check for collisions
-  if (ty_get_type_by_name(id)) {
+  if (t != 0) {
+    // we force an uid?
     if (decl->func.uid) {
-      if (ty_get_type_by_name(decl->func.uid)) {
-        // TODO display the decl that collide
-        ast_raise_error(decl, "Function #id collision found.");
+      t = hash_get(rscope->block.uids, decl->func.uid->value);
+      if (t != 0) {
+        ast_raise_error(decl,
+                        "Function #id collision found, previously used at %s",
+                        ast_get_location(t));
       }
     } else {
       // create a unique name!
       uid = st_concat_random(id, 10);
-      while (ty_get_type_by_name(uid)) {
+      t = hash_get(rscope->block.uids, uid->value);
+      while (t != 0) {
         st_delete(&uid);
         uid = st_concat_random(id, 10);
       }
       decl->func.uid = uid;
     }
+    // !t && !uid ?
   } else if (!decl->func.uid) {
-    decl->func.uid = st_clone(id); // TODO this should be uid ?
+    decl->func.uid = st_clone(id);
   }
 
   ast_t* params = decl->func.params;
@@ -249,6 +243,7 @@ size_t ty_create_fn(ast_t* decl) {
     tparams[i] = params->list.elements[i]->ty_id;
   }
 
+  /* compare functions
   for (i = 0; i < ts_type_size_s; ++i) {
     // function, same parameters length return type and varargs?
     if (ts_type_table[i].of == FL_FUNCTION &&
@@ -260,11 +255,11 @@ size_t ty_create_fn(ast_t* decl) {
         free(tparams);
 
         log_debug("SET fn type [%zu] = '%s'", i, id->value);
-        ty_create_named(id, decl, i);
         return i;
       }
     }
   }
+  */
 
   // add it!
   i = ts_type_size_s++;
@@ -276,14 +271,6 @@ size_t ty_create_fn(ast_t* decl) {
   ts_type_table[i].func.ret = ret;
   ts_type_table[i].func.varargs = decl->func.varargs;
 
-  log_debug("SET fn type [%zu] = '%s'", i, id->value);
-  ty_create_named(id, decl, i);
-
-  /*
-  size_t t = ht_get(ts_hashtable, id->value);
-  assert(t != i);
-  */
-  char* cstr = id->value;
   ast_t* attach_to;
   ast_t* from;
   from = attach_to = ast_get_scope(decl);
@@ -315,6 +302,8 @@ size_t ty_create_fn(ast_t* decl) {
   } while (from->block.scope != AST_SCOPE_GLOBAL);
 
   array* lfunc = hash_get(attach_to->block.functions, cstr);
+  log_debug("register fn '%s' ty[%zu] @[%p]\n", cstr, i, lfunc);
+
   if (!lfunc) {
     lfunc = pool_new(sizeof(array));
     array_new(lfunc);
@@ -322,6 +311,8 @@ size_t ty_create_fn(ast_t* decl) {
   }
   array_append(lfunc, decl);
   hash_set(attach_to->block.types, cstr, decl);
+
+  hash_set(rscope->block.uids, decl->func.uid->value, decl);
 
   return i;
 }
@@ -338,33 +329,6 @@ size_t ty_get_fn_typeid(ast_t* id) {
   }
 
   return 0;
-}
-
-ts_type_hash_t* ty_get_type_by_name(string* id) {
-  ts_type_hash_t* s;
-  HASH_FIND_STR(ts_hashtable, id->value, s);
-
-  return s;
-}
-
-size_t ty_get_typeid_by_name(ast_t* node) {
-  assert(node->type == FL_AST_LIT_IDENTIFIER);
-
-  string* id = node->identifier.string;
-
-  ts_type_hash_t* s;
-  HASH_FIND_STR(ts_hashtable, id->value, s);
-
-  // TODO raise something ?!
-  if (!s)
-    return 0;
-
-  if (s->list.size > 1) {
-    ast_raise_error(node, "Found many types with the same name");
-  }
-
-  ast_t* ast = (ast_t*)array_get(&s->list, 0);
-  return ast->ty_id;
 }
 
 // transfer list ownership

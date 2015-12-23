@@ -27,7 +27,6 @@
 
 ty_t* ts_type_table = 0;
 size_t ts_type_size_s = 0;
-ts_type_hash_t* ts_hashtable = 0;
 
 // 0 infer
 // 1-12 built-in
@@ -150,14 +149,4 @@ void ts_exit() {
 
   free(ts_type_table);
   ts_type_table = 0;
-
-  ts_type_hash_t* s;
-  ts_type_hash_t* tmp;
-  HASH_ITER(hh, ts_hashtable, s, tmp) {
-    HASH_DEL(ts_hashtable, s);
-    array_delete(&s->list);
-    free(s);
-  }
-
-  ts_hashtable = 0;
 }
