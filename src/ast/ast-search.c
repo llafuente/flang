@@ -83,22 +83,22 @@ ast_t* ast_search_id_decl(ast_t* node, string* identifier) {
   return 0;
 }
 
-ast_action_t __ast_search_fn(ast_t* node, ast_t* parent, size_t level,
-                             void* userdata_in, void* userdata_out) {
+ast_t* ast_search_fn(ast_t* node, string* identifier, size_t* args,
+                     size_t nargs, size_t ret_ty, bool var_args) {
+  array* arr = ast_search_fns(node, identifier);
 
-  if (node->type == FL_AST_DECL_FUNCTION) {
-    void** ui = (void**)userdata_in;
-    string* id = (string*)ui[0];
+  if (!arr) {
+    return 0;
+  }
 
-    if (st_cmp(id, node->func.id->identifier.string) == 0) {
+  size_t i;
+  ast_t* fn;
+  for (i = 0; i < arr->size; ++i) {
+    fn = arr->data[i];
+    if (st_cmp(identifier, fn->func.id->identifier.string) == 0) {
       log_verbose("function name found");
-      ty_t t = ts_type_table[node->ty_id];
+      ty_t t = ts_type_table[fn->ty_id];
       assert(t.of == FL_FUNCTION);
-
-      size_t* args = (size_t*)ui[1];
-      size_t nargs = (size_t)ui[2];
-      size_t ret_ty = (size_t)ui[3];
-      bool var_args = (bool)ui[4];
 
       log_verbose("varargs %d == %d", t.func.varargs, var_args);
       log_verbose("nparams %zu == %zu", t.func.nparams, nargs);
@@ -109,32 +109,15 @@ ast_action_t __ast_search_fn(ast_t* node, ast_t* parent, size_t level,
       if (t.func.nparams == nargs &&
           memcmp(args, t.func.params, nargs * sizeof(size_t)) == 0 &&
           t.func.varargs == var_args && t.func.ret == ret_ty) {
-        void** ret = (void**)userdata_out;
-        *ret = node;
-        // check arguments
-        return FL_AC_STOP;
+        array_delete(arr);
+        free(arr);
+        return fn;
       }
     }
-    return FL_AC_SKIP;
   }
-
-  return FL_AC_CONTINUE;
-}
-
-ast_t* ast_search_fn(ast_t* node, string* identifier, size_t* args,
-                     size_t nargs, size_t ret_ty, bool var_args) {
-  ast_t* ret = 0;
-
-  void* input[5];
-  input[0] = (void*)identifier;
-  input[1] = (void*)args;
-  input[2] = (void*)nargs;
-  input[3] = (void*)ret_ty;
-  input[4] = (void*)var_args;
-
-  ast_reverse(node, __ast_search_fn, 0, 0, (void*)input, (void*)&ret);
-
-  return ret;
+  array_delete(arr);
+  free(arr);
+  return 0;
 }
 
 // TODO handle args
@@ -225,47 +208,29 @@ ast_action_t __search_fns(ast_t* node, ast_t* parent, size_t level,
 }
 
 array* ast_search_fns(ast_t* node, string* id) {
-  array* userdata = malloc(sizeof(array));
-  array_new(userdata);
+  array* arr = malloc(sizeof(array));
+  array* arr2;
+  array_new(arr);
 
-  log_verbose("ast_search_fns %s %p", id->value, node);
+  char* cstr = id->value;
+  ast_t* scope = node;
+  ast_t* fn;
+  do {
+    scope = ast_get_scope(scope);
 
-  ast_reverse(node, __search_fns, 0, 0, (void*)id, (void*)userdata);
-
-  if (userdata->size) {
-    return userdata;
-  }
-
-  array_delete(userdata);
-  free(userdata);
-  return 0;
-}
-
-ast_action_t __trav_search_fn_decl(ast_t* node, ast_t* parent, size_t level,
-                                   void* userdata_in, void* userdata_out) {
-
-  if (node->type == FL_AST_DECL_FUNCTION) {
-    string* id = (string*)userdata_in;
-
-    if (st_cmp(id, node->func.id->identifier.string) == 0) {
-      void** ret = (void**)userdata_out;
-      *ret = node;
-      return FL_AC_STOP;
+    fn = (ast_t*)hash_get(scope->block.types, cstr);
+    if (fn && fn->type == FL_AST_DECL_FUNCTION) {
+      array_concat(arr, (array*)hash_get(scope->block.functions, cstr));
     }
+  } while (scope->block.scope != AST_SCOPE_GLOBAL);
+
+  if (arr->size) {
+    return arr;
   }
 
-  return FL_AC_CONTINUE;
-}
-
-ast_t* ast_search_fn_decl(ast_t* identifier) {
-  assert(identifier->type == FL_AST_LIT_IDENTIFIER);
-
-  ast_t** ret;
-
-  ast_reverse(identifier, __trav_search_fn_decl, 0, 0,
-              (void*)identifier->identifier.string, (void*)ret);
-
-  return *ret;
+  array_delete(arr);
+  free(arr);
+  return 0;
 }
 
 ast_action_t __trav_get_list_node(ast_t* node, ast_t* parent, size_t level,

@@ -341,14 +341,6 @@ FL_EXTERN bool ty_compatible_struct(size_t a, size_t b);
  */
 FL_EXTERN size_t ty_create_fn(ast_t* decl);
 
-/* Given the function name return it's ty_id
- * This function does not handle collisions, return the first
- *
- * @id function name
- * @return type id
- */
-FL_EXTERN size_t ty_get_fn_typeid(ast_t* id);
-
 /* Register variable in desired scope
  *
  * @decl
@@ -788,11 +780,6 @@ FL_EXTERN ast_t* ast_search_fn_wargs(string* id, ast_t* args_call);
  * @id
  */
 FL_EXTERN array* ast_search_fns(ast_t* node, string* id);
-
-/* Reverse the tree and return first function found with given name
- * @identifier
- */
-FL_EXTERN ast_t* ast_search_fn_decl(ast_t* identifier);
 
 /* Traverse given tree and return all aparences of t
  * @node

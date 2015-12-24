@@ -28,6 +28,8 @@ void array_new(array* arr);
 
 void array_append(array* arr, ARRAY_T value);
 
+void array_concat(array* arr, array* arr2);
+
 ARRAY_T array_get(array* arr, int index);
 
 ARRAY_T array_pop(array* arr);

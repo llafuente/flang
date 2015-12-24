@@ -317,20 +317,6 @@ size_t ty_create_fn(ast_t* decl) {
   return i;
 }
 
-// TODO handle: global functions, collisions, etc.
-size_t ty_get_fn_typeid(ast_t* id) {
-  assert(id->type != FL_AST_LIT_IDENTIFIER);
-
-  ast_t* fdecl = ast_search_fn_decl(id);
-
-  // TODO search globals and assert!
-  if (fdecl) {
-    return fdecl->ty_id;
-  }
-
-  return 0;
-}
-
 // transfer list ownership
 void ty_create_var(ast_t* decl) {
   assert(decl->type == FL_AST_DTOR_VAR);

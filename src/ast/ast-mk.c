@@ -391,6 +391,8 @@ ast_t* ast_mk_call_expr(ast_t* callee, ast_t* arguments) {
   ast_t* node = ast_new();
   node->type = FL_AST_EXPR_CALL;
 
+  // callee don't need to be resolved, typesystem will try at call level.
+  callee->identifier.resolve = false;
   node->call.callee = callee;
   node->call.arguments = arguments;
   node->call.narguments = arguments ? arguments->list.count : 0;

@@ -61,6 +61,13 @@ void array_append(array* arr, ARRAY_T value) {
   arr->data[arr->size++] = value;
 }
 
+void array_concat(array* arr, array* arr2) {
+  size_t i;
+  for (i = 0; i < arr2->size; ++i) {
+    array_append(arr, arr2->data[i]);
+  }
+}
+
 ARRAY_T array_get(array* arr, int index) {
   if (index >= arr->size || index < 0) {
     fprintf(stderr, "Index %d out of bounds for vector of size %d\n", index,

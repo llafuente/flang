@@ -2,7 +2,7 @@
 
 flang is an experimental language for mangling data.
 
-take a look if you want but it not useable yet.
+take a look if you want but it not useable yet. it's still low level like c.
 
 ## Usage
 
@@ -53,6 +53,8 @@ sh gen-doc.sh
   * Integers (any size and signed) and boolean
   * Structs (no union)
   * Functions
+  * Pointers
+  * Vectors
 
 * Modules (in global scope, like #include in c)
 * Function polymorphism
