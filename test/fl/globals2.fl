@@ -1,0 +1,3 @@
+function x() {
+  global i8 y = 100;
+}

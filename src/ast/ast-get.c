@@ -94,3 +94,15 @@ string* ast_get_location(ast_t* node) {
   string* ret = st_newc(buffer, st_enc_utf8);
   return ret;
 }
+
+ast_t* ast_get_root(ast_t* node) {
+  ast_t* root = node;
+  while (root) {
+    root = root->parent;
+    if (root->type == FL_AST_PROGRAM || root->type == FL_AST_MODULE) {
+      return root;
+    }
+  }
+
+  return 0;
+}

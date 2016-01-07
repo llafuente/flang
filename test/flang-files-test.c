@@ -74,7 +74,7 @@ void test_file_list(char** files, size_t nfiles, char* path) {
       printf("\033[2J"); // "clear screen"
     }
 
-    if (i == 21) {
+    if (i == 22) {
       // log_debug_level = 10;
     }
 
@@ -155,7 +155,7 @@ TASK_IMPL(flang_files) {
       //,"promotion"
   };
 
-  test_file_list(test_files, 22, "../test/fl/");
+  test_file_list(test_files, 23, "../test/fl/");
 
   char* perf_files[] = {"array-reverse"};
 

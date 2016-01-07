@@ -498,10 +498,34 @@ LLVMValueRef cg_binop(FL_CODEGEN_HEADER) {
 LLVMValueRef cg_dtor_var(FL_CODEGEN_HEADER) {
   log_debug("cg_dtor_var");
 
-  // TODO use ty_id
-  LLVMValueRef ref =
-      LLVMBuildAlloca(builder, cg_get_type(node->var.type, context),
-                      node->var.id->identifier.string->value);
+  LLVMValueRef ref;
+  // @x.z = internal global i32 100, align 4
+  if (node->var.scope == AST_SCOPE_GLOBAL) {
+    LLVMTypeRef tref = cg_get_type(node->var.type, context);
+    ref = LLVMAddGlobal(module, tref, node->var.id->identifier.string->value);
+    LLVMSetLinkage(ref, LLVMInternalLinkage);
+
+    LLVMSetAlignment(ref, 4);
+
+    // TODO check: global = x; x => MUST BE A CONSTANT!!
+
+    // dtor + initialization
+    ast_t* p = node->parent;
+    if (p->type == FL_AST_LIST) {
+      LLVMValueRef r = cg_ast(p->list.elements[1]->assignament.right,
+                              FL_CODEGEN_PASSTHROUGH);
+      // LLVMConstInt(tref, 1, false)
+      LLVMSetInitializer(ref, r);
+
+      ast_mk_list_pop(p);
+    }
+
+  } else {
+    // TODO use ty_id
+    ref = LLVMBuildAlloca(builder, cg_get_type(node->var.type, context),
+                          node->var.id->identifier.string->value);
+  }
+
   // TODO fix me!
   // LLVMSetAlignment(ref, 8);
   node->var.alloca = (void*)ref;

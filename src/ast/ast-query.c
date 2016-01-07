@@ -55,18 +55,6 @@ bool ast_is_literal(ast_t* node) {
   return b;
 }
 
-ast_t* ast_get_root(ast_t* node) {
-  ast_t* root = node;
-  while (root) {
-    root = root->parent;
-    if (root->type == FL_AST_PROGRAM || root->type == FL_AST_MODULE) {
-      return root;
-    }
-  }
-
-  return 0;
-}
-
 // TODO UTF-8 support
 string* ast_get_code(ast_t* node) {
   ast_t* root = ast_get_root(node);

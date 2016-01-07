@@ -1,0 +1,6 @@
+import "./globals2";
+
+printf("y = %d\n", y);
+++y;
+printf("++y = %d\n", y);
+printf("y = %d\n", y);

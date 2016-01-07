@@ -78,6 +78,17 @@ ast_t* ast_mk_list_push(ast_t* list, ast_t* node) {
   return list;
 }
 
+ast_t* ast_mk_list_pop(ast_t* list) {
+  // printf("ast_mk_list_push [%p]\n", list);
+  assert(list->type == FL_AST_LIST);
+
+  ast_t* node = list->list.elements[list->list.count - 1];
+  --list->list.count;
+  list->list.elements[list->list.count - 1] = 0;
+
+  return node;
+}
+
 ast_t* ast_mk_list_insert(ast_t* list, ast_t* node, size_t idx) {
   // printf("ast_mk_list_push [%p]\n", list);
   assert(list->type == FL_AST_LIST);

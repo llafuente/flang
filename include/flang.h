@@ -29,6 +29,7 @@
 
 extern void __sanitizer_print_stack_trace();
 
+/* does not work?! let it crash atm, and see a proper stacktrace
 #if ASAN == 1
 #undef NDEBUG
 #define assert(check)                                                          \
@@ -44,6 +45,7 @@ extern void __sanitizer_print_stack_trace();
 #undef NDEBUG
 #include <assert.h>
 #endif
+*/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -632,6 +634,14 @@ FL_EXTERN ast_t* ast_get_scope(ast_t* node);
  */
 FL_EXTERN string* ast_get_location(ast_t* node);
 
+/* Return root node
+ * A root node is the program or the module
+ *
+ * @node
+ * @return root node
+ */
+FL_EXTERN ast_t* ast_get_root(ast_t* node);
+
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(ast-load-imports.c) */
@@ -651,6 +661,7 @@ FL_EXTERN ast_t* ast_mk_program(ast_t* block);
 FL_EXTERN ast_t* ast_mk_error(const char* message, char* type);
 FL_EXTERN ast_t* ast_mk_list();
 FL_EXTERN ast_t* ast_mk_list_push(ast_t* list, ast_t* node);
+FL_EXTERN ast_t* ast_mk_list_pop(ast_t* list);
 FL_EXTERN ast_t* ast_mk_list_insert(ast_t* list, ast_t* node, size_t idx);
 FL_EXTERN ast_t* ast_mk_insert_before(ast_t* list, ast_t* search_item,
                                       ast_t* insert_item);
@@ -732,13 +743,7 @@ FL_EXTERN ast_t* ast_reduce(ast_t* node);
  */
 FL_EXTERN void ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent,
                            size_t level, void* userdata_in, void* userdata_out);
-/* Return root node
- * A root node is the program or the module
- *
- * @node
- * @return root node
- */
-FL_EXTERN ast_t* ast_get_root(ast_t* node);
+
 /* Get the string piece of code given a node
  * Does not always work, because some node are auto-generated...
  *

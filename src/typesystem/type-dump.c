@@ -99,6 +99,7 @@ string* ty_to_string(size_t ty_id) {
     st_append_c(&buffer, ") : ");
     st_append(&buffer, ty_to_string(ty.func.ret));
   } break;
+  default: {} // remove warning
   }
   return ty.decl = buffer;
 }

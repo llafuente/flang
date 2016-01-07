@@ -27,7 +27,12 @@
 
 ast_action_t __trav_set_parent(ast_t* node, ast_t* parent, size_t level,
                                void* userdata_in, void* userdata_out) {
-  node->parent = parent;
+
+  // ast_parent can be called many times!
+  // only set parent if exists, do not override first node parent!
+  if (parent) {
+    node->parent = parent;
+  }
 
   return FL_AC_CONTINUE;
 }
