@@ -27,7 +27,6 @@
 #include "tasks.h"
 #include "test.h"
 
-// TODO review if ";" is required
 TASK_IMPL(parser_functions) {
   log_debug_level = 0;
 

@@ -139,6 +139,64 @@ size_t ty_get_struct_prop_type(size_t id, string* property) {
   return 0;
 }
 
+bool __fn_collision(ast_t* where, ast_t* scope, char* ty_name) {
+  ast_t* redef;
+  do {
+    // a function cannot collide with a variable
+    redef = (ast_t*)hash_get(scope->block.variables, ty_name);
+    if (redef) {
+      ast_raise_error(
+          where,
+          "Function name '%s' in use by a variable, previously defined at %s",
+          ty_name, ast_get_location(redef)->value);
+    }
+
+    // a function cannot collide with a struct
+    redef = (ast_t*)hash_get(scope->block.types, ty_name);
+    if (redef && redef->type != FL_AST_DECL_FUNCTION) {
+      ast_raise_error(
+          where,
+          "Function name '%s' in use by a type, previously defined at %s",
+          ty_name, ast_get_location(redef)->value);
+    }
+
+    if (scope->block.scope == AST_SCOPE_GLOBAL) {
+      return false;
+    }
+    scope = ast_get_scope(scope);
+  } while (scope->block.scope != AST_SCOPE_GLOBAL);
+  return false;
+}
+bool __struct_collision(ast_t* where, ast_t* scope, char* ty_name) {
+  ast_t* redef;
+  do {
+    // a function cannot collide with a variable
+    redef = (ast_t*)hash_get(scope->block.variables, ty_name);
+    if (redef) {
+      ast_raise_error(
+          where,
+          "Type name '%s' in use by a variable, previously defined at %s",
+          ty_name, ast_get_location(redef)->value);
+    }
+
+    // a function cannot collide with a struct
+    redef = (ast_t*)hash_get(scope->block.types, ty_name);
+    if (redef) {
+      ast_raise_error(
+          where,
+          "Type name '%s' in use by another type, previously defined at %s",
+          ty_name, ast_get_location(redef)->value);
+    }
+
+    if (scope->block.scope == AST_SCOPE_GLOBAL) {
+      return false;
+    }
+    scope = ast_get_scope(scope);
+  } while (scope->block.scope != AST_SCOPE_GLOBAL);
+
+  return false;
+}
+
 // transfer list ownership
 size_t ty_create_struct(ast_t* decl) {
   size_t i;
@@ -164,14 +222,17 @@ size_t ty_create_struct(ast_t* decl) {
   ts_type_table[i].structure.properties = properties;
   ts_type_table[i].structure.nfields = length;
 
-  log_debug("SET type [%zu] = '%s'", i, id->value);
+  log_debug("type register (struct) id='%s' ty=%zu\n", id->value, i);
 
   // search nearest scope and add it
   ast_t* x = ast_get_scope(decl);
-  // TODO review casting, it works, but it's ok ?
-  hash_set(x->block.types, id->value, decl);
+  if (!__struct_collision(decl, x, id->value)) {
+    // TODO review casting, it works, but it's ok ?
+    hash_set(x->block.types, id->value, decl);
+    return i;
+  }
 
-  return i;
+  return 0;
 }
 
 bool ty_compatible_struct(size_t a, size_t b) {
@@ -273,48 +334,25 @@ size_t ty_create_fn(ast_t* decl) {
 
   ast_t* attach_to;
   ast_t* from;
-  from = attach_to = ast_get_scope(decl);
+  attach_to = ast_get_scope(decl);
 
-  ast_t* redef;
-  do {
-    if (from->block.scope != AST_SCOPE_GLOBAL) {
-      from = ast_get_scope(from);
+  if (!__fn_collision(decl, attach_to, id->value)) {
+    array* lfunc = hash_get(attach_to->block.functions, cstr);
+    log_debug("type register (fn) id='%s' ty=%zu @[%p]\n", cstr, i, lfunc);
+
+    if (!lfunc) {
+      lfunc = pool_new(sizeof(array));
+      array_new(lfunc);
+      hash_set(attach_to->block.functions, cstr, lfunc);
     }
+    array_append(lfunc, decl);
+    hash_set(attach_to->block.types, cstr, decl);
 
-    // a function cannot collide with a variable
-    redef = (ast_t*)hash_get(from->block.variables, cstr);
-    if (redef) {
-      ast_raise_error(
-          redef,
-          "Function name '%s' in use by a variable, previously defined at %s",
-          cstr, ast_get_location(redef)->value);
-    }
-
-    // a function cannot collide with a struct
-    redef = (ast_t*)hash_get(from->block.types, cstr);
-    if (redef && redef->type != FL_AST_DECL_FUNCTION) {
-      ast_raise_error(
-          redef,
-          "Function name '%s' in use by a type, previously defined at %s", cstr,
-          ast_get_location(redef)->value);
-    }
-
-  } while (from->block.scope != AST_SCOPE_GLOBAL);
-
-  array* lfunc = hash_get(attach_to->block.functions, cstr);
-  log_debug("register fn '%s' ty[%zu] @[%p]\n", cstr, i, lfunc);
-
-  if (!lfunc) {
-    lfunc = pool_new(sizeof(array));
-    array_new(lfunc);
-    hash_set(attach_to->block.functions, cstr, lfunc);
+    hash_set(rscope->block.uids, decl->func.uid->value, decl);
+    return i;
   }
-  array_append(lfunc, decl);
-  hash_set(attach_to->block.types, cstr, decl);
 
-  hash_set(rscope->block.uids, decl->func.uid->value, decl);
-
-  return i;
+  return 0;
 }
 
 // transfer list ownership

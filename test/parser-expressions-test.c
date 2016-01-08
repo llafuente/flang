@@ -27,7 +27,6 @@
 #include "tasks.h"
 #include "test.h"
 
-// TODO review if ";" is required
 TASK_IMPL(parser_expressions) {
   log_debug_level = 0;
 
@@ -200,17 +199,18 @@ TASK_IMPL(parser_expressions) {
     ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
   });
 
-  // TODO test this err
+  // TODO these test should give an error?!
   // TEST_PARSER_OK("equality 2", "var i32 i;\ni = 1;\ni == 5.0;", {});
+  // TEST_PARSER_OK("equality 2", "var i32 i;\ni = 1;\ni == 5.9;", {});
 
   TEST_PARSER_OK("equality 3", "var i32 i;\ni = 1;\ni == 5;", {});
 
-  // TODO illustrate typesystem vs inference war, fix it!
   TEST_PARSER_OK("member access", "struct xxx {i8 b};"
                                   "var xxx sin;"
                                   "var x;"
                                   "x = sin.b;",
-                 {});
+                 { ASSERT(body[2]->ty_id == TS_I8, "inference assignament"); });
+
   TEST_PARSER_OK("member access", "struct yyy {i64 hello};"
                                   "var yyy s;"
                                   "s.hello = 1;",
@@ -242,8 +242,7 @@ TASK_IMPL(parser_expressions) {
   TEST_PARSER_OK("fix unnecesary castings", "var i32 x;"
                                             "x = x + 1;",
                  {
-                   // TODO ASSERT(body[1]->ty_id == TS_I32, "assignament type
-                   // TS_I32");
+                   ASSERT(body[1]->ty_id == TS_I32, "assignament type TS_I32");
                    ASSERT(body[1]->type == FL_AST_EXPR_ASSIGNAMENT,
                           "1st FL_AST_EXPR_ASSIGNAMENT");
                    ASSERT(body[1]->assignament.left->type ==

@@ -90,7 +90,7 @@ TASK_IMPL(parser_types) {
   TEST_PARSER_OK("simple struct", "struct test {"
                                   "i8 t1"
                                   "}",
-                 { ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid"); });
+                 { ASSERT(body[0]->ty_id != 0, "typeid is set"); });
 
   TEST_PARSER_OK(
       "simple struct", "struct stt {"
@@ -151,23 +151,46 @@ TASK_IMPL(parser_types) {
                   // ASSERT(body[0]->ty_id == 18, "typeid struct");
                  });
 
-  // TODO this is a bug in tokenizer-parser: 'ptr<ptr<void>>' should be valid!
+  // TODO syntax: 'ptr<ptr<void>>' should be preferred?!
   TEST_PARSER_OK("void*", "var ptr(ptr(void)) a;", {
     ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid ptr(void)");
   });
 
   /*
-  // TODO uncomment
+  // TODO uncomment this test, should pass
   TEST_PARSER_OK("string", "var string x;",
                  { ASSERT(body[0]->ty_id == TS_STRING, "typeid string"); });
  */
-  /*
-  // TODO bring back this test!
-  TEST_PARSER_ERROR("empty struct", "function a() {};"
-                                    "struct a { i8 b, };"
-                                    "var a invalid;",
-                    "Found many types with the same name", {});
 
+  TEST_PARSER_ERROR("name collision 01", "function a() {};\n"
+                                         "struct a { i8 b, };",
+                    "Type name 'a' in use by another type, previously defined "
+                    "at unkownfile:1:1",
+                    {});
+
+  TEST_PARSER_ERROR("name collision 02", "struct a { i8 b, };\n"
+                                         "function a() {};",
+                    "Function name 'a' in use by a type, previously defined at "
+                    "unkownfile:1:1",
+                    {});
+
+  TEST_PARSER_ERROR("name collision 03", "var i8 a;\n"
+                                         "struct a { i8 b, };",
+                    "Type name 'a' in use by a variable, previously defined at "
+                    "unkownfile:1:1",
+                    {});
+
+  TEST_PARSER_ERROR("name collision 04", "var i8 a;\n"
+                                         "function a() {};",
+                    "Function name 'a' in use by a variable, previously "
+                    "defined at unkownfile:1:1",
+                    {});
+
+  TEST_PARSER_ERROR("name collision 05", "{ global i8 a = 1; }"
+                                         "function a() {};",
+                    "Function name 'a' in use by a variable, previously "
+                    "defined at unkownfile:1:3",
+                    {});
 
   TEST_PARSER_ERROR("empty struct", "struct a { i8 b, };"
                                     "struct b { i8 b, };"
@@ -176,6 +199,6 @@ TASK_IMPL(parser_types) {
                                     "_b = _a;",
                     "manual casting is required from struct a { i8 b, } to "
                     "struct b { i8 b, }",
-                    {});*/
+                    {});
   return 0;
 }

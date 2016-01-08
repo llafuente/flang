@@ -31,7 +31,7 @@ size_t __hash_counter_it = 0;
 void __hash_counter(char* key, void* ptr) { ++__hash_counter_it; }
 
 void hash_dump(hash_t* ht) { printf("ht->size %d\n", ht->size); }
-// TODO review if ";" is required
+
 TASK_IMPL(hash) {
   size_t a = 1, b = 2, c = 3;
   hash_t* ht = malloc(sizeof(hash_t));
