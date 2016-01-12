@@ -197,8 +197,8 @@ TASK_IMPL(parser_types) {
                                     "var a _a;"
                                     "var b _b;"
                                     "_b = _a;",
-                    "manual casting is required from struct a { i8 b, } to "
-                    "struct b { i8 b, }",
+                    "manual casting is required: '_a' is struct a { i8 b, } "
+                    "and must be struct b { i8 b, }",
                     {});
   return 0;
 }

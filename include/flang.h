@@ -329,9 +329,17 @@ FL_EXTERN size_t ty_create_struct(ast_t* decl);
  *
  * @a
  * @b
- * @return type id
+ * @return compatible
  */
 FL_EXTERN bool ty_compatible_struct(size_t a, size_t b);
+
+/* Check if an argument list is compatible with given type
+ *
+ * @a
+ * @arg_list
+ * @return compatible
+ */
+FL_EXTERN bool ty_compatible_fn(size_t a, ast_t* arg_list);
 
 /* Create a new type given a function declaration.
  * Ensure uniqueness of the returned ty_id

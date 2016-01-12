@@ -238,8 +238,9 @@ ast_t* __ts_create_cast(ast_t* node, size_t type_id) {
 
   if (!ts_castable(node->ty_id, type_id) &&
       !__ts_autocast(node, node->ty_id, type_id)) {
-    ast_raise_error(node, "manual casting is required from %s to %s",
-                    ty_to_string(node->ty_id)->value,
+    ast_raise_error(node,
+                    "manual casting is required: '%s' is %s and must be %s",
+                    ast_get_code(node)->value, ty_to_string(node->ty_id)->value,
                     ty_to_string(type_id)->value);
     return node; // almost an error!?
   }
@@ -368,37 +369,55 @@ void ts_cast_assignament(ast_t* node) {
 void ts_cast_call(ast_t* node) {
   assert(node->type == FL_AST_EXPR_CALL);
 
+  log_debug("call type: %d", node->ty_id);
+  if (node->ty_id) {
+    return;
+  }
+
   size_t i;
   ast_t* args = node->call.arguments;
   ast_t* arg;
   size_t count = args->list.count;
 
-  if (!node->ty_id) {
-    // get types from arguments first
-    for (i = 0; i < count; ++i) {
-      ts_pass(args->list.elements[i]);
-    }
-    // now that we have our desired type
-    // search for a compatible function
-    string* callee = node->call.callee->identifier.string;
-
-    ast_t* decl = ast_search_fn_wargs(callee, args);
-    if (!decl) {
-      log_error("cannot find compatible function");
-    }
-    node->call.decl = decl;
-
-    size_t cty_id = decl->ty_id;
-    node->ty_id = ts_type_table[cty_id].func.ret;
-    node->call.callee->ty_id = cty_id;
+  // get types from arguments first
+  log_debug("callee and arguments must pass first!");
+  ts_pass(node->call.callee);
+  for (i = 0; i < count; ++i) {
+    ts_pass(args->list.elements[i]);
   }
 
-  if (!node->call.callee->ty_id) {
+  // NOTE: polymorph - callee must be an identifier
+
+  size_t cty_id = node->call.callee->ty_id;
+  if (cty_id) {
+    // this happend when calle it's not a literal
+    // check if it's compatible
+    if (!ty_compatible_fn(cty_id, args)) {
+      ast_raise_error(node, "Incompatible call arguments");
+      return;
+    }
+  } else {
+    // callee it's an identifier, marked as resolved: false
+    // due to polymorph we cannot use normal method: ast_search_id*
+    ast_t* tmp =
+        ast_search_fn_wargs(node->call.callee->identifier.string, args);
+    if (!tmp) {
+      ast_raise_error(node, "Incompatible call arguments");
+      return;
+    }
+    node->call.callee->ty_id = cty_id = tmp->ty_id;
+  }
+
+  if (!cty_id) {
     log_warning("ignore expr call type");
     return; // TODO passthought printf atm
   }
 
-  ty_t* t = &ts_type_table[node->call.callee->ty_id];
+  ast_t* decl = ts_type_table[cty_id].func.decl;
+  node->call.decl = decl;
+  node->ty_id = ts_type_table[cty_id].func.ret;
+
+  ty_t* t = &ts_type_table[cty_id];
   assert(t->of == FL_FUNCTION);
 
   // cast arguments
@@ -533,11 +552,7 @@ void ts_cast_expr_member(ast_t* node) {
   ast_t* p = node->member.property;
 
   size_t l_typeid;
-  if (l->type == FL_AST_LIT_IDENTIFIER) {
-    l->ty_id = ast_get_ident_typeid(l);
-  } else {
-    ts_pass(l);
-  }
+  ts_pass(l);
 
   log_debug("l->ty_id = %zu", l->ty_id);
 
@@ -557,10 +572,6 @@ void ts_cast_expr_member(ast_t* node) {
   case FL_VECTOR: {
     node->ty_id = type->vector.to;
   } break;
-  default: {
-    ast_dump(node);
-
-    ast_raise_error(0, "invalid member access type");
-  }
+  default: { ast_raise_error(node, "invalid member access type"); }
   }
 }

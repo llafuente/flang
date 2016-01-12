@@ -70,8 +70,8 @@ LLVMModuleRef fl_codegen(ast_t* root, char* module_name) {
   // LLVMBuilderRef builder = LLVMCreateBuilderInContext(context);
   LLVMBuilderRef builder = LLVMCreateBuilder();
 
-  log_debug("this is what codegen see");
-  ast_dump(root);
+  // log_debug("this is what codegen see");
+  // ast_dump(root);
 
   /*
     LLVMExecutionEngineRef jit = cg_jit();

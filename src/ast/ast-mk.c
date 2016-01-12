@@ -345,16 +345,6 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body,
 void ast_mk_fn_decl_body(ast_t* fn, ast_t* body) {
   // TODO maybe function scope
   body->block.scope = AST_SCOPE_BLOCK;
-  size_t i = 0;
-
-  ast_t* params = fn->func.params;
-  ast_t* p;
-  // TODO this could be moved to type register pass...
-  for (; i < params->list.count; ++i) {
-    p = params->list.elements[i];
-    hash_set(body->block.variables, p->param.id->identifier.string->value, p);
-  }
-
   fn->func.body = body;
 }
 
@@ -402,8 +392,10 @@ ast_t* ast_mk_call_expr(ast_t* callee, ast_t* arguments) {
   ast_t* node = ast_new();
   node->type = FL_AST_EXPR_CALL;
 
-  // callee don't need to be resolved, typesystem will try at call level.
-  callee->identifier.resolve = false;
+  if (callee->type == FL_AST_LIT_IDENTIFIER) {
+    callee->identifier.resolve = false;
+  }
+
   node->call.callee = callee;
   node->call.arguments = arguments;
   node->call.narguments = arguments ? arguments->list.count : 0;

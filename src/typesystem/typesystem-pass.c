@@ -28,6 +28,15 @@
 ast_action_t __trav_casting(ast_t* node, ast_t* parent, size_t level,
                             void* userdata_in, void* userdata_out) {
   switch (node->type) {
+
+  // perf: types decl don't need to be casted.
+  case FL_AST_TYPE:
+  // TODO attrbute may need to be resolved somehow/sometime
+  case FL_AST_ATTRIBUTE:
+  case FL_AST_DECL_STRUCT: {
+    return FL_AC_SKIP;
+  }
+
   case FL_AST_STMT_RETURN: {
     ts_cast_return(node);
   } break;
@@ -35,22 +44,32 @@ ast_action_t __trav_casting(ast_t* node, ast_t* parent, size_t level,
     node->ty_id = TS_STRING;
   } break;
   case FL_AST_LIT_IDENTIFIER: {
-    if (node->identifier.resolve) {
-      node->identifier.decl = ast_search_id_decl(node, node->identifier.string);
-      if (!node->identifier.decl) {
-        ast_mindump(ast_get_root(node));
-        ast_raise_error(node, "Cannot find declaration: '%s'",
-                        node->identifier.string->value);
-      }
+    if (!node->ty_id) {
+      ast_dump(node->parent);
+      log_debug("search id: '%s' resolve:%d", node->identifier.string->value,
+                node->identifier.resolve);
 
-      if (node->parent->type != FL_AST_EXPR_CALL &&
-          node->parent->type != FL_AST_EXPR_MEMBER) {
+      if (node->identifier.resolve) {
+        node->identifier.decl =
+            ast_search_id_decl(node, node->identifier.string);
+        if (!node->identifier.decl) {
+          ast_mindump(ast_get_root(node));
+          ast_raise_error(node, "Cannot find declaration: '%s'",
+                          node->identifier.string->value);
+          return FL_AC_STOP;
+        }
+
         // it's a var, copy type
-        node->ty_id = ast_get_typeid(node->identifier.decl);
+        if (node->identifier.decl->type == FL_AST_DECL_FUNCTION) {
+          node->ty_id = node->identifier.decl->ty_id;
+        } else {
+          node->ty_id = ast_get_typeid(node->identifier.decl);
+        }
       }
     }
 
     if (node->parent->type == FL_AST_DTOR_VAR) {
+      log_debug("parent is a dtor: fn=%d", ty_is_function(node->ty_id));
       // if type is a function, in fact what we want is a
       // function pointer, so do it for easy to type
       if (ty_is_function(node->ty_id)) {

@@ -159,14 +159,39 @@ bool __fn_collision(ast_t* where, ast_t* scope, char* ty_name) {
           "Function name '%s' in use by a type, previously defined at %s",
           ty_name, ast_get_location(redef)->value);
     }
-
-    if (scope->block.scope == AST_SCOPE_GLOBAL) {
-      return false;
-    }
-    scope = ast_get_scope(scope);
-  } while (scope->block.scope != AST_SCOPE_GLOBAL);
+  } while (scope->block.scope != AST_SCOPE_GLOBAL &&
+           (scope = ast_get_scope(scope)));
   return false;
 }
+
+bool __param_collision(ast_t* where, ast_t* scope, char* ty_name) {
+  ast_t* redef;
+  do {
+    // a parameter cannot collide with a variable
+    redef = (ast_t*)hash_get(scope->block.variables, ty_name);
+    if (redef) {
+      ast_raise_error(
+          where,
+          "Parameter name '%s' in use by a variable, previously defined at %s",
+          ty_name, ast_get_location(redef)->value);
+      return true;
+    }
+
+    // a parameter cannot collide with a type
+    redef = (ast_t*)hash_get(scope->block.types, ty_name);
+    if (redef) {
+      ast_raise_error(
+          where,
+          "Parameter name '%s' in use by a type, previously defined at %s",
+          ty_name, ast_get_location(redef)->value);
+      return true;
+    }
+  } while (scope->block.scope != AST_SCOPE_GLOBAL &&
+           (scope = ast_get_scope(scope)));
+
+  return false;
+}
+
 bool __struct_collision(ast_t* where, ast_t* scope, char* ty_name) {
   ast_t* redef;
   do {
@@ -187,12 +212,8 @@ bool __struct_collision(ast_t* where, ast_t* scope, char* ty_name) {
           "Type name '%s' in use by another type, previously defined at %s",
           ty_name, ast_get_location(redef)->value);
     }
-
-    if (scope->block.scope == AST_SCOPE_GLOBAL) {
-      return false;
-    }
-    scope = ast_get_scope(scope);
-  } while (scope->block.scope != AST_SCOPE_GLOBAL);
+  } while (scope->block.scope != AST_SCOPE_GLOBAL &&
+           (scope = ast_get_scope(scope)));
 
   return false;
 }
@@ -222,7 +243,7 @@ size_t ty_create_struct(ast_t* decl) {
   ts_type_table[i].structure.properties = properties;
   ts_type_table[i].structure.nfields = length;
 
-  log_debug("type register (struct) id='%s' ty=%zu\n", id->value, i);
+  log_debug("type register (struct) id='%s' ty=%zu", id->value, i);
 
   // search nearest scope and add it
   ast_t* x = ast_get_scope(decl);
@@ -235,6 +256,26 @@ size_t ty_create_struct(ast_t* decl) {
   return 0;
 }
 
+bool ty_compatible_fn(size_t a, ast_t* arg_list) {
+  ty_t at = ts_type_table[a];
+
+  if (at.of != FL_FUNCTION) {
+    return false;
+  }
+  // function, same parameters length return type and varargs?
+  size_t i;
+  for (i = 0; i < arg_list->list.count; ++i) {
+    // end it's compatible
+    if (at.func.varargs && i == at.func.nparams)
+      break;
+
+    // same type
+    if (at.func.params[i] != arg_list->list.elements[i]->ty_id) {
+      return false;
+    }
+  }
+  return true;
+}
 bool ty_compatible_struct(size_t a, size_t b) {
   ty_t at = ts_type_table[a];
   ty_t bt = ts_type_table[b];
@@ -304,33 +345,15 @@ size_t ty_create_fn(ast_t* decl) {
     tparams[i] = params->list.elements[i]->ty_id;
   }
 
-  /* compare functions
-  for (i = 0; i < ts_type_size_s; ++i) {
-    // function, same parameters length return type and varargs?
-    if (ts_type_table[i].of == FL_FUNCTION &&
-        ts_type_table[i].func.nparams == length &&
-        ret == ts_type_table[i].func.ret &&
-        ts_type_table[i].func.varargs == decl->func.varargs) {
-      if (0 == memcmp(tparams, ts_type_table[i].func.params,
-                      sizeof(size_t) * length)) {
-        free(tparams);
-
-        log_debug("SET fn type [%zu] = '%s'", i, id->value);
-        return i;
-      }
-    }
-  }
-  */
-
   // add it!
-  i = ts_type_size_s++;
-  ts_type_table[i].of = FL_FUNCTION;
-  ts_type_table[i].id = id;
-  ts_type_table[i].func.decl = decl;
-  ts_type_table[i].func.params = tparams;
-  ts_type_table[i].func.nparams = length;
-  ts_type_table[i].func.ret = ret;
-  ts_type_table[i].func.varargs = decl->func.varargs;
+  size_t ty_id = ts_type_size_s++;
+  ts_type_table[ty_id].of = FL_FUNCTION;
+  ts_type_table[ty_id].id = id;
+  ts_type_table[ty_id].func.decl = decl;
+  ts_type_table[ty_id].func.params = tparams;
+  ts_type_table[ty_id].func.nparams = length;
+  ts_type_table[ty_id].func.ret = ret;
+  ts_type_table[ty_id].func.varargs = decl->func.varargs;
 
   ast_t* attach_to;
   ast_t* from;
@@ -338,7 +361,7 @@ size_t ty_create_fn(ast_t* decl) {
 
   if (!__fn_collision(decl, attach_to, id->value)) {
     array* lfunc = hash_get(attach_to->block.functions, cstr);
-    log_debug("type register (fn) id='%s' ty=%zu @[%p]\n", cstr, i, lfunc);
+    log_debug("type register (fn) id='%s' ty=%zu @[%p]", cstr, i, lfunc);
 
     if (!lfunc) {
       lfunc = pool_new(sizeof(array));
@@ -349,7 +372,23 @@ size_t ty_create_fn(ast_t* decl) {
     hash_set(attach_to->block.types, cstr, decl);
 
     hash_set(rscope->block.uids, decl->func.uid->value, decl);
-    return i;
+
+    // check param names don't collide
+    if (!decl->func.ffi) {
+      ast_t* p;
+      ast_t* body = decl->func.body;
+      for (i = 0; i < length; ++i) {
+        p = params->list.elements[i];
+        if (__param_collision(p, body, p->param.id->identifier.string->value)) {
+          return 0;
+        } else {
+          hash_set(body->block.variables, p->param.id->identifier.string->value,
+                   p);
+        }
+      }
+    }
+
+    return ty_id;
   }
 
   return 0;

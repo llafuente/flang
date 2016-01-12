@@ -73,7 +73,7 @@
     ASSERT(root != 0, "root is not null");                                     \
     ASSERT(root->type == FL_AST_PROGRAM, "root is a program");                 \
     ast_t* err = root->program.body;                                           \
-    ast_dump(root);                                                            \
+    ast_mindump(root);                                                         \
     if (err->type == FL_AST_ERROR) {                                           \
       ASSERT(strcmp(err->err.message->value, msg) == 0,                        \
              "error message match");                                           \
@@ -92,7 +92,7 @@
     ast_t* root = fl_parse_main_utf8(code);                                    \
     CHK_BODY(root);                                                            \
     root = typesystem(root);                                                   \
-    ast_dump(root);                                                            \
+    ast_mindump(root);                                                         \
     ast_t** body = root->program.body->block.body->list.elements;              \
     LLVMModuleRef module = fl_codegen(root, "test");                           \
     code_block;                                                                \
@@ -107,7 +107,7 @@
     CHK_BODY(root);                                                            \
     ts_register_types(root);                                                   \
     root = ts_pass(root);                                                      \
-    ast_dump(root);                                                            \
+    ast_mindump(root);                                                         \
     ast_t** body = root->program.body->block.body->list.elements;              \
     LLVMModuleRef module = fl_codegen(root, "test");                           \
     code_block;                                                                \

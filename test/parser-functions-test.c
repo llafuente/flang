@@ -106,7 +106,6 @@ TASK_IMPL(parser_functions) {
                  "  return a + b;"
                  "}",
       {
-        ast_dump(root);
         ASSERT(body[0]->func.ffi == false, "function is not ffi");
         ASSERT(body[0]->func.varargs == false, "function is not varargs");
         ASSERT(strcmp(body[0]->func.uid->value, "sum_i32") == 0,
@@ -117,6 +116,21 @@ TASK_IMPL(parser_functions) {
         ASSERT(strcmp(body[1]->func.uid->value, "sum_i8") == 0,
                "function uid is what we manually set");
       });
+
+  TEST_PARSER_ERROR("function err 05", "fn x (i8 a) : i32 { var x; }",
+                    "Variable name 'x' in use by a type, previously defined at "
+                    "unkownfile:1:1",
+                    {});
+
+  TEST_PARSER_ERROR("function err 05", "fn x (i8 x) : i32 { var z; }",
+                    "Parameter name 'x' in use by a type, previously defined "
+                    "at unkownfile:1:1",
+                    {});
+
+  TEST_PARSER_ERROR("function err 05", "fn x (i8 a, i8 a) : i32 { var z; }",
+                    "Parameter name 'a' in use by a variable, previously "
+                    "defined at unkownfile:1:7",
+                    {});
 
   return 0;
 }

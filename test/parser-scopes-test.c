@@ -95,7 +95,6 @@ TASK_IMPL(parser_scopes) {
   TEST_PARSER_OK("scope 05 - polymorh", "fn x (i8 a, i8 b) {}"
                                         "fn x (i32 a, i32 b) {}",
                  {
-                   ast_dump(root);
                    ASSERT(hash_has(mainblock->block.functions, "x"),
                           "x exists in fn block");
                    ASSERT(hash_has(mainblock->block.types, "x"),

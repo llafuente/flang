@@ -115,6 +115,7 @@ ast_action_t __ts_inference_dtors(ast_t* node, ast_t* parent, size_t level,
 ast_action_t __ts_inference_fn_ret(ast_t* node, ast_t* parent, size_t level,
                                    void* userdata_in, void* userdata_out) {
   if (node->type == FL_AST_DECL_FUNCTION && node->func.ret_type->ty_id == 0) {
+    // ast_dump_one(node);
     ast_t* ret = node->func.ret_type;
     ast_t* body = node->func.body;
     array* list = ast_search_node_type(node, FL_AST_STMT_RETURN);
@@ -126,7 +127,6 @@ ast_action_t __ts_inference_fn_ret(ast_t* node, ast_t* parent, size_t level,
 
       for (; i < list->size; ++i) {
         el = ((ast_t*)list->data[i])->ret.argument;
-        ast_dump(el);
         if (!el->ty_id) {
           // this need inference...
           // wait for later...
