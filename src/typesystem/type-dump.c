@@ -26,6 +26,24 @@
 #include "flang.h"
 
 // TODO add a new param, that will require 'debug' method call
+char* ty_to_color(size_t ty_id) {
+  if (ty_id == TS_STRING) {
+    return "\x1B[32m";
+  }
+  ty_t ty = ts_type_table[ty_id];
+  switch (ty.of) {
+  case FL_NUMBER:
+  case FL_POINTER:
+    return "\x1B[33m";
+  case FL_VECTOR:
+    return "\x1B[30m";
+  case FL_STRUCT:
+    return "\x1B[31m";
+  case FL_FUNCTION:
+    return "\x1B[32m";
+  }
+  return "\x1B[32m";
+}
 char* ty_to_printf(size_t ty_id) {
   // only builtin atm
   switch (ty_id) {
@@ -46,6 +64,17 @@ char* ty_to_printf(size_t ty_id) {
     return "%f";
   case TS_STRING:
     // case TS_CSTR:
+    return "%s";
+  }
+
+  ty_t ty = ts_type_table[ty_id];
+  switch (ty.of) {
+  case FL_POINTER:
+  case FL_VECTOR:
+    return "%p";
+  case FL_STRUCT:
+    return "%s";
+  case FL_FUNCTION:
     return "%s";
   }
   return "";

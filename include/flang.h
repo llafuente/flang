@@ -191,6 +191,12 @@ FL_EXTERN string* fl_file_to_string(const char* filename);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(type-dump.c) */
+/* Get default colors for debugging
+ *
+ * @ty_id type id
+ * @return ansi color escape code token
+ */
+char* ty_to_color(size_t ty_id);
 
 /* Get printf token given ty_id, only built-in atm.
  *
@@ -585,6 +591,11 @@ FL_EXTERN void ast_dump(ast_t* node);
  * @node
  */
 FL_EXTERN void ast_mindump(ast_t* node);
+
+/* Debug: Recursive print to stderr a node as text and code
+ * @node
+ */
+FL_EXTERN void ast_fulldump(ast_t* node);
 
 /* cldoc:end-category() */
 

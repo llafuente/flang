@@ -44,10 +44,6 @@ scope return {
   stderr
   stdlog -> stdout (where $log, $$log, $watch print)
 
-* add type to $log
-
-* each type a color
-
 * log
 
   ```

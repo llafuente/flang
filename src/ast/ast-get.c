@@ -97,6 +97,10 @@ string* ast_get_location(ast_t* node) {
 
 ast_t* ast_get_root(ast_t* node) {
   ast_t* root = node;
+  if (root->type == FL_AST_PROGRAM || root->type == FL_AST_MODULE) {
+    return root;
+  }
+
   while (root) {
     root = root->parent;
     if (root->type == FL_AST_PROGRAM || root->type == FL_AST_MODULE) {

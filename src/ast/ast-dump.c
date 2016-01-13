@@ -210,6 +210,39 @@ void ast_mindump(ast_t* node) {
     ast_traverse(node, __ast_mindump_cb, 0, 0, 0, 0);
   }
 }
+
+ast_action_t __ast_fulldump_cb(ast_t* node, ast_t* parent, size_t level,
+                               void* userdata_in, void* userdata_out) {
+  if (!node) {
+    log_warning("ast_dump: null\n");
+    return true;
+  }
+
+  if (node->type == FL_AST_MODULE) {
+    return FL_AC_SKIP;
+  }
+
+  ast_action_t t =
+      __ast_dump_cb(node, parent, level, userdata_in, userdata_out);
+  printf("\n\x1B[33m");
+
+  /*
+  printf("%d:%d-%d:%d\n", node->first_line,
+  node->first_column,
+  node->last_line,
+  node->last_column);
+  */
+
+  printf(ast_get_code(node)->value);
+  printf("\x1B[39m\n");
+  return t;
+}
+
+void ast_fulldump(ast_t* node) {
+  if (log_debug_level > 3) {
+    ast_traverse(node, __ast_fulldump_cb, 0, 0, 0, 0);
+  }
+}
 void ast_dump(ast_t* node) {
   if (log_debug_level > 2) {
     ast_traverse(node, __ast_dump_cb, 0, 0, 0, 0);

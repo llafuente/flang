@@ -38,11 +38,16 @@ void __ast_reduce_log(ast_t* node) {
     ast_t* el = list->list.elements[i];
     // LLVMValueRef cgel = cg_ast_loaded("log", el, FL_CODEGEN_PASSTHROUGH);
 
-    ast_t* lit = ast_mk_lit_string2(ast_get_code(el), false, true);
-    lit->parent = list;
-    ast_mk_list_insert(list, lit, i);
+    ast_mk_list_insert(list, ast_mk_lit_string2(ast_get_code(el), false, true),
+                       i);
+    ++i;
+    ast_mk_list_insert(
+        list, ast_mk_lit_string2(ty_to_string(el->ty_id), false, true), i);
     ++i; // advance another one, because we insert before current
-    strcat(buffer, "%s \x1B[32m");
+    // strcat(buffer, "%s \x1B[32m");
+    strcat(buffer, "%s ");
+    strcat(buffer, "\x1B[36m(%s)\x1B[39m = ");
+    strcat(buffer, ty_to_color(el->ty_id));
     strcat(buffer, ty_to_printf(el->ty_id));
     strcat(buffer, "\x1B[39m ");
   }
@@ -54,6 +59,7 @@ void __ast_reduce_log(ast_t* node) {
   node->call.arguments = list;
   node->call.narguments = list->list.count;
   // typesystem need to pass again...
+  ast_parent(node);
   node->call.callee->parent = node;
 }
 
