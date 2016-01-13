@@ -82,7 +82,8 @@ ident [a-zA-Z\x80-\xff_][a-zA-Z0-9\x80-\xff_]*
         SET_RIGHT; return AST_COMMENT;
     }
 }
-<doc_block>(.|\n)     { yymore(); }
+<doc_block>\n         { RESET_COLUMN; yymore(); }
+<doc_block>.          { yymore(); }
   /*this is ignored... */
 \/\*                  { yy_push_state(blockcomment); }
 <blockcomment>\/\*    { yy_push_state(blockcomment); }

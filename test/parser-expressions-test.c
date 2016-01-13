@@ -273,7 +273,7 @@ TASK_IMPL(parser_expressions) {
   TEST_PARSER_ERROR("type demotion", "var i32 a = 1;\n"
                                      "var i64 b = 1;\n"
                                      "a = b;",
-                    "manual casting is required: 'b;' is i64 and must be i32",
+                    "manual casting is required: 'b' is i64 and must be i32",
                     {});
 
   return 0;

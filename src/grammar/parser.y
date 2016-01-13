@@ -161,13 +161,14 @@
 program
   : stmts {
     //printf("stmts addr: %p\n", $1);
-
+    ast_position($1, @1, @1);
     ast_t* block = ast_mk_block($1);
     block->block.scope = AST_SCOPE_GLOBAL;
     block->block.uids = pool_new(sizeof(hash_t));
     hash_new(block->block.uids, 100);
     ast_position(block, @1, @1);
     (*root)->program.body = block;
+    ast_position(*root, @1, @1);
   }
   ;
 

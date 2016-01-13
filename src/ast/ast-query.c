@@ -63,9 +63,10 @@ string* ast_get_code(ast_t* node) {
   char* end = 0;
   size_t line = 1;
   size_t column = 1;
-  size_t i;
+  size_t i = 0;
 
-  for (i = 0; i < max; ++i) {
+  while ((node->first_line != line || node->first_column != column) &&
+         i < max) {
     if (*start == '\n') {
       ++line;
       column = 0;
@@ -73,12 +74,12 @@ string* ast_get_code(ast_t* node) {
     ++column;
     ++start;
 
-    if (node->first_line == line && node->first_column == column) {
-      break; // we arrive to start location
-    }
+    ++i;
   }
+
   end = start;
-  for (; i < max; ++i) {
+
+  while ((node->last_line != line || node->last_column != column) && i < max) {
     if (*end == '\n') {
       ++line;
       column = 0;
@@ -86,9 +87,7 @@ string* ast_get_code(ast_t* node) {
     ++column;
     ++end;
 
-    if (node->last_line == line && node->last_column == column) {
-      break; // we arrive to start location
-    }
+    ++i;
   }
 
   string* ret = st_new_subc(start, end - start + 1, st_enc_utf8);
