@@ -84,10 +84,10 @@ TASK_IMPL(hash) {
   ht = malloc(sizeof(hash_t));
   ASSERT(hash_new(ht, 10) == 0, "new hash failed");
 
-  hash_set(ht, "test_i32", 1);
-  hash_set(ht, "test_i64", 1);
-  ASSERT(hash_get(ht, "test_i32") == 1, "");
-  ASSERT(hash_get(ht, "test_i64") == 1, "");
+  hash_set(ht, "test_i32", (void*)1);
+  hash_set(ht, "test_i64", (void*)1);
+  ASSERT(hash_get(ht, "test_i32") == (void*)1, "");
+  ASSERT(hash_get(ht, "test_i64") == (void*)1, "");
 
   hash_delete(ht);
   free(ht);

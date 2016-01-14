@@ -371,7 +371,8 @@ attribute
 fn_partial_decl
   : attributes_and_fn ident fn_parameters {
     $$ = ast_mk_fn_decl($2, $3, 0, 0, $1);
-    if ($3->parent == 1) {
+    // XXX Hack!
+    if ($3->parent == (ast_t*)1) {
       $$->func.varargs = true;
     }
 
@@ -427,9 +428,9 @@ fn_parameters
   | '(' fn_parameter_list ',' ')'              { $$ = $2; }
   | '(' fn_parameter_list ',' TK_DOTDOTDOT ')' {
     $$ = $2;
-    // TODO more elegant way?
+    // TODO find a more elegant way?
     // use parent as hack
-    $$->parent = 1;
+    $$->parent = (ast_t*)1;
   }
   ;
 

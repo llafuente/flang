@@ -41,8 +41,9 @@ char* ty_to_color(size_t ty_id) {
     return "\x1B[31m";
   case FL_FUNCTION:
     return "\x1B[32m";
+  default:
+    return "\x1B[32m";
   }
-  return "\x1B[32m";
 }
 char* ty_to_printf(size_t ty_id) {
   // only builtin atm
@@ -76,8 +77,9 @@ char* ty_to_printf(size_t ty_id) {
     return "%s";
   case FL_FUNCTION:
     return "%s";
+  default:
+    return "";
   }
-  return "";
 }
 
 string* ty_to_string(size_t ty_id) {

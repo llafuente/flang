@@ -73,12 +73,8 @@ bool ts_castable(size_t current, size_t expected) {
     return atype.ptr.to == btype.vector.to;
   }
 
-  printf("\n");
-  ty_dump(current);
-  printf("\n");
-  ty_dump(expected);
-
-  log_verbose("invalid cast [%zu] to [%zu]", current, expected);
+  log_verbose("invalid cast [%s] to [%s]", ty_to_string(current)->value,
+              ty_to_string(expected)->value);
 
   return false;
 }
@@ -190,12 +186,9 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
     return 0;
   }
 
-  ty_dump(current);
-  printf("\n");
-  ty_dump(expected);
-  printf("\n");
-
-  ast_raise_error(node, "invalid casting");
+  ast_raise_error(node,
+                  "invalid casting: \x1B[36m%s\x1B[39m to \x1B[36m%s\x1B[39m",
+                  ty_to_string(current)->value, ty_to_string(expected)->value);
 
   return 0;
 }
@@ -369,7 +362,7 @@ void ts_cast_assignament(ast_t* node) {
 void ts_cast_call(ast_t* node) {
   assert(node->type == FL_AST_EXPR_CALL);
 
-  log_debug("call type: %d", node->ty_id);
+  log_debug("call type: %zu", node->ty_id);
   if (node->ty_id) {
     return;
   }
