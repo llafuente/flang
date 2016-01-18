@@ -177,15 +177,134 @@ void ast_delete(ast_t* node) {
   // free(ast);
 }
 
-// TODO handle more types
-ast_t* ast_clone(ast_t* node) {
+ast_t* __ast_clone(ast_t* node) {
   ast_t* t = ast_new();
   memcpy(t, node, sizeof(ast_t));
+
+  // TODO this may even not be necessary
   switch (t->type) {
   case FL_AST_LIT_IDENTIFIER:
     t->identifier.string = st_clone(node->identifier.string);
     break;
   default: {} // supress warning
   }
+
+#define CLONE(target)                                                          \
+  if (node->target) {                                                          \
+    t->target = __ast_clone(node->target);                                     \
+  }
+
+  // traverse
+  switch (node->type) {
+  case FL_AST_MODULE:
+  case FL_AST_PROGRAM:
+    CLONE(program.body);
+    break;
+  case FL_AST_BLOCK: {
+    CLONE(block.body);
+  } break;
+  case FL_AST_LIST: {
+    size_t i = 0;
+    size_t max = node->list.count;
+    ast_t* tmp;
+
+    // +1 null at end
+    t->list.elements = pool_new(max * sizeof(ast_t*) + 1);
+
+    for (i = 0; i < max; ++i) {
+      t->list.elements[i] = __ast_clone(node->list.elements[i]);
+    }
+
+  } break;
+  case FL_AST_EXPR_ASSIGNAMENT:
+    CLONE(assignament.left);
+    CLONE(assignament.right);
+    break;
+  case FL_AST_EXPR_BINOP:
+    CLONE(binop.left);
+    CLONE(binop.right);
+    break;
+  case FL_AST_EXPR_LUNARY:
+    CLONE(lunary.element);
+    break;
+  case FL_AST_EXPR_RUNARY:
+    CLONE(runary.element);
+    break;
+  case FL_AST_EXPR_CALL: {
+    CLONE(call.callee);
+    CLONE(call.arguments);
+  } break;
+  case FL_AST_EXPR_MEMBER: {
+    CLONE(member.left);
+    CLONE(member.property);
+  } break;
+  case FL_AST_DTOR_VAR: {
+    CLONE(var.id);
+    CLONE(var.type);
+  } break;
+  case FL_AST_DECL_FUNCTION: {
+    CLONE(func.attributes);
+    CLONE(func.id);
+    CLONE(func.ret_type);
+    CLONE(func.params);
+    CLONE(func.body);
+  } break;
+  case FL_AST_PARAMETER: {
+    CLONE(param.id);
+    CLONE(param.type);
+  } break;
+  case FL_AST_STMT_RETURN: {
+    CLONE(ret.argument);
+  } break;
+  case FL_AST_STMT_IF: {
+    CLONE(if_stmt.test);
+    CLONE(if_stmt.block);
+    CLONE(if_stmt.alternate);
+  } break;
+  case FL_AST_STMT_LOOP: {
+    CLONE(loop.init);
+    CLONE(loop.pre_cond);
+    CLONE(loop.update);
+    CLONE(loop.block);
+    CLONE(loop.post_cond);
+  } break;
+  case FL_AST_CAST: {
+    CLONE(cast.type);
+    CLONE(cast.element);
+  } break;
+  case FL_AST_DECL_STRUCT: {
+    CLONE(structure.id);
+    CLONE(structure.fields);
+  } break;
+  case FL_AST_DECL_STRUCT_FIELD: {
+    CLONE(field.id);
+    CLONE(field.type);
+  } break;
+  case FL_AST_DECL_TEMPLATE: {
+    CLONE(tpl.id);
+    CLONE(tpl.block);
+  } break;
+  case FL_AST_EXPR_SIZEOF: {
+    CLONE(sof.type);
+  } break;
+  case FL_AST_TYPE: {
+    CLONE(ty.id);
+    CLONE(ty.child);
+  } break;
+  case FL_AST_STMT_LOG: {
+    CLONE(log.list);
+  } break;
+  case FL_AST_ATTRIBUTE: {
+    CLONE(attr.id);
+    CLONE(attr.value);
+  } break;
+  default: {}
+  }
   return t;
+}
+
+ast_t* ast_clone(ast_t* node) {
+  ast_t* ret = __ast_clone(node);
+  ast_parent(ret);
+  return ret;
 }
