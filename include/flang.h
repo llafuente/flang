@@ -268,6 +268,13 @@ FL_EXTERN bool ty_is_int(size_t tyid);
  */
 FL_EXTERN bool ty_is_pointer(size_t tyid);
 
+/* Check if given type is a template
+ *
+ * @tyid type id
+ * @return is a pointer?
+ */
+FL_EXTERN bool ty_is_template(size_t tyid);
+
 /* Return how many pointer deep is the current non-pointer type
  *
  * examples: ptr(vector(ptr(i8))) is 1
@@ -309,22 +316,8 @@ FL_EXTERN size_t ty_get_struct_prop_idx(size_t tyid, string* property);
  */
 FL_EXTERN size_t ty_get_struct_prop_type(size_t tyid, string* property);
 
-/* Create a new type with given name.
- * This is used by functions and structs, so both types can collide
- * in name.
- * This is called after [ts_create_struct](#ts_create_struct) &
- * [ty_create_fn](#ty_create_fn)
- *
- * @id name
- * @decl ast declaration, cannot be null
- * @tyid type id
- * @return 0 on error/not found, > 0 otherwise
- */
-FL_EXTERN void ty_create_named(string* id, ast_t* decl, size_t tyid);
-
 /* Create a new type given a struct declaration.
  * If the type should be indexed (~public) use:
- *[ty_create_named](#ty_create_named)
  *
  * @decl struct declaration, cannot be null
  * @return type id
@@ -341,16 +334,20 @@ FL_EXTERN bool ty_compatible_struct(size_t a, size_t b);
 
 /* Check if an argument list is compatible with given type
  *
+ * *Note* remember that templates cannot be casted!
+ *
  * @a
  * @arg_list
+ * @strict (true) types must be the same (false) type can be casted
+ * @template if a type is a template skip
  * @return compatible
  */
-FL_EXTERN bool ty_compatible_fn(size_t a, ast_t* arg_list);
+FL_EXTERN bool ty_compatible_fn(size_t a, ast_t* arg_list, bool strict,
+                                bool template);
 
 /* Create a new type given a function declaration.
  * Ensure uniqueness of the returned ty_id
  * If the type should be indexed (~public) use:
- *[ty_create_named](#ty_create_named)
  *
  * @decl function declaration, cannot be null
  * @return type id
@@ -362,6 +359,8 @@ FL_EXTERN size_t ty_create_fn(ast_t* decl);
  * @decl
  */
 FL_EXTERN void ty_create_var(ast_t* decl);
+
+FL_EXTERN size_t ty_create_template(ast_t* decl);
 
 /* cldoc:end-category() */
 
@@ -703,6 +702,7 @@ FL_EXTERN ast_t* ast_mk_fn_param(ast_t* id, ast_t* type, ast_t* def);
 FL_EXTERN ast_t* ast_mk_binop(ast_t* left, int op, ast_t* right);
 FL_EXTERN ast_t* ast_mk_assignament(ast_t* left, int op, ast_t* right);
 FL_EXTERN ast_t* ast_mk_call_expr(ast_t* callee, ast_t* arguments);
+FL_EXTERN ast_t* ast_mk_template(ast_t* id, ast_t* block);
 FL_EXTERN ast_t* ast_mk_type_auto();
 FL_EXTERN ast_t* ast_mk_type_void();
 FL_EXTERN ast_t* ast_mk_type(string* id, ast_t* child);

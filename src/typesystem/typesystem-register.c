@@ -117,6 +117,9 @@ ast_action_t __trav_register_types(ast_t* node, ast_t* parent, size_t level,
     return FL_AC_CONTINUE;
 
   switch (node->type) {
+  case FL_AST_DECL_TEMPLATE:
+    node->tpl.id->ty_id = node->ty_id = ty_create_template(node);
+    break;
   case FL_AST_DECL_STRUCT:
     ts_register_types(node->structure.fields);
     node->ty_id = ty_create_struct(node);

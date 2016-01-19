@@ -119,7 +119,6 @@ void ts_init() {
     ts_type_table[id].structure.decl = null;
     ts_type_table[id].structure.fields = fields;
     ts_type_table[id].structure.nfields = length;
-    ty_create_named(idstr, decl, i);
     */
 
     // adding types here

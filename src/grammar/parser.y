@@ -42,7 +42,7 @@
 %token <token> TK_ANDAND TK_ANDEQ TK_OROR TK_OREQ TK_PLUSEQ
 %token <token> TK_STAREQ TK_SLASHEQ TK_CARETEQ TK_PERCENTEQ
 %token <token> TK_DOTDOTDOT TK_DOTDOT TK_PLUSPLUS TK_MINUSMINUS
-%token <token> TK_CAST
+%token <token> TK_CAST TK_TEMPLATE
 
 
 /* keywords */
@@ -240,6 +240,11 @@ stmt
   }
   | TK_BREAK ident ';' {
     $$ = ast_mk_break($2);
+    ast_position($$, @1, @3);
+  }
+  | TK_TEMPLATE ident ';' {
+    // TODO ensure ident start with '$' ??
+    $$ = ast_mk_template($2, 0);
     ast_position($$, @1, @3);
   }
   ;

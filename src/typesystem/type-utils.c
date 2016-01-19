@@ -55,6 +55,11 @@ bool ty_is_pointer(size_t id) {
   return t.of == FL_POINTER;
 }
 
+bool ty_is_template(size_t id) {
+  ty_t t = ts_type_table[id];
+  return t.of == FL_TEMPLATE;
+}
+
 size_t ty_get_pointer_level(size_t id) {
   size_t count = 0;
   ty_t t = ts_type_table[id];
@@ -256,21 +261,39 @@ size_t ty_create_struct(ast_t* decl) {
   return 0;
 }
 
-bool ty_compatible_fn(size_t a, ast_t* arg_list) {
-  ty_t at = ts_type_table[a];
+bool ty_compatible_fn(size_t ty_id, ast_t* arg_list, bool strict,
+                      bool template) {
+  log_silly("ty %zu, %d, %d", ty_id, strict, template) ty_t at =
+      ts_type_table[ty_id];
 
   if (at.of != FL_FUNCTION) {
     return false;
   }
   // function, same parameters length return type and varargs?
   size_t i;
+  size_t current;
+  size_t expected;
   for (i = 0; i < arg_list->list.count; ++i) {
     // end it's compatible
     if (at.func.varargs && i == at.func.nparams)
       break;
 
-    // same type
-    if (at.func.params[i] != arg_list->list.elements[i]->ty_id) {
+    current = arg_list->list.elements[i]->ty_id;
+    expected = at.func.params[i];
+
+    printf("%zu: %d? %zu == %zu\n", i, strict, current, expected);
+    // strict - same type
+    if (strict && current != expected) {
+      return false;
+    }
+
+    if (template) {
+      ty_t at2 = ts_type_table[expected];
+      if (at2.of == FL_TEMPLATE) {
+        continue;
+      }
+      return false;
+    } else if (!ts_castable(current, expected)) {
       return false;
     }
   }
@@ -435,4 +458,22 @@ void ty_create_var(ast_t* decl) {
   } while (from->block.scope != AST_SCOPE_GLOBAL);
 
   hash_set(attach_to->block.variables, cstr, decl);
+}
+
+// templates are registered inside the block
+// always get a new id, be cautious atm
+size_t ty_create_template(ast_t* decl) {
+  string* realname = st_newc("$", st_enc_utf8);
+  st_append(&realname, decl->tpl.id->identifier.string);
+
+  // add it!
+  size_t ty_id = ts_type_size_s++;
+  ts_type_table[ty_id].of = FL_TEMPLATE;
+  ts_type_table[ty_id].id = realname;
+  ts_type_table[ty_id].tpl.decl = decl;
+
+  ast_t* attach_to = ast_get_scope(decl);
+  hash_set(attach_to->block.types, realname->value, decl);
+
+  return ty_id;
 }

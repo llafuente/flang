@@ -132,5 +132,19 @@ TASK_IMPL(parser_functions) {
                     "defined at unkownfile:1:7",
                     {});
 
+  TEST_PARSER_OK("template 01", "template $t;\n"
+                                "#id=sum_i32\n"
+                                "fn sum($t a, i8 b) : i8 {"
+                                "  return a + b;"
+                                "}"
+                                "var $t tpl;",
+                 {
+                   ASSERT(body[0]->tpl.id->ty_id ==
+                              body[1]->func.params->list.elements[0]->ty_id,
+                          "tpl type param");
+
+                   ASSERT(body[0]->tpl.id->ty_id == body[2]->ty_id,
+                          "tpl type var");
+                 });
   return 0;
 }

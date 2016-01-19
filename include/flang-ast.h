@@ -82,6 +82,7 @@ enum ast_types {
   FL_AST_TYPE = 40,
   FL_AST_DECL_STRUCT = 41,
   FL_AST_DECL_STRUCT_FIELD = 42,
+  FL_AST_DECL_TEMPLATE = 43,
 
   FL_AST_DECL_FUNCTION = 50,
   FL_AST_PARAMETER = 51,
@@ -252,6 +253,10 @@ struct ast {
 
       LLVMValueRef cg_decl;
     } func;
+
+    struct ast_decl_template {
+      ast_t* id;
+    } tpl;
 
     struct ast_parameter {
       ast_t* id;

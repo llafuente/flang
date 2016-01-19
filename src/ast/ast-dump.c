@@ -134,6 +134,9 @@ void ast_dump_one(ast_t* node) {
            node->func.uid ? node->func.uid->value : "(nil)", node->func.ffi,
            node->func.varargs, node->func.params->list.count);
     break;
+  case FL_AST_DECL_TEMPLATE:
+    printf("template");
+    break;
   case FL_AST_PARAMETER:
     printf("parameter");
     break;

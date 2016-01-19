@@ -585,3 +585,12 @@ ast_t* ast_mk_attribute(ast_t* id, ast_t* value) {
 
   return node;
 }
+
+ast_t* ast_mk_template(ast_t* id, ast_t* block) {
+  ast_t* node = ast_new();
+  node->type = FL_AST_DECL_TEMPLATE;
+  node->tpl.id = id;
+  id->identifier.resolve = false; // do not resolve it, it's a type
+
+  return node;
+}

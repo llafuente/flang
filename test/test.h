@@ -59,6 +59,10 @@
     ast_t* root = fl_parse_utf8(code);                                         \
     CHK_BODY(root);                                                            \
     root = typesystem(root);                                                   \
+    if (ast_last_error_message) {                                              \
+      fprintf(stderr, "unexpected typesystem error");                          \
+      exit(1);                                                                 \
+    }                                                                          \
     ast_t* mainblock = root->program.body;                                     \
     ast_t** body = root->program.body->block.body->list.elements;              \
     code_block;                                                                \

@@ -282,7 +282,6 @@ ast_t* __ast_clone(ast_t* node) {
   } break;
   case FL_AST_DECL_TEMPLATE: {
     CLONE(tpl.id);
-    CLONE(tpl.block);
   } break;
   case FL_AST_EXPR_SIZEOF: {
     CLONE(sof.type);

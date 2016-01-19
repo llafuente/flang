@@ -43,7 +43,7 @@ int yycolumn = 1;
 %x doc_block
 %x suffix
 
-ident [a-zA-Z\x80-\xff_][a-zA-Z0-9\x80-\xff_]*
+ident [a-zA-Z\x80-\xff_\$][a-zA-Z0-9\x80-\xff_]*
 
 %%
 
@@ -122,6 +122,7 @@ while    { SET_LOCATION; return TK_WHILE; }
 do       { SET_LOCATION; return TK_DO; }
 sizeof   { SET_LOCATION; return TK_SIZEOF; }
 \$log    { SET_LOCATION; return TK_LOG; }
+template { SET_LOCATION; return TK_TEMPLATE; }
 
 false    { SET_LOCATION; return TK_FALSE; }
 true     { SET_LOCATION; return TK_TRUE; }
@@ -181,7 +182,6 @@ nil      { SET_LOCATION; return TK_NULL; }
 
 \~     { SET_LOCATION; return '~'; }
 :      { SET_LOCATION; return ':'; }
-\$     { SET_LOCATION; return '$'; }
 \?     { SET_LOCATION; return '?'; }
 
 ==    { SET_LOCATION; return TK_EQEQ; }

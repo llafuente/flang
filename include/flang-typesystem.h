@@ -47,21 +47,11 @@ enum ts_types {
   FL_VECTOR = 4,  // wrapper
   FL_FUNCTION = 5,
   FL_STRUCT = 6,
-  FL_ENUM = 7, // TODO this is in fact an "int"
+  // FL_ENUM = 7, // TODO this is in fact an "int"
 
   FL_INFER = 10,
 
-  FL_TEMPLATE0 = 20,
-  FL_TEMPLATE1 = 21,
-  FL_TEMPLATE2 = 22,
-  FL_TEMPLATE3 = 23,
-  FL_TEMPLATE4 = 24,
-  FL_TEMPLATE5 = 25,
-  FL_TEMPLATE6 = 26,
-  FL_TEMPLATE7 = 27,
-  FL_TEMPLATE8 = 28,
-  FL_TEMPLATE9 = 29,
-  // FL_REFERENCE = 12,
+  FL_TEMPLATE = 20,
 };
 
 // type must be unique
@@ -94,27 +84,34 @@ struct ts_type {
     } vector;
 
     struct ts_type_function {
+      ast_t* decl;
+
       size_t ret;
       size_t* params;
       size_t nparams;
       bool varargs;
 
-      ast_t* decl;
     } func;
 
     struct ts_type_struct {
+      ast_t* decl;
+
       size_t* fields;
       string** properties;
       size_t nfields;
 
-      ast_t* decl;
     } structure;
 
     struct ts_type_enum {
+      ast_t* decl;
+
       size_t* members;
       size_t nmembers;
 
-      ast_t* decl;
     } enu;
+
+    struct ts_type_template {
+      ast_t* decl;
+    } tpl;
   };
 };

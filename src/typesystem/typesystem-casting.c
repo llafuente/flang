@@ -226,6 +226,11 @@ ast_t* __ts_create_cast(ast_t* node, size_t type_id) {
     return node;
   }
 
+  // do nothing, wait until the template is expanded.
+  if (ty_is_template(node->ty_id) || ty_is_template(type_id)) {
+    return node;
+  }
+
   log_verbose("castable? %d", ts_castable(node->ty_id, type_id));
   log_verbose("autocast? %p", __ts_autocast(node, node->ty_id, type_id));
 
@@ -385,7 +390,7 @@ void ts_cast_call(ast_t* node) {
   if (cty_id) {
     // this happend when calle it's not a literal
     // check if it's compatible
-    if (!ty_compatible_fn(cty_id, args)) {
+    if (!ty_compatible_fn(cty_id, args, false, false)) {
       ast_raise_error(node, "Incompatible call arguments");
       return;
     }
