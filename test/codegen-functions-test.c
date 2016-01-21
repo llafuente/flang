@@ -74,5 +74,15 @@ TASK_IMPL(codegen_functions) {
   TEST_CODEGEN_OK("function 08", "fn no_ret_ok() {"
                                  "}",
                   {});
+
+  TEST_CODEGEN_OK("function 09", "template $t;\n"
+                                 "#id=sum_i32\n"
+                                 "fn sum($t _a, i8 _b) : i8 {\n"
+                                 "  return _a + _b;\n"
+                                 "}\n"
+                                 "var i8 a = 1; var i8 b = 2;\n"
+                                 "var i8 ret = sum(a, b);",
+                  {/*ast_mindump(root);*/});
+
   return 0;
 }

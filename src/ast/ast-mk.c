@@ -106,6 +106,8 @@ ast_t* ast_mk_list_insert(ast_t* list, ast_t* node, size_t idx) {
 }
 ast_t* ast_mk_insert_before(ast_t* list, ast_t* search_item,
                             ast_t* insert_item) {
+  assert(list->type == FL_AST_LIST);
+
   size_t idx = 0;
   while (list->list.elements[idx] != search_item) {
     ++idx;

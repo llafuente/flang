@@ -281,7 +281,6 @@ bool ty_compatible_fn(size_t ty_id, ast_t* arg_list, bool strict,
     current = arg_list->list.elements[i]->ty_id;
     expected = at.func.params[i];
 
-    printf("%zu: %d? %zu == %zu\n", i, strict, current, expected);
     // strict - same type
     if (strict && current != expected) {
       return false;
@@ -358,6 +357,8 @@ size_t ty_create_fn(ast_t* decl) {
     decl->func.uid = st_clone(id);
   }
 
+  assert(decl->func.uid != 0);
+
   ast_t* params = decl->func.params;
   size_t length = params->list.count;
   size_t* tparams = calloc(length, sizeof(size_t));
@@ -366,6 +367,9 @@ size_t ty_create_fn(ast_t* decl) {
 
   for (i = 0; i < length; ++i) {
     tparams[i] = params->list.elements[i]->ty_id;
+    if (ts_type_table[tparams[i]].of == FL_TEMPLATE) {
+      decl->func.templated = true;
+    }
   }
 
   // add it!
@@ -397,9 +401,10 @@ size_t ty_create_fn(ast_t* decl) {
     hash_set(rscope->block.uids, decl->func.uid->value, decl);
 
     // check param names don't collide
-    if (!decl->func.ffi) {
+    if (!decl->func.ffi && !decl->func.templated) {
       ast_t* p;
       ast_t* body = decl->func.body;
+
       for (i = 0; i < length; ++i) {
         p = params->list.elements[i];
         if (__param_collision(p, body, p->param.id->identifier.string->value)) {

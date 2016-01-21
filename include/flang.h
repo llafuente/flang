@@ -46,6 +46,8 @@ extern void __sanitizer_print_stack_trace();
 #include <assert.h>
 #endif
 */
+#undef NDEBUG
+#include <assert.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -745,6 +747,29 @@ FL_EXTERN bool ast_is_literal(ast_t* node);
  * @return node o error
  */
 FL_EXTERN ast_t* ast_reduce(ast_t* node);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast-expand.c) */
+
+/* Expand function templates
+ *
+ * @node should be root
+ * @return node o error
+ */
+FL_EXTERN ast_t* ast_expand_fn(ast_t* call);
+
+/* cldoc:end-category() */
+
+/* cldoc:begin-category(ast-modify.c) */
+
+/* change all type found while traversing
+ *
+ * @node
+ * @old type id
+ * @new type id
+ */
+FL_EXTERN void ast_replace_types(ast_t* node, size_t old, size_t new);
 
 /* cldoc:end-category() */
 

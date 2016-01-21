@@ -207,6 +207,7 @@ LLVMValueRef cg_ast(FL_CODEGEN_HEADER) {
   // this node don't required codegen
   case FL_AST_IMPORT:
   case FL_AST_STMT_COMMENT:
+  case FL_AST_DECL_TEMPLATE:
     break;
   default: { ast_raise_error(node, "unhandled node type at codegen"); }
     // log_error("(codegen) ast->type not handled %d", node->type);
@@ -534,12 +535,16 @@ LLVMValueRef cg_dtor_var(FL_CODEGEN_HEADER) {
 }
 // TODO parent rewrite!
 LLVMValueRef cg_function(FL_CODEGEN_HEADER) {
-  log_debug("cg_function %s", node->func.uid
-                                  ? node->func.uid->value
-                                  : node->func.id->identifier.string->value);
+  // do not cg templates
+  if (node->func.templated) {
+    log_debug("ignore function is a template '%s'", node->func.uid->value);
+    return 0;
+  }
+
+  log_debug("cg '%s'", node->func.uid->value);
 
   if (!node->func.ret_type) {
-    log_error("function has no return type");
+    ast_raise_error(node, "function has no return type");
   }
 
   // TODO use type info should be faster
@@ -624,8 +629,8 @@ LLVMValueRef cg_expr_call(FL_CODEGEN_HEADER) {
   LLVMValueRef fn =
       LLVMGetNamedFunction(module, node->call.decl->func.uid->value);
   if (!fn) {
-    log_error("function [%s] not found in current context",
-              node->call.callee->identifier.string->value);
+    ast_raise_error(node, "codegen - function '%s' not found",
+                    node->call.decl->func.uid->value);
   }
 
   LLVMValueRef arguments[node->call.narguments];

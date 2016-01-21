@@ -36,6 +36,11 @@ ast_action_t __trav_casting(ast_t* node, ast_t* parent, size_t level,
   case FL_AST_DECL_STRUCT: {
     return FL_AC_SKIP;
   }
+  // do not pass typesystem to templates
+  // templates are incomplete an raise many errors
+  case FL_AST_DECL_FUNCTION: {
+    return node->func.templated ? FL_AC_SKIP : FL_AC_CONTINUE;
+  }
 
   case FL_AST_STMT_RETURN: {
     ts_cast_return(node);

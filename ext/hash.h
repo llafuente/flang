@@ -54,3 +54,5 @@ void hash_each(hash_t* ht, hash_each_func each);
 
 // Function to destroy the hash table
 void hash_delete(hash_t* ht);
+
+void hash_clear(hash_t* ht);

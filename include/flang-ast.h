@@ -249,6 +249,7 @@ struct ast {
       ast_t* ret_type;
       ast_t* attributes;
       bool varargs;
+      bool templated;
       bool ffi; // TODO maybe ffi_type, 0 means flang, 1 means c...
 
       LLVMValueRef cg_decl;

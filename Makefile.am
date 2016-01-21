@@ -17,6 +17,8 @@ COMPILER_SOURCES = src/flang.c \
                 src/ast/ast-get.c \
                 src/ast/ast-query.c \
                 src/ast/ast-reduce.c \
+                src/ast/ast-expand.c \
+                src/ast/ast-modify.c \
                 src/ast/ast-load-imports.c \
                 src/codegen/codegen.c \
                 src/codegen/codegen-export.c \

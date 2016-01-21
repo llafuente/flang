@@ -129,10 +129,12 @@ void ast_dump_one(ast_t* node) {
     printf("field T(%zu)", node->ty_id);
     break;
   case FL_AST_DECL_FUNCTION:
-    printf("function T(%zu) id(%s) uid(%s) ffi(%d) varargs(%d) [params=%zu]",
+    printf("function T(%zu) id(%s) uid(%s) ffi(%d) varargs(%d) tpl(%d) "
+           "[params=%zu]",
            node->ty_id, node->func.id->identifier.string->value,
            node->func.uid ? node->func.uid->value : "(nil)", node->func.ffi,
-           node->func.varargs, node->func.params->list.count);
+           node->func.varargs, node->func.templated,
+           node->func.params->list.count);
     break;
   case FL_AST_DECL_TEMPLATE:
     printf("template");

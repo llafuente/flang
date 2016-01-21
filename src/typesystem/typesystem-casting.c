@@ -386,6 +386,7 @@ void ts_cast_call(ast_t* node) {
 
   // NOTE: polymorph - callee must be an identifier
 
+  // no-identifier, check compatibility
   size_t cty_id = node->call.callee->ty_id;
   if (cty_id) {
     // this happend when calle it's not a literal
@@ -400,9 +401,16 @@ void ts_cast_call(ast_t* node) {
     ast_t* tmp =
         ast_search_fn_wargs(node->call.callee->identifier.string, args);
     if (!tmp) {
+      // TODO error should be more specific
       ast_raise_error(node, "Incompatible call arguments");
       return;
     }
+
+    if (tmp->func.templated) {
+      node->call.decl = tmp;
+      tmp = ast_expand_fn(node);
+    }
+
     node->call.callee->ty_id = cty_id = tmp->ty_id;
   }
 

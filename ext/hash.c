@@ -300,3 +300,13 @@ void hash_each(hash_t* ht, hash_each_func each) {
     }
   }
 }
+
+void hash_clear(hash_t* ht) {
+  int i;
+  hash_entry_t* entry;
+
+  // Free each not empty position of the hash table
+  for (i = 0; i < ht->size; i++) {
+    ht->table[i] = 0;
+  }
+}
