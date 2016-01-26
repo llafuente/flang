@@ -241,17 +241,34 @@ ast_t* ast_mk_lit_float(char* text) {
   ast_t* node = ast_new();
   node->type = FL_AST_LIT_FLOAT;
 
-  char* end = text + strlen(text);
-  double result = strtod(text, &end);
+  char* end = 0;
+  errno = 0;
+  float f_res = strtof(text, &end);
   if (errno) {
-    if ((result == HUGE_VAL || result == -HUGE_VAL) && errno == ERANGE) {
-      // fprintf(stderr, "ERROR! overflow\n");
-    } else if (errno == ERANGE) {
-      // fprintf(stderr, "ERROR! underflow\n");
+    int errnum = errno;
+    fprintf(stderr, "as double! %d: %s @ '%s'\n", errnum, strerror(errnum),
+            text);
+
+    end = 0;
+    double d_res = strtod(text, &end);
+    if (errno) {
+      if ((f_res == HUGE_VAL || f_res == -HUGE_VAL) && errno == ERANGE) {
+        fprintf(stderr, "ERROR! overflow\n");
+      } else if (errno == ERANGE) {
+        fprintf(stderr, "ERROR! underflow\n");
+      }
+      errnum = errno;
+      fprintf(stderr, "%d: %s @ '%s'\n", errnum, strerror(errnum), text);
+      // TODO raise syntax-error, no exit!!
+      exit(1);
+    } else {
+      node->decimal.value = d_res;
+      node->ty_id = TS_F64;
     }
+  } else {
+    node->decimal.value = f_res;
+    node->ty_id = TS_F32;
   }
-  node->decimal.value = result;
-  node->ty_id = TS_F64;
 
   return node;
 }

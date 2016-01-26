@@ -97,6 +97,10 @@
     CHK_BODY(root);                                                            \
     root = typesystem(root);                                                   \
     ast_mindump(root);                                                         \
+    if (ast_last_error_message) {                                              \
+      fprintf(stderr, "unexpected typesystem error");                          \
+      exit(1);                                                                 \
+    }                                                                          \
     ast_t** body = root->program.body->block.body->list.elements;              \
     LLVMModuleRef module = fl_codegen(root, "test");                           \
     code_block;                                                                \

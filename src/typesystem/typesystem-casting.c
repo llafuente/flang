@@ -236,6 +236,8 @@ ast_t* __ts_create_cast(ast_t* node, size_t type_id) {
 
   if (!ts_castable(node->ty_id, type_id) &&
       !__ts_autocast(node, node->ty_id, type_id)) {
+    // TODO this need to be a bit more specific about what is casting to return
+    // a readble error
     ast_raise_error(node,
                     "manual casting is required: '%s' is %s and must be %s",
                     ast_get_code(node)->value, ty_to_string(node->ty_id)->value,
@@ -407,8 +409,8 @@ void ts_cast_call(ast_t* node) {
     }
 
     if (tmp->func.templated) {
-      node->call.decl = tmp;
-      tmp = ast_expand_fn(node);
+      tmp = ast_expand_fn(node, tmp);
+      log_silly("fn expanded: %zu", tmp->ty_id);
     }
 
     node->call.callee->ty_id = cty_id = tmp->ty_id;

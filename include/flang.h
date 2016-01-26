@@ -757,7 +757,7 @@ FL_EXTERN ast_t* ast_reduce(ast_t* node);
  * @node should be root
  * @return node o error
  */
-FL_EXTERN ast_t* ast_expand_fn(ast_t* call);
+FL_EXTERN ast_t* ast_expand_fn(ast_t* call, ast_t* decl);
 
 /* cldoc:end-category() */
 
@@ -924,7 +924,7 @@ FL_EXTERN LLVMTypeRef cg_get_type(ast_t* node, LLVMContextRef context);
  * @context
  */
 FL_EXTERN LLVMTypeRef
-cg_get_typeid(ast_t* node, size_t tyid, LLVMContextRef context);
+    cg_get_typeid(ast_t* node, size_t tyid, LLVMContextRef context);
 
 /* cldoc:end-category() */
 

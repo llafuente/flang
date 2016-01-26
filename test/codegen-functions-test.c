@@ -82,7 +82,8 @@ TASK_IMPL(codegen_functions) {
                                  "}\n"
                                  "var i8 a = 1; var i8 b = 2;\n"
                                  "var i8 ret = sum(a, b);",
-                  {/*ast_mindump(root);*/});
+                  {/*ast_mindump(root);*/
+                  });
 
   return 0;
 }

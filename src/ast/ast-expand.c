@@ -26,34 +26,44 @@
 #include "flang.h"
 
 // return error
-ast_t* ast_expand_fn(ast_t* node) {
-  assert(node->type == FL_AST_EXPR_CALL);
-
-  ast_t* decl = node->call.decl;
-
-  assert(decl != 0);
+ast_t* ast_expand_fn(ast_t* call, ast_t* decl) {
+  assert(call->type == FL_AST_EXPR_CALL);
   assert(decl->type == FL_AST_DECL_FUNCTION);
+  assert(decl->func.templated);
 
-  if (decl->func.templated) {
-    ast_t* fn = ast_clone(decl);
-    fn->func.uid = 0; // remove uid, so no collision, a new one
-    ast_parent(fn);
-    fn->parent = decl->parent;
-    ast_mk_insert_before(decl->parent, decl, fn);
+  ast_t* fn = ast_clone(decl);
+  fn->func.uid = 0; // remove uid, so no collision, a new one
+  ast_parent(fn);
+  fn->parent = decl->parent;
+  ast_mk_insert_before(decl->parent, decl, fn);
 
-    fn->func.templated = false;
+  fn->func.templated = false;
 
-    // todo replace types!
-    size_t old;
-    size_t new;
+  // todo replace types!
+  size_t old;
+  size_t new;
 
-    ast_replace_types(fn, 21, 4);
-    fn->ty_id = ty_create_fn(fn);
-    typesystem(fn);
+  ast_t* params = fn->func.params;
+  size_t count = params->list.count;
 
-    node->call.decl = fn;
-    return fn;
+  size_t i;
+  ty_t* param_ty;
+  size_t param_ty_id;
+
+  for (i = 0; i < count; ++i) {
+    param_ty_id = params->list.elements[i]->ty_id;
+    param_ty = &ts_type_table[param_ty_id];
+    if (param_ty->of == FL_TEMPLATE) {
+      // search type and replace!
+      ast_replace_types(fn, param_ty_id,
+                        call->call.arguments->list.elements[i]->ty_id);
+    }
   }
 
-  return decl;
+  // ast_replace_types(fn, 21, 4);
+  fn->ty_id = ty_create_fn(fn);
+  typesystem(fn);
+
+  call->call.decl = fn;
+  return fn;
 }

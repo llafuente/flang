@@ -263,9 +263,10 @@ size_t ty_create_struct(ast_t* decl) {
 
 bool ty_compatible_fn(size_t ty_id, ast_t* arg_list, bool strict,
                       bool template) {
-  log_silly("ty %zu, %d, %d", ty_id, strict, template) ty_t at =
-      ts_type_table[ty_id];
+  log_silly("fn ty_id %zu, strict? %d, template? %d", ty_id, strict, template);
+  ty_t at = ts_type_table[ty_id];
 
+  // TODO assert?
   if (at.of != FL_FUNCTION) {
     return false;
   }
@@ -274,7 +275,7 @@ bool ty_compatible_fn(size_t ty_id, ast_t* arg_list, bool strict,
   size_t current;
   size_t expected;
   for (i = 0; i < arg_list->list.count; ++i) {
-    // end it's compatible
+    // end reached it's compatible, the rest is varargs
     if (at.func.varargs && i == at.func.nparams)
       break;
 
@@ -283,16 +284,18 @@ bool ty_compatible_fn(size_t ty_id, ast_t* arg_list, bool strict,
 
     // strict - same type
     if (strict && current != expected) {
-      return false;
+      log_silly("(strict) parameter %zu not compatible %zu != %zu", i, current,
+                expected) return false;
     }
 
-    if (template) {
-      ty_t at2 = ts_type_table[expected];
-      if (at2.of == FL_TEMPLATE) {
-        continue;
+    ty_t at2 = ts_type_table[expected];
+    if (at2.of == FL_TEMPLATE) {
+      if (template) {
+        log_silly("(template) parameter %zu use", i) continue;
       }
-      return false;
+      log_silly("(template) parameter %zu reject", i) return false;
     } else if (!ts_castable(current, expected)) {
+      log_silly("(cast) parameter %zu cannot be casted", i);
       return false;
     }
   }

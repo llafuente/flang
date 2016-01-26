@@ -38,6 +38,10 @@ bool fl_to_bitcode(LLVMModuleRef module, const char* filename) {
 bool fl_to_ir(LLVMModuleRef module, const char* filename) {
   char* irstr = LLVMPrintModuleToString(module);
   FILE* f = fopen(filename, "w");
+  if (!f) {
+    fprintf(stderr, "Cannot open file: '%s'\n", filename);
+    return false;
+  }
   fputs(irstr, f);
   fclose(f);
   LLVMDisposeMessage(irstr);

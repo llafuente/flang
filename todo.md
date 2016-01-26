@@ -198,6 +198,10 @@ model is a type that extend functionality from object adding:
   ```
 
 
+### templates
+
+some useful operator: is_numeric, is_pointer
+
 ### Modules
 
 * function, variables visibility.

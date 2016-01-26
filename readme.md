@@ -6,7 +6,7 @@ take a look if you want but it not useable yet. it's still low level like c.
 
 ## Usage
 
-requisites (at least (what i'm using right now))
+requisites (at least, what I'm using right now)
 * bison (GNU bison) 3.0.4
 * flex 2.5.37
 * autoconf (GNU Autoconf) 2.69
@@ -41,6 +41,7 @@ sh gen-doc.sh
     * Inference
     * Implicit casting
   * Reduce the AST to it's minimal form
+  * Expand templates
 * Codegen AST usgin LLVM-C
   * execute jit (exec-jit)
   * execute bitcode (exec-bit)

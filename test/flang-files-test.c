@@ -74,7 +74,7 @@ void test_file_list(char** files, size_t nfiles, char* path) {
       printf("\033[2J"); // "clear screen"
     }
 
-    if (i == 22) {
+    if (i == 11) {
       // log_debug_level = 10;
     }
 
@@ -105,6 +105,11 @@ void test_file_list(char** files, size_t nfiles, char* path) {
     root = typesystem(root);
     if (ast_print_error(root)) {
       exit(4);
+    }
+
+    if (ast_last_error_message) {
+      fprintf(stderr, "unexpected typesystem error");
+      exit(1);
     }
 
     // ty_dump_table();
@@ -151,11 +156,11 @@ TASK_IMPL(flang_files) {
       "types", "pointers", "pointers2", "string", "functions",
       "function-pointer", "arithmetic", "autocast", "increment", "fibonacci",
       "type-promotion-signed", "type-promotion-unsigned", "type-promotion-mix",
-      "pointer-math", "log", "globals"
+      "pointer-math", "log", "globals", "templates"
       //,"promotion"
   };
 
-  test_file_list(test_files, 23, "../test/fl/");
+  test_file_list(test_files, 24, "../test/fl/");
 
   char* perf_files[] = {"array-reverse"};
 

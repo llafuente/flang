@@ -215,12 +215,12 @@ TASK_IMPL(parser_expressions) {
                                   "var yyy s;"
                                   "s.hello = 1;",
                  {
-                   fprintf(stderr, "# type: %zu\n", body[1]->ty_id);
-                   /* TODO
-                   ASSERT(body[1]->ty_id == TEST_TYPEID, "variable type");
-                   ASSERT(body[2]->ty_id == TS_I64, "assignament type TS_I64");
-                   */
-                 });
+    fprintf(stderr, "# type: %zu\n", body[1]->ty_id);
+    /* TODO
+    ASSERT(body[1]->ty_id == TEST_TYPEID, "variable type");
+    ASSERT(body[2]->ty_id == TS_I64, "assignament type TS_I64");
+    */
+  });
   /*
     // TODO fix expr call with member / not identifier
     TEST_PARSER_OK("member access", "var h; h = s.hello.world();", {});
@@ -232,8 +232,7 @@ TASK_IMPL(parser_expressions) {
   TEST_PARSER_OK("array access", "var ptr(i64) x;"
                                  "x[0];"
                                  "&x;",
-                 {
-                  /** TODO
+                 {/** TODO
                   ASSERT(body[0]->ty_id == TEST_TYPEID, "struct type");
                   ASSERT(body[1]->ty_id == TS_I64, "dereference type TS_I64");
                   */
@@ -242,21 +241,19 @@ TASK_IMPL(parser_expressions) {
   TEST_PARSER_OK("fix unnecesary castings", "var i32 x;"
                                             "x = x + 1;",
                  {
-                   ASSERT(body[1]->ty_id == TS_I32, "assignament type TS_I32");
-                   ASSERT(body[1]->type == FL_AST_EXPR_ASSIGNAMENT,
-                          "1st FL_AST_EXPR_ASSIGNAMENT");
-                   ASSERT(body[1]->assignament.left->type ==
-                              FL_AST_LIT_IDENTIFIER,
-                          "left FL_AST_LIT_IDENTIFIER");
-                   ASSERT(body[1]->assignament.right->type == FL_AST_EXPR_BINOP,
-                          "right FL_AST_EXPR_BINOP");
-                   ASSERT(body[1]->assignament.right->binop.left->type ==
-                              FL_AST_LIT_IDENTIFIER,
-                          "right.left FL_AST_LIT_IDENTIFIER");
-                   ASSERT(body[1]->assignament.right->binop.right->type ==
-                              FL_AST_LIT_INTEGER,
-                          "right.left FL_AST_LIT_INTEGER");
-                 });
+    ASSERT(body[1]->ty_id == TS_I32, "assignament type TS_I32");
+    ASSERT(body[1]->type == FL_AST_EXPR_ASSIGNAMENT,
+           "1st FL_AST_EXPR_ASSIGNAMENT");
+    ASSERT(body[1]->assignament.left->type == FL_AST_LIT_IDENTIFIER,
+           "left FL_AST_LIT_IDENTIFIER");
+    ASSERT(body[1]->assignament.right->type == FL_AST_EXPR_BINOP,
+           "right FL_AST_EXPR_BINOP");
+    ASSERT(body[1]->assignament.right->binop.left->type ==
+               FL_AST_LIT_IDENTIFIER,
+           "right.left FL_AST_LIT_IDENTIFIER");
+    ASSERT(body[1]->assignament.right->binop.right->type == FL_AST_LIT_INTEGER,
+           "right.left FL_AST_LIT_INTEGER");
+  });
 
   TEST_PARSER_OK("expressions 04", "1+2+3;", {
     ast_t* expr = body[0];

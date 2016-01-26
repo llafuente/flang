@@ -202,6 +202,15 @@ ast_t* __ast_clone(ast_t* node) {
     break;
   case FL_AST_BLOCK: {
     CLONE(block.body);
+    // TODO to be able to
+    node->block.types = pool_new(sizeof(hash_t));
+    hash_new(node->block.types, 10);
+
+    node->block.functions = pool_new(sizeof(hash_t));
+    hash_new(node->block.functions, 10);
+
+    node->block.variables = pool_new(sizeof(hash_t));
+    hash_new(node->block.variables, 10);
   } break;
   case FL_AST_LIST: {
     size_t i = 0;

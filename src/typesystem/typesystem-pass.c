@@ -55,9 +55,9 @@ ast_action_t __trav_casting(ast_t* node, ast_t* parent, size_t level,
                 node->identifier.resolve);
 
       if (node->identifier.resolve) {
-        node->identifier.decl =
+        ast_t* decl = node->identifier.decl =
             ast_search_id_decl(node, node->identifier.string);
-        if (!node->identifier.decl) {
+        if (!decl) {
           ast_mindump(ast_get_root(node));
           ast_raise_error(node, "Cannot find declaration: '%s'",
                           node->identifier.string->value);
@@ -65,7 +65,14 @@ ast_action_t __trav_casting(ast_t* node, ast_t* parent, size_t level,
         }
 
         // it's a var, copy type
-        if (node->identifier.decl->type == FL_AST_DECL_FUNCTION) {
+        if (decl->type == FL_AST_DECL_FUNCTION) {
+          if (decl->func.templated) {
+            ast_raise_error(node,
+                            "typesystem - Cannot has a reference to a template",
+                            node->identifier.string->value);
+            return FL_AC_STOP;
+          }
+
           node->ty_id = node->identifier.decl->ty_id;
         } else {
           node->ty_id = ast_get_typeid(node->identifier.decl);

@@ -122,32 +122,46 @@ ast_t* ast_search_fn(ast_t* node, string* identifier, size_t* args,
 
 // TODO handle args
 ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
+  // search function
   array* arr = ast_search_fns(args_call->parent, id);
   if (!arr) {
+    // search a variable with function type
     log_verbose("undefined function: '%s' must be a variable", id->value);
-    ast_t* decl = ast_search_id_decl(args_call->parent, id);
+    ast_t* decl = ast_search_id_decl(args_call, id);
     if (!decl) {
-      log_error("no function/var: '%s'", id->value);
+      ast_raise_error(args_call->parent,
+                      "typesystem - cannot find function or variable: '%s'",
+                      id->value);
     }
     // now search any function that has that ty_id
     // type is pointer to function so
-    size_t fn_ty = ts_type_table[decl->ty_id].ptr.to;
-    return ts_type_table[fn_ty].func.decl;
+    ty_t fn_ptr_ty = ts_type_table[decl->ty_id];
+    if (fn_ptr_ty.of != FL_POINTER) {
+      ast_raise_error(args_call->parent,
+                      "typesystem - invalid variable type, not a function");
+    }
+
+    ty_t fn_ty = ts_type_table[fn_ptr_ty.ptr.to];
+    if (fn_ty.of != FL_FUNCTION) {
+      ast_raise_error(args_call->parent,
+                      "typesystem - invalid variable type, not a function");
+    }
+
+    return fn_ty.func.decl;
   }
 
   log_verbose("declarations with same name = %d\n", arr->size);
 
+  ast_t* ret_decl = 0;
+
   if (arr->size == 1) {
-    ast_t* ret = array_get(arr, 0);
-    array_delete(arr);
-    free(arr);
-    return ret;
+    ret_decl = array_get(arr, 0);
+    goto fn_wargs_return;
   }
 
   ast_t* decl;
   ast_t* params;
   ast_t* param;
-  ast_t* ret_decl = 0;
 
   ast_t* arg_call;
 
@@ -155,32 +169,32 @@ ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
   size_t imax = args_call->list.count;
   size_t jmax = arr->size;
 
+  // strict and no template
   for (j = 0; j < jmax; ++j) {
     decl = array_get(arr, j);
-    assert(decl->type == FL_AST_DECL_FUNCTION);
-
-    params = decl->func.params;
-    // get types from arguments first
-
-    for (i = 0; i < imax; ++i) {
-      arg_call = args_call->list.elements[i];
-      param = params->list.elements[i];
-
-      if (!arg_call->ty_id) {
-        log_error("cannot find type of argument %zu", i);
-      }
-
-      if (!ts_castable(param->ty_id, arg_call->ty_id)) {
-        break;
-      }
-      if (i == imax - 1) {
-        // we reach the end all is ok!
-        // this is compatible!
-        ret_decl = decl;
-      }
+    if (ty_compatible_fn(decl->ty_id, args_call, true, false)) {
+      ret_decl = decl;
+      goto fn_wargs_return;
+    }
+  }
+  // castable and no template
+  for (j = 0; j < jmax; ++j) {
+    decl = array_get(arr, j);
+    if (ty_compatible_fn(decl->ty_id, args_call, false, false)) {
+      ret_decl = decl;
+      goto fn_wargs_return;
+    }
+  }
+  // castable & template
+  for (j = 0; j < jmax; ++j) {
+    decl = array_get(arr, j);
+    if (ty_compatible_fn(decl->ty_id, args_call, false, true)) {
+      ret_decl = decl;
+      goto fn_wargs_return;
     }
   }
 
+fn_wargs_return:
   array_delete(arr);
   free(arr);
 

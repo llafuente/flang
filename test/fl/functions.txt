@@ -1,3 +1,5 @@
-as i32 10
-as f32 0.000000
-as string = nuse!
+poly as f64 10.000000
+direct as i32 10
+poly as f64 100.500099
+direct as f64 100.500099
+poly as string = this is a string!

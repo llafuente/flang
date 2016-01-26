@@ -45,7 +45,8 @@ TASK_IMPL(parser_functions) {
   });
   TEST_PARSER_ERROR("function err 01", "fn {} var x;",
                     "syntax error, unexpected '{', expecting AST_IDENT",
-                    {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/});
+                    {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/
+                    });
 
   TEST_PARSER_ERROR(
       "function err 02", "fn hell ({}",
@@ -53,15 +54,18 @@ TASK_IMPL(parser_functions) {
 
   TEST_PARSER_ERROR("function err 03", "fn x a",
                     "syntax error, unexpected AST_IDENT, expecting '{' or ':'",
-                    {/*CHK_ERROR_RANGE(err, 6, 1, 9, 1);*/});
+                    {/*CHK_ERROR_RANGE(err, 6, 1, 9, 1);*/
+                    });
 
   TEST_PARSER_ERROR("function err 04", "fn (){};",
                     "syntax error, unexpected '(', expecting AST_IDENT",
-                    {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/});
+                    {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/
+                    });
 
   TEST_PARSER_ERROR("function err 05", "fn x () { fn (){}; }",
                     "syntax error, unexpected '(', expecting AST_IDENT",
-                    {/*CHK_ERROR_RANGE(err, 14, 1, 15, 1);*/});
+                    {/*CHK_ERROR_RANGE(err, 14, 1, 15, 1);*/
+                    });
 
   TEST_PARSER_ERROR(
       "function err 05", "ffi fn x () { var x; }",
@@ -96,26 +100,25 @@ TASK_IMPL(parser_functions) {
     ASSERT(body[0]->func.varargs == true, "function is varargs");
   });
 
-  TEST_PARSER_OK(
-      "poly 01", "#id=sum_i32\n"
-                 "fn sum(i32 a, i32 b) : i32 {"
-                 "  return a + b;"
-                 "}"
-                 "#id=sum_i8\n"
-                 "fn sum(i8 a, i8 b) : i8 {"
-                 "  return a + b;"
-                 "}",
-      {
-        ASSERT(body[0]->func.ffi == false, "function is not ffi");
-        ASSERT(body[0]->func.varargs == false, "function is not varargs");
-        ASSERT(strcmp(body[0]->func.uid->value, "sum_i32") == 0,
-               "function uid is what we manually set");
+  TEST_PARSER_OK("poly 01", "#id=sum_i32\n"
+                            "fn sum(i32 a, i32 b) : i32 {"
+                            "  return a + b;"
+                            "}"
+                            "#id=sum_i8\n"
+                            "fn sum(i8 a, i8 b) : i8 {"
+                            "  return a + b;"
+                            "}",
+                 {
+    ASSERT(body[0]->func.ffi == false, "function is not ffi");
+    ASSERT(body[0]->func.varargs == false, "function is not varargs");
+    ASSERT(strcmp(body[0]->func.uid->value, "sum_i32") == 0,
+           "function uid is what we manually set");
 
-        ASSERT(body[1]->func.ffi == false, "function is not ffi");
-        ASSERT(body[1]->func.varargs == false, "function is not varargs");
-        ASSERT(strcmp(body[1]->func.uid->value, "sum_i8") == 0,
-               "function uid is what we manually set");
-      });
+    ASSERT(body[1]->func.ffi == false, "function is not ffi");
+    ASSERT(body[1]->func.varargs == false, "function is not varargs");
+    ASSERT(strcmp(body[1]->func.uid->value, "sum_i8") == 0,
+           "function uid is what we manually set");
+  });
 
   TEST_PARSER_ERROR("function err 05", "fn x (i8 a) : i32 { var x; }",
                     "Variable name 'x' in use by a type, previously defined at "
@@ -139,12 +142,11 @@ TASK_IMPL(parser_functions) {
                                 "}"
                                 "var $t tpl;",
                  {
-                   ASSERT(body[0]->tpl.id->ty_id ==
-                              body[1]->func.params->list.elements[0]->ty_id,
-                          "tpl type param");
+    ASSERT(body[0]->tpl.id->ty_id ==
+               body[1]->func.params->list.elements[0]->ty_id,
+           "tpl type param");
 
-                   ASSERT(body[0]->tpl.id->ty_id == body[2]->ty_id,
-                          "tpl type var");
-                 });
+    ASSERT(body[0]->tpl.id->ty_id == body[2]->ty_id, "tpl type var");
+  });
   return 0;
 }

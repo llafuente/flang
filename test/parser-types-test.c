@@ -85,23 +85,23 @@ TASK_IMPL(parser_types) {
 
   TEST_PARSER_ERROR("empty struct", "struct test {}",
                     "syntax error, empty struct declaration",
-                    {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/});
+                    {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/
+                    });
 
   TEST_PARSER_OK("simple struct", "struct test {"
                                   "i8 t1"
                                   "}",
                  { ASSERT(body[0]->ty_id != 0, "typeid is set"); });
 
-  TEST_PARSER_OK(
-      "simple struct", "struct stt {"
-                       "i8 b"
-                       "}; struct stt2 {"
-                       "i8 b"
-                       "};",
-      {
-        ASSERT(body[0]->type == FL_AST_DECL_STRUCT, "FL_AST_DECL_STRUCT");
-        ASSERT(body[1]->type == FL_AST_DECL_STRUCT, "FL_AST_DECL_STRUCT");
-      });
+  TEST_PARSER_OK("simple struct", "struct stt {"
+                                  "i8 b"
+                                  "}; struct stt2 {"
+                                  "i8 b"
+                                  "};",
+                 {
+    ASSERT(body[0]->type == FL_AST_DECL_STRUCT, "FL_AST_DECL_STRUCT");
+    ASSERT(body[1]->type == FL_AST_DECL_STRUCT, "FL_AST_DECL_STRUCT");
+  });
 
   TEST_PARSER_OK("complex struct", "struct test {"
                                    "i8 t1,"
@@ -118,9 +118,9 @@ TASK_IMPL(parser_types) {
                                          "i32 t2"
                                          "}",
                  {
-                   ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid struct 1");
-                   ASSERT(body[1]->ty_id == TEST_TYPEID + 1, "typeid struct 2");
-                 });
+    ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid struct 1");
+    ASSERT(body[1]->ty_id == TEST_TYPEID + 1, "typeid struct 2");
+  });
 
   TEST_PARSER_OK("struct type usage", "struct test {"
                                       "i8 t1,"
@@ -130,9 +130,9 @@ TASK_IMPL(parser_types) {
                                       "test t"
                                       "}",
                  {
-                   ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid struct 1");
-                   ASSERT(body[1]->ty_id == TEST_TYPEID + 1, "typeid struct 2");
-                 });
+    ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid struct 1");
+    ASSERT(body[1]->ty_id == TEST_TYPEID + 1, "typeid struct 2");
+  });
   TEST_PARSER_OK("struct with vectors", "struct str {"
                                         "  i32 uniqueness,"
                                         "  i32 length,"
@@ -146,8 +146,7 @@ TASK_IMPL(parser_types) {
                  { ASSERT(body[0]->ty_id == TS_PVOID, "typeid ptr<void>"); });
 
   TEST_PARSER_OK("alloc", "fn alloc(u64 amount_of_bytes) : ptr(void) {}",
-                 {
-                  // TODO search core.alloc and check both types are the same
+                 {// TODO search core.alloc and check both types are the same
                   // ASSERT(body[0]->ty_id == 18, "typeid struct");
                  });
 
