@@ -1,0 +1,34 @@
+template $t;
+
+// this illustrates that the order in wich a template
+// it's used affects your program
+// this could be harmful at some extend...
+// maybe we need something to implement a templated function
+// implement sum(i8, i8) : i8;
+
+
+fn sum ($t __a, $t __b) : $t {
+  return __a + __b;
+}
+
+// this will generate sum(i8, i8)
+var i8 a_i8 = 10;
+var i8 b_i8 = 20;
+var i8 r_i8 = sum(a_i8, b_i8);
+
+printf("r_i8 = %d\n", r_i8);
+
+// this will generate sum(i32, i32)
+var i32 a_i32 = 100;
+var i32 b_i32 = 200;
+var i32 r_i32 = sum(a_i32, b_i32);
+
+printf("r_i32 = %d\n", r_i32);
+
+// but now it's not needed, and will use sum(i32, i32)
+// and this anoy behaviour force us to cast!
+var i16 a_i16 = 101;
+var i16 b_i16 = 201;
+var i16 r_i16 = cast(i16) sum(a_i16, b_i16);
+
+printf("r_i16 = %d\n", r_i16);
