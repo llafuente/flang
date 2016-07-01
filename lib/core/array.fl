@@ -1,0 +1,22 @@
+struct array($T) {
+  i32 len,
+  u32 cap,
+  // i64 type = typeof $T,
+  vector($T) value
+};
+
+// push value
+fn push($T[] arr, $T value) : $T[] {
+  arr.value[arr.len] = value;
+  arr.cap = arr.cap + 1;
+
+  return arr;
+}
+
+// push copy
+fn push(array($T) arr, ptr($T) value) array($T) {
+  arr.value[arr.len] = value[0];
+  arr.cap = arr.cap + 1;
+
+  return arr;
+}

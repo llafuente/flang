@@ -1,0 +1,25 @@
+/* string must be first atm */
+forward import "lib/core/string"; // into global space
+forward import "lib/core/ffi-c"; // into global space
+
+/*
+#anon
+struct flang_version {
+  i32 minor,
+  i32 mayor
+};
+
+global i32 version = {minor: 0, mayor: 0};
+global i32 version = {0,0};
+*/
+
+fn alloc(u64 amount_of_bytes) : ptr(void) {
+  return malloc(amount_of_bytes);
+}
+
+/*
+ffi fn printf(ptr(i8) format, ...) : i32;
+fn log(ptr(string) str) {
+  printf("%s\n", str[0]->value);
+}
+*/

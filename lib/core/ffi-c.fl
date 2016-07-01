@@ -1,0 +1,18 @@
+ffi fn printf(ptr(i8) format, ...) : i32;
+ffi fn malloc(u64 size) : ptr(void);
+ffi fn free(ptr(void) ptr) : void;
+
+/*
+fn plus(i8 a, i8 b) : i8;
+fn plus(i16 a, i16 b) : i16;
+fn plus(i32 a, i32 b) : i32;
+fn plus(i64 a, i64 b) : i64;
+
+fn plus(u8 a, u8 b) : u8;
+fn plus(u16 a, u16 b) : u16;
+fn plus(u32 a, u32 b) : u32;
+fn plus(u64 a, u64 b) : u64;
+
+fn plus(f32 a, f32 b) : f32;
+fn plus(f64 a, f64 b) : f64;
+*/

@@ -1,0 +1,22 @@
+struct Any {
+  u32 type;
+  ptr(void) value;
+};
+
+function box(ptr(void) value, u32 type): ptr<Any> {
+  ptr<Any> a = Anyalloc(sizeof Any);
+  a[0].type = type;
+  a[0].value = value;
+
+  return a;
+}
+
+function unbox(ptr<Any> con, u32 type) : ptr(void) {
+  assert(con[0].type == type);
+
+  return con[0].value;
+}
+
+function unbox(ptr<Any>) : ptr(void) {
+  return con[0].value;
+}
