@@ -102,7 +102,7 @@
       exit(1);                                                                 \
     }                                                                          \
     ast_t** body = root->program.body->block.body->list.elements;              \
-    LLVMModuleRef module = fl_codegen(root, "test");                           \
+    fl_codegen(root, "test");                                                  \
     code_block;                                                                \
     flang_exit(root);                                                          \
   }
@@ -117,7 +117,7 @@
     root = ts_pass(root);                                                      \
     ast_mindump(root);                                                         \
     ast_t** body = root->program.body->block.body->list.elements;              \
-    LLVMModuleRef module = fl_codegen(root, "test");                           \
+    fl_codegen(root, "test");                           \
     code_block;                                                                \
     flang_exit(root);                                                          \
   }

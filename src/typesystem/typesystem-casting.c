@@ -147,11 +147,6 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
     default: {} // supress warning
     }
   }
-  log_verbose("cg_bitcast: %d == %d", cg_bitcast(ex_type, cu_type),
-              cg_bitcast(cu_type, ex_type));
-  if (cg_bitcast(ex_type, cu_type) || cg_bitcast(cu_type, ex_type)) {
-    return FL_CAST_BITCAST;
-  }
 
   string* name = st_newc("autocast", st_enc_ascii);
   size_t args_ty[1];
@@ -181,6 +176,8 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
     return FL_CAST_AUTO;
   }
 
+  return FL_CAST_BITCAST;
+  /* TODO REVIEW !!!
   if (!current || !expected) {
     log_warning("inference is still needed!");
     return 0;
@@ -189,8 +186,7 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
   ast_raise_error(node,
                   "invalid casting: \x1B[36m%s\x1B[39m to \x1B[36m%s\x1B[39m",
                   ty_to_string(current)->value, ty_to_string(expected)->value);
-
-  return 0;
+  */
 }
 
 ast_t* __ts_autocast(ast_t* node, size_t input, size_t output) {

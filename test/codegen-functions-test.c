@@ -43,12 +43,11 @@ TASK_IMPL(codegen_functions) {
                   {});
 
   TEST_CODEGEN_OK("cg function 03", "printf(\"%s\\n\", \"hello\");",
-                  { fl_to_bitcode(module, "hello-world.bc"); });
+                  { });
 
-  // fl_interpreter(module);
   TEST_CODEGEN_OK("cg function 04",
                   "var ptr(i8) str; str = \"hello\"; printf(\"%s\\n\", str);",
-                  { fl_to_bitcode(module, "hello-world.bc"); });
+                  { });
 
   TEST_CODEGEN_OK("function 05",
                   "ffi fn x( i8 arg1 , i8 arg2 ) : i8 ;"

@@ -24,6 +24,7 @@
 */
 
 #include "flang.h"
+#include "stringc.h"
 
 array* identifiers;
 extern int yycolumn;
@@ -66,4 +67,8 @@ void flang_exit(ast_t* root) {
   st_replace_allocators(malloc, realloc, free);
   hash_replace_allocators(malloc, realloc, free);
   array_replace_allocators(malloc, realloc, free);
+}
+
+void fl_codegen(ast_t* root, char* filename) {
+
 }

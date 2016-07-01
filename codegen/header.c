@@ -1,4 +1,7 @@
 #include <inttypes.h>
+#include "stringc.h"
+
+#define MAX_PATH 1024
 
 #define public extern
 #define globvar static
@@ -22,3 +25,37 @@
 #define u64 uint64_t
 #define f32 float
 #define f64 double
+
+typedef struct {
+  string* cwd;
+} process_t;
+globvar process_t* process;
+
+/// DECL
+
+/// END OF DECL
+
+void bootstrap() {
+  process = malloc(sizeof(process_t));
+  process.cwd = st_new(MAX_PATH, st_enc_utf8)
+  uv_err_t err;
+  size_t size = sizeof(buffer_orig) / sizeof(buffer_orig[0]);
+  err = uv_cwd(CWD->, size);
+  ASSERT(err.code == UV_OK)
+}
+
+int main() {
+  bootstrap();
+
+  // USER CODE!
+
+  // END OF USER CODE!
+
+  st_delete(&process.cwd);
+  free(process);
+  return 0;
+}
+
+/// IMPL
+
+/// END OF IMPL

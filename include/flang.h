@@ -108,15 +108,6 @@ typedef ast_action_t (*ast_cb_t)(ast_t* node, ast_t* parent, size_t level,
 
 #define FL_EXTERN extern
 
-#define FL_CODEGEN_HEADER                                                      \
-  ast_t* node, LLVMBuilderRef builder, LLVMModuleRef module,                   \
-      LLVMContextRef context, LLVMBasicBlockRef* current_block,                \
-      LLVMValueRef* parent
-
-#define FL_CODEGEN_HEADER_SEND                                                 \
-  node, builder, module, context, current_block, parent
-#define FL_CODEGEN_PASSTHROUGH builder, module, context, current_block, parent
-
 //-
 //- functions, global variables
 //-
@@ -126,6 +117,8 @@ typedef ast_action_t (*ast_cb_t)(ast_t* node, ast_t* parent, size_t level,
 extern array* identifiers;
 extern char* ast_last_error_message;
 extern ast_t* ast_last_error_node;
+
+FL_EXTERN void fl_codegen(ast_t* root, char* filename);
 
 /* Initiaze global variables and memory pool.
  * Must be called before anything else.
@@ -507,38 +500,6 @@ FL_EXTERN ast_t* typesystem(ast_t* root);
 
 /* cldoc:end-category() */
 
-// - codegen
-
-/* cldoc:begin-category(codegen-export.c) */
-
-/* Export to bitcode given module.
- *
- * @module Module to export
- * @filename export filename (path must exits)
- * @return true if everything goes ok
- */
-FL_EXTERN bool fl_to_bitcode(LLVMModuleRef module, const char* filename);
-
-/* Export to IR given module.
- *
- * @module Module to export
- * @filename export filename (path must exits)
- * @return true if everything goes ok
- */
-FL_EXTERN bool fl_to_ir(LLVMModuleRef module, const char* filename);
-
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(codegen-interpreter.c) */
-
-/* Execute main function of given module.
- *
- * @module Module to execute
- */
-FL_EXTERN void fl_interpreter(LLVMModuleRef module);
-
-/* cldoc:end-category() */
-
 // - ast/*
 
 /* cldoc:begin-category(ast-alloc.c) */
@@ -659,7 +620,7 @@ FL_EXTERN ast_t* ast_get_global_scope(ast_t* node);
 FL_EXTERN ast_t* ast_get_scope(ast_t* node);
 
 /* Get location as string
- * 
+ *
  * @node
  * @return string location
  */
@@ -906,59 +867,5 @@ FL_EXTERN size_t ast_get_typeid(ast_t* node);
  * @node
  */
 FL_EXTERN bool ast_is_pointer(ast_t* node);
-
-/* cldoc:end-category() */
-
-//- codegen/*
-
-/* cldoc:begin-category(codegen-types.c) */
-
-/* Return if it's possible to bitcast given types
- * This functions may need to be called twice swaping it's args
- * to be sure...
- *
- * @a
- * @b
- */
-FL_EXTERN bool cg_bitcast(ty_t a, ty_t b);
-
-/* Codegen the type and return it
- *
- * @node
- * @context
- */
-FL_EXTERN LLVMTypeRef cg_get_type(ast_t* node, LLVMContextRef context);
-
-/* Codegen the type and return it
- *
- * @tyid
- * @context
- */
-FL_EXTERN LLVMTypeRef
-    cg_get_typeid(ast_t* node, size_t tyid, LLVMContextRef context);
-
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(codegen-utils.c) */
-
-/* Store a value into the identifier declaration
- *
- * @node must be an identifier
- * @value value to store
- * @builder current LLVMBuilderRef
- */
-FL_EXTERN void cg_utils_store(ast_t* node, LLVMValueRef value,
-                              LLVMBuilderRef builder);
-
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(codegen.c) */
-
-/* Create a single (atm) module with the given tree
- * It's use LLVM as backend.
- * @root Node
- * @module_name Module name
- */
-FL_EXTERN LLVMModuleRef fl_codegen(ast_t* root, char* module_name);
 
 /* cldoc:end-category() */

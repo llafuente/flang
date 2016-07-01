@@ -31,7 +31,7 @@ void __fl_attach_core(ast_t* root) {
   ast_t* block = root->program.body;
 
   if (block->type != FL_AST_ERROR) {
-    ast_t* import = ast_mk_import(ast_mk_lit_string("core/core", false), true);
+    ast_t* import = ast_mk_import(ast_mk_lit_string("lib/core/core", false), true);
     ast_mk_list_insert(block->block.body, import, 0);
   }
 }

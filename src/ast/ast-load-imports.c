@@ -45,7 +45,7 @@ ast_action_t __trav_load_imports(ast_t* node, ast_t* parent, size_t level,
       strcat(filepath, ".fl");
       free(file2);
     } else {
-      strcat(filepath, "./../");
+      strcat(filepath, "./");
       strcat(filepath, file);
       strcat(filepath, ".fl");
     }

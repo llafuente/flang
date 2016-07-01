@@ -1,4 +1,7 @@
-#!/bin/sh -x
+#!/bin/sh
+
+set -x
+set -e
 
 rm -rf tmp
 mkdir -p tmp
@@ -17,18 +20,17 @@ if [ "$1" = "--clean" ]
 
     make clean
     make distclean
-    sh ../autogen.sh
+    sh ../bootstrap
     ../configure
 fi
+
+set +e
 
 # -fsanitize-memory-track-origins -fsanitize-memory could be needed ?
 make check "CC='clang'" "CFLAGS=${LLVM_CC_FLAGS} -g -O0 -fsanitize=integer -fsanitize=undefined -fsanitize=address -fno-omit-frame-pointer -DASAN=1 -DYYDEBUG=1"
 
-if [ "$1" = "--run" ]
-  then
-  ./test/run-tests
-fi
-
-  #./flang ../test/fl/pointers.fl
-  #./flang ../test/fl/fibonacci.fl
 cd ..
+./build/test/run-tests
+
+#./flang ../test/fl/pointers.fl
+#./flang ../test/fl/fibonacci.fl

@@ -30,17 +30,7 @@ int main(int argc, char** argv) {
     exit(4);
   }
 
-  LLVMModuleRef module = fl_codegen(root, "test");
-
-  if (argc == 3) {
-    printf("export to ir %s\n", argv[2]);
-    fl_to_ir(module, argv[2]);
-  } else {
-    printf("Running\n");
-    // JIT has not been linked in.
-    // cg_jit(module);
-    fl_interpreter(module);
-  }
+  fl_codegen(root, "test.c");
 
   flang_exit(root);
 

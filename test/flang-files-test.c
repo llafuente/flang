@@ -114,10 +114,7 @@ void test_file_list(char** files, size_t nfiles, char* path) {
 
     // ty_dump_table();
 
-    module = fl_codegen(root, "test");
-
-    fl_to_bitcode(module, bc_file);
-    fl_to_ir(module, ir_file);
+    fl_codegen(root, "test");
 
     flang_exit(root);
 
@@ -160,11 +157,11 @@ TASK_IMPL(flang_files) {
       //,"promotion"
   };
 
-  test_file_list(test_files, 24, "../test/fl/");
+  test_file_list(test_files, 24, "test/fl/");
 
   char* perf_files[] = {"array-reverse"};
 
-  test_file_list(perf_files, 1, "../test/perf/");
+  test_file_list(perf_files, 1, "test/perf/");
 
   return 0;
 }
