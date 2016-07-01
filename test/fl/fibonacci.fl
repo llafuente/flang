@@ -1,0 +1,21 @@
+var i32 n = 10;
+var i32 first = 0;
+var i32 second = 1;
+var i32 next;
+var i32 c;
+
+//printf("Enter the number of terms\n");
+//scanf("%d",&n);
+//printf("First %d terms of Fibonacci series are :-\n",n);
+
+for c = 0 ; c < n ; ++c {
+   if c <= 1 {
+      next = c;
+   } else {
+      next = first + second;
+      first = second;
+      second = next;
+   }
+
+   printf("%d\n",next);
+}

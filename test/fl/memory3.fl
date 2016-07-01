@@ -1,0 +1,6 @@
+var ptr(i32) arr;
+arr = malloc(sizeof(i32) * 40);
+
+var i32 i = 40;
+arr[i] = 80;
+printf("arr[%d] = %d\n", i, arr[i]);

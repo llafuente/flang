@@ -1,0 +1,6 @@
+count = 10
+i = 0 lastIdx = 9
+i = 1 lastIdx = 8
+i = 2 lastIdx = 7
+i = 3 lastIdx = 6
+i = 4 lastIdx = 5

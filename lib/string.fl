@@ -1,0 +1,4 @@
+struct string {
+  u64 length;
+  u64 length;
+}

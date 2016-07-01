@@ -1,0 +1,29 @@
+//number
+$log 1+2+3;
+var i32 a;
+$log a = 1;
+$log a;
+
+// string
+var ptr(i8) str = "blablabla";
+$log str;
+$log "string got duplicated, funny?";
+
+// ptr to number
+var ptr(u8) b = malloc(1);
+b[0] = 100;
+
+//$log &b;
+
+struct vec2 {
+  i8 x,
+  i8 y,
+  i8 stop,
+};
+
+var vec2 v2;
+v2.x = 100;
+v2.y = 200;
+v2.stop = 0;
+
+//$log v2;

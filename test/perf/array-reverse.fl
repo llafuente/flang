@@ -1,0 +1,39 @@
+fn reverseArray(ptr(i32) theList, i32 count) : void {
+  var i32 i;
+  printf("count = %d\n", count);
+  for i = 0; i < count >> 1; i = i + 1 {
+    var i32 lastIdx;
+    var i32 lastValue;
+    lastIdx = count - i - 1;
+    lastValue = theList[lastIdx];
+    printf("i = %d lastValue = %d lastIdx = %d\n", i, lastValue, lastIdx);
+    theList[lastIdx] = theList[i];
+    theList[i] = lastValue;
+  }
+  return 0;
+}
+var i32 count;
+count = 10;
+var i32 iterations;
+iterations = 5;
+
+// ptr(i32) arr = malloc(sizeof(i32) * count);
+var ptr(i32) arr;
+arr = malloc(sizeof(i32) * count);
+
+var i32 i;
+for i = 0; i < count; i = i + 1 {
+  arr[i] = i;
+  printf("arr[%d] = %d\n", i, arr[i]);
+}
+
+
+for i = 0; i < iterations; i = i + 1 {
+  reverseArray(arr, count);
+}
+
+for i = 0; i < count; i = i + 1 {
+  printf("arr[%d] = %d\n", i, arr[i]);
+}
+
+free(cast(ptr(void)) arr);

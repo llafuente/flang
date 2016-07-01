@@ -1,0 +1,24 @@
+// this is a compiler jobs to generate this variable
+extern var void* __flang_types;
+
+// from libc
+extern function malloc(void* ptr);
+extern function free(void* ptr);
+
+// get current type
+function type(u64 type_id) {
+  return __flang_types[type_id];
+}
+
+// typeof
+// is a compiler job. It will end being a u64
+// var bool x; typeof(x) -> 1
+
+// typeof(type), it may raise an erorr...
+// var bool y; typeof(bool) -> 0 typeof(y) -> 1
+
+// cast
+// is a compiler job.
+// but is cast cannot be found in the built'in
+// compiler will search for a autocast function, and call it instead
+// otherwise will return an error

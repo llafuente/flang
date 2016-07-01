@@ -1,0 +1,21 @@
+#def null 0
+#def true 1
+#def false 0
+
+type bool int8_t;
+type i8 int8_t;
+type i16 int16_t;
+type i32 int32_t;
+type i64 int64_t;
+type u8 uint8_t;
+type u16 uint16_t;
+type u32 uint32_t;
+type u64 uint64_t;
+type f32 float;
+type f64 double;
+
+compiler autocast function (i8 a) : i16 {
+  return cast(i16) a;
+}
+compiler autocast error (i16 a) : i8 "cast from i16 to i8 precision lost (implicit cast required)."
+compiler autocast warning (u64 a) : i64 "cast from u64 to i64 precision lost (implicit cast required)."

@@ -1,0 +1,8 @@
+import core/numbers;
+
+// a pointer is just a reference to a type
+// a reference cannot be moved
+
+wrapper reference<$T> {
+  type $T*;
+}

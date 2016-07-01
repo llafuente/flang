@@ -1,0 +1,5 @@
+1+2+3 [36m(i64)[39m = [33m6[39m
+a = 1 [36m(i32)[39m = [33m1[39m
+a [36m(i32)[39m = [33m1[39m
+str [36m(cstr)[39m = [32mblablabla[39m
+"string got duplicated, funny?"; [36m(cstr)[39m = [32mstring got duplicated, funny?[39m

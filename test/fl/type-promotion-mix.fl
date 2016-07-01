@@ -1,0 +1,39 @@
+//assumes little endian
+// NOTE changing all i32 -> i8 should work, why not?
+fn to_bin (i32 size, ptr(void) p) : i32 {
+  var ptr(u8) b = cast(ptr(u8)) p;
+  var u8 byte;
+  var i32 i;
+  var i32 j;
+
+  for i = size - 1; i >= 0; i = i - 1 {
+    //printf("byte = %c\n", b[i]);
+    for j = 7; j >= 0; j-- {
+      byte = cast(u8) (b[i] & (1<<j));
+      byte = cast(u8) (byte >> j);
+      //printf("%d - %u\n", i + j, byte);
+      printf("%u", byte);
+    }
+  }
+  printf("\n");
+  return 0;
+}
+
+var i8 _i8 = -8;
+var u16 _u16 = 16;
+var i32 _i32 = 32;
+var u64 _u64 = 64;
+
+// promotions
+_u16 = _i8;
+_i32 = _u16;
+_u64 = _i32;
+
+printf("i8 = -8 @ binary = ");
+to_bin(1, cast(ptr(void)) &_i8);
+printf("u16 = (i8)-8 @ binary = ");
+to_bin(2, cast(ptr(void)) &_u16);
+printf("_i32 = (u16)(i8)-8 @ binary = ");
+to_bin(4, cast(ptr(void)) &_i32);
+printf("_u64 = (i32)(u16)(i8)-8 @ binary = ");
+to_bin(8, cast(ptr(void)) &_u64);

@@ -1,0 +1,22 @@
+/* polymorphism */
+function p(ptr(i8) str) : i32 {
+  return printf("poly as string = %s\n", str);
+}
+
+function p(i32 num) : i32 {
+  return printf("poly as i32 %d\n", num);
+}
+
+// %f require a double!
+function p(f64 f) : i32 {
+  return printf("poly as f64 %f\n", f);
+}
+
+
+p(10);
+printf("direct as i32 %d\n", 10);
+
+p(100.5001);
+printf("direct as f64 %f\n", cast(f64) 100.5001);
+
+p("this is a string!");

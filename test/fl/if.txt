@@ -1,0 +1,4 @@
+1. ok 1
+2. moved!
+3. else?; ok!
+4. i == 2; ok!

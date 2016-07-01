@@ -1,0 +1,50 @@
+arr[0] = 0
+arr[1] = 1
+arr[2] = 2
+arr[3] = 3
+arr[4] = 4
+arr[5] = 5
+arr[6] = 6
+arr[7] = 7
+arr[8] = 8
+arr[9] = 9
+count = 10
+i = 0 lastValue = 9 lastIdx = 9
+i = 1 lastValue = 8 lastIdx = 8
+i = 2 lastValue = 7 lastIdx = 7
+i = 3 lastValue = 6 lastIdx = 6
+i = 4 lastValue = 5 lastIdx = 5
+count = 10
+i = 0 lastValue = 0 lastIdx = 9
+i = 1 lastValue = 1 lastIdx = 8
+i = 2 lastValue = 2 lastIdx = 7
+i = 3 lastValue = 3 lastIdx = 6
+i = 4 lastValue = 4 lastIdx = 5
+count = 10
+i = 0 lastValue = 9 lastIdx = 9
+i = 1 lastValue = 8 lastIdx = 8
+i = 2 lastValue = 7 lastIdx = 7
+i = 3 lastValue = 6 lastIdx = 6
+i = 4 lastValue = 5 lastIdx = 5
+count = 10
+i = 0 lastValue = 0 lastIdx = 9
+i = 1 lastValue = 1 lastIdx = 8
+i = 2 lastValue = 2 lastIdx = 7
+i = 3 lastValue = 3 lastIdx = 6
+i = 4 lastValue = 4 lastIdx = 5
+count = 10
+i = 0 lastValue = 9 lastIdx = 9
+i = 1 lastValue = 8 lastIdx = 8
+i = 2 lastValue = 7 lastIdx = 7
+i = 3 lastValue = 6 lastIdx = 6
+i = 4 lastValue = 5 lastIdx = 5
+arr[0] = 9
+arr[1] = 8
+arr[2] = 7
+arr[3] = 6
+arr[4] = 5
+arr[5] = 4
+arr[6] = 3
+arr[7] = 2
+arr[8] = 1
+arr[9] = 0

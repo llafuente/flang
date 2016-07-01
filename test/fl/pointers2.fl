@@ -1,0 +1,16 @@
+fn t1(ptr(i8) v) : i8 {
+  printf("ptr(i8)\n");
+
+  return 0;
+}
+
+fn t2(ptr(ptr(i8)) v) : i8 {
+  printf("ptr(ptr(i8))\n");
+
+  return 0;
+}
+
+var ptr(i8) a;
+
+t1 (a);
+t2 (&a);
