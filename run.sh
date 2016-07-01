@@ -3,6 +3,8 @@
 set -x
 set -e
 
+sh grammar.sh
+
 rm -rf build
 mkdir -p build
 cd build
@@ -15,7 +17,7 @@ ASAN_OPTIONS=symbolize=1
 sh ../bootstrap
 ../configure
 # -fsanitize-memory-track-origins -fsanitize-memory could be needed ?
-make "CC='clang'" "CFLAGS=-g -O0 -fsanitize=integer -fsanitize=undefined -fsanitize=address -fno-omit-frame-pointer -DASAN=0"
+make "CC='clang'" "CFLAGS=-std=c11 -g -O0 -fsanitize=integer -fsanitize=undefined -fsanitize=address -fno-omit-frame-pointer -DASAN=0"
 
 cd ..
 

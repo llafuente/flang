@@ -23,10 +23,13 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/ast.h"
+#include "flang/typesystem.h"
+#include "flang/debug.h"
 
 ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
-                            size_t level, void* userdata_in,
+                            u64 level, void* userdata_in,
                             void* userdata_out) {
 #define TRAVERSE(node)                                                         \
   if (node) {                                                                  \
@@ -42,7 +45,7 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
 
 #define TRAVERSE_LIST(node)                                                    \
   {                                                                            \
-    size_t i = 0;                                                              \
+    u64 i = 0;                                                              \
     ast_t* tmp;                                                                \
                                                                                \
     if (node) {                                                                \
@@ -175,16 +178,16 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
   return FL_AC_CONTINUE;
 }
 
-void ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, size_t level,
+void ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, u64 level,
                   void* userdata_in, void* userdata_out) {
   __ast_traverse(ast, cb, parent, level, userdata_in, userdata_out);
 }
 
-void ast_traverse_list(ast_t* node, ast_cb_t cb, ast_t* until, size_t level,
+void ast_traverse_list(ast_t* node, ast_cb_t cb, ast_t* until, u64 level,
                        void* userdata_in, void* userdata_out) {
   assert(node->type == FL_AST_LIST);
 
-  size_t i;
+  u64 i;
   for (i = 0; i < node->list.count; ++i) {
     // exit when reach parent
     if (node->list.elements[i] == until) {

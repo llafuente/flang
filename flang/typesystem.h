@@ -23,6 +23,9 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+extern ty_t* ts_type_table;
+extern size_t ts_type_size_s;
+
 #define TS_VOID 1
 #define TS_BOOL 2
 #define TS_U8 3
@@ -39,6 +42,8 @@
 #define TS_PVOID 14
 #define TS_VECI8 15
 #define TS_STRING 13 // TODO this should be 16
+
+// DECL
 
 enum ts_types {
   FL_VOID = 1,
@@ -75,20 +80,20 @@ struct ts_type {
     } number;
 
     struct ts_type_pointer {
-      size_t to;
+      u64 to;
     } ptr;
 
     struct ts_type_vector {
-      size_t to;
-      size_t length;
+      u64 to;
+      u64 length;
     } vector;
 
     struct ts_type_function {
       ast_t* decl;
 
-      size_t ret;
-      size_t* params;
-      size_t nparams;
+      u64 ret;
+      u64* params;
+      u64 nparams;
       bool varargs;
 
     } func;
@@ -96,17 +101,17 @@ struct ts_type {
     struct ts_type_struct {
       ast_t* decl;
 
-      size_t* fields;
+      u64* fields;
       string** properties;
-      size_t nfields;
+      u64 nfields;
 
     } structure;
 
     struct ts_type_enum {
       ast_t* decl;
 
-      size_t* members;
-      size_t nmembers;
+      u64* members;
+      u64 nmembers;
 
     } enu;
 

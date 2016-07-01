@@ -29,6 +29,7 @@
 
 #include <libgen.h>
 
+extern void __sanitizer_print_stack_trace();
 extern int log_debug_level;
 
 #define fl_fatal_error(fmt, ...)                                               \

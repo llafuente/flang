@@ -23,10 +23,13 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/ast.h"
+#include "flang/debug.h"
+#include "parser/libparserfl.h"
 
 // TODO global vars!
-size_t ast_get_ident_typeid(ast_t* id) {
+u64 ast_get_ident_typeid(ast_t* id) {
   assert(id->type == FL_AST_LIT_IDENTIFIER);
   log_verbose("%s", id->identifier.string->value);
 
@@ -43,7 +46,7 @@ size_t ast_get_ident_typeid(ast_t* id) {
 ast_t* ast_get_attribute(ast_t* list, string* needle) {
   assert(list->type == FL_AST_LIST);
   ast_t* attr;
-  size_t i;
+  u64 i;
 
   for (i = 0; i < list->list.count; ++i) {
     // exit when reach parent
@@ -88,7 +91,7 @@ string* ast_get_location(ast_t* node) {
   ast_t* root = ast_get_root(node);
   char buffer[1024];
   sprintf(buffer, "%s:%d:%d",
-          root->program.file ? root->program.file : "unkownfile",
+          root->program.file ? root->program.file->value : "unkownfile",
           node->first_line, node->first_column);
 
   string* ret = st_newc(buffer, st_enc_utf8);

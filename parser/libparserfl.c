@@ -23,9 +23,13 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
-#include "grammar/tokens.h"
-#include "grammar/parser.h"
+#include "flang/common.h"
+#include "flang/ast.h"
+#include "flang/debug.h"
+#include "parser/libparserfl.h"
+#include "parser/grammar/tokens.h"
+#include "parser/grammar/parser.h"
+#include <string.h>
 
 void __fl_attach_core(ast_t* root) {
   ast_t* block = root->program.body;
@@ -40,7 +44,7 @@ ast_t* __fl_parse(string* code, const char* file) {
   // create program node, so error reporting could be nice!
   ast_t* root = ast_mk_program(0);
   root->program.code = code;
-  root->program.file = file ? strdup(file) : 0;
+  root->program.file = file ? st_newc(file, st_enc_utf8) : 0;
 
   YY_BUFFER_STATE buf = yy_scan_string(code->value);
   yyparse(&root);

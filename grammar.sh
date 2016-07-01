@@ -3,7 +3,7 @@
 set -e
 set -x
 
-cd src/grammar
+cd parser/grammar
 
 # debug/dev
 #flex --header-file=tokens.h --debug -o tokens.c tokens.l parser.h

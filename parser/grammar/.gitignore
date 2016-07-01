@@ -1,0 +1,6 @@
+*.o
+parser.c
+parser.h
+tokens.c
+tokens.h
+parser.output

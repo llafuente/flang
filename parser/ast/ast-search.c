@@ -23,9 +23,11 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/ast.h"
+#include "flang/typesystem.h"
 
-ast_action_t __trav_search_id_decl(ast_t* node, ast_t* parent, size_t level,
+ast_action_t __trav_search_id_decl(ast_t* node, ast_t* parent, u64 level,
                                    void* userdata_in, void* userdata_out) {
 #define COMPARE(x)                                                             \
   {                                                                            \
@@ -83,15 +85,15 @@ ast_t* ast_search_id_decl(ast_t* node, string* identifier) {
   return 0;
 }
 
-ast_t* ast_search_fn(ast_t* node, string* identifier, size_t* args,
-                     size_t nargs, size_t ret_ty, bool var_args) {
+ast_t* ast_search_fn(ast_t* node, string* identifier, u64* args,
+                     u64 nargs, u64 ret_ty, bool var_args) {
   array* arr = ast_search_fns(node, identifier);
 
   if (!arr) {
     return 0;
   }
 
-  size_t i;
+  u64 i;
   ast_t* fn;
   for (i = 0; i < arr->size; ++i) {
     fn = arr->data[i];
@@ -103,11 +105,11 @@ ast_t* ast_search_fn(ast_t* node, string* identifier, size_t* args,
       log_verbose("varargs %d == %d", t.func.varargs, var_args);
       log_verbose("nparams %zu == %zu", t.func.nparams, nargs);
       log_verbose("params %d",
-                  memcmp(args, t.func.params, nargs * sizeof(size_t)));
+                  memcmp(args, t.func.params, nargs * sizeof(u64)));
       log_verbose("ret %zu == %zu", t.func.ret, ret_ty);
 
       if (t.func.nparams == nargs &&
-          memcmp(args, t.func.params, nargs * sizeof(size_t)) == 0 &&
+          memcmp(args, t.func.params, nargs * sizeof(u64)) == 0 &&
           t.func.varargs == var_args && t.func.ret == ret_ty) {
         array_delete(arr);
         free(arr);
@@ -165,9 +167,9 @@ ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
 
   ast_t* arg_call;
 
-  size_t i, j;
-  size_t imax = args_call->list.count;
-  size_t jmax = arr->size;
+  u64 i, j;
+  u64 imax = args_call->list.count;
+  u64 jmax = arr->size;
 
   // strict and no template
   for (j = 0; j < jmax; ++j) {
@@ -201,7 +203,7 @@ fn_wargs_return:
   return ret_decl;
 }
 
-ast_action_t __search_fns(ast_t* node, ast_t* parent, size_t level,
+ast_action_t __search_fns(ast_t* node, ast_t* parent, u64 level,
                           void* userdata_in, void* userdata_out) {
 
   // log_verbose("traverse %d", node->type);
@@ -247,7 +249,7 @@ array* ast_search_fns(ast_t* node, string* id) {
   return 0;
 }
 
-ast_action_t __trav_get_list_node(ast_t* node, ast_t* parent, size_t level,
+ast_action_t __trav_get_list_node(ast_t* node, ast_t* parent, u64 level,
                                   void* userdata_in, void* userdata_out) {
   if (node->type == *(ast_types_t*)userdata_in) {
     array_append((array*)userdata_out, node);

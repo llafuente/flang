@@ -23,9 +23,13 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/ast.h"
+#include "flang/typesystem.h"
+#include "flang/debug.h"
+#include "parser/libparserfl.h"
 
-ast_action_t __trav_set_parent(ast_t* node, ast_t* parent, size_t level,
+ast_action_t __trav_set_parent(ast_t* node, ast_t* parent, u64 level,
                                void* userdata_in, void* userdata_out) {
 
   // ast_parent can be called many times!
@@ -41,7 +45,7 @@ void ast_parent(ast_t* root) {
   ast_traverse(root, __trav_set_parent, 0, 0, 0, 0);
 }
 
-size_t ast_get_typeid(ast_t* node) {
+u64 ast_get_typeid(ast_t* node) {
   assert(node != 0);
   // check AST is somewhat "type-related"
   switch (node->type) {
@@ -99,16 +103,16 @@ size_t ast_get_typeid(ast_t* node) {
 }
 
 bool ast_is_pointer(ast_t* node) {
-  size_t id = ast_get_typeid(node);
+  u64 id = ast_get_typeid(node);
   return ts_type_table[id].of == FL_POINTER;
 }
 
 // TODO this can be removed... not used
-FL_EXTERN size_t ast_get_struct_prop_idx(ast_t* decl, string* id) {
-  size_t i;
+u64 ast_get_struct_prop_idx(ast_t* decl, string* id) {
+  u64 i;
   ast_t* list = decl->structure.fields;
   ast_t** elements = list->list.elements;
-  size_t length = list->list.count;
+  u64 length = list->list.count;
 
   for (i = 0; i < length; ++i) {
     if (st_cmp(elements[i]->field.id->identifier.string, id)) {

@@ -1,9 +1,6 @@
 ACLOCAL_AMFLAGS = -I m4
 
 COMPILER_SOURCES = src/flang.c \
-                src/grammar/parser.c \
-                src/grammar/tokens.c \
-                src/parser/parser-utils.c \
                 src/ast/ast.c \
                 src/ast/ast-alloc.c \
                 src/ast/ast-mk.c \
@@ -52,7 +49,9 @@ flang_SOURCES += $(COMPILER_SOURCES)
 
 flang_CFLAGS = $(LLVM_CC_FLAGS)
 flang_LDFLAGS = $(LLVM_LINK_FLAGS) -lstdc++ -Wl -L/usr/local/lib '-lstringc'
-flang_LDADD =
+flang_LDADD = libparserfl.a $(LIBS)
+flang_DEPENDENCIES=libparserfl.a
+
 
 SOURCES_TEST = test/tasks.c \
                test/hash-test.c \
@@ -80,3 +79,16 @@ test_run_tests_SOURCES = test/run-tests.c
 #test_run_tests_SOURCES = test/run-benchmarks.c
 test_run_tests_SOURCES += $(SOURCES_TEST)
 test_run_tests_SOURCES += $(COMPILER_SOURCES)
+
+
+
+noinst_LIBRARIES = libparserfl.a
+libparserfl_a_SOURCES = parser/ast/ast-mk.c \
+                        parser/ast/ast-alloc.c \
+                        parser/ast/ast-get.c \
+                        parser/ast/ast-traverse.c \
+                        parser/ast/ast.c \
+                        parser/grammar/parser.c \
+                        parser/grammar/tokens.c \
+                        parser/ast/ast-alloc.c \
+                        parser/libparserfl.c

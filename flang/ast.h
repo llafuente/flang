@@ -23,6 +23,8 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+// DECL
+
 enum ast_action { FL_AC_STOP = 0, FL_AC_CONTINUE, FL_AC_SKIP };
 
 enum ast_cast_operations {
@@ -46,7 +48,6 @@ enum ast_scope {
   AST_SCOPE_FUNCTION,
   AST_SCOPE_TRANSPARENT
 };
-typedef enum ast_scope ast_scope_t;
 
 enum ast_types {
   FL_AST_PROGRAM = 1,
@@ -112,7 +113,7 @@ struct ast {
   ast_types_t type;
   ast_t* parent;
 
-  size_t ty_id;
+  u64 ty_id;
 
   // codegen
   bool dirty;
@@ -127,10 +128,10 @@ struct ast {
       string* path;
       // code as string
       string* code;
-      char* file;
+      string* file;
       // all types found in the code
       ty_t* types;
-      size_t ntypes;
+      u64 ntypes;
       // actual code parsed
       ast_t* body;
     } program;
@@ -143,7 +144,7 @@ struct ast {
 
       ast_scope_t scope;
 
-      hash_t* types;     // size_t with the type id
+      hash_t* types;     // u64 with the type id
       hash_t* functions; // TODO array of decl?
       hash_t* variables; // ast_t* to declaration
 
@@ -155,7 +156,7 @@ struct ast {
       // list of statements
       ast_t** elements;
       // count
-      size_t count;
+      u64 count;
     } list;
 
     struct ast_lit_boolean {
@@ -221,8 +222,6 @@ struct ast {
       ast_t* id;
       ast_t* type;
       ast_scope_t scope;
-
-      LLVMValueRef alloca;
     } var;
 
     struct ast_idtype {
@@ -251,8 +250,6 @@ struct ast {
       bool varargs;
       bool templated;
       bool ffi; // TODO maybe ffi_type, 0 means flang, 1 means c...
-
-      LLVMValueRef cg_decl;
     } func;
 
     struct ast_decl_template {
@@ -264,9 +261,7 @@ struct ast {
       ast_t* type;
       ast_t* def;
       ast_t** assertions;
-      size_t nassertions;
-
-      LLVMValueRef alloca;
+      u64 nassertions;
     } param;
 
     struct ast_stmt_return {
@@ -299,7 +294,7 @@ struct ast {
     struct ast_expr_call {
       ast_t* callee;
       ast_t* arguments;
-      size_t narguments;
+      u64 narguments;
 
       ast_t* decl; // set by typesystem
     } call;
@@ -309,7 +304,7 @@ struct ast {
       ast_t* property;
       bool expression;
 
-      size_t idx; // calc by typesystem
+      u64 idx; // calc by typesystem
     } member;
     struct ast_expr_sizeof {
       ast_t* type;

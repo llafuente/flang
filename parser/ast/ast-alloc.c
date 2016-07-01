@@ -23,7 +23,9 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/ast.h"
+#include "parser/libparserfl.h"
 
 // NOTE this file contains all allocation-ast related functions
 
@@ -33,7 +35,7 @@ ast_t* ast_new() {
 }
 
 void __ast_delete_list(ast_t** list) {
-  size_t i = 0;
+  u64 i = 0;
   ast_t* tmp;
 
   if (list) {
@@ -215,8 +217,8 @@ ast_t* __ast_clone(ast_t* node) {
     hash_new(node->block.variables, 10);
   } break;
   case FL_AST_LIST: {
-    size_t i = 0;
-    size_t max = node->list.count;
+    u64 i = 0;
+    u64 max = node->list.count;
     ast_t* tmp;
 
     // +1 null at end

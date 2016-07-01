@@ -23,9 +23,15 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/ast.h"
+#include "flang/typesystem.h"
+#include "flang/debug.h"
+#include "parser/libparserfl.h"
+#include "parser/grammar/parser.h"
 #include <limits.h>
 #include <errno.h>
+#include <math.h> // HUGE_VAL
 
 // TODO redefinition atm...
 // ast_t* ast_new() { return (ast_t*)calloc(1, sizeof(ast_t)); }
@@ -63,7 +69,7 @@ ast_t* ast_mk_list() {
   node->type = FL_AST_LIST;
 
   node->list.count = 0;
-  size_t s = 300 * sizeof(ast_t*);
+  u64 s = 300 * sizeof(ast_t*);
   node->list.elements = pool_new(s);
   memset(node->list.elements, 0, s);
 
@@ -89,11 +95,11 @@ ast_t* ast_mk_list_pop(ast_t* list) {
   return node;
 }
 
-ast_t* ast_mk_list_insert(ast_t* list, ast_t* node, size_t idx) {
+ast_t* ast_mk_list_insert(ast_t* list, ast_t* node, u64 idx) {
   // printf("ast_mk_list_push [%p]\n", list);
   assert(list->type == FL_AST_LIST);
 
-  size_t count = list->list.count;
+  u64 count = list->list.count;
   assert(count > idx);
 
   memmove(list->list.elements + idx + 1, list->list.elements + idx,
@@ -108,7 +114,7 @@ ast_t* ast_mk_insert_before(ast_t* list, ast_t* search_item,
                             ast_t* insert_item) {
   assert(list->type == FL_AST_LIST);
 
-  size_t idx = 0;
+  u64 idx = 0;
   while (list->list.elements[idx] != search_item) {
     ++idx;
     if (idx > list->list.count) {
@@ -342,7 +348,7 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body,
     // do not resolve!
     ast_t* attr_id;
     ast_t* attr_val;
-    size_t i;
+    u64 i;
     for (i = 0; i < attributes->list.count; ++i) {
       attr_id = attributes->list.elements[i]->attr.id;
       if (attr_id->type == FL_AST_LIT_IDENTIFIER) {
