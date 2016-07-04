@@ -26,7 +26,7 @@
 #include "flang/common.h"
 #include "flang/ast.h"
 #include "flang/debug.h"
-#include "parser/libparserfl.h"
+#include "flang/libparserfl.h"
 #include "parser/grammar/tokens.h"
 #include "parser/grammar/parser.h"
 #include <string.h>

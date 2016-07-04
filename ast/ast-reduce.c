@@ -23,14 +23,17 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/ast.h"
+#include "flang/libast.h"
+#include "flang/typesystem.h"
 
 void __ast_reduce_log(ast_t* node) {
   // this will mutate to expr-call
   // get each part code and inject it before in the list
   ast_t* list = node->log.list; // cache
 
-  size_t i;
+  u64 i;
   char buffer[256];
   buffer[0] = '\0';
 
@@ -63,12 +66,12 @@ void __ast_reduce_log(ast_t* node) {
   node->call.callee->parent = node;
 }
 
-ast_action_t __trav_reduced(ast_t* node, ast_t* parent, size_t level,
+ast_action_t __trav_reduced(ast_t* node, ast_t* parent, u64 level,
                             void* userdata_in, void* userdata_out) {
   switch (node->type) {
   case FL_AST_STMT_LOG: {
     __ast_reduce_log(node);
-    ++(*(size_t*)userdata_out);
+    ++(*(u64*)userdata_out);
   } break;
   default: {} // avoid warning
   }
@@ -78,7 +81,7 @@ ast_action_t __trav_reduced(ast_t* node, ast_t* parent, size_t level,
 
 // return error
 ast_t* ast_reduce(ast_t* node) {
-  size_t reduced;
+  u64 reduced;
   do {
     reduced = 0;
     ast_traverse(node, __trav_reduced, 0, 0, 0, (void*)&reduced);

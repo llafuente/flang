@@ -23,45 +23,49 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/typesystem.h"
+#include "flang/ast.h"
+#include "flang/debug.h"
+#include "flang/libast.h"
 
-bool ty_is_struct(size_t id) {
+bool ty_is_struct(u64 id) {
   ty_t t = ts_type_table[id];
   return t.of == FL_STRUCT;
 }
 
-bool ty_is_vector(size_t id) {
+bool ty_is_vector(u64 id) {
   ty_t t = ts_type_table[id];
   return t.of == FL_VECTOR;
 }
 
-bool ty_is_number(size_t id) {
+bool ty_is_number(u64 id) {
   ty_t t = ts_type_table[id];
   return t.of == FL_NUMBER;
 }
 
-bool ty_is_fp(size_t id) {
+bool ty_is_fp(u64 id) {
   ty_t t = ts_type_table[id];
   return t.of == FL_NUMBER ? t.number.fp : false;
 }
 
-bool ty_is_int(size_t id) {
+bool ty_is_int(u64 id) {
   ty_t t = ts_type_table[id];
   return t.of == FL_NUMBER ? !t.number.fp : false;
 }
 
-bool ty_is_pointer(size_t id) {
+bool ty_is_pointer(u64 id) {
   ty_t t = ts_type_table[id];
   return t.of == FL_POINTER;
 }
 
-bool ty_is_template(size_t id) {
+bool ty_is_template(u64 id) {
   ty_t t = ts_type_table[id];
   return t.of == FL_TEMPLATE;
 }
 
-size_t ty_get_pointer_level(size_t id) {
-  size_t count = 0;
+u64 ty_get_pointer_level(u64 id) {
+  u64 count = 0;
   ty_t t = ts_type_table[id];
   while (t.of == FL_POINTER) {
     t = ts_type_table[t.ptr.to];
@@ -70,7 +74,7 @@ size_t ty_get_pointer_level(size_t id) {
   return count;
 }
 
-bool ty_is_function(size_t id) {
+bool ty_is_function(u64 id) {
   ty_t t = ts_type_table[id];
   return t.of == FL_FUNCTION;
 }
@@ -78,8 +82,8 @@ bool ty_is_function(size_t id) {
 // wrapper types are
 // * FL_POINTER
 // * FL_VECTOR
-size_t ty_create_wrapped(ts_types_t wrapper, size_t child) {
-  size_t i;
+u64 ty_create_wrapped(ts_types_t wrapper, u64 child) {
+  u64 i;
 
   for (i = 0; i < ts_type_size_s; ++i) {
     // TODO check length?!
@@ -106,7 +110,7 @@ size_t ty_create_wrapped(ts_types_t wrapper, size_t child) {
   return i;
 }
 
-size_t ty_get_struct_prop_idx(size_t id, string* property) {
+u64 ty_get_struct_prop_idx(u64 id, string* property) {
   if (ts_type_table[id].of != FL_STRUCT) {
     log_error("type [%zu] is not an struct", id);
   }
@@ -114,7 +118,7 @@ size_t ty_get_struct_prop_idx(size_t id, string* property) {
   ty_t t = ts_type_table[id];
   string** properties = t.structure.properties;
 
-  size_t i;
+  u64 i;
   for (i = 0; i < t.structure.nfields; ++i) {
     if (st_cmp((const string*)properties[i], property) == 0) {
       return i;
@@ -124,7 +128,7 @@ size_t ty_get_struct_prop_idx(size_t id, string* property) {
   return -1;
 }
 
-size_t ty_get_struct_prop_type(size_t id, string* property) {
+u64 ty_get_struct_prop_type(u64 id, string* property) {
   log_debug("ty_get_struct_prop_type [%zu] '%s'", id, property->value);
 
   if (ts_type_table[id].of != FL_STRUCT) {
@@ -134,7 +138,7 @@ size_t ty_get_struct_prop_type(size_t id, string* property) {
   ty_t t = ts_type_table[id];
   string** properties = t.structure.properties;
 
-  size_t i;
+  u64 i;
   for (i = 0; i < t.structure.nfields; ++i) {
     if (st_cmp((const string*)properties[i], property) == 0) {
       return t.structure.fields[i];
@@ -224,12 +228,12 @@ bool __struct_collision(ast_t* where, ast_t* scope, char* ty_name) {
 }
 
 // transfer list ownership
-size_t ty_create_struct(ast_t* decl) {
-  size_t i;
-  size_t j;
+u64 ty_create_struct(ast_t* decl) {
+  u64 i;
+  u64 j;
   ast_t* list = decl->structure.fields;
-  size_t length = list->list.count;
-  size_t* fields = calloc(length, sizeof(size_t));
+  u64 length = list->list.count;
+  u64* fields = calloc(length, sizeof(u64));
   string** properties = calloc(length, sizeof(string*));
   string* id = decl->structure.id->identifier.string;
 
@@ -261,7 +265,7 @@ size_t ty_create_struct(ast_t* decl) {
   return 0;
 }
 
-bool ty_compatible_fn(size_t ty_id, ast_t* arg_list, bool strict,
+bool ty_compatible_fn(u64 ty_id, ast_t* arg_list, bool strict,
                       bool template) {
   log_silly("fn ty_id %zu, strict? %d, template? %d", ty_id, strict, template);
   ty_t at = ts_type_table[ty_id];
@@ -271,9 +275,9 @@ bool ty_compatible_fn(size_t ty_id, ast_t* arg_list, bool strict,
     return false;
   }
   // function, same parameters length return type and varargs?
-  size_t i;
-  size_t current;
-  size_t expected;
+  u64 i;
+  u64 current;
+  u64 expected;
   for (i = 0; i < arg_list->list.count; ++i) {
     // end reached it's compatible, the rest is varargs
     if (at.func.varargs && i == at.func.nparams)
@@ -301,7 +305,7 @@ bool ty_compatible_fn(size_t ty_id, ast_t* arg_list, bool strict,
   }
   return true;
 }
-bool ty_compatible_struct(size_t a, size_t b) {
+bool ty_compatible_struct(u64 a, u64 b) {
   ty_t at = ts_type_table[a];
   ty_t bt = ts_type_table[b];
   assert(at.of == FL_STRUCT);
@@ -311,7 +315,7 @@ bool ty_compatible_struct(size_t a, size_t b) {
   // if (at.structure.nfields > bt.structure.nfields) {
   //  return false;
   //}
-  size_t i;
+  u64 i;
   for (i = 0; i < at.structure.nfields; ++i) {
     // reach the end of b, and all is compatible!
     if (i == bt.structure.nfields) {
@@ -326,7 +330,7 @@ bool ty_compatible_struct(size_t a, size_t b) {
   return true;
 }
 
-size_t ty_create_fn(ast_t* decl) {
+u64 ty_create_fn(ast_t* decl) {
   string* id = decl->func.id->identifier.string;
   char* cstr = id->value;
   string* uid;
@@ -363,10 +367,10 @@ size_t ty_create_fn(ast_t* decl) {
   assert(decl->func.uid != 0);
 
   ast_t* params = decl->func.params;
-  size_t length = params->list.count;
-  size_t* tparams = calloc(length, sizeof(size_t));
-  size_t ret = decl->func.ret_type->ty_id;
-  size_t i;
+  u64 length = params->list.count;
+  u64* tparams = calloc(length, sizeof(u64));
+  u64 ret = decl->func.ret_type->ty_id;
+  u64 i;
 
   for (i = 0; i < length; ++i) {
     tparams[i] = params->list.elements[i]->ty_id;
@@ -376,7 +380,7 @@ size_t ty_create_fn(ast_t* decl) {
   }
 
   // add it!
-  size_t ty_id = ts_type_size_s++;
+  u64 ty_id = ts_type_size_s++;
   ts_type_table[ty_id].of = FL_FUNCTION;
   ts_type_table[ty_id].id = id;
   ts_type_table[ty_id].func.decl = decl;
@@ -470,12 +474,12 @@ void ty_create_var(ast_t* decl) {
 
 // templates are registered inside the block
 // always get a new id, be cautious atm
-size_t ty_create_template(ast_t* decl) {
+u64 ty_create_template(ast_t* decl) {
   string* realname = st_newc("$", st_enc_utf8);
   st_append(&realname, decl->tpl.id->identifier.string);
 
   // add it!
-  size_t ty_id = ts_type_size_s++;
+  u64 ty_id = ts_type_size_s++;
   ts_type_table[ty_id].of = FL_TEMPLATE;
   ts_type_table[ty_id].id = realname;
   ts_type_table[ty_id].tpl.decl = decl;

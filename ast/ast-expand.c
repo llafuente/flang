@@ -23,7 +23,11 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/ast.h"
+#include "flang/libast.h"
+#include "flang/typesystem.h"
+#include "parser/grammar/tokens.h"
 
 // return error
 ast_t* ast_expand_fn(ast_t* call, ast_t* decl) {
@@ -40,15 +44,15 @@ ast_t* ast_expand_fn(ast_t* call, ast_t* decl) {
   fn->func.templated = false;
 
   // todo replace types!
-  size_t old;
-  size_t new;
+  u64 old;
+  u64 new;
 
   ast_t* params = fn->func.params;
-  size_t count = params->list.count;
+  u64 count = params->list.count;
 
-  size_t i;
+  u64 i;
   ty_t* param_ty;
-  size_t param_ty_id;
+  u64 param_ty_id;
 
   for (i = 0; i < count; ++i) {
     param_ty_id = params->list.elements[i]->ty_id;

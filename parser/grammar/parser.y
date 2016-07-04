@@ -3,7 +3,8 @@
 
   #include "flang/common.h"
   #include "flang/ast.h"
-  #include "parser/libparserfl.h"
+  #include "flang/libast.h"
+  #include "flang/libparserfl.h"
   #include "parser/grammar/parser.h"
   #include "flang/debug.h"
 

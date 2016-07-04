@@ -25,6 +25,7 @@
 
 #include "flang/common.h"
 #include "flang/ast.h"
+#include "flang/libast.h"
 #include "flang/typesystem.h"
 #include "flang/debug.h"
 

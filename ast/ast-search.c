@@ -25,7 +25,9 @@
 
 #include "flang/common.h"
 #include "flang/ast.h"
+#include "flang/libast.h"
 #include "flang/typesystem.h"
+#include "flang/debug.h"
 
 ast_action_t __trav_search_id_decl(ast_t* node, ast_t* parent, u64 level,
                                    void* userdata_in, void* userdata_out) {

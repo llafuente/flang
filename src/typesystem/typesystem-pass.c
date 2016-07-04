@@ -23,9 +23,13 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/typesystem.h"
+#include "flang/ast.h"
+#include "flang/libast.h"
+#include "flang/debug.h"
 
-ast_action_t __trav_casting(ast_t* node, ast_t* parent, size_t level,
+ast_action_t __trav_casting(ast_t* node, ast_t* parent, u64 level,
                             void* userdata_in, void* userdata_out) {
   switch (node->type) {
 
@@ -117,7 +121,7 @@ ast_action_t __trav_casting(ast_t* node, ast_t* parent, size_t level,
 }
 
 ast_action_t __ts_cast_operation_pass_cb(ast_t* node, ast_t* parent,
-                                         size_t level, void* userdata_in,
+                                         u64 level, void* userdata_in,
                                          void* userdata_out) {
   if (node->type == FL_AST_CAST) {
     node->cast.operation = ts_cast_operation(node);

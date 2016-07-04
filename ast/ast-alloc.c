@@ -25,7 +25,7 @@
 
 #include "flang/common.h"
 #include "flang/ast.h"
-#include "parser/libparserfl.h"
+#include "flang/libast.h"
 
 // NOTE this file contains all allocation-ast related functions
 

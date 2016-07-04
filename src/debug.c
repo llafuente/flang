@@ -23,6 +23,10 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/ast.h"
+#include "flang/debug.h"
 
 int log_debug_level = 4;
+ast_t* ast_last_error_node = 0;
+char* ast_last_error_message = 0;

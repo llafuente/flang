@@ -23,9 +23,13 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/typesystem.h"
+#include "flang/ast.h"
+#include "flang/libast.h"
+#include "flang/debug.h"
 
-size_t __ts_string_to_tyid(ast_t* node) {
+u64 __ts_string_to_tyid(ast_t* node) {
   assert(node->type == FL_AST_TYPE);
 
   // empty var_decl for example
@@ -84,14 +88,14 @@ size_t __ts_string_to_tyid(ast_t* node) {
 
   if (strcmp(tcstr, "ptr") == 0) {
     assert(node->ty.child != 0);
-    size_t t = __ts_string_to_tyid(node->ty.child);
+    u64 t = __ts_string_to_tyid(node->ty.child);
     return node->ty_id = ty_create_wrapped(FL_POINTER, t);
   }
 
   if (strcmp(tcstr, "vector") == 0) {
     assert(node->ty.child != 0);
 
-    size_t t = __ts_string_to_tyid(node->ty.child);
+    u64 t = __ts_string_to_tyid(node->ty.child);
     return node->ty_id = ty_create_wrapped(FL_VECTOR, t);
   }
 
@@ -111,7 +115,7 @@ size_t __ts_string_to_tyid(ast_t* node) {
   return 0;
 }
 
-ast_action_t __trav_register_types(ast_t* node, ast_t* parent, size_t level,
+ast_action_t __trav_register_types(ast_t* node, ast_t* parent, u64 level,
                                    void* userdata_in, void* userdata_out) {
   if (node->ty_id)
     return FL_AC_CONTINUE;

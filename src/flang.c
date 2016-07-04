@@ -23,15 +23,16 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/libparserfl.h"
+#include "flang/debug.h"
+#include "flang/libast.h"
+#include "flang/typesystem.h"
 #include "stringc.h"
 
 array* identifiers;
 extern int yycolumn;
 extern int yylineno;
-
-char* ast_last_error_message = 0;
-ast_t* ast_last_error_node = 0;
 
 void flang_init() {
   // reset flex/bison

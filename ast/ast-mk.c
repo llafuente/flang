@@ -25,9 +25,10 @@
 
 #include "flang/common.h"
 #include "flang/ast.h"
+#include "flang/libast.h"
 #include "flang/typesystem.h"
 #include "flang/debug.h"
-#include "parser/libparserfl.h"
+#include "flang/libparserfl.h"
 #include "parser/grammar/parser.h"
 #include <limits.h>
 #include <errno.h>

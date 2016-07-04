@@ -23,7 +23,10 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/ast.h"
+#include "flang/libast.h"
+#include "flang/debug.h"
 
 char __ast_cbuffer[1024];
 void __ast_block_hash_append_cb(char* key, void* decl) {
@@ -45,7 +48,7 @@ void ast_dump_one(ast_t* node) {
 
   switch (node->type) {
   case FL_AST_PROGRAM:
-    printf("program [path='%s']", node->program.file);
+    printf("program [path='%s']", node->program.file->value);
     // too much??
     // printf("\n%s\n", node->program.code->value);
     break;
@@ -54,7 +57,7 @@ void ast_dump_one(ast_t* node) {
            node->import.path->string.value->value, node->import.forward);
     break;
   case FL_AST_MODULE:
-    printf("module [path='%s']", node->program.file);
+    printf("module [path='%s']", node->program.file->value);
     break;
   case FL_AST_BLOCK:
     // traverse do not follow scope hashes
@@ -174,7 +177,7 @@ void ast_dump_one(ast_t* node) {
   }
 }
 
-ast_action_t __ast_dump_cb(ast_t* node, ast_t* parent, size_t level,
+ast_action_t __ast_dump_cb(ast_t* node, ast_t* parent, u64 level,
                            void* userdata_in, void* userdata_out) {
   if (!node) {
     log_warning("ast_dump: null\n");
@@ -196,7 +199,7 @@ ast_action_t __ast_dump_cb(ast_t* node, ast_t* parent, size_t level,
   return FL_AC_CONTINUE;
 }
 
-ast_action_t __ast_mindump_cb(ast_t* node, ast_t* parent, size_t level,
+ast_action_t __ast_mindump_cb(ast_t* node, ast_t* parent, u64 level,
                               void* userdata_in, void* userdata_out) {
   if (!node) {
     log_warning("ast_dump: null\n");
@@ -216,7 +219,7 @@ void ast_mindump(ast_t* node) {
   }
 }
 
-ast_action_t __ast_fulldump_cb(ast_t* node, ast_t* parent, size_t level,
+ast_action_t __ast_fulldump_cb(ast_t* node, ast_t* parent, u64 level,
                                void* userdata_in, void* userdata_out) {
   if (!node) {
     log_warning("ast_dump: null\n");

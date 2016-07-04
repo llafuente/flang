@@ -23,9 +23,12 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/ast.h"
+#include "flang/libast.h"
+#include "flang/debug.h"
 
-bool __ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent, size_t level,
+bool __ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent, u64 level,
                    void* userdata_in, void* userdata_out) {
 
 #define REVERSE(child)                                                         \
@@ -100,7 +103,7 @@ bool __ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent, size_t level,
   return true;
 }
 
-void ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent, size_t level,
+void ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent, u64 level,
                  void* userdata_in, void* userdata_out) {
   __ast_reverse(node, cb, parent, level, userdata_in, userdata_out);
 }

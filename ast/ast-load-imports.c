@@ -23,10 +23,15 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/ast.h"
+#include "flang/libast.h"
+#include "flang/libparserfl.h"
+#include "flang/debug.h"
+#include <stdlib.h>
 #include <libgen.h>
 
-ast_action_t __trav_load_imports(ast_t* node, ast_t* parent, size_t level,
+ast_action_t __trav_load_imports(ast_t* node, ast_t* parent, u64 level,
                                  void* userdata_in, void* userdata_out) {
   if (node->type == FL_AST_IMPORT && !node->import.imported) {
     assert(parent->type == FL_AST_LIST);
@@ -39,7 +44,7 @@ ast_action_t __trav_load_imports(ast_t* node, ast_t* parent, size_t level,
       char* file2 = strdup(file);
       ast_t* root = ast_get_root(node);
 
-      strcat(filepath, dirname(root->program.file));
+      strcat(filepath, dirname(root->program.file->value));
       strcat(filepath, "/");
       strcat(filepath, file + 2);
       strcat(filepath, ".fl");
@@ -68,7 +73,7 @@ ast_action_t __trav_load_imports(ast_t* node, ast_t* parent, size_t level,
 
     assert(module->parent != 0);
 
-    ((*(size_t*)userdata_out))++;
+    ((*(u64*)userdata_out))++;
 
     if (node->import.forward) {
       // check that i'm at program scope level.
@@ -89,7 +94,7 @@ ast_action_t __trav_load_imports(ast_t* node, ast_t* parent, size_t level,
 
 // return error
 ast_t* ast_load_imports(ast_t* node) {
-  size_t imported;
+  u64 imported;
   do {
     imported = 0;
     ast_traverse(node, __trav_load_imports, 0, 0, 0, (void*)&imported);

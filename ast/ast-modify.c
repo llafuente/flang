@@ -23,17 +23,19 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/ast.h"
+#include "flang/libast.h"
 
-ast_action_t __trav_replace_types(ast_t* node, ast_t* parent, size_t level,
+ast_action_t __trav_replace_types(ast_t* node, ast_t* parent, u64 level,
                                   void* userdata_in, void* userdata_out) {
-  if (node->ty_id == (*(size_t*)userdata_in)) {
-    node->ty_id = *((size_t*)userdata_out);
+  if (node->ty_id == (*(u64*)userdata_in)) {
+    node->ty_id = *((u64*)userdata_out);
   }
 
   return FL_AC_CONTINUE;
 }
 
-void ast_replace_types(ast_t* node, size_t old, size_t new) {
+void ast_replace_types(ast_t* node, u64 old, u64 new) {
   ast_traverse(node, __trav_replace_types, 0, 0, (void*)&old, (void*)&new);
 }

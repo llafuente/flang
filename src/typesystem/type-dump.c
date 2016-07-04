@@ -23,10 +23,13 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/typesystem.h"
+#include "flang/ast.h"
+#include "flang/debug.h"
 
 // TODO add a new param, that will require 'debug' method call
-char* ty_to_color(size_t ty_id) {
+char* ty_to_color(u64 ty_id) {
   if (ty_id == TS_STRING) {
     return "\x1B[32m";
   }
@@ -45,7 +48,7 @@ char* ty_to_color(size_t ty_id) {
     return "\x1B[32m";
   }
 }
-char* ty_to_printf(size_t ty_id) {
+char* ty_to_printf(u64 ty_id) {
   // only builtin atm
   switch (ty_id) {
   case TS_I8:
@@ -82,7 +85,7 @@ char* ty_to_printf(size_t ty_id) {
   }
 }
 
-string* ty_to_string(size_t ty_id) {
+string* ty_to_string(u64 ty_id) {
   ty_t ty = ts_type_table[ty_id];
   // cached?
   if (ty.decl) {
@@ -107,7 +110,7 @@ string* ty_to_string(size_t ty_id) {
     st_append(&buffer, ty.id);
     st_append_c(&buffer, " { ");
 
-    size_t i;
+    u64 i;
     for (i = 0; i < ty.structure.nfields; ++i) {
       st_append(&buffer, ty_to_string(ty.structure.fields[i]));
       st_append_c(&buffer, " ");
@@ -121,7 +124,7 @@ string* ty_to_string(size_t ty_id) {
     st_append_c(&buffer, ty.id ? ty.id->value : "Anonymous");
     st_append_c(&buffer, " (");
 
-    size_t i;
+    u64 i;
     for (i = 0; i < ty.func.nparams; ++i) {
       st_append(&buffer, ty_to_string(ty.func.params[i]));
       st_append_c(&buffer, ", ");
@@ -136,7 +139,7 @@ string* ty_to_string(size_t ty_id) {
 }
 
 // TODO buffered version
-void ty_dump(size_t ty_id) {
+void ty_dump(u64 ty_id) {
   ty_t ty = ts_type_table[ty_id];
 
   log_debug2("[%zu]", ty_id);
@@ -161,7 +164,7 @@ void ty_dump(size_t ty_id) {
   case FL_STRUCT: {
     log_debug2("struct %s {",
                ty.structure.decl->structure.id->identifier.string->value);
-    size_t i;
+    u64 i;
     for (i = 0; i < ty.structure.nfields; ++i) {
       ty_dump(ty.structure.fields[i]);
       log_debug2(", ");
@@ -170,7 +173,7 @@ void ty_dump(size_t ty_id) {
   } break;
   case FL_FUNCTION: {
     log_debug2("fn %s(", ty.id ? ty.id->value : "Anonymous");
-    size_t i;
+    u64 i;
     for (i = 0; i < ty.func.nparams; ++i) {
       ty_dump(ty.func.params[i]);
       log_debug2(", ");
@@ -186,7 +189,7 @@ void ty_dump(size_t ty_id) {
   }
 }
 
-void __ty_dump_cell(size_t ty_id, int indent) {
+void __ty_dump_cell(u64 ty_id, int indent) {
   ty_t ty = ts_type_table[ty_id];
 
   switch (ty.of) {
@@ -208,7 +211,7 @@ void __ty_dump_cell(size_t ty_id, int indent) {
   case FL_STRUCT: {
     log_debug("%*s[%zu] Struct [%s]", indent, " ", ty_id,
               ty.structure.decl->structure.id->identifier.string->value);
-    size_t i;
+    u64 i;
     for (i = 0; i < ty.structure.nfields; ++i) {
       __ty_dump_cell(ty.structure.fields[i], indent + 2);
     }
@@ -216,7 +219,7 @@ void __ty_dump_cell(size_t ty_id, int indent) {
   case FL_FUNCTION: {
     log_debug("%*sFunction [%s] arity(%zu) -> [%zu]", indent, " ",
               ty.id ? ty.id->value : "Anonymous", ty.func.nparams, ty.func.ret);
-    size_t i;
+    u64 i;
     __ty_dump_cell(ty.func.ret, indent + 2);
     for (i = 0; i < ty.func.nparams; ++i) {
       __ty_dump_cell(ty.func.params[i], indent + 2);
@@ -230,7 +233,7 @@ void __ty_dump_cell(size_t ty_id, int indent) {
 }
 
 void ty_dump_table() {
-  size_t i;
+  u64 i;
 
   for (i = 0; i < ts_type_size_s; ++i) {
     __ty_dump_cell(i, 0);

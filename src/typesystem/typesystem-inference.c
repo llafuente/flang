@@ -23,17 +23,20 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/typesystem.h"
+#include "flang/ast.h"
+#include "flang/libast.h"
 
 struct __id_search {
   string* needle;
   ast_t** list;
-  size_t length;
+  u64 length;
 };
 
 typedef struct __id_search __id_search_t;
 
-ast_action_t __ast_find_identifier(ast_t* node, ast_t* parent, size_t level,
+ast_action_t __ast_find_identifier(ast_t* node, ast_t* parent, u64 level,
                                    void* userdata_in, void* userdata_out) {
   if (node->type == FL_AST_LIT_IDENTIFIER) {
     __id_search_t* data = (__id_search_t*)userdata_in;
@@ -45,7 +48,7 @@ ast_action_t __ast_find_identifier(ast_t* node, ast_t* parent, size_t level,
   return FL_AC_CONTINUE;
 }
 
-ast_action_t __ts_inference_dtors(ast_t* node, ast_t* parent, size_t level,
+ast_action_t __ts_inference_dtors(ast_t* node, ast_t* parent, u64 level,
                                   void* userdata_in, void* userdata_out) {
   if (node->type == FL_AST_DTOR_VAR && node->var.type->ty_id == 0) {
     // search all ocurrences of this identifier
@@ -58,7 +61,7 @@ ast_action_t __ts_inference_dtors(ast_t* node, ast_t* parent, size_t level,
 
     if (data.length) {
       // search from any aparience, if we can get the type
-      size_t i = 0;
+      u64 i = 0;
       for (; i < data.length; ++i) {
         ast_t* fnod = data.list[i];
         ast_t* parent = fnod->parent;
@@ -69,14 +72,14 @@ ast_action_t __ts_inference_dtors(ast_t* node, ast_t* parent, size_t level,
           ast_t* rhs = parent->assignament.right;
           ts_pass(rhs);
 
-          size_t t = rhs->ty_id;
+          u64 t = rhs->ty_id;
           if (t) {
             // parent->ty_id = t; // assignament type
             // parent->assignament.left->ty_id = t; // lhs type
             // node->ty_id = t;
             node->var.type->ty_id = t;
 
-            ((*(size_t*)userdata_out))++;
+            ((*(u64*)userdata_out))++;
             break;
           }
         }
@@ -91,7 +94,7 @@ ast_action_t __ts_inference_dtors(ast_t* node, ast_t* parent, size_t level,
             if (!decl) {
               continue;
             }
-            size_t idx = 0;
+            u64 idx = 0;
             while (parent->list.elements[idx] != fnod) {
               ++idx;
             }
@@ -99,7 +102,7 @@ ast_action_t __ts_inference_dtors(ast_t* node, ast_t* parent, size_t level,
             node->var.type->ty_id =
                 decl->func.params->list.elements[idx]->ty_id;
 
-            ((*(size_t*)userdata_out))++;
+            ((*(u64*)userdata_out))++;
             break;
           }
         }
@@ -112,7 +115,7 @@ ast_action_t __ts_inference_dtors(ast_t* node, ast_t* parent, size_t level,
   return FL_AC_CONTINUE;
 }
 
-ast_action_t __ts_inference_fn_ret(ast_t* node, ast_t* parent, size_t level,
+ast_action_t __ts_inference_fn_ret(ast_t* node, ast_t* parent, u64 level,
                                    void* userdata_in, void* userdata_out) {
   if (node->type == FL_AST_DECL_FUNCTION && node->func.ret_type->ty_id == 0) {
     // ast_dump_one(node);
@@ -121,9 +124,9 @@ ast_action_t __ts_inference_fn_ret(ast_t* node, ast_t* parent, size_t level,
     array* list = ast_search_node_type(node, FL_AST_STMT_RETURN);
 
     if (list) {
-      size_t i = 0;
+      u64 i = 0;
       ast_t* el;
-      size_t ct = 0;
+      u64 ct = 0;
 
       for (; i < list->size; ++i) {
         el = ((ast_t*)list->data[i])->ret.argument;
@@ -165,7 +168,7 @@ ast_t* ts_inference(ast_t* node) {
   // var x = [10]; <- array<double>
 
   // var i64 x = 10; <- cast 10 to i64
-  size_t modified;
+  u64 modified;
   do {
     modified = 0;
     ast_traverse(node, __ts_inference_dtors, 0, 0, 0, (void*)&modified);

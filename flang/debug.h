@@ -31,6 +31,8 @@
 
 extern void __sanitizer_print_stack_trace();
 extern int log_debug_level;
+extern ast_t* ast_last_error_node;
+extern char* ast_last_error_message;
 
 #define fl_fatal_error(fmt, ...)                                               \
   fprintf(stderr, "Faltal error at %s:%d @ %s\n", __FILE__, __LINE__,          \

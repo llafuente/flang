@@ -23,7 +23,10 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/ast.h"
+#include "flang/libast.h"
+#include "flang/debug.h"
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
@@ -46,7 +49,7 @@ bool ast_print_error(ast_t* node) {
 
   if (err->type == FL_AST_ERROR) {
     fprintf(stderr, "\n\n\x1B[31mError: %s\x1B[39m\n", err->err.message->value);
-    fprintf(stderr, "File & Line: %s:%d:%d @ %d:%d\n\n", node->program.file,
+    fprintf(stderr, "File & Line: %s:%d:%d @ %d:%d\n\n", node->program.file->value,
             err->first_line, err->first_column, err->last_line,
             err->last_column);
 
@@ -87,7 +90,7 @@ void ast_print_error_at(ast_t* node, char* message) {
     ast_last_error_node->last_column = node->last_column;
   }
 
-  fprintf(stderr, "File & Line: %s:%d:%d @ %d:%d\n\n", root->program.file,
+  fprintf(stderr, "File & Line: %s:%d:%d @ %d:%d\n\n", root->program.file->value,
           node->first_line, node->first_column, node->last_line,
           node->last_column);
 

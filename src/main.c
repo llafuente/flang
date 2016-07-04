@@ -1,5 +1,9 @@
 #include <stdio.h>
-#include "flang.h"
+
+#include "flang/common.h"
+#include "flang/libparserfl.h"
+#include "flang/debug.h"
+#include "flang/typesystem.h"
 
 // edit codes
 // 2 invalid input

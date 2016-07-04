@@ -23,10 +23,15 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/typesystem.h"
+#include "parser/grammar/tokens.h"
+#include "flang/ast.h"
+#include "flang/libast.h"
+#include "flang/debug.h"
 
 // TODO this should check if the type can be promoted
-bool ts_castable(size_t current, size_t expected) {
+bool ts_castable(u64 current, u64 expected) {
   // same obviously true, no type yet also true
   if (current == expected || !current) {
     return true;
@@ -82,8 +87,8 @@ bool ts_castable(size_t current, size_t expected) {
 ast_cast_operations_t ts_cast_operation(ast_t* node) {
   assert(node->type == FL_AST_CAST);
 
-  size_t expected = node->ty_id;
-  size_t current = node->cast.element->ty_id;
+  u64 expected = node->ty_id;
+  u64 current = node->cast.element->ty_id;
   log_verbose("cast %zu to %zu", current, expected);
 
   ty_t cu_type = ts_type_table[current];
@@ -149,7 +154,7 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
   }
 
   string* name = st_newc("autocast", st_enc_ascii);
-  size_t args_ty[1];
+  u64 args_ty[1];
   args_ty[0] = current;
   ast_t* autocast = ast_search_fn(node, name, args_ty, 1, expected, false);
   st_delete(&name);
@@ -189,9 +194,9 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
   */
 }
 
-ast_t* __ts_autocast(ast_t* node, size_t input, size_t output) {
+ast_t* __ts_autocast(ast_t* node, u64 input, u64 output) {
   string* name = st_newc("autocast", st_enc_ascii);
-  size_t args_ty[1];
+  u64 args_ty[1];
   args_ty[0] = input;
   ast_t* autocast = ast_search_fn(node, name, args_ty, 1, output, false);
   st_delete(&name);
@@ -199,7 +204,7 @@ ast_t* __ts_autocast(ast_t* node, size_t input, size_t output) {
   return autocast;
 }
 
-bool ts_cast_literal(ast_t* node, size_t type_id) {
+bool ts_cast_literal(ast_t* node, u64 type_id) {
   if (node->type == FL_AST_LIT_FLOAT || node->type == FL_AST_LIT_INTEGER) {
     node->ty_id = type_id;
     return node;
@@ -210,7 +215,7 @@ bool ts_cast_literal(ast_t* node, size_t type_id) {
   return false;
 }
 
-ast_t* __ts_create_cast(ast_t* node, size_t type_id) {
+ast_t* __ts_create_cast(ast_t* node, u64 type_id) {
   // try to cast to "inference" type, just wait...
   if (!type_id) {
     return node;
@@ -269,7 +274,7 @@ void __ts_create_binop_cast(ast_t* bo) {
 
   ast_t* l = bo->binop.left;
   ast_t* r = bo->binop.right;
-  size_t expected_ty_id = bo->ty_id;
+  u64 expected_ty_id = bo->ty_id;
 
   if (expected_ty_id == TS_BOOL) {
     // both must have the same type!
@@ -318,7 +323,7 @@ void ts_cast_return(ast_t* node) {
   ast_t* arg = node->ret.argument;
   ts_pass(arg);
 
-  size_t t = decl->func.ret_type->ty_id;
+  u64 t = decl->func.ret_type->ty_id;
   if (t != node->ret.argument->ty_id) {
     ast_t* cast = __ts_create_cast(arg, t);
     node->ret.argument = cast;
@@ -350,8 +355,8 @@ void ts_cast_assignament(ast_t* node) {
   ts_pass(l);
   ts_pass(r);
 
-  size_t l_type = l->ty_id;
-  size_t r_type = r->ty_id;
+  u64 l_type = l->ty_id;
+  u64 r_type = r->ty_id;
 
   if (l_type != r_type) {
     log_silly("assignament cast [%zu - %zu]", l_type, r_type);
@@ -370,10 +375,10 @@ void ts_cast_call(ast_t* node) {
     return;
   }
 
-  size_t i;
+  u64 i;
   ast_t* args = node->call.arguments;
   ast_t* arg;
-  size_t count = args->list.count;
+  u64 count = args->list.count;
 
   // get types from arguments first
   log_debug("callee and arguments must pass first!");
@@ -385,7 +390,7 @@ void ts_cast_call(ast_t* node) {
   // NOTE: polymorph - callee must be an identifier
 
   // no-identifier, check compatibility
-  size_t cty_id = node->call.callee->ty_id;
+  u64 cty_id = node->call.callee->ty_id;
   if (cty_id) {
     // this happend when calle it's not a literal
     // check if it's compatible
@@ -460,8 +465,8 @@ void ts_cast_binop(ast_t* node) {
   ts_pass(l);
   ts_pass(r);
 
-  size_t l_type = l->ty_id;
-  size_t r_type = r->ty_id;
+  u64 l_type = l->ty_id;
+  u64 r_type = r->ty_id;
 
   log_verbose("l_type %zu r_type %zu", l_type, r_type);
 
@@ -555,7 +560,7 @@ void ts_cast_expr_member(ast_t* node) {
   ast_t* l = node->member.left;
   ast_t* p = node->member.property;
 
-  size_t l_typeid;
+  u64 l_typeid;
   ts_pass(l);
 
   log_debug("l->ty_id = %zu", l->ty_id);

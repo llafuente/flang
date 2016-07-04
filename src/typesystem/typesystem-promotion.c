@@ -23,10 +23,12 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/typesystem.h"
+#include "flang/ast.h"
 
 // only promote numbers
-size_t ts_promote_typeid(size_t a, size_t b) {
+u64 ts_promote_typeid(u64 a, u64 b) {
   ty_t t_a = ts_type_table[a];
   ty_t t_b = ts_type_table[b];
 

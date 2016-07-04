@@ -25,8 +25,9 @@
 
 #include "flang/common.h"
 #include "flang/ast.h"
+#include "flang/libast.h"
 #include "flang/debug.h"
-#include "parser/libparserfl.h"
+#include "flang/libparserfl.h"
 
 // TODO global vars!
 u64 ast_get_ident_typeid(ast_t* id) {

@@ -23,10 +23,13 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/typesystem.h"
+#include "flang/ast.h"
+#include <math.h>
 
 ty_t* ts_type_table = 0;
-size_t ts_type_size_s = 0;
+u64 ts_type_size_s = 0;
 
 // 0 infer
 // 1-12 built-in
@@ -53,11 +56,11 @@ void ts_init() {
     ts_type_table[TS_BOOL].number.fp = false;
     ts_type_table[TS_BOOL].number.sign = false;
     // [3-10] i8,u8,i16,u16,i32,u32,i64,u64
-    size_t id = 2;
-    size_t i = 3;
+    u64 id = 2;
+    u64 i = 3;
     char buffer[20];
     for (; i < 7; i++) {
-      size_t bits = pow(2, i);
+      u64 bits = pow(2, i);
       ts_type_table[++id].of = FL_NUMBER;
       ts_type_table[id].number.bits = bits;
       ts_type_table[id].number.fp = false;
@@ -113,7 +116,7 @@ void ts_init() {
     /*
     // add it!
     string* idstr = st_newc("string", st_enc_utf8);
-    size_t* fields = calloc(length, sizeof(size_t));
+    u64* fields = calloc(length, sizeof(u64));
     ts_type_table[++id].of = FL_STRUCT;
     ts_type_table[id].id = idstr;
     ts_type_table[id].structure.decl = null;
@@ -131,7 +134,7 @@ void ts_init() {
 }
 
 void ts_exit() {
-  size_t i;
+  u64 i;
 
   for (i = 0; i < ts_type_size_s; ++i) {
     if (i < 16) {

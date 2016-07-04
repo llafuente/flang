@@ -3,7 +3,7 @@
 #include "ext/hash.h" // import hash_t
 #include "ext/array.h" // import array_t
 #include "ext/pool.h" // import array_t
-#include "stringc.h"
+#include "stringc.h" // import string
 
 #define null 0
 #define true 1
