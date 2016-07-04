@@ -1,4 +1,5 @@
 #include "parser/grammar/parser.h"
+#include "parser/grammar/tokens.h"
 
 /* cldoc:begin-category(parser/libparserfl.c) */
 

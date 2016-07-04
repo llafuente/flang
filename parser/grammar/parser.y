@@ -2,10 +2,8 @@
   #define YYDEBUG 1
 
   #include "flang/common.h"
-  #include "flang/ast.h"
   #include "flang/libast.h"
-  #include "flang/libparserfl.h"
-  #include "parser/grammar/parser.h"
+  #include "flang/libparser.h"
   #include "flang/debug.h"
 
   extern array* identifiers;

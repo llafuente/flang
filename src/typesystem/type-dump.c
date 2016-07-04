@@ -25,8 +25,8 @@
 
 #include "flang/common.h"
 #include "flang/typesystem.h"
-#include "flang/ast.h"
 #include "flang/debug.h"
+#include "flang/libast.h"
 
 // TODO add a new param, that will require 'debug' method call
 char* ty_to_color(u64 ty_id) {

@@ -25,7 +25,6 @@
 
 #include "flang/common.h"
 #include "flang/typesystem.h"
-#include "flang/ast.h"
 #include "flang/libast.h"
 
 ast_t* typesystem(ast_t* root) {

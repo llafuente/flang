@@ -24,12 +24,10 @@
 */
 
 #include "flang/common.h"
-#include "flang/ast.h"
 #include "flang/libast.h"
 #include "flang/typesystem.h"
 #include "flang/debug.h"
-#include "flang/libparserfl.h"
-#include "parser/grammar/parser.h"
+#include "flang/libparser.h"
 #include <limits.h>
 #include <errno.h>
 #include <math.h> // HUGE_VAL

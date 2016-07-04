@@ -24,11 +24,9 @@
 */
 
 #include "flang/common.h"
-#include "flang/ast.h"
+#include "flang/libast.h"
 #include "flang/debug.h"
-#include "flang/libparserfl.h"
-#include "parser/grammar/tokens.h"
-#include "parser/grammar/parser.h"
+#include "flang/libparser.h"
 #include <string.h>
 
 void __fl_attach_core(ast_t* root) {

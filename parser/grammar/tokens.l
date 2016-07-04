@@ -1,7 +1,6 @@
 %{
 #include "flang/common.h"
-#include "flang/ast.h"
-#include "parser/grammar/parser.h"
+#include "flang/libast.h"
 
 #define TOKEN(t)    (yylval.token = t)
 

@@ -24,11 +24,10 @@
 */
 
 #include "flang/common.h"
-#include "flang/ast.h"
 #include "flang/libast.h"
 #include "flang/typesystem.h"
 #include "flang/debug.h"
-#include "flang/libparserfl.h"
+#include "flang/libparser.h"
 
 ast_action_t __trav_set_parent(ast_t* node, ast_t* parent, u64 level,
                                void* userdata_in, void* userdata_out) {

@@ -24,7 +24,6 @@
 */
 
 #include "flang/common.h"
-#include "flang/ast.h"
 #include "flang/libast.h"
 
 ast_action_t __trav_replace_types(ast_t* node, ast_t* parent, u64 level,

@@ -25,7 +25,6 @@
 
 #include "flang/common.h"
 #include "flang/typesystem.h"
-#include "flang/ast.h"
 
 // only promote numbers
 u64 ts_promote_typeid(u64 a, u64 b) {

@@ -24,7 +24,6 @@
 */
 
 #include "flang/common.h"
-#include "flang/ast.h"
 #include "flang/debug.h"
 
 int log_debug_level = 4;

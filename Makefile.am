@@ -20,11 +20,10 @@ AM_CPPFLAGS = -I$(top_srcdir)/include \
               -I$(top_srcdir)/ext \
               -I$(top_srcdir)/src
 
-include_HEADERS = flang/ast.h \
-  flang/common.h \
+include_HEADERS = flang/common.h \
   flang/debug.h \
   flang/libast.h \
-  flang/libparserfl.h \
+  flang/libparser.h \
   flang/typesystem.h
 
 LLVM_CC_FLAGS=`llvm-config --cflags`
@@ -75,7 +74,7 @@ test_run_tests_SOURCES += $(COMPILER_SOURCES)
 noinst_LIBRARIES = libast_fl.a libparser_fl.a
 libparser_fl_a_SOURCES = parser/grammar/parser.c \
                         parser/grammar/tokens.c \
-                        parser/libparserfl.c
+                        parser/libparser.c
 
 libast_fl_a_SOURCES = ast/ast-mk.c \
                         ast/ast-modify.c \

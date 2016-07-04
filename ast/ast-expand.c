@@ -24,10 +24,9 @@
 */
 
 #include "flang/common.h"
-#include "flang/ast.h"
 #include "flang/libast.h"
 #include "flang/typesystem.h"
-#include "parser/grammar/tokens.h"
+#include "flang/libparser.h"
 
 // return error
 ast_t* ast_expand_fn(ast_t* call, ast_t* decl) {

@@ -24,7 +24,7 @@
 */
 
 #include "flang/common.h"
-#include "flang/libparserfl.h"
+#include "flang/libparser.h"
 #include "flang/debug.h"
 #include "flang/libast.h"
 #include "flang/typesystem.h"
