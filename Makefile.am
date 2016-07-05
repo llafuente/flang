@@ -84,7 +84,6 @@ libfl_parser_a_SOURCES = parser/grammar/parser.c \
 
 libfl_ast_a_SOURCES = ast/ast-mk.c \
                         ast/ast-modify.c \
-                        ast/ast-get.c \
                         ast/ast-alloc.c \
                         ast/ast-traverse.c \
                         ast/ast-dump.c \
@@ -92,8 +91,6 @@ libfl_ast_a_SOURCES = ast/ast-mk.c \
                         ast/ast-reduce.c \
                         ast/ast-error.c \
                         ast/ast-search.c \
-                        ast/ast-codegen.c \
-                        ast/ast-load-imports.c \
                         ast/ast-static.c \
                         ast/ast-expand.c \
                         ast/ast-reverse.c \

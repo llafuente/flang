@@ -30,21 +30,21 @@ TASK_IMPL(parser_variables) {
   log_debug_level = 0;
 
   TEST_PARSER_OK("var decl 01", "var hello;", {
-    ASSERT(body[0]->type == FL_AST_DTOR_VAR, "type: FL_AST_DTOR_VAR");
+    ASSERT(body[0]->type == AST_DTOR_VAR, "type: AST_DTOR_VAR");
   });
 
   TEST_PARSER_OK("var decl 02", "var i8 hello;", {
-    ASSERT(body[0]->type == FL_AST_DTOR_VAR, "type: FL_AST_DTOR_VAR");
-    ASSERT(body[0]->var.type->type == FL_AST_TYPE, "type.type: FL_AST_TYPE");
+    ASSERT(body[0]->type == AST_DTOR_VAR, "type: AST_DTOR_VAR");
+    ASSERT(body[0]->var.type->type == AST_TYPE, "type.type: AST_TYPE");
     ASSERTE(body[0]->var.type->ty_id, TS_I8, "%zu == %d", "typeid i8 is TS_I8");
   });
 
   TEST_PARSER_OK("var decl 03", "var i8 hello = 1;", {
-    ASSERT(body[0]->type == FL_AST_LIST, "type: FL_AST_LIST");
+    ASSERT(body[0]->type == AST_LIST, "type: AST_LIST");
   });
 
   TEST_PARSER_OK("var decl 04", "var hello = \"world!\";", {
-    ASSERT(body[0]->type == FL_AST_LIST, "type: FL_AST_LIST");
+    ASSERT(body[0]->type == AST_LIST, "type: AST_LIST");
   });
 
   return 0;

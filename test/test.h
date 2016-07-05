@@ -37,8 +37,8 @@
 
 #define CHK_BODY(root)                                                         \
   ASSERT(root != 0, "root is not null");                                       \
-  ASSERT(root->type == FL_AST_PROGRAM, "root is a program");                   \
-  ASSERT(root->program.body->type == FL_AST_BLOCK, "program has body");        \
+  ASSERT(root->type == AST_PROGRAM, "root is a program");                   \
+  ASSERT(root->program.body->type == AST_BLOCK, "program has body");        \
   ASSERT(root->program.body->block.body->list.count > 0, "body has "           \
                                                          "statements");
 
@@ -48,9 +48,9 @@
 
 #define CHK_ERROR(root, target, msg)                                           \
   ASSERT(root != 0, "root is not null");                                       \
-  ASSERT(root->type == FL_AST_PROGRAM, "root is a program");                   \
+  ASSERT(root->type == AST_PROGRAM, "root is a program");                   \
   target = root->program.body;                                                 \
-  ASSERT(target->type == FL_AST_ERROR, "body is an error");                    \
+  ASSERT(target->type == AST_ERROR, "body is an error");                    \
   ASSERT(strcmp(target->err.message->value, msg) == 0, "error message match");
 
 #define CHK_ERROR_RANGE(target, sc, sl, ec, el)
@@ -64,7 +64,7 @@
   {                                                                            \
     fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
     flang_init();                                                              \
-    ast_t* root = fl_parse_utf8(code);                                         \
+    ast_t* root = psr_str_utf8(code);                                         \
     CHK_BODY(root);                                                            \
     root = typesystem(root);                                                   \
     if (ast_last_error_message) {                                              \
@@ -81,12 +81,12 @@
   {                                                                            \
     fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
     flang_init();                                                              \
-    ast_t* root = fl_parse_utf8(code);                                         \
+    ast_t* root = psr_str_utf8(code);                                         \
     ASSERT(root != 0, "root is not null");                                     \
-    ASSERT(root->type == FL_AST_PROGRAM, "root is a program");                 \
+    ASSERT(root->type == AST_PROGRAM, "root is a program");                 \
     ast_t* err = root->program.body;                                           \
     ast_mindump(root);                                                         \
-    if (err->type == FL_AST_ERROR) {                                           \
+    if (err->type == AST_ERROR) {                                           \
       ASSERT(strcmp(err->err.message->value, msg) == 0,                        \
              "error message match");                                           \
     } else {                                                                   \
@@ -101,7 +101,7 @@
   {                                                                            \
     fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
     flang_init();                                                              \
-    ast_t* root = fl_parse_main_utf8(code);                                    \
+    ast_t* root = psr_str_utf8_main(code);                                    \
     CHK_BODY(root);                                                            \
     root = typesystem(root);                                                   \
     ast_mindump(root);                                                         \
@@ -119,7 +119,7 @@
   {                                                                            \
     fprintf(stderr, __FILE__ ":" STR(__LINE__) " @ " name "\n");               \
     flang_init();                                                              \
-    ast_t* root = fl_parse_main_utf8(code);                                    \
+    ast_t* root = psr_str_utf8_main(code);                                    \
     CHK_BODY(root);                                                            \
     ts_register_types(root);                                                   \
     root = ts_pass(root);                                                      \

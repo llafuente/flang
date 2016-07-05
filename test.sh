@@ -3,6 +3,8 @@
 set -x
 set -e
 
+sh grammar.sh
+
 rm -rf tmp
 mkdir -p tmp
 

@@ -55,7 +55,7 @@ void __ast_reduce_log(ast_t* node) {
   buffer[strlen(buffer) - 1] = '\n';
   ast_mk_list_insert(list, ast_mk_lit_string(buffer, false), 0);
 
-  node->type = FL_AST_EXPR_CALL;
+  node->type = AST_EXPR_CALL;
   node->call.callee = ast_mk_lit_id(st_newc("printf", st_enc_utf8), true);
   node->call.arguments = list;
   node->call.narguments = list->list.count;
@@ -67,14 +67,14 @@ void __ast_reduce_log(ast_t* node) {
 ast_action_t __trav_reduced(ast_t* node, ast_t* parent, u64 level,
                             void* userdata_in, void* userdata_out) {
   switch (node->type) {
-  case FL_AST_STMT_LOG: {
+  case AST_STMT_LOG: {
     __ast_reduce_log(node);
     ++(*(u64*)userdata_out);
   } break;
   default: {} // avoid warning
   }
 
-  return FL_AC_CONTINUE;
+  return AST_SEARCH_CONTINUE;
 }
 
 // return error

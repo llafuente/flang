@@ -98,7 +98,7 @@ TASK_IMPL(codegen_expressions) {
 
   TEST_CODEGEN_OK(
       "expressions 04", "$log 1+2+3;",
-      {// ASSERT(body[2]->type == FL_AST_STMT_LOG, "root is a log stmt");
+      {// ASSERT(body[2]->type == AST_STMT_LOG, "root is a log stmt");
       });
 
   return 0;

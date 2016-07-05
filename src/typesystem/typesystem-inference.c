@@ -37,19 +37,19 @@ typedef struct __id_search __id_search_t;
 
 ast_action_t __ast_find_identifier(ast_t* node, ast_t* parent, u64 level,
                                    void* userdata_in, void* userdata_out) {
-  if (node->type == FL_AST_LIT_IDENTIFIER) {
+  if (node->type == AST_LIT_IDENTIFIER) {
     __id_search_t* data = (__id_search_t*)userdata_in;
     string* str = data->needle;
     if (st_cmp(str, node->identifier.string) == 0) {
       data->list[data->length++] = node;
     }
   }
-  return FL_AC_CONTINUE;
+  return AST_SEARCH_CONTINUE;
 }
 
 ast_action_t __ts_inference_dtors(ast_t* node, ast_t* parent, u64 level,
                                   void* userdata_in, void* userdata_out) {
-  if (node->type == FL_AST_DTOR_VAR && node->var.type->ty_id == 0) {
+  if (node->type == AST_DTOR_VAR && node->var.type->ty_id == 0) {
     // search all ocurrences of this identifier
     __id_search_t data;
     data.list = calloc(sizeof(ast_t*), 100); // TODO resizable
@@ -66,7 +66,7 @@ ast_action_t __ts_inference_dtors(ast_t* node, ast_t* parent, u64 level,
         ast_t* parent = fnod->parent;
 
         // assignament at lhs
-        if (parent->type == FL_AST_EXPR_ASSIGNAMENT &&
+        if (parent->type == AST_EXPR_ASSIGNAMENT &&
             parent->assignament.left == fnod) {
           ast_t* rhs = parent->assignament.right;
           ts_pass(rhs);
@@ -84,10 +84,10 @@ ast_action_t __ts_inference_dtors(ast_t* node, ast_t* parent, u64 level,
         }
 
         // as argument
-        if (parent->type == FL_AST_LIST) {
+        if (parent->type == AST_LIST) {
           ast_t* call = parent->parent;
 
-          if (parent->parent->type == FL_AST_EXPR_CALL) {
+          if (parent->parent->type == AST_EXPR_CALL) {
             string* callee = call->call.callee->identifier.string;
             ast_t* decl = ast_search_fn_wargs(callee, fnod);
             if (!decl) {
@@ -111,16 +111,16 @@ ast_action_t __ts_inference_dtors(ast_t* node, ast_t* parent, u64 level,
     free(data.list);
   }
 
-  return FL_AC_CONTINUE;
+  return AST_SEARCH_CONTINUE;
 }
 
 ast_action_t __ts_inference_fn_ret(ast_t* node, ast_t* parent, u64 level,
                                    void* userdata_in, void* userdata_out) {
-  if (node->type == FL_AST_DECL_FUNCTION && node->func.ret_type->ty_id == 0) {
+  if (node->type == AST_DECL_FUNCTION && node->func.ret_type->ty_id == 0) {
     // ast_dump_one(node);
     ast_t* ret = node->func.ret_type;
     ast_t* body = node->func.body;
-    array* list = ast_search_node_type(node, FL_AST_STMT_RETURN);
+    array* list = ast_search_node_type(node, AST_STMT_RETURN);
 
     if (list) {
       u64 i = 0;
@@ -134,7 +134,7 @@ ast_action_t __ts_inference_fn_ret(ast_t* node, ast_t* parent, u64 level,
           // wait for later...
           array_delete(list);
           free(list);
-          return FL_AC_CONTINUE;
+          return AST_SEARCH_CONTINUE;
         } else if (ct && ct != el->ty_id) {
           // TODO can we be more specific
           // double type? error!
@@ -156,7 +156,7 @@ ast_action_t __ts_inference_fn_ret(ast_t* node, ast_t* parent, u64 level,
     }
   }
 
-  return FL_AC_CONTINUE;
+  return AST_SEARCH_CONTINUE;
 }
 
 // return error

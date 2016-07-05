@@ -38,7 +38,7 @@ TASK_IMPL(parser_expressions) {
   */
 
   TEST_PARSER_OK("sizeof parse", "sizeof(i8);", {
-    ASSERT(body[0]->type == FL_AST_EXPR_SIZEOF, "is sizeof");
+    ASSERT(body[0]->type == AST_EXPR_SIZEOF, "is sizeof");
     ASSERT(body[0]->ty_id == TS_I64, "type is i64");
     ASSERT(body[0]->sof.type->ty_id == TS_I8, "type is i8");
   });
@@ -53,149 +53,149 @@ TASK_IMPL(parser_expressions) {
   });
 
   TEST_PARSER_OK("fix missing operator ", "1 <= 2;", {
-    ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+    ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
     ASSERT(body[0]->binop.operator== TK_LE, "operator TK_LE");
   });
 
   TEST_PARSER_OK("fix left recursion", "1 + 2 + 3 + 4;", {
-    ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
-    ASSERT(body[0]->binop.left->type == FL_AST_EXPR_BINOP,
-           "left is FL_AST_EXPR_BINOP");
+    ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
+    ASSERT(body[0]->binop.left->type == AST_EXPR_BINOP,
+           "left is AST_EXPR_BINOP");
   });
 
   TEST_PARSER_OK("expressions 01", "1+2;", {
-    ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
-    ASSERT(body[0]->binop.left->type == FL_AST_LIT_INTEGER,
-           "FL_AST_LIT_INTEGER");
-    ASSERT(body[0]->binop.right->type == FL_AST_LIT_INTEGER,
-           "FL_AST_LIT_INTEGER");
+    ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
+    ASSERT(body[0]->binop.left->type == AST_LIT_INTEGER,
+           "AST_LIT_INTEGER");
+    ASSERT(body[0]->binop.right->type == AST_LIT_INTEGER,
+           "AST_LIT_INTEGER");
   });
   TEST_PARSER_OK("expressions 02", "1+2+3;", {
-    ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
-    ASSERT(body[0]->binop.right->type == FL_AST_LIT_INTEGER,
-           "FL_AST_LIT_INTEGER");
-    ASSERT(body[0]->binop.left->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
-    ASSERT(body[0]->binop.left->binop.left->type == FL_AST_LIT_INTEGER,
-           "FL_AST_LIT_INTEGER");
-    ASSERT(body[0]->binop.left->binop.right->type == FL_AST_LIT_INTEGER,
-           "FL_AST_LIT_INTEGER");
+    ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
+    ASSERT(body[0]->binop.right->type == AST_LIT_INTEGER,
+           "AST_LIT_INTEGER");
+    ASSERT(body[0]->binop.left->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
+    ASSERT(body[0]->binop.left->binop.left->type == AST_LIT_INTEGER,
+           "AST_LIT_INTEGER");
+    ASSERT(body[0]->binop.left->binop.right->type == AST_LIT_INTEGER,
+           "AST_LIT_INTEGER");
   });
   TEST_PARSER_OK("expressions 03", "1*2;", {
-    ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
-    ASSERT(body[0]->binop.left->type == FL_AST_LIT_INTEGER,
-           "FL_AST_LIT_INTEGER");
+    ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
+    ASSERT(body[0]->binop.left->type == AST_LIT_INTEGER,
+           "AST_LIT_INTEGER");
     ASSERT(body[0]->binop.operator== '*', "'*'");
-    ASSERT(body[0]->binop.right->type == FL_AST_LIT_INTEGER,
-           "FL_AST_LIT_INTEGER");
+    ASSERT(body[0]->binop.right->type == AST_LIT_INTEGER,
+           "AST_LIT_INTEGER");
   });
 
   TEST_PARSER_OK("expressions 04", "1*2+3;", {
-    ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+    ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
 
-    ASSERT(body[0]->binop.left->binop.left->type == FL_AST_LIT_INTEGER,
-           "FL_AST_LIT_INTEGER");
+    ASSERT(body[0]->binop.left->binop.left->type == AST_LIT_INTEGER,
+           "AST_LIT_INTEGER");
     ASSERT(body[0]->binop.left->binop.operator== '*', "left '*'");
-    ASSERT(body[0]->binop.left->binop.right->type == FL_AST_LIT_INTEGER,
-           "FL_AST_LIT_INTEGER");
+    ASSERT(body[0]->binop.left->binop.right->type == AST_LIT_INTEGER,
+           "AST_LIT_INTEGER");
 
     ASSERT(body[0]->binop.operator== '+', "'+'");
-    ASSERT(body[0]->binop.right->type == FL_AST_LIT_INTEGER,
-           "FL_AST_LIT_INTEGER");
+    ASSERT(body[0]->binop.right->type == AST_LIT_INTEGER,
+           "AST_LIT_INTEGER");
   });
 
   TEST_PARSER_OK("unary 01", "-2;", {
-    ASSERT(body[0]->type == FL_AST_EXPR_LUNARY, "ast is FL_AST_EXPR_LUNARY");
+    ASSERT(body[0]->type == AST_EXPR_LUNARY, "ast is AST_EXPR_LUNARY");
 
-    ASSERT(body[0]->lunary.element->type == FL_AST_LIT_INTEGER,
-           "FL_AST_LIT_INTEGER");
+    ASSERT(body[0]->lunary.element->type == AST_LIT_INTEGER,
+           "AST_LIT_INTEGER");
     ASSERT(body[0]->lunary.operator== '-', "operator '-'");
   });
 
   TEST_PARSER_OK("unary 02", "var i64 xxx; xxx++;", {
-    ASSERT(body[1]->type == FL_AST_EXPR_RUNARY, "ast is FL_AST_EXPR_RUNARY");
+    ASSERT(body[1]->type == AST_EXPR_RUNARY, "ast is AST_EXPR_RUNARY");
 
-    ASSERT(body[1]->lunary.element->type == FL_AST_LIT_IDENTIFIER,
-           "FL_AST_LIT_IDENTIFIER");
+    ASSERT(body[1]->lunary.element->type == AST_LIT_IDENTIFIER,
+           "AST_LIT_IDENTIFIER");
     ASSERT(body[1]->lunary.operator== TK_PLUSPLUS, "operator TK_PLUSPLUS");
   });
 
   TEST_PARSER_OK("assignament 01", "var i8 a; var i8 b; a=b;", {
-    ASSERT(body[2]->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
+    ASSERT(body[2]->type == AST_EXPR_ASSIGNAMENT, "AST_EXPR_ASSIGNAMENT");
     ASSERT(body[2]->assignament.operator== '=', "operator: '='");
 
     ASSERT(strcmp(body[0]->var.id->identifier.string->value, "a") == 0,
            "check id 0");
     ASSERT(strcmp(body[1]->var.id->identifier.string->value, "b") == 0,
            "check id 1");
-    ASSERT(body[2]->assignament.left->type == FL_AST_LIT_IDENTIFIER,
-           "left: FL_AST_LIT_IDENTIFIER");
-    ASSERT(body[2]->assignament.right->type == FL_AST_LIT_IDENTIFIER,
-           "right: FL_AST_LIT_IDENTIFIER");
+    ASSERT(body[2]->assignament.left->type == AST_LIT_IDENTIFIER,
+           "left: AST_LIT_IDENTIFIER");
+    ASSERT(body[2]->assignament.right->type == AST_LIT_IDENTIFIER,
+           "right: AST_LIT_IDENTIFIER");
   });
 
   TEST_PARSER_OK("assignament 01", "global i8 a = 1; fn abc() { return a; }",
                  {});
 
   TEST_PARSER_OK("assignament 01", "var i8 a; var i8 b; a =b;", {
-    ASSERT(body[2]->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
+    ASSERT(body[2]->type == AST_EXPR_ASSIGNAMENT, "AST_EXPR_ASSIGNAMENT");
   });
 
   TEST_PARSER_OK("assignament 02", "var i8 a; var i8 b; a = b;", {
-    ASSERT(body[2]->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
+    ASSERT(body[2]->type == AST_EXPR_ASSIGNAMENT, "AST_EXPR_ASSIGNAMENT");
   });
 
   TEST_PARSER_OK("assignament 03", "var i8 a; var i8 b; a= b;", {
-    ASSERT(body[2]->type == FL_AST_EXPR_ASSIGNAMENT, "FL_AST_EXPR_ASSIGNAMENT");
+    ASSERT(body[2]->type == AST_EXPR_ASSIGNAMENT, "AST_EXPR_ASSIGNAMENT");
   });
 
   TEST_PARSER_OK("binop 01", "1 +2;", {
-    ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+    ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
   });
 
   TEST_PARSER_OK("binop 01", "1 + 2;", {
-    ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+    ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
   });
 
   // TODO fix, should be string type
   TEST_PARSER_OK(
       "function call 01", "fn printf(ptr(i8) str) {}"
                           "printf ( \"xxx\" );",
-      { ASSERT(body[1]->type == FL_AST_EXPR_CALL, "FL_AST_EXPR_CALL"); });
+      { ASSERT(body[1]->type == AST_EXPR_CALL, "AST_EXPR_CALL"); });
 
   TEST_PARSER_OK("chained assignament", "var x; var y; x = y = 1;", {});
 
   TEST_PARSER_OK("left shift", "5 << 6;", {
-    ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "parsed");
+    ASSERT(body[0]->type == AST_EXPR_BINOP, "parsed");
     ASSERT(ast_is_static(body[0]->binop.left) == true, "left is static");
     ASSERT(ast_is_static(body[0]->binop.right) == true, "right is static");
-    ASSERT(body[0]->binop.left->type == FL_AST_LIT_INTEGER, "left numeric");
-    ASSERT(body[0]->binop.right->type == FL_AST_LIT_INTEGER, "right numeric");
+    ASSERT(body[0]->binop.left->type == AST_LIT_INTEGER, "left numeric");
+    ASSERT(body[0]->binop.right->type == AST_LIT_INTEGER, "right numeric");
   });
 
   TEST_PARSER_OK("left shift (parethesis)", "((5) << (6));", {
-    ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "parsed");
-    ASSERT(body[0]->binop.left->type == FL_AST_LIT_INTEGER, "left numeric");
-    ASSERT(body[0]->binop.right->type == FL_AST_LIT_INTEGER, "right numeric");
+    ASSERT(body[0]->type == AST_EXPR_BINOP, "parsed");
+    ASSERT(body[0]->binop.left->type == AST_LIT_INTEGER, "left numeric");
+    ASSERT(body[0]->binop.right->type == AST_LIT_INTEGER, "right numeric");
   });
 
   TEST_PARSER_OK("expr priority (parethesis)", "1*(2+3);", {
-    ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
-    ASSERT(body[0]->binop.left->type == FL_AST_LIT_INTEGER,
-           "FL_AST_LIT_INTEGER");
+    ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
+    ASSERT(body[0]->binop.left->type == AST_LIT_INTEGER,
+           "AST_LIT_INTEGER");
     ASSERT(body[0]->binop.operator== '*', "operator *");
 
-    ASSERT(body[0]->binop.right->binop.left->type == FL_AST_LIT_INTEGER,
-           "FL_AST_LIT_INTEGER");
+    ASSERT(body[0]->binop.right->binop.left->type == AST_LIT_INTEGER,
+           "AST_LIT_INTEGER");
     ASSERT(body[0]->binop.right->binop.operator== '+', "right operator +");
-    ASSERT(body[0]->binop.right->binop.right->type == FL_AST_LIT_INTEGER,
-           "FL_AST_LIT_INTEGER");
+    ASSERT(body[0]->binop.right->binop.right->type == AST_LIT_INTEGER,
+           "AST_LIT_INTEGER");
   });
   TEST_PARSER_OK("expr or", "1 | 2;", {
-    ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+    ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
   });
 
   TEST_PARSER_OK("equality", "5.0 == 5.0;", {
-    ASSERT(body[0]->type == FL_AST_EXPR_BINOP, "FL_AST_EXPR_BINOP");
+    ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
   });
 
   // TODO these test should give an error?!
@@ -241,29 +241,29 @@ TASK_IMPL(parser_expressions) {
                                             "x = x + 1;",
                  {
     ASSERT(body[1]->ty_id == TS_I32, "assignament type TS_I32");
-    ASSERT(body[1]->type == FL_AST_EXPR_ASSIGNAMENT,
-           "1st FL_AST_EXPR_ASSIGNAMENT");
-    ASSERT(body[1]->assignament.left->type == FL_AST_LIT_IDENTIFIER,
-           "left FL_AST_LIT_IDENTIFIER");
-    ASSERT(body[1]->assignament.right->type == FL_AST_EXPR_BINOP,
-           "right FL_AST_EXPR_BINOP");
+    ASSERT(body[1]->type == AST_EXPR_ASSIGNAMENT,
+           "1st AST_EXPR_ASSIGNAMENT");
+    ASSERT(body[1]->assignament.left->type == AST_LIT_IDENTIFIER,
+           "left AST_LIT_IDENTIFIER");
+    ASSERT(body[1]->assignament.right->type == AST_EXPR_BINOP,
+           "right AST_EXPR_BINOP");
     ASSERT(body[1]->assignament.right->binop.left->type ==
-               FL_AST_LIT_IDENTIFIER,
-           "right.left FL_AST_LIT_IDENTIFIER");
-    ASSERT(body[1]->assignament.right->binop.right->type == FL_AST_LIT_INTEGER,
-           "right.left FL_AST_LIT_INTEGER");
+               AST_LIT_IDENTIFIER,
+           "right.left AST_LIT_IDENTIFIER");
+    ASSERT(body[1]->assignament.right->binop.right->type == AST_LIT_INTEGER,
+           "right.left AST_LIT_INTEGER");
   });
 
   TEST_PARSER_OK("expressions 04", "1+2+3;", {
     ast_t* expr = body[0];
 
-    ASSERT(expr->type == FL_AST_EXPR_BINOP, "root is binop");
+    ASSERT(expr->type == AST_EXPR_BINOP, "root is binop");
 
     ast_t* expr_l = body[0]->binop.left;
     ast_t* expr_r = body[0]->binop.right;
 
-    ASSERT(expr_l->type == FL_AST_EXPR_BINOP, "left is binop");
-    ASSERT(expr_r->type == FL_AST_LIT_INTEGER, "left id literal");
+    ASSERT(expr_l->type == AST_EXPR_BINOP, "left is binop");
+    ASSERT(expr_r->type == AST_LIT_INTEGER, "left id literal");
   });
 
   TEST_PARSER_ERROR("type demotion", "var i32 a = 1;\n"

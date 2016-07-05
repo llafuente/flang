@@ -23,34 +23,5 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang/common.h"
-#include "flang/libast.h"
-#include "flang/debug.h"
-
-bool ast_require_load(ast_t* node) {
-  switch (node->type) {
-  case FL_AST_LIT_IDENTIFIER:
-    return true;
-  case FL_AST_EXPR_LUNARY:
-    switch (node->lunary.operator) {
-    case '&':
-    case '!':
-    case '-':
-    case TK_PLUSPLUS:
-    case TK_MINUSMINUS:
-      return false;
-    default: { log_error("Unkown Lunary operator"); }
-    }
-    return true;
-  case FL_AST_EXPR_ASSIGNAMENT:
-    return true;
-    break;
-  // node i'm sure right now
-  case FL_AST_LIT_FLOAT:   // static type
-  case FL_AST_LIT_INTEGER: // static type
-  case FL_AST_CAST:        // load before cast
-    return false;
-  default: {} // supress warning
-  }
-  return false;
-}
+libexport void flang_init();
+libexport void flang_exit(ast_t* root);

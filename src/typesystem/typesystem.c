@@ -28,7 +28,7 @@
 #include "flang/libast.h"
 
 ast_t* typesystem(ast_t* root) {
-  ast_load_imports(root);
+  psr_ast_imports(root);
 
   ts_register_types(root);
 

@@ -30,8 +30,8 @@
 
 // return error
 ast_t* ast_expand_fn(ast_t* call, ast_t* decl) {
-  assert(call->type == FL_AST_EXPR_CALL);
-  assert(decl->type == FL_AST_DECL_FUNCTION);
+  assert(call->type == AST_EXPR_CALL);
+  assert(decl->type == AST_DECL_FUNCTION);
   assert(decl->func.templated);
 
   ast_t* fn = ast_clone(decl);

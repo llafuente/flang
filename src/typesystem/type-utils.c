@@ -161,7 +161,7 @@ bool __fn_collision(ast_t* where, ast_t* scope, char* ty_name) {
 
     // a function cannot collide with a struct
     redef = (ast_t*)hash_get(scope->block.types, ty_name);
-    if (redef && redef->type != FL_AST_DECL_FUNCTION) {
+    if (redef && redef->type != AST_DECL_FUNCTION) {
       ast_raise_error(
           where,
           "Function name '%s' in use by a type, previously defined at %s",
@@ -430,7 +430,7 @@ u64 ty_create_fn(ast_t* decl) {
 
 // transfer list ownership
 void ty_create_var(ast_t* decl) {
-  assert(decl->type == FL_AST_DTOR_VAR);
+  assert(decl->type == AST_DTOR_VAR);
 
   char* cstr = decl->var.id->identifier.string->value;
   ast_t* attach_to;

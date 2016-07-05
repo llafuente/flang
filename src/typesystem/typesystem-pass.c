@@ -33,25 +33,25 @@ ast_action_t __trav_casting(ast_t* node, ast_t* parent, u64 level,
   switch (node->type) {
 
   // perf: types decl don't need to be casted.
-  case FL_AST_TYPE:
+  case AST_TYPE:
   // TODO attrbute may need to be resolved somehow/sometime
-  case FL_AST_ATTRIBUTE:
-  case FL_AST_DECL_STRUCT: {
-    return FL_AC_SKIP;
+  case AST_ATTRIBUTE:
+  case AST_DECL_STRUCT: {
+    return AST_SEARCH_SKIP;
   }
   // do not pass typesystem to templates
   // templates are incomplete an raise many errors
-  case FL_AST_DECL_FUNCTION: {
-    return node->func.templated ? FL_AC_SKIP : FL_AC_CONTINUE;
+  case AST_DECL_FUNCTION: {
+    return node->func.templated ? AST_SEARCH_SKIP : AST_SEARCH_CONTINUE;
   }
 
-  case FL_AST_STMT_RETURN: {
+  case AST_STMT_RETURN: {
     ts_cast_return(node);
   } break;
-  case FL_AST_LIT_STRING: {
+  case AST_LIT_STRING: {
     node->ty_id = TS_STRING;
   } break;
-  case FL_AST_LIT_IDENTIFIER: {
+  case AST_LIT_IDENTIFIER: {
     if (!node->ty_id) {
       ast_dump(node->parent);
       log_debug("search id: '%s' resolve:%d", node->identifier.string->value,
@@ -64,16 +64,16 @@ ast_action_t __trav_casting(ast_t* node, ast_t* parent, u64 level,
           ast_mindump(ast_get_root(node));
           ast_raise_error(node, "Cannot find declaration: '%s'",
                           node->identifier.string->value);
-          return FL_AC_STOP;
+          return AST_SEARCH_STOP;
         }
 
         // it's a var, copy type
-        if (decl->type == FL_AST_DECL_FUNCTION) {
+        if (decl->type == AST_DECL_FUNCTION) {
           if (decl->func.templated) {
             ast_raise_error(node,
                             "typesystem - Cannot has a reference to a template",
                             node->identifier.string->value);
-            return FL_AC_STOP;
+            return AST_SEARCH_STOP;
           }
 
           node->ty_id = node->identifier.decl->ty_id;
@@ -83,7 +83,7 @@ ast_action_t __trav_casting(ast_t* node, ast_t* parent, u64 level,
       }
     }
 
-    if (node->parent->type == FL_AST_DTOR_VAR) {
+    if (node->parent->type == AST_DTOR_VAR) {
       log_debug("parent is a dtor: fn=%d", ty_is_function(node->ty_id));
       // if type is a function, in fact what we want is a
       // function pointer, so do it for easy to type
@@ -99,34 +99,34 @@ ast_action_t __trav_casting(ast_t* node, ast_t* parent, u64 level,
     }
 
   } break;
-  case FL_AST_EXPR_MEMBER: {
+  case AST_EXPR_MEMBER: {
     ts_cast_expr_member(node);
   } break;
-  case FL_AST_EXPR_LUNARY: {
+  case AST_EXPR_LUNARY: {
     ts_cast_lunary(node);
   } break;
-  case FL_AST_EXPR_ASSIGNAMENT: {
+  case AST_EXPR_ASSIGNAMENT: {
     ts_cast_assignament(node);
   } break;
-  case FL_AST_EXPR_CALL: {
+  case AST_EXPR_CALL: {
     ts_cast_call(node);
   } break;
-  case FL_AST_EXPR_BINOP: {
+  case AST_EXPR_BINOP: {
     ts_cast_binop(node);
   }
   default: {} // supress warning
   }
-  return FL_AC_CONTINUE;
+  return AST_SEARCH_CONTINUE;
 }
 
 ast_action_t __ts_cast_operation_pass_cb(ast_t* node, ast_t* parent,
                                          u64 level, void* userdata_in,
                                          void* userdata_out) {
-  if (node->type == FL_AST_CAST) {
+  if (node->type == AST_CAST) {
     node->cast.operation = ts_cast_operation(node);
   }
 
-  return FL_AC_CONTINUE;
+  return AST_SEARCH_CONTINUE;
 }
 
 ast_t* ts_pass(ast_t* node) {

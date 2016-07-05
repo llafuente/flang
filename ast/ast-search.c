@@ -28,38 +28,6 @@
 #include "flang/typesystem.h"
 #include "flang/debug.h"
 
-ast_action_t __trav_search_id_decl(ast_t* node, ast_t* parent, u64 level,
-                                   void* userdata_in, void* userdata_out) {
-#define COMPARE(x)                                                             \
-  {                                                                            \
-    string* id = (string*)userdata_in;                                         \
-    if (st_cmp(id, x) == 0) {                                                  \
-      void** ret = (void**)userdata_out;                                       \
-      *ret = node;                                                             \
-      return FL_AC_STOP;                                                       \
-    }                                                                          \
-  }
-
-  switch (node->type) {
-  case FL_AST_DECL_FUNCTION: {
-    COMPARE(node->func.id->identifier.string);
-    // skip function body / parameters
-    return FL_AC_SKIP;
-  }
-  case FL_AST_PARAMETER: {
-    COMPARE(node->param.id->identifier.string);
-    break;
-  }
-  case FL_AST_DTOR_VAR: {
-    COMPARE(node->var.id->identifier.string);
-    break;
-  }
-  default: {} // supress warning
-  }
-
-  return FL_AC_CONTINUE;
-}
-
 ast_t* ast_search_id_decl(ast_t* node, string* identifier) {
   ast_t* ret = 0;
   array* arr = 0;
@@ -204,26 +172,6 @@ fn_wargs_return:
   return ret_decl;
 }
 
-ast_action_t __search_fns(ast_t* node, ast_t* parent, u64 level,
-                          void* userdata_in, void* userdata_out) {
-
-  // log_verbose("traverse %d", node->type);
-
-  if (node->type == FL_AST_DECL_FUNCTION) {
-    string* ast_search_id = (string*)userdata_in;
-    log_verbose("'%s' == '%s'", ast_search_id->value,
-                node->func.id->identifier.string->value);
-    if (st_cmp(ast_search_id, node->func.id->identifier.string) == 0) {
-      log_verbose("function found push  !");
-      array_append((array*)userdata_out, node);
-    }
-    // TODO retrive functions inside functions ?
-    // it's not out of your scope?!
-  }
-
-  return FL_AC_CONTINUE;
-}
-
 array* ast_search_fns(ast_t* node, string* id) {
   array* arr = malloc(sizeof(array));
   array* arr2;
@@ -236,7 +184,7 @@ array* ast_search_fns(ast_t* node, string* id) {
     scope = ast_get_scope(scope);
 
     fn = (ast_t*)hash_get(scope->block.types, cstr);
-    if (fn && fn->type == FL_AST_DECL_FUNCTION) {
+    if (fn && fn->type == AST_DECL_FUNCTION) {
       array_concat(arr, (array*)hash_get(scope->block.functions, cstr));
     }
   } while (scope->block.scope != AST_SCOPE_GLOBAL);
@@ -256,7 +204,7 @@ ast_action_t __trav_get_list_node(ast_t* node, ast_t* parent, u64 level,
     array_append((array*)userdata_out, node);
   }
 
-  return FL_AC_CONTINUE;
+  return AST_SEARCH_CONTINUE;
 }
 
 array* ast_search_node_type(ast_t* node, ast_types_t t) {

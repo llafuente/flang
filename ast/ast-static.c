@@ -29,16 +29,16 @@
 ast_action_t __trav_is_static(ast_t* node, ast_t* parent, u64 level,
                               void* userdata_in, void* userdata_out) {
   switch (node->type) {
-  case FL_AST_EXPR_BINOP: // 1 + 3 is static... continue
-  case FL_AST_LIT_STRING:
-  case FL_AST_LIT_FLOAT:
-  case FL_AST_LIT_INTEGER:
-    return FL_AC_CONTINUE;
+  case AST_EXPR_BINOP: // 1 + 3 is static... continue
+  case AST_LIT_STRING:
+  case AST_LIT_FLOAT:
+  case AST_LIT_INTEGER:
+    return AST_SEARCH_CONTINUE;
   default: {} // supress warning
   }
   bool* ret = (bool*)userdata_out;
   *ret = false;
-  return FL_AC_STOP;
+  return AST_SEARCH_STOP;
 }
 
 bool ast_is_static(ast_t* node) {

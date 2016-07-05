@@ -43,10 +43,10 @@ void __ast_print_error_lines(const string* line, st_len_t pos,
 }
 
 bool ast_print_error(ast_t* node) {
-  assert(node->type == FL_AST_PROGRAM);
+  assert(node->type == AST_PROGRAM);
   ast_t* err = node->program.body;
 
-  if (err->type == FL_AST_ERROR) {
+  if (err->type == AST_ERROR) {
     fprintf(stderr, "\n\n\x1B[31mError: %s\x1B[39m\n", err->err.message->value);
     fprintf(stderr, "File & Line: %s:%d:%d @ %d:%d\n\n", node->program.file->value,
             err->first_line, err->first_column, err->last_line,

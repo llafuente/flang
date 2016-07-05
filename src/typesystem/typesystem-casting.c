@@ -84,7 +84,7 @@ bool ts_castable(u64 current, u64 expected) {
 }
 
 ast_cast_operations_t ts_cast_operation(ast_t* node) {
-  assert(node->type == FL_AST_CAST);
+  assert(node->type == AST_CAST);
 
   u64 expected = node->ty_id;
   u64 current = node->cast.element->ty_id;
@@ -102,31 +102,31 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
 
       if (cu_type.number.fp && !ex_type.number.fp) {
         if (ex_type.number.sign) {
-          return FL_CAST_FPTOSI;
+          return AST_CAST_FPTOSI;
         }
-        return FL_CAST_FPTOUI;
+        return AST_CAST_FPTOUI;
       }
       // *itofp
       if (!cu_type.number.fp && ex_type.number.fp) {
         if (ex_type.number.sign) {
-          return FL_CAST_SITOFP;
+          return AST_CAST_SITOFP;
         }
-        return FL_CAST_UITOFP;
+        return AST_CAST_UITOFP;
       }
 
       bool fp = cu_type.number.fp;
       // upcast
       if (cu_type.number.bits < ex_type.number.bits) {
         if (fp) {
-          return FL_CAST_FPEXT;
+          return AST_CAST_FPEXT;
         }
 
         if ((!cu_type.number.sign && !ex_type.number.sign) ||
             (!cu_type.number.sign && ex_type.number.sign)) {
-          return FL_CAST_ZEXT;
+          return AST_CAST_ZEXT;
         }
 
-        return FL_CAST_SEXT;
+        return AST_CAST_SEXT;
         /* not necessary :)
         if ((!cu_type.number.sign && !ex_type.number.sign) ||
             (cu_type.number.sign && !ex_type.number.sign)) {
@@ -137,16 +137,16 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
       // downcast / truncate
       if (cu_type.number.bits >= ex_type.number.bits) {
         if (fp) {
-          return FL_CAST_FPTRUNC;
+          return AST_CAST_FPTRUNC;
         }
-        return FL_CAST_TRUNC;
+        return AST_CAST_TRUNC;
       }
     case FL_POINTER:
       // only allow it if both are same type
       // or one is void
       if (ts_type_table[ex_type.ptr.to].of ==
           ts_type_table[cu_type.ptr.to].of) {
-        return FL_CAST_BITCAST;
+        return AST_CAST_BITCAST;
       }
     default: {} // supress warning
     }
@@ -177,10 +177,10 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
     ecall->ty_id = expected;
     node->cast.element = ecall;
 
-    return FL_CAST_AUTO;
+    return AST_CAST_AUTO;
   }
 
-  return FL_CAST_BITCAST;
+  return AST_CAST_BITCAST;
   /* TODO REVIEW !!!
   if (!current || !expected) {
     log_warning("inference is still needed!");
@@ -204,11 +204,11 @@ ast_t* __ts_autocast(ast_t* node, u64 input, u64 output) {
 }
 
 bool ts_cast_literal(ast_t* node, u64 type_id) {
-  if (node->type == FL_AST_LIT_FLOAT || node->type == FL_AST_LIT_INTEGER) {
+  if (node->type == AST_LIT_FLOAT || node->type == AST_LIT_INTEGER) {
     node->ty_id = type_id;
     return node;
   }
-  if (node->type == FL_AST_EXPR_LUNARY && node->lunary.operator== '-') {
+  if (node->type == AST_EXPR_LUNARY && node->lunary.operator== '-') {
     return ts_cast_literal(node->lunary.element, type_id);
   }
   return false;
@@ -253,7 +253,7 @@ ast_t* __ts_create_cast(ast_t* node, u64 type_id) {
 }
 
 ast_t* __ts_create_left_cast(ast_t* parent, ast_t* left) {
-  assert(parent->type == FL_AST_EXPR_BINOP);
+  assert(parent->type == AST_EXPR_BINOP);
   ast_t* cast = __ts_create_cast(left, parent->ty_id);
   parent->binop.left = cast;
 
@@ -261,7 +261,7 @@ ast_t* __ts_create_left_cast(ast_t* parent, ast_t* left) {
 }
 
 ast_t* __ts_create_right_cast(ast_t* parent, ast_t* right) {
-  assert(parent->type == FL_AST_EXPR_BINOP);
+  assert(parent->type == AST_EXPR_BINOP);
   ast_t* cast = __ts_create_cast(right, parent->ty_id);
   parent->binop.right = cast;
 
@@ -269,7 +269,7 @@ ast_t* __ts_create_right_cast(ast_t* parent, ast_t* right) {
 }
 
 void __ts_create_binop_cast(ast_t* bo) {
-  assert(bo->type == FL_AST_EXPR_BINOP);
+  assert(bo->type == AST_EXPR_BINOP);
 
   ast_t* l = bo->binop.left;
   ast_t* r = bo->binop.right;
@@ -308,10 +308,10 @@ void __ts_create_binop_cast(ast_t* bo) {
 }
 
 void ts_cast_return(ast_t* node) {
-  assert(node->type == FL_AST_STMT_RETURN);
+  assert(node->type == AST_STMT_RETURN);
 
   ast_t* decl = node->parent;
-  while (decl->parent && decl->type != FL_AST_DECL_FUNCTION) {
+  while (decl->parent && decl->type != AST_DECL_FUNCTION) {
     decl = decl->parent;
   }
 
@@ -346,7 +346,7 @@ void ts_cast_lunary(ast_t* node) {
 }
 
 void ts_cast_assignament(ast_t* node) {
-  assert(node->type == FL_AST_EXPR_ASSIGNAMENT);
+  assert(node->type == AST_EXPR_ASSIGNAMENT);
 
   ast_t* l = node->assignament.left;
   ast_t* r = node->assignament.right;
@@ -367,7 +367,7 @@ void ts_cast_assignament(ast_t* node) {
 }
 
 void ts_cast_call(ast_t* node) {
-  assert(node->type == FL_AST_EXPR_CALL);
+  assert(node->type == AST_EXPR_CALL);
 
   log_debug("call type: %zu", node->ty_id);
   if (node->ty_id) {
@@ -453,7 +453,7 @@ void ts_cast_call(ast_t* node) {
 }
 
 void ts_cast_binop(ast_t* node) {
-  assert(node->type == FL_AST_EXPR_BINOP);
+  assert(node->type == AST_EXPR_BINOP);
 
   log_debug("binop found %d", node->binop.operator);
   // cast if necessary
@@ -551,7 +551,7 @@ void ts_cast_binop(ast_t* node) {
 }
 
 void ts_cast_expr_member(ast_t* node) {
-  assert(node->type == FL_AST_EXPR_MEMBER);
+  assert(node->type == AST_EXPR_MEMBER);
 
   if (node->ty_id)
     return;

@@ -64,13 +64,13 @@ ident [a-zA-Z\x80-\xff_\$][a-zA-Z0-9\x80-\xff_]*
 <doc_line>\n          { SET_RIGHT; RESET_COLUMN; BEGIN(INITIAL);
                         yyleng--;
                         yytext[yyleng] = 0;
-                        return AST_COMMENT;
+                        return COMMENT;
                       }
 <doc_line>[^\n]*      { yymore(); }
 
 \/\/|\/\/\/\/         { SET_LEFT; BEGIN(linecomment); }
 <linecomment>\n       { RESET_COLUMN; BEGIN(INITIAL);}
-<linecomment>[^\n]*   { SET_RIGHT; return AST_COMMENT; }
+<linecomment>[^\n]*   { SET_RIGHT; return COMMENT; }
 
 \/\*(\*|\!)[^*]       { SET_LEFT; yy_push_state(INITIAL); yy_push_state(doc_block); yymore(); }
 <doc_block>\/\*       { yy_push_state(doc_block); SET_LEFT; yymore(); }
@@ -79,7 +79,7 @@ ident [a-zA-Z\x80-\xff_\$][a-zA-Z0-9\x80-\xff_]*
     if (yy_top_state() == doc_block) {
         yymore();
     } else {
-        SET_RIGHT; return AST_COMMENT;
+        SET_RIGHT; return COMMENT;
     }
 }
 <doc_block>\n         { RESET_COLUMN; yymore(); }
@@ -132,17 +132,17 @@ nil      { SET_LOCATION; return TK_NULL; }
 {ident}  {
   /* TODO save location!!! */
   array_append(identifiers, st_newc(yytext, st_enc_utf8));
-  SET_LOCATION; return AST_IDENT;
+  SET_LOCATION; return IDENTIFIER;
 }
 
-0x[0-9a-fA-F_]+             { BEGIN(suffix); SET_LOCATION; return AST_LIT_INTEGER; }
-0o[0-8_]+                   { BEGIN(suffix); SET_LOCATION; return AST_LIT_INTEGER; }
-0b[01_]+                    { BEGIN(suffix); SET_LOCATION; return AST_LIT_INTEGER; }
-[0-9][0-9_]*                { BEGIN(suffix); SET_LOCATION; return AST_LIT_INTEGER; }
-[0-9][0-9_]*\.(\.|[a-zA-Z]) { yyless(yyleng - 2); BEGIN(suffix); SET_LOCATION; return AST_LIT_INTEGER; }
+0x[0-9a-fA-F_]+             { BEGIN(suffix); SET_LOCATION; return LIT_INTEGER; }
+0o[0-8_]+                   { BEGIN(suffix); SET_LOCATION; return LIT_INTEGER; }
+0b[01_]+                    { BEGIN(suffix); SET_LOCATION; return LIT_INTEGER; }
+[0-9][0-9_]*                { BEGIN(suffix); SET_LOCATION; return LIT_INTEGER; }
+[0-9][0-9_]*\.(\.|[a-zA-Z]) { yyless(yyleng - 2); BEGIN(suffix); SET_LOCATION; return LIT_INTEGER; }
 
-[0-9][0-9_]*\.[0-9_]*([eE][-\+]?[0-9_]+)? { BEGIN(suffix); SET_LOCATION; return AST_LIT_FLOAT; }
-[0-9][0-9_]*(\.[0-9_]*)?[eE][-\+]?[0-9_]+ { BEGIN(suffix); SET_LOCATION; return AST_LIT_FLOAT; }
+[0-9][0-9_]*\.[0-9_]*([eE][-\+]?[0-9_]+)? { BEGIN(suffix); SET_LOCATION; return LIT_FLOAT; }
+[0-9][0-9_]*(\.[0-9_]*)?[eE][-\+]?[0-9_]+ { BEGIN(suffix); SET_LOCATION; return LIT_FLOAT; }
 
 ;      { SET_LOCATION; return ';'; }
 ,      { SET_LOCATION; return ','; }
@@ -156,29 +156,7 @@ nil      { SET_LOCATION; return TK_NULL; }
 \[     { SET_LOCATION; return '['; }
 \]     { SET_LOCATION; return ']'; }
 @      { SET_LOCATION; return '@'; }
-
-#      { BEGIN(pound); yymore(); }
-<pound>\! { BEGIN(shebang_or_attr); yymore(); }
-<shebang_or_attr>\[ {
-  BEGIN(INITIAL);
-  yyless(2);
-  return AST_SHEBANG;
-}
-<shebang_or_attr>[^\[\n]*\n {
-  // Since the \n was eaten as part of the token, yylineno will have
-  // been incremented to the value 2 if the shebang was on the first
-  // line. This yyless undoes that, setting yylineno back to 1.
-  yyless(yyleng - 1);
-  if (yyget_lineno() == 1) {
-    BEGIN(INITIAL);
-    return AST_SHEBANG_LINE;
-  } else {
-    BEGIN(INITIAL);
-    yyless(2);
-    return AST_SHEBANG;
-  }
-}
-<pound>. { BEGIN(INITIAL); yyless(1); return '#'; }
+#      { SET_LOCATION; return '#'; } // TODO: handle shebang
 
 \~     { SET_LOCATION; return '~'; }
 :      { SET_LOCATION; return ':'; }
@@ -198,18 +176,9 @@ nil      { SET_LOCATION; return TK_NULL; }
 \>\>= { SET_LOCATION; return TK_SHREQ; }
 \>    { SET_LOCATION; return '>'; }
 
-\x27                                  { SET_LEFT; BEGIN(ltorchar); yymore(); }
-<ltorchar>static                      { SET_RIGHT; BEGIN(INITIAL); return AST_STATIC_LIFETIME; }
-<ltorchar>{ident}                     { SET_RIGHT; BEGIN(INITIAL); return AST_LIFETIME; }
-<ltorchar>\\[nrt\\\x27\x220]\x27      { SET_RIGHT; BEGIN(suffix); return AST_LIT_CHAR; }
-<ltorchar>\\x[0-9a-fA-F]{2}\x27       { SET_RIGHT; BEGIN(suffix); return AST_LIT_CHAR; }
-<ltorchar>\\u\{[0-9a-fA-F]?{6}\}\x27  { SET_RIGHT; BEGIN(suffix); return AST_LIT_CHAR; }
-<ltorchar>.\x27                       { SET_RIGHT; BEGIN(suffix); return AST_LIT_CHAR; }
-<ltorchar>[\x80-\xff]{2,4}\x27        { SET_RIGHT; BEGIN(suffix); return AST_LIT_CHAR; }
-<ltorchar><<EOF>>                     { SET_RIGHT; BEGIN(INITIAL); return -1; }
-
 \x22                     { SET_LEFT; BEGIN(str); yymore(); }
-<str>\x22                { SET_RIGHT; BEGIN(suffix); return AST_LIT_STR; }
+<str>\x22                { SET_RIGHT; BEGIN(suffix); return LIT_STRING; }
+
 
 <str><<EOF>>                { return -1; }
 <str>\n                     { RESET_COLUMN; yymore(); }

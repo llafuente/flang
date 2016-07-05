@@ -67,56 +67,56 @@ void __ast_delete_props(ast_t* ast) {
   }
 
   switch (ast->type) {
-  case FL_AST_MODULE:
-  case FL_AST_PROGRAM: {
+  case AST_MODULE:
+  case AST_PROGRAM: {
     SAFE_DEL(ast->program.body);
     // TODO remove! tk_tokens_delete(ast->program.tokens);
     SAFE_DEL_STR(ast->program.code);
     SAFE_DEL_STR(ast->program.path);
     SAFE_DEL_STR(ast->program.file);
   } break;
-  case FL_AST_BLOCK: {
+  case AST_BLOCK: {
     SAFE_DEL(ast->block.body);
     // hash_delete(ast->block.types);
     // hash_delete(ast->block.functions);
     // hash_delete(ast->block.variables);
   } break;
-  case FL_AST_LIST: {
+  case AST_LIST: {
     SAFE_DEL_LIST(ast->list.elements);
   } break;
-  case FL_AST_EXPR_ASSIGNAMENT: {
+  case AST_EXPR_ASSIGNAMENT: {
     SAFE_DEL(ast->assignament.left);
     SAFE_DEL(ast->assignament.right);
   } break;
-  case FL_AST_EXPR_BINOP: {
+  case AST_EXPR_BINOP: {
     SAFE_DEL(ast->binop.left);
     SAFE_DEL(ast->binop.right);
   } break;
-  case FL_AST_EXPR_LUNARY: {
+  case AST_EXPR_LUNARY: {
     SAFE_DEL(ast->lunary.element);
   } break;
-  case FL_AST_EXPR_RUNARY: {
+  case AST_EXPR_RUNARY: {
     SAFE_DEL(ast->runary.element);
   } break;
-  case FL_AST_EXPR_CALL: {
+  case AST_EXPR_CALL: {
     SAFE_DEL(ast->call.callee);
     SAFE_DEL(ast->call.arguments);
   } break;
-  case FL_AST_EXPR_MEMBER: {
+  case AST_EXPR_MEMBER: {
     SAFE_DEL(ast->member.left);
     SAFE_DEL(ast->member.property);
   } break;
-  case FL_AST_LIT_STRING:
+  case AST_LIT_STRING:
     SAFE_DEL_STR(ast->string.value);
     break;
-  case FL_AST_LIT_IDENTIFIER:
+  case AST_LIT_IDENTIFIER:
     SAFE_DEL_STR(ast->identifier.string);
     break;
-  case FL_AST_DTOR_VAR:
+  case AST_DTOR_VAR:
     SAFE_DEL(ast->var.id);
     SAFE_DEL(ast->var.type);
     break;
-  case FL_AST_DECL_FUNCTION:
+  case AST_DECL_FUNCTION:
     SAFE_DEL(ast->func.id);
     SAFE_DEL_STR(ast->func.uid);
     SAFE_DEL(ast->func.ret_type);
@@ -127,44 +127,44 @@ void __ast_delete_props(ast_t* ast) {
     }
     free(ast->func.body);
     break;
-  case FL_AST_PARAMETER: {
+  case AST_PARAMETER: {
     SAFE_DEL(ast->param.id);
     SAFE_DEL(ast->param.type);
   } break;
-  case FL_AST_STMT_RETURN: {
+  case AST_STMT_RETURN: {
     SAFE_DEL(ast->ret.argument);
   } break;
-  case FL_AST_STMT_IF: {
+  case AST_STMT_IF: {
     SAFE_DEL(ast->if_stmt.test);
     SAFE_DEL(ast->if_stmt.block);
     SAFE_DEL(ast->if_stmt.alternate);
   }
-  case FL_AST_STMT_LOOP: {
+  case AST_STMT_LOOP: {
     SAFE_DEL(ast->loop.init);
     SAFE_DEL(ast->loop.pre_cond);
     SAFE_DEL(ast->loop.update);
     SAFE_DEL(ast->loop.block);
     SAFE_DEL(ast->loop.post_cond);
   }
-  case FL_AST_CAST: {
+  case AST_CAST: {
     SAFE_DEL(ast->cast.element);
   } break;
-  case FL_AST_DECL_STRUCT: {
+  case AST_DECL_STRUCT: {
     SAFE_DEL(ast->structure.id);
     SAFE_DEL(ast->structure.fields);
   } break;
-  case FL_AST_DECL_STRUCT_FIELD: {
+  case AST_DECL_STRUCT_FIELD: {
     SAFE_DEL(ast->field.id);
     SAFE_DEL(ast->field.type);
   } break;
-  case FL_AST_STMT_COMMENT: {
+  case AST_STMT_COMMENT: {
     SAFE_DEL_STR(ast->comment.text);
   } break;
-  case FL_AST_TYPE: {
+  case AST_TYPE: {
     SAFE_DEL(ast->ty.id);
     SAFE_DEL(ast->ty.child);
   }
-  case FL_AST_ERROR: {
+  case AST_ERROR: {
     SAFE_DEL_STR(ast->err.message);
     SAFE_DEL_STR(ast->err.type);
   }
@@ -184,7 +184,7 @@ ast_t* __ast_clone(ast_t* node) {
 
   // TODO this may even not be necessary
   switch (t->type) {
-  case FL_AST_LIT_IDENTIFIER:
+  case AST_LIT_IDENTIFIER:
     t->identifier.string = st_clone(node->identifier.string);
     break;
   default: {} // supress warning
@@ -197,11 +197,11 @@ ast_t* __ast_clone(ast_t* node) {
 
   // traverse
   switch (node->type) {
-  case FL_AST_MODULE:
-  case FL_AST_PROGRAM:
+  case AST_MODULE:
+  case AST_PROGRAM:
     CLONE(program.body);
     break;
-  case FL_AST_BLOCK: {
+  case AST_BLOCK: {
     CLONE(block.body);
     // TODO to be able to
     node->block.types = pool_new(sizeof(hash_t));
@@ -213,7 +213,7 @@ ast_t* __ast_clone(ast_t* node) {
     node->block.variables = pool_new(sizeof(hash_t));
     hash_new(node->block.variables, 10);
   } break;
-  case FL_AST_LIST: {
+  case AST_LIST: {
     u64 i = 0;
     u64 max = node->list.count;
     ast_t* tmp;
@@ -226,84 +226,84 @@ ast_t* __ast_clone(ast_t* node) {
     }
 
   } break;
-  case FL_AST_EXPR_ASSIGNAMENT:
+  case AST_EXPR_ASSIGNAMENT:
     CLONE(assignament.left);
     CLONE(assignament.right);
     break;
-  case FL_AST_EXPR_BINOP:
+  case AST_EXPR_BINOP:
     CLONE(binop.left);
     CLONE(binop.right);
     break;
-  case FL_AST_EXPR_LUNARY:
+  case AST_EXPR_LUNARY:
     CLONE(lunary.element);
     break;
-  case FL_AST_EXPR_RUNARY:
+  case AST_EXPR_RUNARY:
     CLONE(runary.element);
     break;
-  case FL_AST_EXPR_CALL: {
+  case AST_EXPR_CALL: {
     CLONE(call.callee);
     CLONE(call.arguments);
   } break;
-  case FL_AST_EXPR_MEMBER: {
+  case AST_EXPR_MEMBER: {
     CLONE(member.left);
     CLONE(member.property);
   } break;
-  case FL_AST_DTOR_VAR: {
+  case AST_DTOR_VAR: {
     CLONE(var.id);
     CLONE(var.type);
   } break;
-  case FL_AST_DECL_FUNCTION: {
+  case AST_DECL_FUNCTION: {
     CLONE(func.attributes);
     CLONE(func.id);
     CLONE(func.ret_type);
     CLONE(func.params);
     CLONE(func.body);
   } break;
-  case FL_AST_PARAMETER: {
+  case AST_PARAMETER: {
     CLONE(param.id);
     CLONE(param.type);
   } break;
-  case FL_AST_STMT_RETURN: {
+  case AST_STMT_RETURN: {
     CLONE(ret.argument);
   } break;
-  case FL_AST_STMT_IF: {
+  case AST_STMT_IF: {
     CLONE(if_stmt.test);
     CLONE(if_stmt.block);
     CLONE(if_stmt.alternate);
   } break;
-  case FL_AST_STMT_LOOP: {
+  case AST_STMT_LOOP: {
     CLONE(loop.init);
     CLONE(loop.pre_cond);
     CLONE(loop.update);
     CLONE(loop.block);
     CLONE(loop.post_cond);
   } break;
-  case FL_AST_CAST: {
+  case AST_CAST: {
     CLONE(cast.type);
     CLONE(cast.element);
   } break;
-  case FL_AST_DECL_STRUCT: {
+  case AST_DECL_STRUCT: {
     CLONE(structure.id);
     CLONE(structure.fields);
   } break;
-  case FL_AST_DECL_STRUCT_FIELD: {
+  case AST_DECL_STRUCT_FIELD: {
     CLONE(field.id);
     CLONE(field.type);
   } break;
-  case FL_AST_DECL_TEMPLATE: {
+  case AST_DECL_TEMPLATE: {
     CLONE(tpl.id);
   } break;
-  case FL_AST_EXPR_SIZEOF: {
+  case AST_EXPR_SIZEOF: {
     CLONE(sof.type);
   } break;
-  case FL_AST_TYPE: {
+  case AST_TYPE: {
     CLONE(ty.id);
     CLONE(ty.child);
   } break;
-  case FL_AST_STMT_LOG: {
+  case AST_STMT_LOG: {
     CLONE(log.list);
   } break;
-  case FL_AST_ATTRIBUTE: {
+  case AST_ATTRIBUTE: {
     CLONE(attr.id);
     CLONE(attr.value);
   } break;

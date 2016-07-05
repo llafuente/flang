@@ -30,48 +30,48 @@ TASK_IMPL(parser_literals) {
   log_debug_level = 0;
 
   TEST_PARSER_OK("string literals 01", "\"hello:\\\"w\'orld\"", {
-    ASSERT(body[0]->type == FL_AST_LIT_STRING, "FL_AST_LIT_STRING");
+    ASSERT(body[0]->type == AST_LIT_STRING, "AST_LIT_STRING");
   });
 
   TEST_PARSER_OK("string literals 02", "'hello:\"wo\\\'rld'", {
-    ASSERT(body[0]->type == FL_AST_LIT_STRING, "FL_AST_LIT_STRING");
+    ASSERT(body[0]->type == AST_LIT_STRING, "AST_LIT_STRING");
   });
 
   TEST_PARSER_OK("null literals 01", "null", {
-    ASSERT(body[0]->type == FL_AST_LIT_NULL, "FL_AST_LIT_NULL");
+    ASSERT(body[0]->type == AST_LIT_NULL, "AST_LIT_NULL");
   });
 
   TEST_PARSER_OK("null literals 02", "nil", {
-    ASSERT(body[0]->type == FL_AST_LIT_NULL, "FL_AST_LIT_NULL");
+    ASSERT(body[0]->type == AST_LIT_NULL, "AST_LIT_NULL");
   });
 
   TEST_PARSER_OK("bool literals 01", "true", {
-    ASSERT(body[0]->type == FL_AST_LIT_BOOLEAN, "FL_AST_LIT_BOOLEAN");
+    ASSERT(body[0]->type == AST_LIT_BOOLEAN, "AST_LIT_BOOLEAN");
     ASSERT(body[0]->boolean.value == true, "value = true");
   });
 
   TEST_PARSER_OK("bool literals 01", "false", {
-    ASSERT(body[0]->type == FL_AST_LIT_BOOLEAN, "FL_AST_LIT_BOOLEAN");
+    ASSERT(body[0]->type == AST_LIT_BOOLEAN, "AST_LIT_BOOLEAN");
     ASSERT(body[0]->boolean.value == false, "value = false");
   });
 
   TEST_PARSER_OK("numeric literals 01", "1567", {
-    ASSERT(body[0]->type == FL_AST_LIT_INTEGER, "FL_AST_LIT_INTEGER");
+    ASSERT(body[0]->type == AST_LIT_INTEGER, "AST_LIT_INTEGER");
     ASSERT(body[0]->integer.signed_value == 1567, "signed_value = 1567");
   });
 
   TEST_PARSER_OK("numeric literals 02", "1e1", {
-    ASSERT(body[0]->type == FL_AST_LIT_FLOAT, "FL_AST_LIT_FLOAT");
+    ASSERT(body[0]->type == AST_LIT_FLOAT, "AST_LIT_FLOAT");
     ASSERT(body[0]->decimal.value == 10, "value = 10");
   });
 
   TEST_PARSER_OK("numeric literals 03", "0xff", {
-    ASSERT(body[0]->type == FL_AST_LIT_INTEGER, "FL_AST_LIT_INTEGER");
+    ASSERT(body[0]->type == AST_LIT_INTEGER, "AST_LIT_INTEGER");
     ASSERT(body[0]->integer.signed_value == 0xff, "value = 0xff");
   });
 
   TEST_PARSER_OK("numeric literals 04", "5.2", {
-    ASSERT(body[0]->type == FL_AST_LIT_FLOAT, "FL_AST_LIT_FLOAT");
+    ASSERT(body[0]->type == AST_LIT_FLOAT, "AST_LIT_FLOAT");
     ASSERT(body[0]->decimal.value == 5.2, "value = 5.2");
   });
 
@@ -79,24 +79,24 @@ TASK_IMPL(parser_literals) {
   // TODO octal 0o777
 
   TEST_PARSER_OK("id literals 03", "var wtf; wtf;", {
-    ASSERT(body[1]->type == FL_AST_LIT_IDENTIFIER, "FL_AST_LIT_IDENTIFIER");
+    ASSERT(body[1]->type == AST_LIT_IDENTIFIER, "AST_LIT_IDENTIFIER");
     ASSERT(strcmp(body[1]->identifier.string->value, "wtf") == 0,
            "identifier = wtf");
     // st_delete(&body[0]->identifier.string);
   });
 
   TEST_PARSER_OK("comments", "/* hello */ var wtf;", {
-    ASSERT(body[0]->type == FL_AST_STMT_COMMENT, "FL_AST_COMMENT");
-    ASSERT(body[1]->type == FL_AST_DTOR_VAR, "FL_AST_DTOR_VAR");
+    ASSERT(body[0]->type == AST_STMT_COMMENT, "AST_COMMENT");
+    ASSERT(body[1]->type == AST_DTOR_VAR, "AST_DTOR_VAR");
   });
 
   TEST_PARSER_OK("comments", "// hello\nvar wtf;", {
-    ASSERT(body[0]->type == FL_AST_STMT_COMMENT, "FL_AST_COMMENT");
-    ASSERT(body[1]->type == FL_AST_DTOR_VAR, "FL_AST_DTOR_VAR");
+    ASSERT(body[0]->type == AST_STMT_COMMENT, "AST_COMMENT");
+    ASSERT(body[1]->type == AST_DTOR_VAR, "AST_DTOR_VAR");
   });
 
   TEST_PARSER_OK("comments", "var i64 a; a = 9223372036854775807;", {
-    ASSERT(body[0]->type == FL_AST_DTOR_VAR, "FL_AST_DTOR_VAR");
+    ASSERT(body[0]->type == AST_DTOR_VAR, "AST_DTOR_VAR");
     ASSERT(body[1]->assignament.right->integer.signed_value ==
                9223372036854775807,
            "i64 max");

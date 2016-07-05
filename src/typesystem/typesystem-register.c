@@ -29,7 +29,7 @@
 #include "flang/debug.h"
 
 u64 __ts_string_to_tyid(ast_t* node) {
-  assert(node->type == FL_AST_TYPE);
+  assert(node->type == AST_TYPE);
 
   // empty var_decl for example
   if (!node->ty.id) {
@@ -117,50 +117,50 @@ u64 __ts_string_to_tyid(ast_t* node) {
 ast_action_t __trav_register_types(ast_t* node, ast_t* parent, u64 level,
                                    void* userdata_in, void* userdata_out) {
   if (node->ty_id)
-    return FL_AC_CONTINUE;
+    return AST_SEARCH_CONTINUE;
 
   switch (node->type) {
-  case FL_AST_DECL_TEMPLATE:
+  case AST_DECL_TEMPLATE:
     node->tpl.id->ty_id = node->ty_id = ty_create_template(node);
     break;
-  case FL_AST_DECL_STRUCT:
+  case AST_DECL_STRUCT:
     ts_register_types(node->structure.fields);
     node->ty_id = ty_create_struct(node);
     break;
-  case FL_AST_DECL_FUNCTION:
+  case AST_DECL_FUNCTION:
     // declare the function
     ts_register_types(node->func.params);
     ts_register_types(node->func.ret_type);
     node->ty_id = ty_create_fn(node);
     break;
-  case FL_AST_TYPE: {
+  case AST_TYPE: {
     // check wrappers
     ast_t* p = node->parent;
     __ts_string_to_tyid(node);
 
     switch (p->type) {
-    case FL_AST_DECL_FUNCTION:
-    case FL_AST_TYPE:
+    case AST_DECL_FUNCTION:
+    case AST_TYPE:
       // just ignore
       break;
-    case FL_AST_DTOR_VAR:
+    case AST_DTOR_VAR:
       p->ty_id = node->ty_id;
       p->var.id->ty_id = node->ty_id;
       ty_create_var(p);
       break;
 
-    case FL_AST_PARAMETER:
+    case AST_PARAMETER:
       p->ty_id = node->ty_id;
       p->param.id->ty_id = node->ty_id;
       break;
-    case FL_AST_DECL_STRUCT_FIELD:
+    case AST_DECL_STRUCT_FIELD:
       p->ty_id = node->ty_id;
       p->field.id->ty_id = node->ty_id;
       break;
-    case FL_AST_CAST:
+    case AST_CAST:
       p->ty_id = node->ty_id;
       break;
-    case FL_AST_EXPR_SIZEOF:
+    case AST_EXPR_SIZEOF:
       // LLVMSizeOf
       p->ty_id = TS_I64;
       break;
@@ -173,7 +173,7 @@ ast_action_t __trav_register_types(ast_t* node, ast_t* parent, u64 level,
   default: {} // supress warning
   }
 
-  return FL_AC_CONTINUE;
+  return AST_SEARCH_CONTINUE;
 }
 
 // TODO performance, this should be deep-verse instead of traverse

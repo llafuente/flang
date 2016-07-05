@@ -5,48 +5,54 @@
 
 /* Parse an utf8 string and return the root ast node.
  *
- * see: [fl_parse_file](#fl_parse_file)
+ * see: [psr_file](#psr_file)
  *
  * @str input string
  * @return root ast node
  */
-libexport ast_t* fl_parse_utf8(char* str);
+libexport ast_t* psr_str_utf8(char* str);
 
 /* Parse an utf8 string and return the root ast node
  * with import core at the beginning. So you can later call
- * ast_load_imports and get the full ast.
+ * psr_ast_imports and get the full ast.
  *
- * see: [fl_parse_main_file](#fl_parse_main_file)
+ * see: [psr_file_main](#psr_file_main)
  *
  * @str input string
  * @return root ast node
  */
-libexport ast_t* fl_parse_main_utf8(char* str);
+libexport ast_t* psr_str_utf8_main(char* str);
 
 /* Return file contents parsed.
  *
- * see: [fl_parse_utf8](#fl_parse_utf8)
+ * see: [psr_str_utf8](#psr_str_utf8)
  *
  * @filename path to file
  * @return root ast node
  */
-libexport ast_t* fl_parse_file(const char* filename);
+libexport ast_t* psr_file(const char* filename);
 
 /* Return file contents parsed with import core at the beginning.
- * So you can later call ast_load_imports and get the full ast.
+ * So you can later call psr_ast_imports and get the full ast.
  *
- * see: [fl_parse_main_utf8](#fl_parse_main_utf8)
+ * see: [psr_str_utf8_main](#psr_str_utf8_main)
  *
  * @filename path to file
  * @return root ast node
  */
-libexport ast_t* fl_parse_main_file(const char* filename);
+libexport ast_t* psr_file_main(const char* filename);
 
 /* Help function, exported to easy test code.
  *
  * @filename path to file
  * @return file contents as string
  */
-libexport string* fl_file_to_string(const char* filename);
+libexport string* psr_file_to_string(const char* filename);
+
+/* Traverse the tree loading and appending all imports.
+ * Imports cannot be double loaded so it safe.
+ * @node
+ */
+libexport ast_t* psr_ast_imports(ast_t* node);
 
 /* cldoc:end-category() */

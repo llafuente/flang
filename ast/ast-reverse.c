@@ -49,51 +49,51 @@ bool __ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent, u64 level,
   }
 
   switch (node->type) {
-  case FL_AST_MODULE:
+  case AST_MODULE:
     ast_traverse(node, cb, parent, 0, userdata_in, userdata_out);
     break;
-  case FL_AST_PROGRAM:
+  case AST_PROGRAM:
     if (node->parent) { // TODO module should have PROGRAM inside?
       ast_traverse(node->program.body, cb, node, 0, userdata_in, userdata_out);
     }
     break;
-  case FL_AST_BLOCK: {
-    if (node->parent->type == FL_AST_PROGRAM && node->parent->parent) {
+  case AST_BLOCK: {
+    if (node->parent->type == AST_PROGRAM && node->parent->parent) {
       // do not traverse current program
       ast_traverse(node, cb, parent, 0, userdata_in, userdata_out);
     }
   } break;
-  case FL_AST_LIST: {
+  case AST_LIST: {
     if (parent) { // do not reverse current-first node
       ast_traverse_list(node, cb, parent, 0, userdata_in, userdata_out);
     }
   }; break;
-  case FL_AST_EXPR_ASSIGNAMENT:
+  case AST_EXPR_ASSIGNAMENT:
     break;
-  case FL_AST_EXPR_BINOP:
+  case AST_EXPR_BINOP:
     break;
-  case FL_AST_EXPR_LUNARY:
+  case AST_EXPR_LUNARY:
     break;
-  case FL_AST_EXPR_RUNARY:
+  case AST_EXPR_RUNARY:
     break;
-  case FL_AST_EXPR_CALL: {
+  case AST_EXPR_CALL: {
     if (parent) {
       ast_traverse(node->call.arguments, cb, parent, 0, userdata_in,
                    userdata_out);
     }
   } break;
-  case FL_AST_DTOR_VAR:
+  case AST_DTOR_VAR:
     break;
-  case FL_AST_DECL_FUNCTION: {
+  case AST_DECL_FUNCTION: {
     if (node->func.params != parent) {
       ast_traverse(node->func.params, cb, parent, 0, userdata_in, userdata_out);
     }
   } break;
-  case FL_AST_PARAMETER:
+  case AST_PARAMETER:
     break;
-  case FL_AST_STMT_RETURN: {
+  case AST_STMT_RETURN: {
   }
-  case FL_AST_CAST: {
+  case AST_CAST: {
   }
   default: {}
   }

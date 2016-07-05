@@ -29,11 +29,11 @@
 void test_parser_type(ast_t* body, size_t typeid) {
   ast_t* var_type;
 
-  ASSERT(body->type == FL_AST_DTOR_VAR, "first in body: FL_AST_DTOR_VAR");
+  ASSERT(body->type == AST_DTOR_VAR, "first in body: AST_DTOR_VAR");
 
   var_type = body->var.type;
   ASSERT(var_type != 0, "dtor has a type");
-  ASSERTE(var_type->type, FL_AST_TYPE, "%d != %d", "dtor type is FL_AST_TYPE");
+  ASSERTE(var_type->type, AST_TYPE, "%d != %d", "dtor type is AST_TYPE");
   ASSERTE(var_type->ty_id, typeid, "%zu != %zu", "typeid ?");
 }
 
@@ -98,8 +98,8 @@ TASK_IMPL(parser_types) {
                                   "i8 b"
                                   "};",
                  {
-    ASSERT(body[0]->type == FL_AST_DECL_STRUCT, "FL_AST_DECL_STRUCT");
-    ASSERT(body[1]->type == FL_AST_DECL_STRUCT, "FL_AST_DECL_STRUCT");
+    ASSERT(body[0]->type == AST_DECL_STRUCT, "AST_DECL_STRUCT");
+    ASSERT(body[1]->type == AST_DECL_STRUCT, "AST_DECL_STRUCT");
   });
 
   TEST_PARSER_OK("complex struct", "struct test {"

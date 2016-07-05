@@ -27,21 +27,21 @@
 
 // DECL
 
-enum ast_action { FL_AC_STOP = 0, FL_AC_CONTINUE, FL_AC_SKIP };
+enum ast_action { AST_SEARCH_STOP = 0, AST_SEARCH_CONTINUE, AST_SEARCH_SKIP };
 
 enum ast_cast_operations {
-  FL_CAST_ERR = 0, // unkown
-  FL_CAST_FPTOSI,  // LLVMBuildFPToSI
-  FL_CAST_FPTOUI,  // LLVMBuildFPToUI
-  FL_CAST_SITOFP,  // LLVMBuildSIToFP
-  FL_CAST_UITOFP,  // LLVMBuildUIToFP
-  FL_CAST_FPEXT,   // LLVMBuildFPExt
-  FL_CAST_SEXT,    // LLVMBuildSExt
-  FL_CAST_ZEXT,    // LLVMBuildZExt
-  FL_CAST_FPTRUNC, // LLVMBuildFPTrunc
-  FL_CAST_TRUNC,   // LLVMBuildTrunc
-  FL_CAST_BITCAST, // LLVMBuildBitCast
-  FL_CAST_AUTO,    // Function call
+  AST_CAST_ERR = 0, // unkown
+  AST_CAST_FPTOSI,  // LLVMBuildFPToSI
+  AST_CAST_FPTOUI,  // LLVMBuildFPToUI
+  AST_CAST_SITOFP,  // LLVMBuildSIToFP
+  AST_CAST_UITOFP,  // LLVMBuildUIToFP
+  AST_CAST_FPEXT,   // LLVMBuildFPExt
+  AST_CAST_SEXT,    // LLVMBuildSExt
+  AST_CAST_ZEXT,    // LLVMBuildZExt
+  AST_CAST_FPTRUNC, // LLVMBuildFPTrunc
+  AST_CAST_TRUNC,   // LLVMBuildTrunc
+  AST_CAST_BITCAST, // LLVMBuildBitCast
+  AST_CAST_AUTO,    // Function call
 };
 
 enum ast_scope {
@@ -52,58 +52,58 @@ enum ast_scope {
 };
 
 enum ast_types {
-  FL_AST_PROGRAM = 1,
-  FL_AST_IMPORT = 2,
-  FL_AST_MODULE = 3,
-  FL_AST_BLOCK = 4,
-  FL_AST_LIST = 5,
+  AST_PROGRAM = 1,
+  AST_IMPORT = 2,
+  AST_MODULE = 3,
+  AST_BLOCK = 4,
+  AST_LIST = 5,
 
-  FL_AST_LIT_ARRAY = 10,
-  FL_AST_LIT_OBJECT = 11,
-  FL_AST_LIT_INTEGER = 12,
-  FL_AST_LIT_FLOAT = 13,
-  FL_AST_LIT_STRING = 14,
-  FL_AST_LIT_BOOLEAN = 15,
-  FL_AST_LIT_NULL = 16,
-  FL_AST_LIT_IDENTIFIER = 17,
+  AST_LIT_ARRAY = 10,
+  AST_LIT_OBJECT = 11,
+  AST_LIT_INTEGER = 12,
+  AST_LIT_FLOAT = 13,
+  AST_LIT_STRING = 14,
+  AST_LIT_BOOLEAN = 15,
+  AST_LIT_NULL = 16,
+  AST_LIT_IDENTIFIER = 17,
 
-  FL_AST_EXPR = 20,
-  FL_AST_EXPR_ASSIGNAMENT = 21,
-  FL_AST_EXPR_CONDITIONAL = 22,
-  FL_AST_EXPR_BINOP = 23,
-  FL_AST_EXPR_LUNARY = 24,
-  FL_AST_EXPR_RUNARY = 25,
-  FL_AST_EXPR_CALL = 26,
-  FL_AST_EXPR_MEMBER = 27,
-  FL_AST_EXPR_SIZEOF = 28,
+  AST_EXPR = 20,
+  AST_EXPR_ASSIGNAMENT = 21,
+  AST_EXPR_CONDITIONAL = 22,
+  AST_EXPR_BINOP = 23,
+  AST_EXPR_LUNARY = 24,
+  AST_EXPR_RUNARY = 25,
+  AST_EXPR_CALL = 26,
+  AST_EXPR_MEMBER = 27,
+  AST_EXPR_SIZEOF = 28,
 
-  FL_AST_CAST = 29,
+  AST_CAST = 29,
 
-  // TODO FL_AST_DECL_VAR = 30
-  FL_AST_DTOR_VAR = 31,
+  // TODO AST_DECL_VAR = 30
+  AST_DTOR_VAR = 31,
 
-  FL_AST_TYPE = 40,
-  FL_AST_DECL_STRUCT = 41,
-  FL_AST_DECL_STRUCT_FIELD = 42,
-  FL_AST_DECL_TEMPLATE = 43,
+  AST_TYPE = 40,
+  AST_DECL_STRUCT = 41,
+  AST_DECL_STRUCT_FIELD = 42,
+  AST_DECL_TEMPLATE = 43,
 
-  FL_AST_DECL_FUNCTION = 50,
-  FL_AST_PARAMETER = 51,
-  FL_AST_STMT_RETURN = 52,
-  FL_AST_STMT_BREAK = 53,
-  FL_AST_STMT_CONTINUE = 54,
+  AST_DECL_FUNCTION = 50,
+  AST_PARAMETER = 51,
+  AST_STMT_RETURN = 52,
+  AST_STMT_BREAK = 53,
+  AST_STMT_CONTINUE = 54,
 
-  FL_AST_STMT_IF = 60,
-  FL_AST_STMT_LOOP = 61,
-  FL_AST_STMT_FOR = 62,     // not used
-  FL_AST_STMT_WHILE = 63,   // not used
-  FL_AST_STMT_DOWHILE = 64, // not used
+  AST_STMT_IF = 60,
+  AST_STMT_LOOP = 61,
+  AST_STMT_FOR = 62,     // not used
+  AST_STMT_WHILE = 63,   // not used
+  AST_STMT_DOWHILE = 64, // not used
 
-  FL_AST_STMT_COMMENT = 100,
-  FL_AST_STMT_LOG = 101,
-  FL_AST_ATTRIBUTE = 102,
+  AST_STMT_COMMENT = 100,
+  AST_STMT_LOG = 101,
+  AST_ATTRIBUTE = 102,
 
-  FL_AST_ERROR = 255
+  AST_ERROR = 255
 };
 
 struct ast {
@@ -345,22 +345,6 @@ struct ast {
  */
 libexport void ast_parent(ast_t* root);
 
-/* Get tyid given a node
- * TODO this should be removed, in pro of just `node->ty_id`
- * @node
- */
-libexport u64 ast_get_typeid(ast_t* node);
-
-/* Return if the type of node is a pointer (at first level!)
- * @node
- */
-libexport bool ast_is_pointer(ast_t* node);
-/* Return if index of given property
- * @decl
- * @id
- */
-libexport u64 ast_get_struct_prop_idx(ast_t* decl, string* id);
-
 /* cldoc:end-category() */
 /*----------------------------------------------------------------------------*/
 /* cldoc:begin-category(parser/ast/ast-alloc.c) */
@@ -438,54 +422,6 @@ libexport ast_t* ast_mk_attribute(ast_t* id, ast_t* value);
 
 /* cldoc:end-category() */
 /*----------------------------------------------------------------------------*/
-/* cldoc:begin-category(parser/ast/ast-get.c) */
-
-/* Get tyid from given AST Identifier
- *
- * @id Identifier node
- * @return type id
- */
-libexport u64 ast_get_ident_typeid(ast_t* id);
-
-/* Get attribute with given its label
- *
- * @list list of attributes
- * @needle attribute label
- * @return node if found, 0 otherwise
- */
-libexport ast_t* ast_get_attribute(ast_t* list, string* needle);
-
-/* Reverse the tree a get the global scope
- *
- * @node
- * @return node if found, 0 otherwise
- */
-libexport ast_t* ast_get_global_scope(ast_t* node);
-
-/* Reverse the tree searching nearest scope
- *
- * @node
- * @return neasert scope
- */
-libexport ast_t* ast_get_scope(ast_t* node);
-
-/* Get location as string
- *
- * @node
- * @return string location
- */
-libexport string* ast_get_location(ast_t* node);
-
-/* Return root node
- * A root node is the program or the module
- *
- * @node
- * @return root node
- */
-libexport ast_t* ast_get_root(ast_t* node);
-
-/* cldoc:end-category() */
-/*----------------------------------------------------------------------------*/
 /* cldoc:begin-category(parser/ast/ast-traverse.c) */
 
 /* Traverse the tree calling cb on each node
@@ -546,7 +482,7 @@ libexport ast_t* ast_search_fn_wargs(string* id, ast_t* args_call);
  */
 libexport array* ast_search_fns(ast_t* node, string* id);
 
-/* Traverse given tree and return all aparences of t
+/* Traverse given tree and return all aparences of given type
  * @node
  * @t
  * @return array or null
@@ -603,14 +539,6 @@ libexport void ast_replace_types(ast_t* node, u64 old, u64 new);
  */
 libexport void ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent,
                            u64 level, void* userdata_in, void* userdata_out);
-
-/* Get the string piece of code given a node
- * Does not always work, because some node are auto-generated...
- *
- * @node
- * @return root node
- */
-libexport string* ast_get_code(ast_t* node);
 
 /* cldoc:end-category() */
 
@@ -725,15 +653,7 @@ libexport void ast_print_error_at(ast_t* node, char* message);
 libexport void ast_raise_error(ast_t* node, char* message, ...);
 
 /* cldoc:end-category() */
-/* cldoc:begin-category(ast-load-imports.c) */
 
-/* Traverse the tree loading and appending all imports.
- * Imports cannot be double loaded so it safe.
- * @node
- */
-libexport ast_t* ast_load_imports(ast_t* node);
-
-/* cldoc:end-category() */
 /* cldoc:begin-category(ast-query.c) */
 
 /* Return if the node is a literal
@@ -744,6 +664,68 @@ libexport ast_t* ast_load_imports(ast_t* node);
  * @return if @node is a literal
  */
 libexport bool ast_is_literal(ast_t* node);
+
+/* Return if the type of node is a pointer (at first level!)
+ * @node
+ */
+libexport bool ast_is_pointer(ast_t* node);
+
+/* Get the string piece of code given a node
+ * NOTE Does not always work, because some nodes are auto-generated
+ *
+ * @node
+ * @return root node
+ */
+libexport string* ast_get_code(ast_t* node);
+
+/* Get attribute with given its label
+ *
+ * @list list of attributes
+ * @needle attribute label
+ * @return node if found, 0 otherwise
+ */
+libexport ast_t* ast_get_attribute(ast_t* list, string* needle);
+
+/* Reverse the tree a get the global scope
+ *
+ * @node
+ * @return node if found, 0 otherwise
+ */
+libexport ast_t* ast_get_global_scope(ast_t* node);
+
+/* Reverse the tree searching nearest scope
+ *
+ * @node
+ * @return neasert scope
+ */
+libexport ast_t* ast_get_scope(ast_t* node);
+
+/* Get location as string
+ *
+ * @node
+ * @return string location
+ */
+libexport string* ast_get_location(ast_t* node);
+
+/* Return root node
+ * A root node is the program or the module
+ *
+ * @node
+ * @return root node
+ */
+libexport ast_t* ast_get_root(ast_t* node);
+
+/* Get tyid given a node
+ * TODO this should be removed, in pro of just `node->ty_id`
+ * @node
+ */
+libexport u64 ast_get_typeid(ast_t* node);
+
+/* Return if index of given property
+ * @decl
+ * @id
+ */
+libexport u64 ast_get_struct_prop_idx(ast_t* decl, string* id);
 
 /* cldoc:end-category() */
 

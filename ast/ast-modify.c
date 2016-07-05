@@ -32,7 +32,7 @@ ast_action_t __trav_replace_types(ast_t* node, ast_t* parent, u64 level,
     node->ty_id = *((u64*)userdata_out);
   }
 
-  return FL_AC_CONTINUE;
+  return AST_SEARCH_CONTINUE;
 }
 
 void ast_replace_types(ast_t* node, u64 old, u64 new) {

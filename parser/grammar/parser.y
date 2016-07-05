@@ -63,17 +63,9 @@
 
 /* ast */
 /* ast.literals */
-%token <node> AST_LIT_ID AST_LIT_INTEGER AST_LIT_FLOAT AST_LIT_STR AST_LIT_BYTE
-
-%token <node> AST_IDENT
-%token <node> AST_SHEBANG
-%token <node> AST_SHEBANG_LINE
-
-%token <node> AST_COMMENT
-%token <node> AST_LIT_BYTE_STR
-
-/* to remove! */
-%token <node> AST_LIT_CHAR AST_LIT_BYTE_STR_RAW AST_STATIC_LIFETIME AST_LIFETIME
+%token <node> LIT_INTEGER LIT_FLOAT LIT_STRING LIT_BYTE
+%token <node> IDENTIFIER
+%token <node> COMMENT
 
 /* Define the type of node our nonterminal symbols represent.
    The types refer to the %union declaration above. Ex: when
@@ -118,7 +110,7 @@
 
 /* %expect 0 */
 
-%precedence IDENT
+%precedence IDENTIFIER
 %precedence TYPE
 
 %precedence FORTYPE
@@ -554,7 +546,7 @@ postfix_expression
   | postfix_expression TK_PLUSPLUS   { $$ = ast_mk_runary($1, TK_PLUSPLUS); ast_position($$, @1, @2); }
   | postfix_expression TK_MINUSMINUS { $$ = ast_mk_runary($1, TK_MINUSMINUS); ast_position($$, @1, @2); }
   /* TODO really? not needed!
-  | postfix_expression PTR_OP IDENT '->'
+  | postfix_expression PTR_OP IDENTIFIER '->'
   */
   ;
 
@@ -771,7 +763,7 @@ block_or_if
   ;
 
 comment
-  : AST_COMMENT {
+  : COMMENT {
     $$ = ast_mk_comment(st_newc(yytext, st_enc_utf8));
     ast_position($$, @1, @1);
   }
@@ -802,11 +794,11 @@ literal
   ;
 
 lit_string
-  : AST_LIT_STR {
+  : LIT_STRING {
     $$ = ast_mk_lit_string(yytext, false);
     ast_position($$, @1, @1);
   }
-  | AST_LIT_BYTE {
+  | LIT_BYTE {
     /* TODO what is the difference? */
     $$ = ast_mk_lit_string(yytext, false);
     ast_position($$, @1, @1);
@@ -814,7 +806,7 @@ lit_string
   ;
 
 lit_numeric
-  : AST_LIT_FLOAT {
+  : LIT_FLOAT {
     $$ = ast_mk_lit_float(yytext);
     ast_position($$, @1, @1);
   }
@@ -822,7 +814,7 @@ lit_numeric
   ;
 
 lit_integer
-  : AST_LIT_INTEGER {
+  : LIT_INTEGER {
     $$ = ast_mk_lit_integer(yytext);
     ast_position($$, @1, @1);
   }
@@ -843,7 +835,7 @@ type
   ;
 
 ty_primitive
-  : %prec TYPE AST_IDENT {
+  : %prec TYPE IDENTIFIER {
     //printf("ty_primitive\n");
     $$ = ast_mk_type(array_unshift(identifiers), 0);
     ast_position($$, @1, @1);
@@ -855,7 +847,7 @@ ty_primitive
   ;
 
 ident
-  : %prec IDENT AST_IDENT {
+  : %prec IDENTIFIER IDENTIFIER {
     //printf("ident\n");
     $$ = ast_mk_lit_id(array_unshift(identifiers), true);
     ast_position($$, @1, @1);

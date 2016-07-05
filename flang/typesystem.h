@@ -324,12 +324,12 @@ libexport void ts_exit();
  */
 libexport bool ts_castable(u64 current, u64 expected);
 
-/* Given a FL_AST_CAST node, will determine the asm operation
+/* Given a AST_CAST node, will determine the asm operation
  * needed to cast both types.
  * If no operation is found, it will try to search for an
  * appropiate `autocast` function or raise otherwise.
  *
- * @node FL_AST_CAST node
+ * @node AST_CAST node
  */
 libexport ast_cast_operations_t ts_cast_operation(ast_t* node);
 

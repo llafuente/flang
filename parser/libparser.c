@@ -29,16 +29,16 @@
 #include "flang/libparser.h"
 #include <string.h>
 
-void __fl_attach_core(ast_t* root) {
+void __psr_attach_core(ast_t* root) {
   ast_t* block = root->program.body;
 
-  if (block->type != FL_AST_ERROR) {
+  if (block->type != AST_ERROR) {
     ast_t* import = ast_mk_import(ast_mk_lit_string("lib/core/core", false), true);
     ast_mk_list_insert(block->block.body, import, 0);
   }
 }
 
-ast_t* __fl_parse(string* code, const char* file) {
+ast_t* __psr_parse(string* code, const char* file) {
   // create program node, so error reporting could be nice!
   ast_t* root = ast_mk_program(0);
   root->program.code = code;
@@ -51,7 +51,7 @@ ast_t* __fl_parse(string* code, const char* file) {
   return root;
 }
 
-ast_t* fl_parse_utf8(char* str) {
+ast_t* psr_str_utf8(char* str) {
   st_size_t cap;
   size_t len = st_utf8_length(str, &cap);
 
@@ -59,29 +59,29 @@ ast_t* fl_parse_utf8(char* str) {
   st_copyc(&code, str, st_enc_utf8);
   st_append_char(&code, 0);
 
-  ast_t* root = __fl_parse(code, 0);
+  ast_t* root = __psr_parse(code, 0);
   ast_parent(root);
 
   return root;
 }
 
-ast_t* fl_parse_main_utf8(char* str) {
-  ast_t* root = fl_parse_utf8(str);
-  __fl_attach_core(root);
+ast_t* psr_str_utf8_main(char* str) {
+  ast_t* root = psr_str_utf8(str);
+  __psr_attach_core(root);
   ast_parent(root);
 
   return root;
 }
 
-ast_t* fl_parse_file(const char* filename) {
-  string* code = fl_file_to_string(filename);
-  ast_t* root = __fl_parse(code, filename);
+ast_t* psr_file(const char* filename) {
+  string* code = psr_file_to_string(filename);
+  ast_t* root = __psr_parse(code, filename);
   ast_parent(root);
 
   return root;
 }
 
-string* fl_file_to_string(const char* filename) {
+string* psr_file_to_string(const char* filename) {
   FILE* f = fopen(filename, "r");
   if (!f) {
     fl_fatal_error("file cannot be opened: %s\n", filename);
@@ -108,14 +108,86 @@ string* fl_file_to_string(const char* filename) {
   return code;
 }
 
-ast_t* fl_parse_main_file(const char* filename) {
-  string* code = fl_file_to_string(filename);
+ast_t* psr_file_main(const char* filename) {
+  string* code = psr_file_to_string(filename);
 
-  ast_t* root = __fl_parse(code, filename);
+  ast_t* root = __psr_parse(code, filename);
 
-  assert(root->type == FL_AST_PROGRAM);
-  __fl_attach_core(root);
+  assert(root->type == AST_PROGRAM);
+  __psr_attach_core(root);
   ast_parent(root);
 
   return root;
+}
+
+ast_action_t __trav_load_imports(ast_t* node, ast_t* parent, u64 level,
+                                 void* userdata_in, void* userdata_out) {
+  if (node->type == AST_IMPORT && !node->import.imported) {
+    assert(parent->type == AST_LIST);
+
+    char* file = node->import.path->string.value->value;
+
+    char filepath[1024] = "";
+
+    if (file[0] == '.' && file[1] == '/') {
+      char* file2 = strdup(file);
+      ast_t* root = ast_get_root(node);
+
+      strcat(filepath, dirname(root->program.file->value));
+      strcat(filepath, "/");
+      strcat(filepath, file + 2);
+      strcat(filepath, ".fl");
+      free(file2);
+    } else {
+      strcat(filepath, "./");
+      strcat(filepath, file);
+      strcat(filepath, ".fl");
+    }
+
+    // printf("load module %s\n", filepath);
+
+    ast_t* module = psr_file(filepath);
+
+    if (ast_print_error(module)) {
+      fl_fatal_error("Failed to load module: %s\n", filepath);
+    }
+
+    module->type = AST_MODULE;
+
+    ast_mk_insert_before(parent, node, module);
+
+    node->import.imported = true;
+
+    module->parent = parent;
+
+    assert(module->parent != 0);
+
+    ((*(u64*)userdata_out))++;
+
+    if (node->import.forward) {
+      // check that i'm at program scope level.
+      ast_t* pr = parent->parent->parent; // list -> block -> program/module
+      if (pr->type != AST_MODULE && pr->type != AST_PROGRAM) {
+        ast_raise_error(node,
+                        "Cannot foward this import, must be at program level");
+      }
+
+      module->program.body->block.scope = AST_SCOPE_TRANSPARENT;
+    } else {
+      module->program.body->block.scope = AST_SCOPE_BLOCK;
+    }
+  }
+
+  return AST_SEARCH_CONTINUE;
+}
+
+// return error
+ast_t* psr_ast_imports(ast_t* node) {
+  u64 imported;
+  do {
+    imported = 0;
+    ast_traverse(node, __trav_load_imports, 0, 0, 0, (void*)&imported);
+  } while (imported);
+
+  return 0;
 }

@@ -95,7 +95,7 @@ void test_file_list(char** files, size_t nfiles, char* path) {
     strcat(ir_file, ".ir");
 
     flang_init();
-    root = fl_parse_main_file(fl_file);
+    root = psr_file_main(fl_file);
 
     if (ast_print_error(root)) {
       exit(3);
@@ -122,7 +122,7 @@ void test_file_list(char** files, size_t nfiles, char* path) {
     strcat(cmd, ir_file);
     strcat(cmd, " 2>&1");
     string* output = execute(cmd);
-    string* output_cmp = fl_file_to_string(txt_file);
+    string* output_cmp = psr_file_to_string(txt_file);
 
     // printf("output-cmd \n--\n%s\n--\n", output_cmp->value);
 
