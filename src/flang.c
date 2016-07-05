@@ -69,7 +69,3 @@ void flang_exit(ast_t* root) {
   hash_replace_allocators(malloc, realloc, free);
   array_replace_allocators(malloc, realloc, free);
 }
-
-void fl_codegen(ast_t* root, char* filename) {
-
-}

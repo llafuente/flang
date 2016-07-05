@@ -21,9 +21,11 @@ AM_CPPFLAGS = -I$(top_srcdir)/include \
               -I$(top_srcdir)/src
 
 include_HEADERS = flang/common.h \
+  flang/flang.h \
   flang/debug.h \
   flang/libast.h \
   flang/libparser.h \
+  flang/codegen_c.h \
   flang/typesystem.h
 
 LLVM_CC_FLAGS=`llvm-config --cflags`
@@ -38,8 +40,8 @@ flang_SOURCES += $(COMPILER_SOURCES)
 
 flang_CFLAGS = $(LLVM_CC_FLAGS)
 flang_LDFLAGS = $(LLVM_LINK_FLAGS) -lstdc++ -Wl -L/usr/local/lib '-lstringc'
-flang_LDADD = libparser_fl.a libast_fl.a $(LIBS)
-flang_DEPENDENCIES = libparser_fl.a libast_fl.a
+flang_LDADD = libfl_parser.a libfl_ast.a libfl_codegen.a $(LIBS)
+flang_DEPENDENCIES = libfl_parser.a libfl_ast.a libfl_codegen.a
 
 
 SOURCES_TEST = test/tasks.c \
@@ -58,25 +60,29 @@ SOURCES_TEST = test/tasks.c \
 
 # test/flang-files-test.c
 
-TESTS = test/run-tests
-check_PROGRAMS = test/run-tests
+TESTS = tests
+check_PROGRAMS = tests
 
-test_run_tests_CFLAGS = $(LLVM_CC_FLAGS) -O1
-test_run_tests_LDFLAGS = $(LLVM_LINK_FLAGS) -O1 -lstdc++ -lrt -L/usr/local/lib '-lstringc'
+tests_CFLAGS = $(LLVM_CC_FLAGS) -O1
+tests_LDFLAGS = $(LLVM_LINK_FLAGS) -O1 -lstdc++ -lrt -L/usr/local/lib '-lstringc'
+tests_LDADD = libfl_parser.a libfl_ast.a libfl_codegen.a $(LIBS)
+tests_DEPENDENCIES = libfl_parser.a libfl_ast.a libfl_codegen.a
 
-test_run_tests_SOURCES = test/run-tests.c
-#test_run_tests_SOURCES = test/run-benchmarks.c
-test_run_tests_SOURCES += $(SOURCES_TEST)
-test_run_tests_SOURCES += $(COMPILER_SOURCES)
+tests_SOURCES = test/run-tests.c
+#tests_SOURCES = test/run-benchmarks.c
+tests_SOURCES += $(SOURCES_TEST)
+tests_SOURCES += $(COMPILER_SOURCES)
 
 
 
-noinst_LIBRARIES = libast_fl.a libparser_fl.a
-libparser_fl_a_SOURCES = parser/grammar/parser.c \
+noinst_LIBRARIES = libfl_ast.a libfl_parser.a libfl_codegen.a
+libfl_codegen_a_SOURCES = src/codegen_c/codegen_c.c
+
+libfl_parser_a_SOURCES = parser/grammar/parser.c \
                         parser/grammar/tokens.c \
                         parser/libparser.c
 
-libast_fl_a_SOURCES = ast/ast-mk.c \
+libfl_ast_a_SOURCES = ast/ast-mk.c \
                         ast/ast-modify.c \
                         ast/ast-get.c \
                         ast/ast-alloc.c \

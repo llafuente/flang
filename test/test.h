@@ -22,6 +22,14 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+
+#include "flang/common.h"
+#include "flang/flang.h"
+#include "flang/libast.h"
+#include "flang/libparser.h"
+#include "flang/typesystem.h"
+#include "flang/debug.h"
+
 #define STR(val) #val
 
 // last core typeid + 1
@@ -102,7 +110,7 @@
       exit(1);                                                                 \
     }                                                                          \
     ast_t** body = root->program.body->block.body->list.elements;              \
-    fl_codegen(root, "test");                                                  \
+    fl_codegen(root);                                                  \
     code_block;                                                                \
     flang_exit(root);                                                          \
   }
@@ -117,7 +125,7 @@
     root = ts_pass(root);                                                      \
     ast_mindump(root);                                                         \
     ast_t** body = root->program.body->block.body->list.elements;              \
-    fl_codegen(root, "test");                           \
+    fl_codegen(root);                           \
     code_block;                                                                \
     flang_exit(root);                                                          \
   }

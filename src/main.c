@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "flang/common.h"
+#include "flang/flang.h"
 #include "flang/libparser.h"
 #include "flang/debug.h"
 #include "flang/typesystem.h"
@@ -34,7 +35,8 @@ int main(int argc, char** argv) {
     exit(4);
   }
 
-  fl_codegen(root, "test.c");
+  // print to std atm...
+  fl_codegen(root);
 
   flang_exit(root);
 

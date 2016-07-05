@@ -1,19 +1,19 @@
 ## experimental fork of flang
 
 
-### libast_fl
+### libfl_ast
 
 Functions to create and manage AST
 
-### libparser_fl
+### libfl_parser
 
 Functions to parse files/string into AST
 
-### libtypesystem_fl
+### libfl_typesystem
 
 Functions to validate and augment AST
 
-### libcprint_fl
+### libfl_codegen_c
 
 Functions to output a C file from AST
 

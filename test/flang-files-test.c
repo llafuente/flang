@@ -23,7 +23,6 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
 #include "tasks.h"
 
 // _popen and _pclose for Windows.
@@ -114,7 +113,7 @@ void test_file_list(char** files, size_t nfiles, char* path) {
 
     // ty_dump_table();
 
-    fl_codegen(root, "test");
+    fl_codegen(root);
 
     flang_exit(root);
 

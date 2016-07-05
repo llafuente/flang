@@ -23,7 +23,8 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang.h"
+#include "flang/common.h"
+#include "flang/typesystem.h"
 #include "tasks.h"
 
 TASK_IMPL(typesystem) {
