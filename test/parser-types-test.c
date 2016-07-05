@@ -163,31 +163,31 @@ TASK_IMPL(parser_types) {
   TEST_PARSER_ERROR("name collision 01", "function a() {};\n"
                                          "struct a { i8 b, };",
                     "Type name 'a' in use by another type, previously defined "
-                    "at unkownfile:1:1",
+                    "at memory:string:1:1",
                     {});
 
   TEST_PARSER_ERROR("name collision 02", "struct a { i8 b, };\n"
                                          "function a() {};",
                     "Function name 'a' in use by a type, previously defined at "
-                    "unkownfile:1:1",
+                    "memory:string:1:1",
                     {});
 
   TEST_PARSER_ERROR("name collision 03", "var i8 a;\n"
                                          "struct a { i8 b, };",
                     "Type name 'a' in use by a variable, previously defined at "
-                    "unkownfile:1:1",
+                    "memory:string:1:1",
                     {});
 
   TEST_PARSER_ERROR("name collision 04", "var i8 a;\n"
                                          "function a() {};",
                     "Function name 'a' in use by a variable, previously "
-                    "defined at unkownfile:1:1",
+                    "defined at memory:string:1:1",
                     {});
 
   TEST_PARSER_ERROR("name collision 05", "{ global i8 a = 1; }"
                                          "function a() {};",
                     "Function name 'a' in use by a variable, previously "
-                    "defined at unkownfile:1:3",
+                    "defined at memory:string:1:3",
                     {});
 
   TEST_PARSER_ERROR("empty struct", "struct a { i8 b, };"

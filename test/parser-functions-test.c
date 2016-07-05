@@ -121,17 +121,17 @@ TASK_IMPL(parser_functions) {
 
   TEST_PARSER_ERROR("function err 05", "fn x (i8 a) : i32 { var x; }",
                     "Variable name 'x' in use by a type, previously defined at "
-                    "unkownfile:1:1",
+                    "memory:string:1:1",
                     {});
 
   TEST_PARSER_ERROR("function err 05", "fn x (i8 x) : i32 { var z; }",
                     "Parameter name 'x' in use by a type, previously defined "
-                    "at unkownfile:1:1",
+                    "at memory:string:1:1",
                     {});
 
   TEST_PARSER_ERROR("function err 05", "fn x (i8 a, i8 a) : i32 { var z; }",
                     "Parameter name 'a' in use by a variable, previously "
-                    "defined at unkownfile:1:7",
+                    "defined at memory:string:1:7",
                     {});
 
   TEST_PARSER_OK("template 01", "template $t;\n"

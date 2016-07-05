@@ -109,40 +109,40 @@ TASK_IMPL(parser_scopes) {
   TEST_PARSER_ERROR("var redef 01", "struct a {i32 b };\n"
                                     "var i32 a = 2;\n",
                     "Variable name 'a' in use by a type, previously defined at "
-                    "unkownfile:1:1",
+                    "memory:string:1:1",
                     {});
 
   TEST_PARSER_ERROR(
       "var redef 01", "var i32 a = 1;\n"
                       "var i32 a = 2;\n",
-      "Variable 'a' redefinition, previously defined at unkownfile:1:1", {});
+      "Variable 'a' redefinition, previously defined at memory:string:1:1", {});
 
   TEST_PARSER_ERROR(
       "var redef 02", "var i32 c = 1;\n"
                       "{global i32 c = 2;}\n",
-      "Variable 'c' redefinition, previously defined at unkownfile:1:1", {});
+      "Variable 'c' redefinition, previously defined at memory:string:1:1", {});
 
   TEST_PARSER_ERROR(
       "var redef 03", "var i32 b = 1;\n"
                       "fn x() { global i32 b = 2; }\n",
-      "Variable 'b' redefinition, previously defined at unkownfile:1:1", {});
+      "Variable 'b' redefinition, previously defined at memory:string:1:1", {});
 
   TEST_PARSER_ERROR("var redef 04", "var i32 b = 1;\n"
                                     "fn b() {}\n",
                     "Function name 'b' in use by a variable, previously "
-                    "defined at unkownfile:1:1",
+                    "defined at memory:string:1:1",
                     {});
 
   TEST_PARSER_ERROR("var redef 05", "fn b() {}\n"
                                     "var i32 b = 1;\n",
                     "Variable name 'b' in use by a type, previously defined at "
-                    "unkownfile:1:1",
+                    "memory:string:1:1",
                     {});
 
   TEST_PARSER_ERROR("var redef 06", "struct b {i8 x};\n"
                                     "fn b() {}\n",
                     "Function name 'b' in use by a type, previously defined at "
-                    "unkownfile:1:1",
+                    "memory:string:1:1",
                     {});
 
   return 0;

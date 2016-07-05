@@ -91,7 +91,7 @@ string* ast_get_location(ast_t* node) {
   ast_t* root = ast_get_root(node);
   char buffer[1024];
   sprintf(buffer, "%s:%d:%d",
-          root->program.file ? root->program.file->value : "unkownfile",
+          root->program.file->value,
           node->first_line, node->first_column);
 
   string* ret = st_newc(buffer, st_enc_utf8);
