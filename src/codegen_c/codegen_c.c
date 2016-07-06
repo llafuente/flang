@@ -2,6 +2,7 @@
 #include "flang/libast.h"
 #include "flang/typesystem.h"
 #include "flang/codegen_c.h"
+#include "flang/debug.h"
 
 //#define CG_DEBUG
 
@@ -11,7 +12,7 @@ char* buffer = 0;
 char* buffer2 = 0;
 array* cg_stack;
 u64 max_level = 0;
-u64 cg_indent = 0;
+int cg_indent = 0;
 
 #define stack_append(format, ...) \
 do {\
@@ -71,20 +72,22 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
   case AST_MODULE:
   case AST_LIST:
   case AST_TYPE:
+  case AST_PARAMETER:
     break;
   case AST_BLOCK:
     if (mode == AST_TRAV_ENTER) {
       ++cg_indent;
       node->stack = cg_stack->size;
-      printf("{\n");
+      printf("%*s{\n", cg_indent, " ");
     } else {
 
       for (int i = node->stack; i < cg_stack->size; ++i) {
-        printf("%s;\n", ((string*)cg_stack->data[i])->value);
+        printf("%*s%s;\n", cg_indent, " ",
+          ((string*)cg_stack->data[i])->value);
       }
       cg_stack->size = node->stack;
 
-      printf("}\n");
+      printf("%*s}\n", cg_indent, " ");
       --cg_indent;
     }
 
@@ -145,6 +148,9 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
   case AST_LIT_IDENTIFIER:
     if (mode == AST_TRAV_LEAVE) return 0;
     if (parent->type == AST_TYPE) return AST_SEARCH_CONTINUE;
+    if (parent->type == AST_DECL_FUNCTION) return AST_SEARCH_CONTINUE;
+    if (parent->type == AST_PARAMETER) return AST_SEARCH_CONTINUE;
+    if (parent->type == AST_EXPR_CALL) return AST_SEARCH_CONTINUE;
 
     assert(node->identifier.string != 0);
     array_append(cg_stack, (void*) node->identifier.string);
@@ -179,9 +185,6 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     }
     break;
   /*
-  case AST_EXPR_CALL:
-    printf("call T(%zu) [arguments=%zu]", node->ty_id, node->call.narguments);
-    break;
   case AST_EXPR_MEMBER:
     printf("member T(%zu) idx(%zu) expression(%d)", node->ty_id,
            node->member.idx, node->member.expression);
@@ -204,30 +207,109 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
   case AST_DECL_STRUCT_FIELD:
     printf("field T(%zu)", node->ty_id);
     break;
+  */
   case AST_DECL_FUNCTION:
-    printf("function T(%zu) id(%s) uid(%s) ffi(%d) varargs(%d) tpl(%d) "
-           "[params=%zu]",
-           node->ty_id, node->func.id->identifier.string->value,
-           node->func.uid ? node->func.uid->value : "(nil)", node->func.ffi,
-           node->func.varargs, node->func.templated,
-           node->func.params->list.count);
+    if (node->func.templated) {
+      // templated function are not exported, it's clones are
+      return AST_SEARCH_CONTINUE;
+    }
+
+    if (mode == AST_TRAV_ENTER) {
+      u64 current = cg_stack->size;
+      if (node->func.params->list.count) {
+        u64 i = 0;
+        ast_t* tmp;
+        ast_t** itr = node->func.params->list.elements;
+
+        while ((tmp = itr[i++]) != 0) {
+          stack_append("%s %s", ty_to_string(tmp->ty_id)->value,
+            tmp->param.id->identifier.string->value);
+        }
+      }
+
+      int buffer_idx = 0;
+      buffer[0] = 0;
+      for (int i = current; i < cg_stack->size; ++i) {
+        if (i == cg_stack->size - 1) {
+          buffer_idx += snprintf(buffer + buffer_idx, 1024, "%s", ((string*)cg_stack->data[i])->value);
+        } else {
+          buffer_idx += snprintf(buffer + buffer_idx, 1024, "%s, ", ((string*)cg_stack->data[i])->value);
+        }
+      }
+
+      if (node->func.ffi) {
+        if (buffer_idx != 0) {
+          buffer[buffer_idx++] = ',';
+        }
+        buffer[buffer_idx++] = ' ';
+        buffer[buffer_idx++] = '.';
+        buffer[buffer_idx++] = '.';
+        buffer[buffer_idx++] = '.';
+        buffer[buffer_idx++] = '\0';
+      }
+
+      string* parameters = st_newc(buffer, st_enc_utf8);
+
+      printf("%*s%s %s (%s)\n",
+        cg_indent, " ",
+        ty_to_string(node->func.ret_type->ty_id)->value,
+        node->func.id->identifier.string->value,
+        parameters->value
+      );
+    }
+
     break;
+
+    case AST_EXPR_CALL:
+
+    if (mode == AST_TRAV_ENTER) {
+      node->stack = cg_stack->size;
+    } else {
+      for (int i = node->stack; i < cg_stack->size; ++i) {
+        printf("%*s%s;\n", cg_indent, " ",
+        ((string*)cg_stack->data[i])->value);
+      }
+
+      int buffer_idx = 0;
+      buffer2[0] = 0;
+      for (int i = node->stack; i < cg_stack->size; ++i) {
+        string* arg = (string*) cg_stack->data[i];
+
+        if (i == cg_stack->size - 1) {
+          buffer_idx += snprintf(buffer2 + buffer_idx, 1024, "%s", arg->value);
+        } else {
+          buffer_idx += snprintf(buffer2 + buffer_idx, 1024, "%s, ", arg->value);
+        }
+      }
+      cg_stack->size = node->stack;
+
+      stack_append("%s(%s)", node->call.decl->func.id->identifier.string->value, buffer2);
+    }
+
+    break;
+  /*
   case AST_DECL_TEMPLATE:
     printf("template");
     break;
-  case AST_PARAMETER:
-    printf("parameter");
-    break;
+  */
   case AST_STMT_RETURN:
-    printf("return");
+    if (mode == AST_TRAV_LEAVE) {
+      string* expr = (string*) array_pop(cg_stack);
+
+      stack_append("return %s", expr->value);
+    }
     break;
+  /*
   case AST_ERROR:
     printf("ERROR [%s: %s]", node->err.type->value, node->err.message->value);
     break;
+  */
   case AST_STMT_COMMENT:
-    printf("comment\n**\n%s\n**\n", node->comment.text->value);
-    // printf("comment");
+    if (mode == AST_TRAV_LEAVE) {
+      stack_append("/* %s */", node->comment.text->value);
+    }
     break;
+  /*
   case AST_STMT_IF:
     printf("if");
     break;
@@ -259,6 +341,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
 char* fl_codegen(ast_t* root) {
   //log_debug_level = 10;
   //ast_dump(root);
+  //exit(0);
 
   cg_stack = calloc(sizeof(array), 1);
   buffer = calloc(sizeof(char), 1024);
