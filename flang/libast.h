@@ -28,6 +28,7 @@
 // DECL
 
 enum ast_action { AST_SEARCH_STOP = 0, AST_SEARCH_CONTINUE, AST_SEARCH_SKIP };
+enum ast_trav_mode { AST_TRAV_ENTER = 0, AST_TRAV_LEAVE };
 
 enum ast_cast_operations {
   AST_CAST_ERR = 0, // unkown
@@ -119,6 +120,8 @@ struct ast {
 
   // codegen
   bool dirty;
+
+  u64 stack;
 
   union {
     struct ast_error {
@@ -419,34 +422,6 @@ libexport ast_t* ast_mk_cast(ast_t* type, ast_t* element);
 libexport ast_t* ast_mk_import(ast_t* string_lit, bool foward);
 libexport ast_t* ast_mk_log(ast_t* list);
 libexport ast_t* ast_mk_attribute(ast_t* id, ast_t* value);
-
-/* cldoc:end-category() */
-/*----------------------------------------------------------------------------*/
-/* cldoc:begin-category(parser/ast/ast-traverse.c) */
-
-/* Traverse the tree calling cb on each node
- * @node
- * @cb
- * @parent
- * @level
- * @userdata_in
- * @userdata_out
- */
-libexport void ast_traverse(ast_t* node, ast_cb_t cb, ast_t* parent,
-                            u64 level, void* userdata_in,
-                            void* userdata_out);
-
-/* Traverse a list calling cb on each node
- * @node
- * @cb
- * @parent
- * @level
- * @userdata_in
- * @userdata_out
-*/
-libexport void ast_traverse_list(ast_t* node, ast_cb_t cb, ast_t* until,
-                                 u64 level, void* userdata_in,
-                                 void* userdata_out);
 
 /* cldoc:end-category() */
 /*----------------------------------------------------------------------------*/

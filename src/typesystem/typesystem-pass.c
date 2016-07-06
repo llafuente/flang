@@ -28,8 +28,10 @@
 #include "flang/libast.h"
 #include "flang/debug.h"
 
-ast_action_t __trav_casting(ast_t* node, ast_t* parent, u64 level,
+ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
                             void* userdata_in, void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE) return 0;
+
   switch (node->type) {
 
   // perf: types decl don't need to be casted.
@@ -119,9 +121,11 @@ ast_action_t __trav_casting(ast_t* node, ast_t* parent, u64 level,
   return AST_SEARCH_CONTINUE;
 }
 
-ast_action_t __ts_cast_operation_pass_cb(ast_t* node, ast_t* parent,
+ast_action_t __ts_cast_operation_pass_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
                                          u64 level, void* userdata_in,
                                          void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE) return 0;
+  
   if (node->type == AST_CAST) {
     node->cast.operation = ts_cast_operation(node);
   }

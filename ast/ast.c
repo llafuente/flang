@@ -29,8 +29,9 @@
 #include "flang/debug.h"
 #include "flang/libparser.h"
 
-ast_action_t __trav_set_parent(ast_t* node, ast_t* parent, u64 level,
+ast_action_t __trav_set_parent(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
                                void* userdata_in, void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE) return 0;
 
   // ast_parent can be called many times!
   // only set parent if exists, do not override first node parent!

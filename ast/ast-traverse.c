@@ -71,7 +71,7 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
 
   ++level;
   // stop if callback is false
-  switch (cb(ast, parent, level, userdata_in, userdata_out)) {
+  switch (cb(AST_TRAV_ENTER, ast, parent, level, userdata_in, userdata_out)) {
   case AST_SEARCH_STOP:
     return AST_SEARCH_STOP;
   case AST_SEARCH_SKIP:
@@ -174,6 +174,8 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
   } break;
   default: {}
   }
+
+  cb(AST_TRAV_LEAVE, ast, parent, level, userdata_in, userdata_out);
 
   return AST_SEARCH_CONTINUE;
 }

@@ -120,8 +120,10 @@ ast_t* psr_file_main(const char* filename) {
   return root;
 }
 
-ast_action_t __trav_load_imports(ast_t* node, ast_t* parent, u64 level,
+ast_action_t __trav_load_imports(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
                                  void* userdata_in, void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE) return 0;
+
   if (node->type == AST_IMPORT && !node->import.imported) {
     assert(parent->type == AST_LIST);
 

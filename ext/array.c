@@ -53,6 +53,15 @@ void array_new(array* arr) {
   arr->data = __array_malloc(sizeof(ARRAY_T) * arr->capacity);
 }
 
+void array_newcap(array* arr, size_t cap) {
+  // initialize size and capacity
+  arr->size = 0;
+  arr->capacity = cap;
+
+  // allocate memory for arr->data
+  arr->data = __array_malloc(sizeof(ARRAY_T) * cap);
+}
+
 void array_append(array* arr, ARRAY_T value) {
   // make sure there's room to expand into
   array_double_capacity_if_full(arr);
@@ -115,7 +124,11 @@ void array_set(array* arr, int index, ARRAY_T value) {
 void array_double_capacity_if_full(array* arr) {
   if (arr->size >= arr->capacity) {
     arr->capacity = arr->size + 50;
-    arr->data = __array_realloc(arr->data, sizeof(ARRAY_T) * arr->capacity);
+    ARRAY_T p = __array_realloc(arr->data, sizeof(ARRAY_T) * arr->capacity);
+    // TODO this shouldn't be necessary, pool_realloc is buggy!
+    memcpy(p, arr->data, sizeof(ARRAY_T) * arr->size);
+    __array_free(arr->data);
+    arr->data = p;
   }
 }
 

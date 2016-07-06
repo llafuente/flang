@@ -35,8 +35,10 @@ struct __id_search {
 
 typedef struct __id_search __id_search_t;
 
-ast_action_t __ast_find_identifier(ast_t* node, ast_t* parent, u64 level,
+ast_action_t __ast_find_identifier(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
                                    void* userdata_in, void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE) return 0;
+
   if (node->type == AST_LIT_IDENTIFIER) {
     __id_search_t* data = (__id_search_t*)userdata_in;
     string* str = data->needle;
@@ -47,8 +49,10 @@ ast_action_t __ast_find_identifier(ast_t* node, ast_t* parent, u64 level,
   return AST_SEARCH_CONTINUE;
 }
 
-ast_action_t __ts_inference_dtors(ast_t* node, ast_t* parent, u64 level,
+ast_action_t __ts_inference_dtors(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
                                   void* userdata_in, void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE) return 0;
+
   if (node->type == AST_DTOR_VAR && node->var.type->ty_id == 0) {
     // search all ocurrences of this identifier
     __id_search_t data;
@@ -114,8 +118,10 @@ ast_action_t __ts_inference_dtors(ast_t* node, ast_t* parent, u64 level,
   return AST_SEARCH_CONTINUE;
 }
 
-ast_action_t __ts_inference_fn_ret(ast_t* node, ast_t* parent, u64 level,
+ast_action_t __ts_inference_fn_ret(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
                                    void* userdata_in, void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE) return 0;
+
   if (node->type == AST_DECL_FUNCTION && node->func.ret_type->ty_id == 0) {
     // ast_dump_one(node);
     ast_t* ret = node->func.ret_type;

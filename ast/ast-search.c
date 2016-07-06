@@ -198,8 +198,10 @@ array* ast_search_fns(ast_t* node, string* id) {
   return 0;
 }
 
-ast_action_t __trav_get_list_node(ast_t* node, ast_t* parent, u64 level,
+ast_action_t __trav_get_list_node(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
                                   void* userdata_in, void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE) return 0;
+
   if (node->type == *(ast_types_t*)userdata_in) {
     array_append((array*)userdata_out, node);
   }

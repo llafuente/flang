@@ -51,7 +51,10 @@ void* pool_new(size_t bytes) {
   return pool_new(bytes);
 }
 
-void* pool_realloc(void* ptr, size_t bytes) { return pool_new(bytes); }
+// TODO this is a HUGE bug mess!!
+void* pool_realloc(void* ptr, size_t bytes) {
+  return pool_new(bytes);
+}
 void pool_free(void* ptr) {}
 
 void pool_destroy() {

@@ -44,7 +44,7 @@ bool __ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent, u64 level,
 
   ++level;
   // stop if callback is false
-  if (!cb(node, parent, level, userdata_in, userdata_out)) {
+  if (!cb(AST_TRAV_ENTER, node, parent, level, userdata_in, userdata_out)) {
     return false;
   }
 

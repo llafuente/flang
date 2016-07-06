@@ -21,4 +21,5 @@ make "CC='clang'" "CFLAGS=-std=c11 -g -O0 -fsanitize=integer -fsanitize=undefine
 
 cd ..
 
-./build/flang ./test/fl/arithmetic.fl
+./build/flang ./test/codegen/math.fl
+#./build/flang ./test/fl/arithmetic.fl

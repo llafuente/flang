@@ -45,6 +45,10 @@ typedef enum ast_types ast_types_t;
 struct ast;
 typedef struct ast ast_t;
 
+struct ast;
+typedef enum ast_trav_mode ast_trav_mode_t;
+
+
 // callback type for [ast_traverse](#ast_traverse) & [ast_reverse](#ast_reverse)
-typedef ast_action_t (*ast_cb_t)(ast_t* node, ast_t* parent, u64 level,
+typedef ast_action_t (*ast_cb_t)(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
                                  void* userdata_in, void* userdata_out);

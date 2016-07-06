@@ -64,8 +64,9 @@ void __ast_reduce_log(ast_t* node) {
   node->call.callee->parent = node;
 }
 
-ast_action_t __trav_reduced(ast_t* node, ast_t* parent, u64 level,
+ast_action_t __trav_reduced(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
                             void* userdata_in, void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE) return 0;
   switch (node->type) {
   case AST_STMT_LOG: {
     __ast_reduce_log(node);

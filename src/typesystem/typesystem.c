@@ -26,6 +26,7 @@
 #include "flang/common.h"
 #include "flang/typesystem.h"
 #include "flang/libast.h"
+#include "flang/libparser.h"
 
 ast_t* typesystem(ast_t* root) {
   psr_ast_imports(root);

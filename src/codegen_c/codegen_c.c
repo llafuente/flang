@@ -1,13 +1,39 @@
 #include "flang/common.h"
 #include "flang/libast.h"
+#include "flang/typesystem.h"
 #include "flang/codegen_c.h"
+
+//#define CG_DEBUG
 
 char* cg_text = 0;
 
-char** closing;
+char* buffer = 0;
+char* buffer2 = 0;
+array* cg_stack;
 u64 max_level = 0;
+u64 cg_indent = 0;
+
+#define stack_append(format, ...) \
+do {\
+  string* str; \
+  scan_string(str, format, ##__VA_ARGS__); \
+  array_append(cg_stack, (void*) str); \
+} while(false);
+
+
+
+
+#define scan_string(str_var, format, ...) \
+  snprintf(buffer, 1024, format, ##__VA_ARGS__); \
+  str_var = st_newc(buffer, st_enc_utf8); \
+
 
 char* readable_operator(int operator) {
+  if (operator < 127) {
+    snprintf(buffer2, 1024, "%c", operator);
+    return buffer2;
+  }
+  return "/*TODO!*/"; // nothing atm!
 /*
 TK_DOTDOTDOT
 TK_DOTDOT
@@ -17,85 +43,142 @@ TK_MINUSMINUS
 
 }
 
-void codegen_cb(ast_t* node, ast_t* parent, u64 level,
-          void* userdata_in, void* userdata_out) {
-  assert(node != 0);
-  if (max_level > level) {
-    // print closings
-    for (int i = max_level; i > level; --i) {
-      if (closing[level] != 0) {
-        printf("%s", closing[level]);
-        closing[level] = 0;
-      }
-    }
+void cg_dbg(ast_t* node, u64 level) {
+#ifdef CG_DEBUG
+  printf("%*s", (int)level, " ");
+  printf("// ");
+  ast_dump_one(node);
+  printf("\n");
+
+  for (int i = 0; i < cg_stack->size; ++i) {
+    printf("// stack[%d] %s\n", i, ((string*)cg_stack->data[i])->value);
   }
-  max_level = level;
+#endif
+}
+
+ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
+          void* userdata_in, void* userdata_out) {
+
+
+  assert(node != 0);
+
+  //if (mode == AST_TRAV_ENTER) { cg_dbg(node, level); }
+  //cg_dbg(node, level);
 
   switch (node->type) {
   case AST_PROGRAM:
-    printf("// program \n");
-    break;
   case AST_IMPORT:
-    printf("// ignore import\n");
-    break;
   case AST_MODULE:
-    printf("// ignore module\n");
+  case AST_LIST:
+  case AST_TYPE:
     break;
   case AST_BLOCK:
-    printf("{\n");
-    closing[level] = "}\n";
+    if (mode == AST_TRAV_ENTER) {
+      ++cg_indent;
+      node->stack = cg_stack->size;
+      printf("{\n");
+    } else {
+
+      for (int i = node->stack; i < cg_stack->size; ++i) {
+        printf("%s;\n", ((string*)cg_stack->data[i])->value);
+      }
+      cg_stack->size = node->stack;
+
+      printf("}\n");
+      --cg_indent;
+    }
+
     // traverse do not follow scope hashes
-    // so we print it here
+    // so we print it here ??
     //printf("block [%d]", node->block.scope);
     //printf(" tys [%s]", __ast_block_hash_append(node->block.types));
     //printf(" vars [%s]", __ast_block_hash_append(node->block.variables));
     //printf(" fns [%s]", __ast_block_hash_append(node->block.functions));
     break;
-  case AST_LIST:
-    printf("// list [count=%zu]", node->list.count);
-    break;
   case AST_EXPR_ASSIGNAMENT:
-    printf("assignament T(%zu)", node->ty_id);
+    if (mode == AST_TRAV_LEAVE) {
+      string* right = (string*) array_pop(cg_stack);
+      string* left = (string*) array_pop(cg_stack);
+
+      assert(left != 0);
+      assert(right != 0);
+
+      stack_append("(%s = %s)", left->value, right->value);
+    }
     break;
-    /*
+
   case AST_EXPR_BINOP:
-    if (node->binop.operator<127) {
-      printf("binop T(%zu) [operator=%c]", node->ty_id, node->binop.operator);
-    } else {
-      printf("binop T(%zu) [operator=%d]", node->ty_id, node->binop.operator);
+    if (mode == AST_TRAV_LEAVE) {
+      string* right = (string*) array_pop(cg_stack);
+      string* left = (string*) array_pop(cg_stack);
+
+      assert(left != 0);
+      assert(right != 0);
+
+      stack_append("(%s %s %s)", left->value, readable_operator(node->binop.operator), right->value);
     }
     break;
-  case AST_LIT_INTEGER:
-    printf("integer T(%zu) [u=%ld] [zu=%zu]", node->ty_id,
-           node->integer.signed_value, node->integer.unsigned_value);
-    break;
-  case AST_LIT_FLOAT:
-    printf("float T(%zu) [f=%f]", node->ty_id, node->decimal.value);
-    break;
+
+  case AST_LIT_INTEGER: {
+    if (mode == AST_TRAV_LEAVE) return 0;
+
+    size_t ty = node->ty_id;
+    // size_t ty = node->numeric.ty_id;
+    ty_t t = ts_type_table[ty];
+
+    // TODO REVIEW happens on cast, this should be promoted to AST_LIT_DECIMAL?
+    //if (t.number.fp) {
+    //  return LLVMConstReal(tref, node->integer.signed_value ? node->integer.signed_value : node->integer.unsigned_value);
+    if (t.number.sign) {
+      stack_append("%ld", node->integer.signed_value);
+    } else {
+      stack_append("%zu", node->integer.unsigned_value);
+    }
+  } break;
+
+  case AST_LIT_FLOAT: {
+    if (mode == AST_TRAV_LEAVE) return 0;
+
+    stack_append("%f", node->decimal.value);
+  } break;
+
   case AST_LIT_IDENTIFIER:
-    printf("identifier T(%zu) [resolve=%d string=%s]", node->ty_id,
-           node->identifier.resolve, node->identifier.string->value);
+    if (mode == AST_TRAV_LEAVE) return 0;
+    if (parent->type == AST_TYPE) return AST_SEARCH_CONTINUE;
+
+    assert(node->identifier.string != 0);
+    array_append(cg_stack, (void*) node->identifier.string);
     break;
+
   case AST_LIT_STRING:
-    printf("string T(%zu) [string=%s]", node->ty_id, node->string.value->value);
+    if (mode == AST_TRAV_LEAVE) return 0;
+
+    // TODO add quotes
+    array_append(cg_stack, (void*) node->string.value);
     break;
+
   case AST_LIT_BOOLEAN:
-    printf("boolean T(%zu) [value=%d]", node->ty_id, node->boolean.value);
+    if (mode == AST_TRAV_LEAVE) return 0;
+
+    array_append(cg_stack, node->boolean.value ? st_newc("true", st_enc_utf8) : st_newc("false", st_enc_utf8));
     break;
+
   case AST_EXPR_LUNARY:
-    if (node->lunary.operator<127) {
-      printf("lunary T(%zu) [operator=%c]", node->ty_id, node->lunary.operator);
-    } else {
-      printf("lunary T(%zu) [operator=%d]", node->ty_id, node->lunary.operator);
+    if (mode == AST_TRAV_LEAVE) {
+      string* right = (string*) array_pop(cg_stack);
+
+      stack_append("(%s %s)", readable_operator(node->lunary.operator), right->value);
     }
     break;
+
   case AST_EXPR_RUNARY:
-    if (node->runary.operator<127) {
-      printf("runary T(%zu) [operator=%d]", node->ty_id, node->runary.operator);
-    } else {
-      printf("runary T(%zu) [operator=%c]", node->ty_id, node->runary.operator);
+    if (mode == AST_TRAV_LEAVE) {
+      string* left = (string*) array_pop(cg_stack);
+
+      stack_append("(%s %s)", readable_operator(node->runary.operator), left->value);
     }
     break;
+  /*
   case AST_EXPR_CALL:
     printf("call T(%zu) [arguments=%zu]", node->ty_id, node->call.narguments);
     break;
@@ -103,10 +186,15 @@ void codegen_cb(ast_t* node, ast_t* parent, u64 level,
     printf("member T(%zu) idx(%zu) expression(%d)", node->ty_id,
            node->member.idx, node->member.expression);
     break;
+  */
   case AST_DTOR_VAR:
-    printf("variable T(%zu) scope(%s)", node->ty_id,
-           node->var.scope == AST_SCOPE_BLOCK ? "block" : "global");
+    if (mode == AST_TRAV_LEAVE) {
+      string* id = (string*) array_pop(cg_stack);
+
+      stack_append("%s %s", ty_to_string(node->ty_id)->value, id->value);
+    }
     break;
+  /*
   case AST_TYPE:
     printf("type T(%zu)", node->ty_id);
     break;
@@ -159,16 +247,31 @@ void codegen_cb(ast_t* node, ast_t* parent, u64 level,
     printf("attribute");
     break;
     */
-  default: {}
+  default: {
+    printf("// node ignored?! %d\n", node->type);
   }
+  }
+
+  return AST_SEARCH_CONTINUE;
 }
 
 
 char* fl_codegen(ast_t* root) {
-  closing = calloc(sizeof(char*), 100);
+  //log_debug_level = 10;
+  //ast_dump(root);
 
-  printf("// ****************\n");
-  ast_traverse(root, codegen_cb, 0, 0, 0, 0);
+  cg_stack = calloc(sizeof(array), 1);
+  buffer = calloc(sizeof(char), 1024);
+  buffer2 = calloc(sizeof(char), 1024);
+  //array_newcap(cg_stack, 500);
+  array_newcap(cg_stack, 5);
 
-  free(closing);
+  printf("\n\n\n//codegen\n");
+  ast_traverse(root, __codegen_cb, 0, 0, 0, 0);
+
+  free(cg_stack);
+  free(buffer);
+  free(buffer2);
+
+  return 0;
 }

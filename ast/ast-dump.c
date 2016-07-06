@@ -176,8 +176,10 @@ void ast_dump_one(ast_t* node) {
   }
 }
 
-ast_action_t __ast_dump_cb(ast_t* node, ast_t* parent, u64 level,
+ast_action_t __ast_dump_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
                            void* userdata_in, void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE) return 0;
+
   if (!node) {
     log_warning("ast_dump: null\n");
     return true;
@@ -198,8 +200,10 @@ ast_action_t __ast_dump_cb(ast_t* node, ast_t* parent, u64 level,
   return AST_SEARCH_CONTINUE;
 }
 
-ast_action_t __ast_mindump_cb(ast_t* node, ast_t* parent, u64 level,
+ast_action_t __ast_mindump_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
                               void* userdata_in, void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE) return 0;
+
   if (!node) {
     log_warning("ast_dump: null\n");
     return true;
@@ -209,7 +213,7 @@ ast_action_t __ast_mindump_cb(ast_t* node, ast_t* parent, u64 level,
     return AST_SEARCH_SKIP;
   }
 
-  return __ast_dump_cb(node, parent, level, userdata_in, userdata_out);
+  return __ast_dump_cb(mode, node, parent, level, userdata_in, userdata_out);
 }
 
 void ast_mindump(ast_t* node) {
@@ -218,8 +222,10 @@ void ast_mindump(ast_t* node) {
   }
 }
 
-ast_action_t __ast_fulldump_cb(ast_t* node, ast_t* parent, u64 level,
+ast_action_t __ast_fulldump_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
                                void* userdata_in, void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE) return 0;
+
   if (!node) {
     log_warning("ast_dump: null\n");
     return true;
@@ -230,7 +236,7 @@ ast_action_t __ast_fulldump_cb(ast_t* node, ast_t* parent, u64 level,
   }
 
   ast_action_t t =
-      __ast_dump_cb(node, parent, level, userdata_in, userdata_out);
+      __ast_dump_cb(mode, node, parent, level, userdata_in, userdata_out);
 
   printf("\n\x1B[33m%s\x1B[39m\n", ast_get_code(node)->value);
   return t;

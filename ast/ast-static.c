@@ -26,8 +26,10 @@
 #include "flang/common.h"
 #include "flang/libast.h"
 
-ast_action_t __trav_is_static(ast_t* node, ast_t* parent, u64 level,
+ast_action_t __trav_is_static(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
                               void* userdata_in, void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE) return 0;
+
   switch (node->type) {
   case AST_EXPR_BINOP: // 1 + 3 is static... continue
   case AST_LIT_STRING:

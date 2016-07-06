@@ -25,6 +25,7 @@ void array_replace_allocators(array_malloc_func malloc_func,
                               array_free_func free_func);
 
 void array_new(array* arr);
+void array_newcap(array* arr, size_t cap);
 
 void array_append(array* arr, ARRAY_T value);
 
