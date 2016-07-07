@@ -62,9 +62,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
 
 
   assert(node != 0);
-
-  //if (mode == AST_TRAV_ENTER) { cg_dbg(node, level); }
-  //cg_dbg(node, level);
+  cg_dbg(node, level);
 
   switch (node->type) {
   case AST_PROGRAM:
@@ -141,6 +139,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
 
   case AST_LIT_FLOAT: {
     if (mode == AST_TRAV_LEAVE) return 0;
+    if (parent->type == AST_EXPR_CALL) return AST_SEARCH_CONTINUE;
 
     stack_append("%f", node->decimal.value);
   } break;
@@ -256,6 +255,11 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
         node->func.id->identifier.string->value,
         parameters->value
       );
+
+      // generate the block only, skip the rest
+      ast_traverse(node->func.body, __codegen_cb, 0, 0, 0, 0);
+
+      return AST_SEARCH_SKIP;
     }
 
     break;
@@ -265,10 +269,12 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     if (mode == AST_TRAV_ENTER) {
       node->stack = cg_stack->size;
     } else {
+      /*
       for (int i = node->stack; i < cg_stack->size; ++i) {
         printf("%*s%s;\n", cg_indent, " ",
         ((string*)cg_stack->data[i])->value);
       }
+      */
 
       int buffer_idx = 0;
       buffer2[0] = 0;
@@ -322,9 +328,15 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
   case AST_STMT_LOG:
     printf("log");
     break;
+  */
   case AST_CAST:
-    printf("cast T(%zu) O(%u)", node->ty_id, node->cast.operation);
+    if (mode == AST_TRAV_LEAVE) {
+      string* expr = (string*) array_pop(cg_stack);
+      stack_append("((%s) %s)", ty_to_string(node->ty_id)->value, expr->value);
+    }
+
     break;
+  /*
   case AST_ATTRIBUTE:
     printf("attribute");
     break;
