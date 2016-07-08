@@ -736,7 +736,7 @@ expr_if
 expr_while
   : TK_WHILE expression block {
     /* ast_mk_loop(init, pre_cond, update, block, post_cond) */
-    $$ = ast_mk_loop(0, $2, 0, $3, 0);
+    $$ = ast_mk_loop(AST_STMT_WHILE, 0, $2, 0, $3, 0);
     ast_position($$, @1, @3);
   }
   ;
@@ -744,7 +744,7 @@ expr_while
 expr_dowhile
   : TK_DO block TK_WHILE expression ';' {
     /* ast_mk_loop(init, pre_cond, update, block, post_cond) */
-    $$ = ast_mk_loop(0, 0, 0, $2, $4);
+    $$ = ast_mk_loop(AST_STMT_DOWHILE, 0, 0, 0, $2, $4);
     ast_position($$, @1, @5);
   }
   ;
@@ -752,7 +752,7 @@ expr_dowhile
 expr_for
   : TK_FOR expression ';' expression ';' expression block {
     /* ast_mk_loop(init, pre_cond, update, block, post_cond) */
-    $$ = ast_mk_loop($2, $4, $6, $7, 0);
+    $$ = ast_mk_loop(AST_STMT_FOR, $2, $4, $6, $7, 0);
     ast_position($$, @1, @7);
   }
   ;

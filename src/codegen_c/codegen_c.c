@@ -27,6 +27,8 @@ typedef struct {
 
 cg_files_t* cg_fds;
 
+string* cg_node(ast_t* node);
+
 //
 #define scan_string(str_var, format, ...) \
   snprintf(buffer, 1024, format, ##__VA_ARGS__); \
@@ -61,7 +63,10 @@ string* cg_type(u64 ty_id) {
     st_append(&buffer, ty.id);
   } break;
   case FL_FUNCTION: {
-    st_append_c(&buffer, ty.id ? ty.id->value : "Anonymous");
+    assert(ty.id != 0);
+
+    st_append_c(&buffer, ty.id->value);
+    st_append_c(&buffer, "__fnptr");
   } break;
   default: {} // remove warning
   }
@@ -72,9 +77,10 @@ string* cg_type(u64 ty_id) {
 
 string* st_dquote(const string* str) {
   st_uc_t ch;
+  char* rep;
 
   const char* data = str->value;
-  string* out = st_new(str->capacity, str->encoding);
+  string* out = st_new(str->capacity + 2, str->encoding);
   string* buffer = st_new(5, str->encoding);
 
   st_append_char(&out, '"');
@@ -83,33 +89,54 @@ string* st_dquote(const string* str) {
   st_size_t len = str->used;
   while (len-- > 0) {
     ch = *(st_uc_t*)(data++);
+
     if (ch < 127) {
+      rep = 0;
       if (isprint(ch)) {
+        if (ch == '"') {
+          printf("quote!\n");
+          st_append_c(&out, "\\\"");
+          continue;
+        }
+
         if (ch == '\\') {
           st_append_char(&out, ch);
         }
         st_append_char(&out, ch);
         continue;
-      } else if (ch == '\a') { /* \a -> audible bell */
-        ch = (st_uc_t)'a';
-      } else if (ch == '\b') { /* \b -> backspace */
-        ch = (st_uc_t)'b';
-      } else if (ch == '\f') { /* \f -> formfeed */
-        ch = (st_uc_t)'f';
-      } else if (ch == '\n') { /* \n -> newline */
-        ch = (st_uc_t)'n';
-      } else if (ch == '\r') { /* \r -> carriagereturn */
-        ch = (st_uc_t)'r';
-      } else if (ch == '\t') { /* \t -> horizontal tab */
-        ch = (st_uc_t)'t';
-      } else if (ch == '\v') { /* \v -> vertical tab */
-        ch = (st_uc_t)'v';
       }
-      st_append_char(&out, '\\');
-      st_append_char(&out, ch);
-      continue;
-    }
-    if (ISDIGIT(ch)) {
+
+      switch(ch) {
+        case '\a': // \a -> audible bell
+          rep = "\\a";
+        break;
+        case '\b': // \b -> backspace
+          rep = "\\b";
+        break;
+        case '\f': // \f -> formfeed
+          rep = "\\f";
+        break;
+        case '\n': // \n -> newline
+          rep = "\\n";
+        break;
+        case '\r': // \r -> carriagereturn
+          rep = "\\r";
+        break;
+        case '\t': // \t -> horizontal tab
+          rep = "\\t";
+        break;
+        case '\v': // \v -> vertical tab
+          rep = "\\v";
+        break;
+      }
+
+      if (rep) {
+        st_append_c(&out, rep);
+      } else {
+        // UTF-8? passthrough
+        st_append_char(&out, ch);
+      }
+    } else if (ISDIGIT(ch)) {
       sprintf(buffer->value, "\\%03d", ch);
       st_append(&out, buffer);
     } else {
@@ -132,14 +159,36 @@ char* readable_operator(int operator) {
     snprintf(buffer2, 1024, "%c", operator);
     return buffer2;
   }
-  return "/*TODO!*/"; // nothing atm!
-/*
-TK_DOTDOTDOT
-TK_DOTDOT
-TK_PLUSPLUS
-TK_MINUSMINUS
-*/
 
+  switch(operator) {
+    case TK_DOTDOTDOT: return "...";
+    case TK_DOTDOT: return "..";
+    case TK_EQEQ: return "==";
+    case TK_FAT_ARROW: return "=>";
+    case TK_NE: return "!=";
+    case TK_LE: return "<=";
+    case TK_SHL: return "<<";
+    case TK_SHLEQ: return "<<=";
+    case TK_GE: return ">=";
+    case TK_SHR: return ">>";
+    case TK_SHREQ: return ">>=";
+    case TK_RARROW: return "->";
+    case TK_MINUSMINUS: return "--";
+    case TK_MINUSEQ: return "-=";
+    case TK_ANDAND: return "&&";
+    case TK_ANDEQ: return "&=";
+    case TK_OROR: return "||";
+    case TK_OREQ: return "|=";
+    case TK_PLUSPLUS: return "++";
+    case TK_PLUSEQ: return "+=";
+    case TK_STAREQ: return "*=";
+    case TK_SLASHEQ: return "/=";
+    case TK_CARETEQ: return "^=";
+    case TK_PERCENTEQ: return "%=";
+  }
+
+  fl_fatal_error("%s: %d", "unkown operator found", operator);
+  return 0;
 }
 
 void cg_dbg(ast_t* node, u64 level) {
@@ -266,7 +315,6 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
   case AST_LIT_STRING:
     if (mode == AST_TRAV_LEAVE) return 0;
 
-    // TODO add quotes
     array_append(cg_stack, (void*) st_dquote(node->string.value));
     break;
 
@@ -280,7 +328,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     if (mode == AST_TRAV_LEAVE) {
       string* right = (string*) array_pop(cg_stack);
 
-      stack_append("(%s %s)", readable_operator(node->lunary.operator), right->value);
+      stack_append("(%s%s)", readable_operator(node->lunary.operator), right->value);
     }
     break;
 
@@ -288,7 +336,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     if (mode == AST_TRAV_LEAVE) {
       string* left = (string*) array_pop(cg_stack);
 
-      stack_append("(%s %s)", readable_operator(node->runary.operator), left->value);
+      stack_append("(%s%s)", readable_operator(node->runary.operator), left->value);
     }
     break;
   case AST_EXPR_MEMBER:
@@ -389,6 +437,12 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
           node->func.uid->value,
           parameters->value
         );
+        // TODO function must not end with: __fnptr
+        CG_OUTPUT(cg_fds->types, "typedef %s (*%s__fnptr) (%s);\n",
+          cg_type(node->func.ret_type->ty_id)->value,
+          node->func.uid->value,
+          parameters->value
+        );
 
         CG_OUTPUT(cg_fds->functions, "%s %s (%s) %s",
           cg_type(node->func.ret_type->ty_id)->value,
@@ -452,15 +506,52 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     break;
   */
   case AST_STMT_COMMENT:
-    if (mode == AST_TRAV_LEAVE) {
-      stack_append("/* %s */", node->comment.text->value);
+    stack_append("/* %s */", node->comment.text->value);
+    return AST_SEARCH_SKIP; // once
+    break;
+  case AST_STMT_IF: {
+    string* block =  cg_node(node->if_stmt.block);
+    string* test =  cg_node(node->if_stmt.test);
+    if (!node->if_stmt.alternate) {
+      stack_append("if (%s) %s",
+        test->value,
+        block->value
+      );
+    } else {
+      string* alternate =  cg_node(node->if_stmt.alternate);
+      stack_append("if (%s) %s else %s",
+        test->value,
+        block->value,
+        alternate->value
+      );
     }
+    return AST_SEARCH_SKIP; // manual traverse
+  } break;
+  case AST_STMT_LOOP:
+    // traverse order: init, pre_cond, update, block, post_cond
+    switch(node->loop.type) {
+      case AST_STMT_FOR: {
+        // reverse pops
+        string* block =  cg_node(node->loop.block);
+        string* update =  cg_node(node->loop.update);
+        string* pre_cond = cg_node(node->loop.pre_cond);
+        string* init =  cg_node(node->loop.init);
+        stack_append("for (%s; %s; %s) %s",
+          init->value,
+          pre_cond->value,
+          update->value,
+          block->value
+        );
+      } break;
+      case AST_STMT_WHILE:
+      assert(0);
+      case AST_STMT_DOWHILE:
+      assert(0);
+      default: {assert(0);}
+    }
+    return AST_SEARCH_SKIP; // manual traverse
     break;
   /*
-  case AST_STMT_IF:
-    break;
-  case AST_STMT_LOOP:
-    break;
   case AST_EXPR_SIZEOF:
     break;
   case AST_STMT_LOG:
@@ -485,10 +576,28 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
   return AST_SEARCH_CONTINUE;
 }
 
+string* cg_node(ast_t* node) {
+  node->stack = cg_stack->size;
+  ast_traverse(node, __codegen_cb, 0, 0, 0, 0);
+  int buffer_size;
+  for (int i = node->stack; i < cg_stack->size; ++i) {
+    buffer_size += ((string*) cg_stack->data[i])->length;
+  }
+
+  string* node_str = st_new(buffer_size, st_enc_utf8);
+  for (int i = node->stack; i < cg_stack->size; ++i) {
+    st_append(&node_str, cg_stack->data[i]);
+  }
+  cg_stack->size = node->stack; // restore
+
+  return node_str;
+}
+
+
 
 char* fl_codegen(ast_t* root) {
-  //log_debug_level = 10;
-  //ast_dump(root);
+  log_debug_level = 10;
+  ast_dump(root);
   //exit(0);
 
 

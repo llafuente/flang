@@ -501,7 +501,7 @@ ast_t* ast_mk_if(ast_t* test, ast_t* block, ast_t* alternate) {
   return node;
 }
 
-ast_t* ast_mk_loop(ast_t* init, ast_t* pre_cond, ast_t* update, ast_t* block,
+ast_t* ast_mk_loop(ast_types_t type, ast_t* init, ast_t* pre_cond, ast_t* update, ast_t* block,
                    ast_t* post_cond) {
   // printf("ast_mk_loop\n");
   ast_t* node = ast_new();
@@ -512,7 +512,7 @@ ast_t* ast_mk_loop(ast_t* init, ast_t* pre_cond, ast_t* update, ast_t* block,
   node->loop.update = update;
   node->loop.block = block;
   node->loop.post_cond = post_cond;
-  // TODO node->loop.type = type;
+  node->loop.type = type;
 
   return node;
 }

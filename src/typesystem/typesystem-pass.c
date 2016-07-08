@@ -87,17 +87,7 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u6
 
     if (node->parent->type == AST_DTOR_VAR) {
       log_debug("parent is a dtor: fn=%d", ty_is_function(node->ty_id));
-      // if type is a function, in fact what we want is a
-      // function pointer, so do it for easy to type
-      if (ty_is_function(node->ty_id)) {
-        node->ty_id = ty_create_wrapped(FL_POINTER, node->ty_id);
-        node->parent->ty_id = node->ty_id;
-        if (node->parent->var.type) {
-          node->parent->var.type->ty_id = node->ty_id;
-        }
-      } else {
-        node->parent->ty_id = node->ty_id;
-      }
+      node->parent->ty_id = node->ty_id;
     }
 
   } break;
@@ -125,7 +115,7 @@ ast_action_t __ts_cast_operation_pass_cb(ast_trav_mode_t mode, ast_t* node, ast_
                                          u64 level, void* userdata_in,
                                          void* userdata_out) {
   if (mode == AST_TRAV_LEAVE) return 0;
-  
+
   if (node->type == AST_CAST) {
     node->cast.operation = ts_cast_operation(node);
   }

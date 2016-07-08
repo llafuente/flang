@@ -518,6 +518,7 @@ void ts_cast_binop(ast_t* node) {
     node->ty_id = TS_BOOL; // ts_promote_typeid(l_type, r_type);
     __ts_create_binop_cast(node);
   } break;
+  case '%':
   case '&':
   case '|':
   case '^':

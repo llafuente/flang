@@ -412,7 +412,7 @@ libexport ast_t* ast_mk_comment(string* text);
 libexport ast_t* ast_mk_lunary(ast_t* element, int operator);
 libexport ast_t* ast_mk_runary(ast_t* element, int operator);
 libexport ast_t* ast_mk_if(ast_t* test, ast_t* block, ast_t* alternate);
-libexport ast_t* ast_mk_loop(ast_t* init, ast_t* pre_cond, ast_t* update,
+libexport ast_t* ast_mk_loop(ast_types_t type, ast_t* init, ast_t* pre_cond, ast_t* update,
                              ast_t* bloc, ast_t* post_cond);
 libexport ast_t* ast_mk_struct_decl(ast_t* id, ast_t* fields);
 libexport ast_t* ast_mk_struct_decl_field(ast_t* id, ast_t* type);

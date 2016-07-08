@@ -104,15 +104,8 @@ ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
                       "typesystem - cannot find function or variable: '%s'",
                       id->value);
     }
-    // now search any function that has that ty_id
-    // type is pointer to function so
-    ty_t fn_ptr_ty = ts_type_table[decl->ty_id];
-    if (fn_ptr_ty.of != FL_POINTER) {
-      ast_raise_error(args_call->parent,
-                      "typesystem - invalid variable type, not a function");
-    }
 
-    ty_t fn_ty = ts_type_table[fn_ptr_ty.ptr.to];
+    ty_t fn_ty = ts_type_table[decl->ty_id];
     if (fn_ty.of != FL_FUNCTION) {
       ast_raise_error(args_call->parent,
                       "typesystem - invalid variable type, not a function");
