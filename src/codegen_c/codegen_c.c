@@ -39,6 +39,36 @@ do {\
   array_append(cg_stack, (void*) str); \
 } while(false);
 
+string* cg_type(u64 ty_id) {
+  ty_t ty = ts_type_table[ty_id];
+  // cached?
+  if (ty.cg) {
+    return ty.cg;
+  }
+
+  string* buffer = st_new(64, st_enc_utf8);
+
+  switch (ty.of) {
+  case FL_POINTER:
+    st_append(&buffer, cg_type(ty.ptr.to));
+    st_append_c(&buffer, "*");
+    break;
+  case FL_VECTOR:
+    st_append(&buffer, cg_type(ty.vector.to));
+    st_append_c(&buffer, "[]");
+    break;
+  case FL_STRUCT: {
+    st_append(&buffer, ty.id);
+  } break;
+  case FL_FUNCTION: {
+    st_append_c(&buffer, ty.id ? ty.id->value : "Anonymous");
+  } break;
+  default: {} // remove warning
+  }
+  assert(buffer->length != 0);
+  return ty.cg = buffer;
+}
+
 
 string* st_dquote(const string* str) {
   st_uc_t ch;
@@ -261,25 +291,51 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
       stack_append("(%s %s)", readable_operator(node->runary.operator), left->value);
     }
     break;
-  /*
   case AST_EXPR_MEMBER:
+    if (mode == AST_TRAV_LEAVE) {
+      string* right = (string*) array_pop(cg_stack);
+      string* left = (string*) array_pop(cg_stack);
+
+      stack_append("(%s.%s)", left->value, right->value);
+    }
     break;
-  */
   case AST_DTOR_VAR:
     if (mode == AST_TRAV_LEAVE) {
       string* id = (string*) array_pop(cg_stack);
 
-      stack_append("%s %s", ty_to_string(node->ty_id)->value, id->value);
+      stack_append("%s %s", cg_type(node->ty_id)->value, id->value);
     }
     break;
   /*
   case AST_TYPE:
     break;
+  */
   case AST_DECL_STRUCT:
+    if (mode == AST_TRAV_ENTER) {
+      node->stack = cg_stack->size;
+    } else {
+      int buffer_idx = 0;
+      buffer2[0] = 0;
+      string* id = (string*) cg_stack->data[node->stack];
+      // TODO REVIEW skip the first one is the identifier atm
+      for (int i = node->stack + 1; i < cg_stack->size; ++i) {
+        string* arg = (string*) cg_stack->data[i];
+
+        buffer_idx += snprintf(buffer2 + buffer_idx, 1024, "%s;\n", arg->value);
+      }
+      cg_stack->size = node->stack;
+
+      CG_OUTPUT(cg_fds->decls, "struct %s__cg;\n", id->value);
+      CG_OUTPUT(cg_fds->decls, "typedef struct %s__cg %s;\n", id->value, id->value);
+      CG_OUTPUT(cg_fds->types, "struct %s__cg {\n%s\n};\n\n", id->value, buffer2);
+    }
     break;
   case AST_DECL_STRUCT_FIELD:
+    if (mode == AST_TRAV_LEAVE) {
+      string* id = (string*) array_pop(cg_stack);
+      stack_append("%s %s", cg_type(node->ty_id)->value, id->value);
+    }
     break;
-  */
   case AST_DECL_FUNCTION:
     if (node->func.templated) {
       // templated function are not exported, it's clones are
@@ -300,11 +356,11 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
           ast_traverse(tmp, __codegen_cb, 0, 0, 0, 0);
           string* param = (string*) array_pop(cg_stack);
 
-          //stack_append("%s %s", ty_to_string(tmp->ty_id)->value, param->value);
+          //stack_append("%s %s", cg_type(tmp->ty_id)->value, param->value);
           if (itr[i] == 0) {
-            buffer_idx += snprintf(buffer + buffer_idx, 1024, "%s %s", ty_to_string(tmp->ty_id)->value, param->value);
+            buffer_idx += snprintf(buffer + buffer_idx, 1024, "%s %s", cg_type(tmp->ty_id)->value, param->value);
           } else {
-            buffer_idx += snprintf(buffer + buffer_idx, 1024, "%s %s, ", ty_to_string(tmp->ty_id)->value, param->value);
+            buffer_idx += snprintf(buffer + buffer_idx, 1024, "%s %s, ", cg_type(tmp->ty_id)->value, param->value);
           }
         }
       }
@@ -329,13 +385,13 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
         string* body = (string*) array_pop(cg_stack);
 
         CG_OUTPUT(cg_fds->decls, "%s %s (%s);\n",
-          ty_to_string(node->func.ret_type->ty_id)->value,
+          cg_type(node->func.ret_type->ty_id)->value,
           node->func.uid->value,
           parameters->value
         );
 
         CG_OUTPUT(cg_fds->functions, "%s %s (%s) %s",
-          ty_to_string(node->func.ret_type->ty_id)->value,
+          cg_type(node->func.ret_type->ty_id)->value,
           node->func.uid->value,
           parameters->value,
           body->value
@@ -345,7 +401,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
         return AST_SEARCH_SKIP;
 
         stack_append("extern %s %s (%s)",
-          ty_to_string(node->func.ret_type->ty_id)->value,
+          cg_type(node->func.ret_type->ty_id)->value,
           node->func.uid->value,
           parameters->value
         );
@@ -413,7 +469,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
   case AST_CAST:
     if (mode == AST_TRAV_LEAVE) {
       string* expr = (string*) array_pop(cg_stack);
-      stack_append("((%s) %s)", ty_to_string(node->ty_id)->value, expr->value);
+      stack_append("((%s) %s)", cg_type(node->ty_id)->value, expr->value);
     }
 
     break;
@@ -431,8 +487,8 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
 
 
 char* fl_codegen(ast_t* root) {
-  log_debug_level = 10;
-  ast_dump(root);
+  //log_debug_level = 10;
+  //ast_dump(root);
   //exit(0);
 
 

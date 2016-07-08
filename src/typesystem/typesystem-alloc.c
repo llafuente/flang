@@ -42,15 +42,18 @@ void ts_init() {
     ts_type_table[0].of = FL_INFER;
     ts_type_table[0].id = st_newc("auto", st_enc_ascii);
     ts_type_table[0].decl = ts_type_table[0].id;
+    ts_type_table[0].cg = ts_type_table[0].id;
     // [1] void
     ts_type_table[TS_VOID].of = FL_VOID;
     ts_type_table[TS_VOID].id = st_newc("void", st_enc_ascii);
     ts_type_table[TS_VOID].decl = ts_type_table[TS_VOID].id;
+    ts_type_table[TS_VOID].cg = ts_type_table[TS_VOID].id;
 
     // [2] bool
     ts_type_table[TS_BOOL].of = FL_NUMBER;
     ts_type_table[TS_BOOL].id = st_newc("bool", st_enc_ascii);
     ts_type_table[TS_BOOL].decl = ts_type_table[TS_BOOL].id;
+    ts_type_table[TS_BOOL].cg = ts_type_table[TS_BOOL].id;
     ts_type_table[TS_BOOL].number.bits = 1;
     ts_type_table[TS_BOOL].number.fp = false;
     ts_type_table[TS_BOOL].number.sign = false;
@@ -67,6 +70,7 @@ void ts_init() {
       sprintf(buffer, "u%zu", bits);
       ts_type_table[id].id = st_newc(buffer, st_enc_ascii);
       ts_type_table[id].decl = ts_type_table[id].id;
+      ts_type_table[id].cg = ts_type_table[id].id;
 
       ts_type_table[++id].of = FL_NUMBER;
       ts_type_table[id].number.bits = bits;
@@ -75,12 +79,14 @@ void ts_init() {
       sprintf(buffer, "i%zu", bits);
       ts_type_table[id].id = st_newc(buffer, st_enc_ascii);
       ts_type_table[id].decl = ts_type_table[id].id;
+      ts_type_table[id].cg = ts_type_table[id].id;
     }
 
     // [11] f32
     ts_type_table[++id].of = FL_NUMBER;
     ts_type_table[id].id = st_newc("f32", st_enc_ascii);
     ts_type_table[id].decl = ts_type_table[id].id;
+    ts_type_table[id].cg = ts_type_table[id].id;
     ts_type_table[id].number.bits = 32;
     ts_type_table[id].number.fp = true;
     ts_type_table[id].number.sign = true;
@@ -89,6 +95,7 @@ void ts_init() {
     ts_type_table[++id].of = FL_NUMBER;
     ts_type_table[id].id = st_newc("f64", st_enc_ascii);
     ts_type_table[id].decl = ts_type_table[id].id;
+    ts_type_table[id].cg = ts_type_table[id].id;
     ts_type_table[id].number.bits = 64;
     ts_type_table[id].number.fp = true;
     ts_type_table[id].number.sign = true;
@@ -97,18 +104,21 @@ void ts_init() {
     ts_type_table[++id].of = FL_POINTER;
     ts_type_table[id].id = st_newc("cstr", st_enc_ascii);
     ts_type_table[id].decl = ts_type_table[id].id;
+    ts_type_table[id].cg = ts_type_table[id].id;
     ts_type_table[id].ptr.to = TS_I8;
 
     // [14] ptr void
     ts_type_table[++id].of = FL_POINTER;
     ts_type_table[id].id = st_newc("ptr<void>", st_enc_ascii);
     ts_type_table[id].decl = ts_type_table[id].id;
+    ts_type_table[id].cg = ts_type_table[id].id;
     ts_type_table[id].ptr.to = TS_VOID;
 
     // [15] vector<i8>
     ts_type_table[++id].of = FL_VECTOR;
     ts_type_table[id].id = st_newc("vector<i8>", st_enc_ascii);
     ts_type_table[id].decl = ts_type_table[id].id;
+    ts_type_table[id].cg = ts_type_table[id].id;
     ts_type_table[id].ptr.to = TS_I8;
 
     // transfer list ownership

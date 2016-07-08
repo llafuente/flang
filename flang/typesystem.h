@@ -63,6 +63,7 @@ enum ts_types {
 struct ts_type {
   string* id;
   string* decl;
+  string* cg;
 
   ts_types_t of;
   void* codegen; // cache for codegen.
