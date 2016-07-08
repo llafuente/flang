@@ -17,6 +17,6 @@ cd ..
 
 ./build/flang ./test/codegen/math.fl
 
-clang -std=c11 -lpthread -luv -lstringc -D_GNU_SOURCE codegen/run.c -o codegen/app
+clang -std=c11 -Wno-parentheses-equality -lpthread -luv -lstringc -D_GNU_SOURCE codegen/run.c -o codegen/app
 
 ./codegen/app

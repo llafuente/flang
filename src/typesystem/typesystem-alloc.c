@@ -111,14 +111,14 @@ void ts_init() {
     ts_type_table[++id].of = FL_POINTER;
     ts_type_table[id].id = st_newc("ptr<void>", st_enc_ascii);
     ts_type_table[id].decl = ts_type_table[id].id;
-    ts_type_table[id].cg = ts_type_table[id].id;
+    ts_type_table[id].cg = 0;
     ts_type_table[id].ptr.to = TS_VOID;
 
     // [15] vector<i8>
     ts_type_table[++id].of = FL_VECTOR;
     ts_type_table[id].id = st_newc("vector<i8>", st_enc_ascii);
     ts_type_table[id].decl = ts_type_table[id].id;
-    ts_type_table[id].cg = ts_type_table[id].id;
+    ts_type_table[id].cg = 0;
     ts_type_table[id].ptr.to = TS_I8;
 
     // transfer list ownership

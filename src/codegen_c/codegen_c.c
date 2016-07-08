@@ -343,8 +343,11 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     if (mode == AST_TRAV_LEAVE) {
       string* right = (string*) array_pop(cg_stack);
       string* left = (string*) array_pop(cg_stack);
-
-      stack_append("(%s.%s)", left->value, right->value);
+      if (ty_is_number(node->member.property->ty_id)) {
+        stack_append("(%s[%s])", left->value, right->value);
+      } else {
+        stack_append("(%s.%s)", left->value, right->value);
+      }
     }
     break;
   case AST_DTOR_VAR:
@@ -387,7 +390,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
   case AST_DECL_FUNCTION:
     if (node->func.templated) {
       // templated function are not exported, it's clones are
-      return AST_SEARCH_CONTINUE;
+      return AST_SEARCH_SKIP;
     }
 
     if (mode == AST_TRAV_ENTER) {
@@ -490,10 +493,10 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     }
 
     break;
-  /*
+
   case AST_DECL_TEMPLATE:
+    return AST_SEARCH_SKIP;
     break;
-  */
   case AST_STMT_RETURN:
     if (mode == AST_TRAV_LEAVE) {
       string* expr = (string*) array_pop(cg_stack);
@@ -531,11 +534,10 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     // traverse order: init, pre_cond, update, block, post_cond
     switch(node->loop.type) {
       case AST_STMT_FOR: {
-        // reverse pops
-        string* block =  cg_node(node->loop.block);
-        string* update =  cg_node(node->loop.update);
-        string* pre_cond = cg_node(node->loop.pre_cond);
         string* init =  cg_node(node->loop.init);
+        string* pre_cond = cg_node(node->loop.pre_cond);
+        string* update =  cg_node(node->loop.update);
+        string* block =  cg_node(node->loop.block);
         stack_append("for (%s; %s; %s) %s",
           init->value,
           pre_cond->value,
@@ -543,10 +545,22 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
           block->value
         );
       } break;
-      case AST_STMT_WHILE:
-      assert(0);
-      case AST_STMT_DOWHILE:
-      assert(0);
+      case AST_STMT_WHILE: {
+        string* pre_cond = cg_node(node->loop.pre_cond);
+        string* block =  cg_node(node->loop.block);
+        stack_append("while (%s) %s",
+          pre_cond->value,
+          block->value
+        );
+      } break;
+      case AST_STMT_DOWHILE:{
+        string* post_cond = cg_node(node->loop.post_cond);
+        string* block =  cg_node(node->loop.block);
+        stack_append("do %s while (%s)",
+          block->value,
+          post_cond->value
+        );
+      } break;
       default: {assert(0);}
     }
     return AST_SEARCH_SKIP; // manual traverse
@@ -578,7 +592,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
 
 string* cg_node(ast_t* node) {
   node->stack = cg_stack->size;
-  ast_traverse(node, __codegen_cb, 0, 0, 0, 0);
+  ast_traverse(node, __codegen_cb, node, 0, 0, 0);
   int buffer_size;
   for (int i = node->stack; i < cg_stack->size; ++i) {
     buffer_size += ((string*) cg_stack->data[i])->length;
