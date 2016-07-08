@@ -17,4 +17,6 @@ cd ..
 
 ./build/flang ./test/codegen/math.fl
 
-clang -std=c11 -lpthread -llibuv -D_GNU_SOURCE c_code.c
+clang -std=c11 -lpthread -luv -lstringc -D_GNU_SOURCE codegen/run.c -o codegen/app
+
+./codegen/app

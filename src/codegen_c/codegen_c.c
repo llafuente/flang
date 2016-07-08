@@ -17,8 +17,21 @@ char* buffer2 = 0;
 array* cg_stack;
 u64 max_level = 0;
 int cg_indent = 0;
-FILE* cg_fd = 0;
+
+typedef struct {
+  FILE* decls;
+  FILE* types;
+  FILE* functions;
+  FILE* run;
+} cg_files_t;
+
+cg_files_t* cg_fds;
+
 //
+#define scan_string(str_var, format, ...) \
+  snprintf(buffer, 1024, format, ##__VA_ARGS__); \
+  str_var = st_newc(buffer, st_enc_utf8);
+
 #define stack_append(format, ...) \
 do {\
   string* str; \
@@ -84,11 +97,6 @@ string* st_dquote(const string* str) {
 }
 
 
-#define scan_string(str_var, format, ...) \
-  snprintf(buffer, 1024, format, ##__VA_ARGS__); \
-  str_var = st_newc(buffer, st_enc_utf8); \
-
-
 char* readable_operator(int operator) {
   if (operator < 127) {
     snprintf(buffer2, 1024, "%c", operator);
@@ -127,9 +135,9 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
   switch (node->type) {
   case AST_PROGRAM: {
     if (mode == AST_TRAV_LEAVE) {
-      CG_OUTPUT(cg_fd, "int run()");
+      CG_OUTPUT(cg_fds->run, "int run()");
       while(cg_stack->size) {
-        CG_OUTPUT(cg_fd, "%s\n", ((string*) array_pop(cg_stack))->value);
+        CG_OUTPUT(cg_fds->run, "%s\n", ((string*) array_pop(cg_stack))->value);
       }
   }
   } break;
@@ -315,19 +323,27 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
       string* parameters = st_newc(buffer, st_enc_utf8);
 
       if (!node->func.ffi) {
-
         // generate the block only, skip the rest
         ast_traverse(node->func.body, __codegen_cb, 0, 0, 0, 0);
 
         string* body = (string*) array_pop(cg_stack);
 
-        stack_append("%s %s (%s) %s",
+        CG_OUTPUT(cg_fds->decls, "%s %s (%s);\n",
+          ty_to_string(node->func.ret_type->ty_id)->value,
+          node->func.uid->value,
+          parameters->value
+        );
+
+        CG_OUTPUT(cg_fds->functions, "%s %s (%s) %s",
           ty_to_string(node->func.ret_type->ty_id)->value,
           node->func.uid->value,
           parameters->value,
           body->value
         );
       } else {
+        // TODO skip this processs atm
+        return AST_SEARCH_SKIP;
+
         stack_append("extern %s %s (%s)",
           ty_to_string(node->func.ret_type->ty_id)->value,
           node->func.uid->value,
@@ -348,7 +364,8 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     } else {
       int buffer_idx = 0;
       buffer2[0] = 0;
-      for (int i = node->stack; i < cg_stack->size; ++i) {
+      // TODO REVIEW skip the first one is the identifier atm
+      for (int i = node->stack + 1; i < cg_stack->size; ++i) {
         string* arg = (string*) cg_stack->data[i];
 
         if (i == cg_stack->size - 1) {
@@ -420,23 +437,33 @@ char* fl_codegen(ast_t* root) {
 
 
 
-  string* header = psr_file_to_string("codegen/header.c");
-
-
   cg_stack = calloc(sizeof(array), 1);
   buffer = calloc(sizeof(char), 1024);
   buffer2 = calloc(sizeof(char), 1024);
   //array_newcap(cg_stack, 500);
   array_newcap(cg_stack, 5);
 
-  cg_fd = fopen("c_code.c", "w");
-  CG_OUTPUT(cg_fd, "%s", header->value);
-  CG_OUTPUT(cg_fd, "\n\n\n//codegen\n");
+  cg_fds = calloc(sizeof(cg_files_t), 1);
+  cg_fds->decls = fopen("codegen/decls.c", "w");
+  cg_fds->types = fopen("codegen/types.c", "w");
+  cg_fds->functions = fopen("codegen/functions.c", "w");
+  cg_fds->run = fopen("codegen/run.c", "w");
+
+  CG_OUTPUT(cg_fds->run, "\n"
+    "#include \"header.c\"\n"
+    "#include \"decls.c\"\n"
+    "#include \"types.c\"\n"
+    "#include \"functions.c\"\n\n"
+  );
 
   ast_traverse(root, __codegen_cb, 0, 0, 0, 0);
 
-  fclose(cg_fd);
+  fclose(cg_fds->decls);
+  fclose(cg_fds->types);
+  fclose(cg_fds->functions);
+  fclose(cg_fds->run);
 
+  free(cg_fds);
   free(cg_stack);
   free(buffer);
   free(buffer2);
