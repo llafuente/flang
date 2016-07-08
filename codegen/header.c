@@ -1,11 +1,15 @@
 #include <inttypes.h>
 #include "stringc.h"
+#include <pthread.h>
+#include "uv.h"
+#include <assert.h>
 
 #define MAX_PATH 1024
 
 #define public extern
 #define globvar static
 #define var
+#define cstr char*
 
 // hints
 #define virtual
@@ -14,7 +18,7 @@
 #define null 0
 #define true 1
 #define false 0
-#define bool int8_t
+//#define bool int8_t
 #define i8 int8_t
 #define i16 int16_t
 #define i32 int32_t
@@ -37,21 +41,20 @@ globvar process_t* process;
 
 void bootstrap() {
   process = malloc(sizeof(process_t));
-  process.cwd = st_new(MAX_PATH, st_enc_utf8)
-  uv_err_t err;
-  size_t size = sizeof(buffer_orig) / sizeof(buffer_orig[0]);
-  err = uv_cwd(CWD->, size);
-  ASSERT(err.code == UV_OK)
+  process->cwd = st_new(MAX_PATH, st_enc_utf8);
+  size_t size = 1027;
+  int err = uv_cwd(process->cwd->value, &size);
+  assert(err == 0);
 }
+
+int run();
 
 int main() {
   bootstrap();
 
-  // USER CODE!
+  run();
 
-  // END OF USER CODE!
-
-  st_delete(&process.cwd);
+  st_delete(&process->cwd);
   free(process);
   return 0;
 }

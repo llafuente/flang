@@ -1,10 +1,14 @@
 #include "flang/common.h"
 #include "flang/libast.h"
+#include "flang/libparser.h"
 #include "flang/typesystem.h"
 #include "flang/codegen_c.h"
 #include "flang/debug.h"
+#include <stdio.h>
 
 //#define CG_DEBUG
+#define CG_OUTPUT fprintf
+#define cg_debug printf
 
 char* cg_text = 0;
 
@@ -13,7 +17,8 @@ char* buffer2 = 0;
 array* cg_stack;
 u64 max_level = 0;
 int cg_indent = 0;
-
+FILE* cg_fd = 0;
+//
 #define stack_append(format, ...) \
 do {\
   string* str; \
@@ -22,6 +27,61 @@ do {\
 } while(false);
 
 
+string* st_dquote(const string* str) {
+  st_uc_t ch;
+
+  const char* data = str->value;
+  string* out = st_new(str->capacity, str->encoding);
+  string* buffer = st_new(5, str->encoding);
+
+  st_append_char(&out, '"');
+
+#define ISDIGIT(c) ((c >= (st_uc_t)'0') && (c <= (st_uc_t)'9'))
+  st_size_t len = str->used;
+  while (len-- > 0) {
+    ch = *(st_uc_t*)(data++);
+    if (ch < 127) {
+      if (isprint(ch)) {
+        if (ch == '\\') {
+          st_append_char(&out, ch);
+        }
+        st_append_char(&out, ch);
+        continue;
+      } else if (ch == '\a') { /* \a -> audible bell */
+        ch = (st_uc_t)'a';
+      } else if (ch == '\b') { /* \b -> backspace */
+        ch = (st_uc_t)'b';
+      } else if (ch == '\f') { /* \f -> formfeed */
+        ch = (st_uc_t)'f';
+      } else if (ch == '\n') { /* \n -> newline */
+        ch = (st_uc_t)'n';
+      } else if (ch == '\r') { /* \r -> carriagereturn */
+        ch = (st_uc_t)'r';
+      } else if (ch == '\t') { /* \t -> horizontal tab */
+        ch = (st_uc_t)'t';
+      } else if (ch == '\v') { /* \v -> vertical tab */
+        ch = (st_uc_t)'v';
+      }
+      st_append_char(&out, '\\');
+      st_append_char(&out, ch);
+      continue;
+    }
+    if (ISDIGIT(ch)) {
+      sprintf(buffer->value, "\\%03d", ch);
+      st_append(&out, buffer);
+    } else {
+      sprintf(buffer->value, "\\%d", ch);
+      st_append(&out, buffer);
+    }
+  }
+
+  st_append_char(&out, '"');
+
+  st__zeronull(out->value, out->used, out->encoding);
+  st_delete(&buffer);
+
+  return out;
+}
 
 
 #define scan_string(str_var, format, ...) \
@@ -46,13 +106,13 @@ TK_MINUSMINUS
 
 void cg_dbg(ast_t* node, u64 level) {
 #ifdef CG_DEBUG
-  printf("%*s", (int)level, " ");
-  printf("// ");
+  cg_debug("%*s", (int)level, " ");
+  cg_debug("// ");
   ast_dump_one(node);
-  printf("\n");
+  cg_debug("\n");
 
   for (int i = 0; i < cg_stack->size; ++i) {
-    printf("// stack[%d] %s\n", i, ((string*)cg_stack->data[i])->value);
+    cg_debug("// stack[%d] %s\n", i, ((string*)cg_stack->data[i])->value);
   }
 #endif
 }
@@ -65,36 +125,46 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
   cg_dbg(node, level);
 
   switch (node->type) {
-  case AST_PROGRAM:
+  case AST_PROGRAM: {
+    if (mode == AST_TRAV_LEAVE) {
+      CG_OUTPUT(cg_fd, "int run()");
+      while(cg_stack->size) {
+        CG_OUTPUT(cg_fd, "%s\n", ((string*) array_pop(cg_stack))->value);
+      }
+  }
+  } break;
   case AST_IMPORT:
   case AST_MODULE:
   case AST_LIST:
   case AST_TYPE:
-  case AST_PARAMETER:
-    break;
+  case AST_PARAMETER: // manually handled @AST_DECL_FUNCTION
+  break;
   case AST_BLOCK:
     if (mode == AST_TRAV_ENTER) {
-      ++cg_indent;
+      cg_indent += 2;
       node->stack = cg_stack->size;
-      printf("%*s{\n", cg_indent, " ");
     } else {
+      int buffer_size = 10 + cg_indent;
 
       for (int i = node->stack; i < cg_stack->size; ++i) {
-        printf("%*s%s;\n", cg_indent, " ",
+        buffer_size += cg_indent + ((string*) cg_stack->data[i])->length + 2;
+      }
+
+      string* block = st_new(buffer_size, st_enc_utf8);
+      st_append_c(&block, "{\n");
+
+      for (int i = node->stack; i < cg_stack->size; ++i) {
+        snprintf(buffer, 1024, "%*s%s;\n", cg_indent, " ",
           ((string*)cg_stack->data[i])->value);
+        st_append_c(&block, buffer);
       }
       cg_stack->size = node->stack;
 
-      printf("%*s}\n", cg_indent, " ");
-      --cg_indent;
+      cg_indent -= 2;
+      snprintf(buffer, 1024, "%*s}\n", cg_indent, " ");
+      st_append_c(&block, buffer);
+      array_append(cg_stack, (void*) block);
     }
-
-    // traverse do not follow scope hashes
-    // so we print it here ??
-    //printf("block [%d]", node->block.scope);
-    //printf(" tys [%s]", __ast_block_hash_append(node->block.types));
-    //printf(" vars [%s]", __ast_block_hash_append(node->block.variables));
-    //printf(" fns [%s]", __ast_block_hash_append(node->block.functions));
     break;
   case AST_EXPR_ASSIGNAMENT:
     if (mode == AST_TRAV_LEAVE) {
@@ -148,8 +218,8 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     if (mode == AST_TRAV_LEAVE) return 0;
     if (parent->type == AST_TYPE) return AST_SEARCH_CONTINUE;
     if (parent->type == AST_DECL_FUNCTION) return AST_SEARCH_CONTINUE;
-    if (parent->type == AST_PARAMETER) return AST_SEARCH_CONTINUE;
-    if (parent->type == AST_EXPR_CALL) return AST_SEARCH_CONTINUE;
+    //if (parent->type == AST_PARAMETER) return AST_SEARCH_CONTINUE;
+    //if (parent->type == AST_EXPR_CALL) return AST_SEARCH_CONTINUE;
 
     assert(node->identifier.string != 0);
     array_append(cg_stack, (void*) node->identifier.string);
@@ -159,7 +229,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     if (mode == AST_TRAV_LEAVE) return 0;
 
     // TODO add quotes
-    array_append(cg_stack, (void*) node->string.value);
+    array_append(cg_stack, (void*) st_dquote(node->string.value));
     break;
 
   case AST_LIT_BOOLEAN:
@@ -185,8 +255,6 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     break;
   /*
   case AST_EXPR_MEMBER:
-    printf("member T(%zu) idx(%zu) expression(%d)", node->ty_id,
-           node->member.idx, node->member.expression);
     break;
   */
   case AST_DTOR_VAR:
@@ -198,13 +266,10 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     break;
   /*
   case AST_TYPE:
-    printf("type T(%zu)", node->ty_id);
     break;
   case AST_DECL_STRUCT:
-    printf("struct T(%zu)", node->ty_id);
     break;
   case AST_DECL_STRUCT_FIELD:
-    printf("field T(%zu)", node->ty_id);
     break;
   */
   case AST_DECL_FUNCTION:
@@ -215,28 +280,28 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
 
     if (mode == AST_TRAV_ENTER) {
       u64 current = cg_stack->size;
+      int buffer_idx = 0;
+      buffer[0] = 0;
+
       if (node->func.params->list.count) {
         u64 i = 0;
         ast_t* tmp;
         ast_t** itr = node->func.params->list.elements;
 
         while ((tmp = itr[i++]) != 0) {
-          stack_append("%s %s", ty_to_string(tmp->ty_id)->value,
-            tmp->param.id->identifier.string->value);
+          ast_traverse(tmp, __codegen_cb, 0, 0, 0, 0);
+          string* param = (string*) array_pop(cg_stack);
+
+          //stack_append("%s %s", ty_to_string(tmp->ty_id)->value, param->value);
+          if (itr[i] == 0) {
+            buffer_idx += snprintf(buffer + buffer_idx, 1024, "%s %s", ty_to_string(tmp->ty_id)->value, param->value);
+          } else {
+            buffer_idx += snprintf(buffer + buffer_idx, 1024, "%s %s, ", ty_to_string(tmp->ty_id)->value, param->value);
+          }
         }
       }
 
-      int buffer_idx = 0;
-      buffer[0] = 0;
-      for (int i = current; i < cg_stack->size; ++i) {
-        if (i == cg_stack->size - 1) {
-          buffer_idx += snprintf(buffer + buffer_idx, 1024, "%s", ((string*)cg_stack->data[i])->value);
-        } else {
-          buffer_idx += snprintf(buffer + buffer_idx, 1024, "%s, ", ((string*)cg_stack->data[i])->value);
-        }
-      }
-
-      if (node->func.ffi) {
+      if (node->func.varargs) {
         if (buffer_idx != 0) {
           buffer[buffer_idx++] = ',';
         }
@@ -249,15 +314,27 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
 
       string* parameters = st_newc(buffer, st_enc_utf8);
 
-      printf("%*s%s %s (%s)\n",
-        cg_indent, " ",
-        ty_to_string(node->func.ret_type->ty_id)->value,
-        node->func.id->identifier.string->value,
-        parameters->value
-      );
+      if (!node->func.ffi) {
 
-      // generate the block only, skip the rest
-      ast_traverse(node->func.body, __codegen_cb, 0, 0, 0, 0);
+        // generate the block only, skip the rest
+        ast_traverse(node->func.body, __codegen_cb, 0, 0, 0, 0);
+
+        string* body = (string*) array_pop(cg_stack);
+
+        stack_append("%s %s (%s) %s",
+          ty_to_string(node->func.ret_type->ty_id)->value,
+          node->func.uid->value,
+          parameters->value,
+          body->value
+        );
+      } else {
+        stack_append("extern %s %s (%s)",
+          ty_to_string(node->func.ret_type->ty_id)->value,
+          node->func.uid->value,
+          parameters->value
+        );
+      }
+
 
       return AST_SEARCH_SKIP;
     }
@@ -269,13 +346,6 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     if (mode == AST_TRAV_ENTER) {
       node->stack = cg_stack->size;
     } else {
-      /*
-      for (int i = node->stack; i < cg_stack->size; ++i) {
-        printf("%*s%s;\n", cg_indent, " ",
-        ((string*)cg_stack->data[i])->value);
-      }
-      */
-
       int buffer_idx = 0;
       buffer2[0] = 0;
       for (int i = node->stack; i < cg_stack->size; ++i) {
@@ -289,13 +359,12 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
       }
       cg_stack->size = node->stack;
 
-      stack_append("%s(%s)", node->call.decl->func.id->identifier.string->value, buffer2);
+      stack_append("%s(%s)", node->call.decl->func.uid->value, buffer2);
     }
 
     break;
   /*
   case AST_DECL_TEMPLATE:
-    printf("template");
     break;
   */
   case AST_STMT_RETURN:
@@ -307,7 +376,6 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     break;
   /*
   case AST_ERROR:
-    printf("ERROR [%s: %s]", node->err.type->value, node->err.message->value);
     break;
   */
   case AST_STMT_COMMENT:
@@ -317,16 +385,12 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     break;
   /*
   case AST_STMT_IF:
-    printf("if");
     break;
   case AST_STMT_LOOP:
-    printf("loop");
     break;
   case AST_EXPR_SIZEOF:
-    printf("sizeof T(%zu)", node->ty_id);
     break;
   case AST_STMT_LOG:
-    printf("log");
     break;
   */
   case AST_CAST:
@@ -338,7 +402,6 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     break;
   /*
   case AST_ATTRIBUTE:
-    printf("attribute");
     break;
     */
   default: {
@@ -351,9 +414,14 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
 
 
 char* fl_codegen(ast_t* root) {
-  //log_debug_level = 10;
-  //ast_dump(root);
+  log_debug_level = 10;
+  ast_dump(root);
   //exit(0);
+
+
+
+  string* header = psr_file_to_string("codegen/header.c");
+
 
   cg_stack = calloc(sizeof(array), 1);
   buffer = calloc(sizeof(char), 1024);
@@ -361,8 +429,13 @@ char* fl_codegen(ast_t* root) {
   //array_newcap(cg_stack, 500);
   array_newcap(cg_stack, 5);
 
-  printf("\n\n\n//codegen\n");
+  cg_fd = fopen("c_code.c", "w");
+  CG_OUTPUT(cg_fd, "%s", header->value);
+  CG_OUTPUT(cg_fd, "\n\n\n//codegen\n");
+
   ast_traverse(root, __codegen_cb, 0, 0, 0, 0);
+
+  fclose(cg_fd);
 
   free(cg_stack);
   free(buffer);
