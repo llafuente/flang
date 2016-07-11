@@ -51,9 +51,9 @@ int main(int argc, const char* argv[]) {
   TASK_RUN(codegen_expressions);
   TASK_RUN(codegen_functions);
 
-  //TASK_RUN(flang_files);
+  TASK_RUN(flang_files);
 
-  printf("\nOK\n");
+  printf("\n!OK\n");
 
   return 0;
 }

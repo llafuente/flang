@@ -56,9 +56,8 @@ SOURCES_TEST = test/tasks.c \
                test/parser-loop-test.c \
                test/parser-scopes-test.c \
                test/codegen-expressions-test.c \
-               test/codegen-functions-test.c
-
-# test/flang-files-test.c
+               test/codegen-functions-test.c \
+               test/flang-files-test.c
 
 TESTS = tests
 check_PROGRAMS = tests

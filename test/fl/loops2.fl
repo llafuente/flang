@@ -8,7 +8,7 @@ fn reverseArray(i32 count) : void {
     printf("i = %zu lastIdx = %zu\n", i, lastIdx);
 
   }
-  return 0;
+  //return 0;
 }
 
 var i32 c;

@@ -20,8 +20,8 @@ printf("4. x / y = %f\n", x / y);
 printf("5. x / y = %f\n", x / y);
 printf("6. y / x = %f\n", y / x);
 printf("7. y / x = %f\n", y / x);
-printf("8. x %% y = %f\n", x % y);
-printf("9. y %% x = %f\n", y % x);
+//printf("8. x %% y = %f\n", x % y);
+//printf("9. y %% x = %f\n", y % x);
 printf("10. left %% right = %d\n", left % right);
 printf("11. right %% left = %d\n", right % left);
 

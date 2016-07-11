@@ -4,6 +4,6 @@ fn x() : i8 {
 }
 
 var x y;
-y = &x;
+y = x;
 
 y();

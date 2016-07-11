@@ -29,6 +29,7 @@
 #include "flang/libparser.h"
 #include "flang/typesystem.h"
 #include "flang/debug.h"
+#include "flang/codegen_c.h"
 
 #define STR(val) #val
 

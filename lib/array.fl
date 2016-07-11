@@ -1,5 +1,3 @@
-import numbers;
-
 // typing
 // * means pointer, cannot be moved, it's just s ref to one single
 // [] array
@@ -8,56 +6,55 @@ import numbers;
 wrapper array($tpl) {
   // foreach wrapper declare it's type
   // because $tpl is used, and give a unique name
-  type struct array_t { // @heap
+  struct array_t { // @heap
     u64 length;
     u64 capacity;
-    $tpl values[];
+    $tpl* values;
 
     alias len length; // internal alias
     alias cap capacity;
-
-    // virtual are transform to functions with force inline
-    // bool is_empty(array($tpl)* arr) { return arr->length == 0; }
-    virtual bool is_empty {
-      return length == 0;
-    }
-
-    virtual bool is_full {
-      return length == capacity;
-    }
-
-    virtual $tpl first {
-      return values[0];
-    }
-
-    virtual $tpl last {
-      return values[length - 1];
-    }
-
-
-    // Rules to expand macros
-    // Put the exact text in the arguments in order in the block
-    // foreach argument extract the return value
-    // example: var i64 i -> return i
-    // example: just_a_variable -> return just_a_variable
-    // error: each(func(), var t): first argument is a function call
-    // example: each(var i = func(), var t), useless but possible
-    // example: each(some_struct.i, var t)
-    // type check
-    // replace each argument with the return value
-    // replace #transclude with the block of code
-    // usage: arr.each(var i, var t) {}
-    macro each(u64 #index, $T #value) {
-      for (var #index == 0; #index < length; ++i) {
-        #value = values[i];
-        #transclude
-      }
-    }
   };
 }
 
+function propery first(array($tpl) arr) : $tpl{
+  return arr.values[0];
+}
+
+function propery last(array($tpl) arr) : $tpl{
+  return arr.values[arr.length - 1];
+}
+
+function propery is_full(array($tpl) arr) : bool {
+  return arr.length == arr.capacity;
+}
+
+// virtual are transform to functions with force inline
+// bool is_empty(array($tpl)* arr) { return arr->length == 0; }
+function propery is_empty(array($tpl) arr) : bool {
+  return length == 0;
+}
+
+// Rules to expand macros
+// Put the exact text in the arguments in order in the block
+// foreach argument extract the return value
+// example: var i64 i -> return i
+// example: just_a_variable -> return just_a_variable
+// error: each(func(), var t): first argument is a function call
+// example: each(var i = func(), var t), useless but possible
+// example: each(some_struct.i, var t)
+// type check
+// replace each argument with the return value
+// replace #transclude with the block of code
+// usage: arr.each(var i, var t) {}
+macro each(array($tpl), u64 #index, $T #value) {
+  for (var #index == 0; #index < length; ++i) {
+    #value = values[i];
+    #transclude
+  }
+}
+
 // this function is not duplicated per type, because $tpl is not used
-function virtual delete (ref array($tpl) arr) {
+function operator delete (ref array($tpl) arr) {
   free(*arr);
   *arr = 0;
 }
@@ -83,24 +80,23 @@ function operator []= (array($tpl) arr, $tpl value) : void {
 
 function alias array_push operator []=;
 
-  // push arr[]= 1;
-  function operator []= (array_t* arr, u64 index, $tpl value) : void {
-    #assert(index > arr.length, 'out of bounds: use push instead or fill before');
+// push arr[]= 1;
+function operator []= (array($tpl) arr, u64 index, $tpl value) : void {
+  #assert(index > arr.length, 'out of bounds: use push instead or fill before');
 
-    if ($tpl.is_ptr) {
-      arr.data[index] = cast(void*) value;
-    } else {
-      arr.data[index] = value;
-    }
+  if ($tpl.is_ptr) {
+    arr.data[index] = cast(void*) value;
+  } else {
+    arr.data[index] = value;
   }
-
-  alias array_set operator []=;
-
-  function operator [] (array_t* arr, u64 index) : $tpl {
-    #assert(index > arr.length, 'out of bounds');
-
-    return ($tpl) arr.data[index];
-  }
-
-  alias array_get operator [];
 }
+
+alias array_set operator []=;
+
+function operator [] (array($tpl) arr, u64 index) : $tpl {
+  #assert(index > arr.length, 'out of bounds');
+
+  return ($tpl) arr.data[index];
+}
+
+alias array_get operator [];

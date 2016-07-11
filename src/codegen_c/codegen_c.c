@@ -336,7 +336,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     if (mode == AST_TRAV_LEAVE) {
       string* left = (string*) array_pop(cg_stack);
 
-      stack_append("(%s%s)", readable_operator(node->runary.operator), left->value);
+      stack_append("(%s%s)", left->value, readable_operator(node->runary.operator));
     }
     break;
   case AST_EXPR_MEMBER:
@@ -565,9 +565,13 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     }
     return AST_SEARCH_SKIP; // manual traverse
     break;
-  /*
   case AST_EXPR_SIZEOF:
+    // TODO handle typeof a variable
+    assert(node->sof.type->type == AST_TYPE);
+    stack_append("sizeof(%s)", cg_type(node->sof.type->ty_id)->value);
+    return AST_SEARCH_SKIP; // manual traverse
     break;
+    /*
   case AST_STMT_LOG:
     break;
   */
@@ -610,8 +614,8 @@ string* cg_node(ast_t* node) {
 
 
 char* fl_codegen(ast_t* root) {
-  log_debug_level = 10;
-  ast_dump(root);
+  //log_debug_level = 10;
+  //ast_dump(root);
   //exit(0);
 
 

@@ -65,7 +65,7 @@ TASK_IMPL(codegen_functions) {
                                  "return 0;"
                                  "}"
                                  "var ftype y;"
-                                 "y = &ftype;"
+                                 "y = ftype;"
                                  "y();",
                   {});
 

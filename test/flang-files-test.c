@@ -24,6 +24,13 @@
 */
 
 #include "tasks.h"
+#include "flang/common.h"
+#include "flang/libast.h"
+#include "flang/debug.h"
+#include "flang/flang.h"
+#include "flang/libparser.h"
+#include "flang/codegen_c.h"
+#include "flang/typesystem.h"
 
 // _popen and _pclose for Windows.
 // 2>&1
@@ -47,23 +54,14 @@ string* execute(char* cmd) {
   }
   pclose(pipe);
 
-  if (output->value[0] == '\0') {
-    fprintf(stderr, "no output for: %s", cmd);
-    exit(1);
-  }
-
   return output;
 }
 
 void test_file_list(char** files, size_t nfiles, char* path) {
   char* fl_file = malloc(sizeof(char) * 100);
   char* txt_file = malloc(sizeof(char) * 100);
-  char* bc_file = malloc(sizeof(char) * 100);
-  char* ir_file = malloc(sizeof(char) * 100);
-  char* cmd = malloc(sizeof(char) * 256);
 
   ast_t* root;
-  LLVMModuleRef module;
   string* code;
   size_t i;
 
@@ -85,14 +83,6 @@ void test_file_list(char** files, size_t nfiles, char* path) {
     strcat(txt_file, path);
     strcat(txt_file, files[i]);
     strcat(txt_file, ".txt");
-    bc_file[0] = '\0';
-    strcat(bc_file, "../tmp/");
-    strcat(bc_file, files[i]);
-    strcat(bc_file, ".bc");
-    ir_file[0] = '\0';
-    strcat(ir_file, "../tmp/");
-    strcat(ir_file, files[i]);
-    strcat(ir_file, ".ir");
 
     flang_init();
     root = psr_file_main(fl_file);
@@ -117,11 +107,14 @@ void test_file_list(char** files, size_t nfiles, char* path) {
 
     flang_exit(root);
 
-    cmd[0] = '\0';
-    strcat(cmd, "lli -load libstringc.so ");
-    strcat(cmd, ir_file);
-    strcat(cmd, " 2>&1");
-    string* output = execute(cmd);
+    // compile
+    execute("clang -std=c11 -Wno-parentheses-equality -lpthread -luv -lstringc -D_GNU_SOURCE codegen/run.c -o codegen/app");
+    // execut
+    string* output = execute("./codegen/app");
+    if (output->value[0] == '\0') {
+      fprintf(stderr, "Test executed but no output. At least one line is required");
+      exit(1);
+    }
     string* output_cmp = psr_file_to_string(txt_file);
 
     // printf("output-cmd \n--\n%s\n--\n", output_cmp->value);
@@ -130,8 +123,8 @@ void test_file_list(char** files, size_t nfiles, char* path) {
       // save output to diff!
       fprintf(
           stderr,
-          "file: %s lli output \n--\n%s\n--\nexpected output \n--\n%s\n--\n",
-          files[i], output->value, output_cmp->value);
+          "output of: %s\n--\n%s\n--\nexpected output \n--\n%s\n--\n",
+          fl_file, output->value, output_cmp->value);
       exit(1);
     }
     st_delete(&output);
@@ -141,22 +134,21 @@ void test_file_list(char** files, size_t nfiles, char* path) {
 
   free(fl_file);
   free(txt_file);
-  free(bc_file);
-  free(ir_file);
-  free(cmd);
 }
 
 TASK_IMPL(flang_files) {
+  printf("# flang_files\n");
+
   char* test_files[] = {
       "memory", "memory3", "expressions", "casting", "if", "loops", "loops2",
-      "types", "pointers", "pointers2", "string", "functions",
+      "types", "pointers", "pointers2", /*"string",*/ "functions",
       "function-pointer", "arithmetic", "autocast", "increment", "fibonacci",
       "type-promotion-signed", "type-promotion-unsigned", "type-promotion-mix",
       "pointer-math", "log", "globals", "templates"
       //,"promotion"
   };
 
-  test_file_list(test_files, 24, "test/fl/");
+  test_file_list(test_files, 23, "test/fl/");
 
   char* perf_files[] = {"array-reverse"};
 

@@ -7,6 +7,7 @@ sh grammar.sh
 
 rm -rf tmp
 mkdir -p tmp
+rm -f ./build/tests
 
 mkdir -p build
 cd build

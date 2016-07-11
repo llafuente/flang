@@ -26,8 +26,7 @@ int main(int argc, char** argv) {
   flang_init();
 
   // debug single file
-  //ast_t* root = psr_file_main(argv[1]);
-  ast_t* root = psr_file(argv[1]);
+  ast_t* root = psr_file_main(argv[1]);
   // ast_t* root = psr_file(argv[1]);
   if (ast_print_error(root)) {
     exit(3);
