@@ -353,8 +353,14 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
   case AST_DTOR_VAR:
     if (mode == AST_TRAV_LEAVE) {
       string* id = (string*) array_pop(cg_stack);
-
-      stack_append("%s %s", cg_type(node->ty_id)->value, id->value);
+      if (node->var.scope == AST_SCOPE_GLOBAL) {
+        // TODO REVIEW extern may need necessary
+        // there is no ffi var atm.
+        stack_append("/* globvar %s */", id->value);
+        CG_OUTPUT(cg_fds->decls, "globvar %s %s;\n", cg_type(node->ty_id)->value, id->value);
+      } else {
+        stack_append("%s %s", cg_type(node->ty_id)->value, id->value);
+      }
     }
     break;
   /*
@@ -388,6 +394,8 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     }
     break;
   case AST_DECL_FUNCTION:
+    printf("function %s\n", node->func.uid->value);
+
     if (node->func.templated) {
       // templated function are not exported, it's clones are
       return AST_SEARCH_SKIP;

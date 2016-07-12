@@ -10,7 +10,7 @@ fn reverseArray(ptr(i32) theList, i32 count) : void {
     theList[lastIdx] = theList[i];
     theList[i] = lastValue;
   }
-  return 0;
+  //return 0;
 }
 var i32 count;
 count = 10;

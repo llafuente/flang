@@ -1,3 +1,4 @@
-function x() {
+// globals2.fl
+function x() : i8 {
   global i8 y = 100;
 }

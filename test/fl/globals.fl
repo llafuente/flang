@@ -1,4 +1,6 @@
-import "./globals2";
+forward import "./globals2";
+
+x(); // this should not be necessary!!!
 
 printf("y = %d\n", y);
 ++y;
