@@ -23,8 +23,8 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "tasks.h"
-#include "test.h"
+#include "../tasks.h"
+#include "../test.h"
 
 size_t __hash_counter_it = 0;
 void __hash_counter(char* key, void* ptr) { ++__hash_counter_it; }

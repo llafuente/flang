@@ -23,13 +23,13 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "tasks.h"
+#include "../tasks.h"
 #include "flang/common.h"
 #include "flang/libast.h"
 #include "flang/debug.h"
 #include "flang/flang.h"
 #include "flang/libparser.h"
-#include "flang/codegen_c.h"
+#include "flang/./codegen_c.h"
 #include "flang/typesystem.h"
 
 // _popen and _pclose for Windows.
@@ -62,7 +62,6 @@ void test_file_list(char** files, size_t nfiles, char* path) {
   char* txt_file = malloc(sizeof(char) * 100);
 
   ast_t* root;
-  string* code;
   size_t i;
 
   for (i = 0; i < nfiles; ++i) {
@@ -108,9 +107,9 @@ void test_file_list(char** files, size_t nfiles, char* path) {
     flang_exit(root);
 
     // compile
-    execute("clang -std=c11 -Wno-parentheses-equality -lpthread -luv -lstringc -D_GNU_SOURCE codegen/run.c -o codegen/app");
+    execute("clang -std=c11 -Wno-parentheses-equality -lpthread -luv -lstringc -D_GNU_SOURCE ./codegen/run.c -o ./codegen/app");
     // execut
-    string* output = execute("./codegen/app");
+    string* output = execute("././codegen/app");
     if (output->value[0] == '\0') {
       fprintf(stderr, "Test executed but no output. At least one line is required");
       exit(1);
@@ -139,16 +138,38 @@ void test_file_list(char** files, size_t nfiles, char* path) {
 TASK_IMPL(flang_files) {
   printf("# flang_files\n");
 
+  // find ./codegen/ | grep 'fl' | sed 's/\.fl//' | awk '{print "\"" $0 "\","}'
+
   char* test_files[] = {
-      "memory", "memory3", "expressions", "casting", "if", "loops", "loops2",
-      "types", "pointers", "pointers2", /*"string",*/ "functions",
-      "function-pointer", "arithmetic", "autocast", "increment", "fibonacci",
-      "type-promotion-signed", "type-promotion-unsigned", "type-promotion-mix",
-      "pointer-math", "log", "globals", "templates"
-      //,"promotion"
+    "typesystem/autocast",
+    "typesystem/type-promotion-mix",
+    "typesystem/type-promotion-unsigned",
+    "typesystem/types",
+    "typesystem/casting",
+    "typesystem/expressions",
+    "typesystem/type-promotion-signed",
+    "statements/loops",
+    "statements/if",
+    "statements/loops2",
+    "math/arithmetic",
+    "math/increment",
+    "memory/pointers2",
+    "memory/pointer-math",
+    "memory/memory3",
+    "memory/pointers",
+    "memory/memory",
+    "misc/globals",
+    "misc/log",
+    "misc/globals2",
+    "misc/fibonacci",
+    //"misc/string",
+    //"misc/hello-world",
+    "functions/templates",
+    "functions/functions",
+    "functions/function-pointer",
   };
 
-  test_file_list(test_files, 23, "test/fl/");
+  test_file_list(test_files, 26, "./test/codegen/");
 
   char* perf_files[] = {"array-reverse"};
 

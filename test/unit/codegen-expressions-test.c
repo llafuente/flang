@@ -23,8 +23,8 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "tasks.h"
-#include "test.h"
+#include "../tasks.h"
+#include "../test.h"
 
 TASK_IMPL(codegen_expressions) {
   log_debug_level = 0;

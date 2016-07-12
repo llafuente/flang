@@ -16,6 +16,9 @@ wrapper array($tpl) {
   };
 }
 
+// implement array(u8) as string;
+// also string should extend the type adding encoding
+
 function propery first(array($tpl) arr) : $tpl{
   return arr.values[0];
 }

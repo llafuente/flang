@@ -45,19 +45,19 @@ flang_DEPENDENCIES = libfl_parser.a libfl_ast.a libfl_codegen.a
 
 
 SOURCES_TEST = test/tasks.c \
-               test/hash-test.c \
-               test/typesystem-test.c \
-               test/parser-literals.c \
-               test/parser-expressions-test.c \
-               test/parser-variables-test.c \
-               test/parser-functions-test.c \
-               test/parser-types-test.c \
-               test/parser-if-test.c \
-               test/parser-loop-test.c \
-               test/parser-scopes-test.c \
-               test/codegen-expressions-test.c \
-               test/codegen-functions-test.c \
-               test/flang-files-test.c
+               test/unit/hash-test.c \
+               test/unit/typesystem-test.c \
+               test/unit/parser-literals.c \
+               test/unit/parser-expressions-test.c \
+               test/unit/parser-variables-test.c \
+               test/unit/parser-functions-test.c \
+               test/unit/parser-types-test.c \
+               test/unit/parser-if-test.c \
+               test/unit/parser-loop-test.c \
+               test/unit/parser-scopes-test.c \
+               test/unit/codegen-expressions-test.c \
+               test/unit/codegen-functions-test.c \
+               test/codegen/codegen-tests.c
 
 TESTS = tests
 check_PROGRAMS = tests

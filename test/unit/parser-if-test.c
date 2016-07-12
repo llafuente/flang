@@ -23,38 +23,38 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang/common.h"
-#include "flang/typesystem.h"
-#include "tasks.h"
+#include "../tasks.h"
+#include "../test.h"
 
-TASK_IMPL(typesystem) {
+TASK_IMPL(parser_if) {
+  log_debug_level = 0;
 
-  ts_init();
+  TEST_PARSER_OK("function 01", "var bool b; b = 1;"
+                                "if b == true { \"ok\"; }",
+                 {});
 
-  size_t t = ts_promote_typeid(TS_I8, TS_I16);
-  ASSERT(t == TS_I16, "TS_I8 + TS_I16 => TS_I16");
+  TEST_PARSER_OK("function 01", "if(true) {}", {});
 
-  t = ts_promote_typeid(TS_I8, TS_U8);
-  ASSERT(t == TS_I8, "TS_I8 + TS_U8 => TS_I8");
+  TEST_PARSER_ERROR("function 01", "if(true)",
+                    "syntax error, unexpected $end, expecting '{'", {});
 
-  t = ts_promote_typeid(TS_I8, TS_I8);
-  ASSERT(t == TS_I8, "TS_I8 + TS_I8 => TS_I8");
+  TEST_PARSER_ERROR("function 01", "if(true) {",
+                    "syntax error, unexpected $end, expecting '}'", {});
 
-  t = ts_promote_typeid(TS_F32, TS_I8);
-  ASSERT(t == TS_F32, "TS_I8 + TS_F32 => TS_F32");
+  TEST_PARSER_ERROR("function 01", "if(true) {/}",
+                    "syntax error, unexpected '/', expecting '}'", {
 
-  t = ts_promote_typeid(TS_BOOL, TS_F32);
-  ASSERT(t == TS_F32, "TS_BOOL + TS_F32 => TS_F32");
+                                                                   });
 
-  t = ts_promote_typeid(TS_I32, TS_BOOL);
-  ASSERT(t == TS_I32, "TS_BOOL + TS_I32 => TS_I32");
+  TEST_PARSER_OK("function 01", "var bool b; b = 1;\n"
+                                "if (b == true) { \"ok\"; }\n"
+                                "else { \"ko\"; }",
+                 {});
 
-  t = ts_promote_typeid(TS_BOOL, TS_I32);
-  ASSERT(t == TS_I32, "TS_BOOL + TS_I32 => TS_I32");
-
-  ASSERT(!ts_castable(TS_I64, TS_I32), "demotion not allowed");
-
-  ts_exit();
+  TEST_PARSER_OK("function 01", "var i32 b; b = 1;\n"
+                                "if (b == 2) { \"2\"; }\n"
+                                "else if (b == 1) { \"1\"; }",
+                 {});
 
   return 0;
 }
