@@ -33,7 +33,8 @@ set +e
 make check "CC='clang'" "CFLAGS=${LLVM_CC_FLAGS} -g -O0 -fsanitize=integer -fsanitize=undefined -fsanitize=address -fno-omit-frame-pointer -DASAN=1 -DYYDEBUG=1"
 
 cd ..
-./build/tests
+
+/usr/bin/time -v ./build/tests
 
 #./flang ../test/fl/pointers.fl
 #./flang ../test/fl/fibonacci.fl

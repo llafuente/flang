@@ -394,8 +394,6 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
     }
     break;
   case AST_DECL_FUNCTION:
-    printf("function %s\n", node->func.uid->value);
-
     if (node->func.templated) {
       // templated function are not exported, it's clones are
       return AST_SEARCH_SKIP;
