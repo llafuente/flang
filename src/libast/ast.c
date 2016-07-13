@@ -24,33 +24,24 @@
 */
 
 #include "flang/common.h"
-#include "flang/typesystem.h"
+#include "flang/libast.h"
+#include "flang/libts.h"
+#include "flang/debug.h"
+#include "flang/libparser.h"
 
-// only promote numbers
-u64 ts_promote_typeid(u64 a, u64 b) {
-  ty_t t_a = ts_type_table[a];
-  ty_t t_b = ts_type_table[b];
+ast_action_t __trav_set_parent(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
+                               void* userdata_in, void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE) return 0;
 
-  assert(t_a.of == FL_NUMBER);
-  assert(t_b.of == FL_NUMBER);
-
-  // check floating point
-  if (t_a.number.fp && !t_b.number.fp) {
-    return a;
+  // ast_parent can be called many times!
+  // only set parent if exists, do not override first node parent!
+  if (parent) {
+    node->parent = parent;
   }
 
-  if (t_b.number.fp && !t_a.number.fp) {
-    return b;
-  }
-  // check different sign
-  if (!t_b.number.sign && t_a.number.sign) {
-    return a;
-  }
+  return AST_SEARCH_CONTINUE;
+}
 
-  if (t_b.number.sign && !t_a.number.sign) {
-    return b;
-  }
-
-  // check bits
-  return t_a.number.bits > t_b.number.bits ? a : b;
+void ast_parent(ast_t* root) {
+  ast_traverse(root, __trav_set_parent, 0, 0, 0, 0);
 }

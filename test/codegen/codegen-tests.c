@@ -29,8 +29,8 @@
 #include "flang/debug.h"
 #include "flang/flang.h"
 #include "flang/libparser.h"
-#include "flang/./codegen_c.h"
-#include "flang/typesystem.h"
+#include "flang/./libcg.h"
+#include "flang/libts.h"
 
 // _popen and _pclose for Windows.
 // 2>&1

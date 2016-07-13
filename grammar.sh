@@ -3,7 +3,7 @@
 set -e
 set -x
 
-cd parser/grammar
+cd src/libparser/grammar
 
 # debug/dev
 #flex --header-file=tokens.h --debug -o tokens.c tokens.l parser.h
@@ -12,4 +12,4 @@ cd parser/grammar
 flex --header-file=tokens.h -o tokens.c tokens.l parser.h
 bison -d -o parser.c parser.y
 
-cd ../..
+cd ../../../

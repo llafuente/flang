@@ -25,7 +25,7 @@
 
 #include "flang/common.h"
 #include "flang/libast.h"
-#include "flang/typesystem.h"
+#include "flang/libts.h"
 #include "flang/debug.h"
 
 ast_t* ast_search_id_decl(ast_t* node, string* identifier) {

@@ -1,8 +1,8 @@
 #include "flang/common.h"
 #include "flang/libast.h"
 #include "flang/libparser.h"
-#include "flang/typesystem.h"
-#include "flang/codegen_c.h"
+#include "flang/libts.h"
+#include "flang/libcg.h"
 #include "flang/debug.h"
 #include <stdio.h>
 

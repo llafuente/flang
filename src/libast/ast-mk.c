@@ -25,7 +25,7 @@
 
 #include "flang/common.h"
 #include "flang/libast.h"
-#include "flang/typesystem.h"
+#include "flang/libts.h"
 #include "flang/debug.h"
 #include "flang/libparser.h"
 #include <limits.h>

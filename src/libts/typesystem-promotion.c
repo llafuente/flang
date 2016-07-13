@@ -24,20 +24,33 @@
 */
 
 #include "flang/common.h"
-#include "flang/typesystem.h"
-#include "flang/libast.h"
-#include "flang/libparser.h"
+#include "flang/libts.h"
 
-ast_t* typesystem(ast_t* root) {
-  psr_ast_imports(root);
+// only promote numbers
+u64 ts_promote_typeid(u64 a, u64 b) {
+  ty_t t_a = ts_type_table[a];
+  ty_t t_b = ts_type_table[b];
 
-  ts_register_types(root);
+  assert(t_a.of == FL_NUMBER);
+  assert(t_b.of == FL_NUMBER);
 
-  // do inference
-  root = ts_pass(root);
+  // check floating point
+  if (t_a.number.fp && !t_b.number.fp) {
+    return a;
+  }
 
-  // reduce ast to it's minimal form
-  root = ast_reduce(root);
+  if (t_b.number.fp && !t_a.number.fp) {
+    return b;
+  }
+  // check different sign
+  if (!t_b.number.sign && t_a.number.sign) {
+    return a;
+  }
 
-  return root;
+  if (t_b.number.sign && !t_a.number.sign) {
+    return b;
+  }
+
+  // check bits
+  return t_a.number.bits > t_b.number.bits ? a : b;
 }

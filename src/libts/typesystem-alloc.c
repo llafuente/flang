@@ -24,7 +24,7 @@
 */
 
 #include "flang/common.h"
-#include "flang/typesystem.h"
+#include "flang/libts.h"
 #include <math.h>
 
 ty_t* ts_type_table = 0;

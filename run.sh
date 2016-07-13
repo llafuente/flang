@@ -21,5 +21,8 @@ make "CC='clang'" "CFLAGS=-std=c11 -g -O0 -fsanitize=integer -fsanitize=undefine
 
 cd ..
 
-./build/flang ./test/codegen/math.fl
-#./build/flang ./test/fl/arithmetic.fl
+./build/flang ./test/codegen/misc/hello-world.fl
+
+clang -std=c11 -Wno-parentheses-equality -lpthread -luv -lstringc -D_GNU_SOURCE codegen/run.c -o codegen/app
+
+./codegen/app

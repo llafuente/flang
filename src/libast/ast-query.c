@@ -25,7 +25,7 @@
 
 #include "flang/common.h"
 #include "flang/libast.h"
-#include "flang/typesystem.h"
+#include "flang/libts.h"
 #include "flang/debug.h"
 
 //
@@ -129,14 +129,14 @@ ast_t* ast_get_root(ast_t* node) {
   return 0;
 }
 
+char ast_get_location_buffer[1024];
 string* ast_get_location(ast_t* node) {
   ast_t* root = ast_get_root(node);
-  char buffer[1024];
-  sprintf(buffer, "%s:%d:%d",
+  sprintf(ast_get_location_buffer, "%s:%d:%d",
           root->program.file->value,
           node->first_line, node->first_column);
 
-  string* ret = st_newc(buffer, st_enc_utf8);
+  string* ret = st_newc(ast_get_location_buffer, st_enc_utf8);
   return ret;
 }
 

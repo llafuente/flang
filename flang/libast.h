@@ -23,7 +23,7 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "parser/grammar/parser.h"
+#include "src/libparser/grammar/parser.h"
 
 // DECL
 

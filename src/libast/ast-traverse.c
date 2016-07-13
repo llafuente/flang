@@ -25,7 +25,7 @@
 
 #include "flang/common.h"
 #include "flang/libast.h"
-#include "flang/typesystem.h"
+#include "flang/libts.h"
 #include "flang/debug.h"
 
 ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
