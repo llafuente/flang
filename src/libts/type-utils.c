@@ -147,8 +147,12 @@ u64 ty_get_struct_prop_type(u64 id, string* property) {
   return 0;
 }
 
-bool __fn_collision(ast_t* where, ast_t* scope, char* ty_name) {
+bool __fn_collision(ast_t* where, ast_t* scope, char* ty_name, char* uid_name) {
+  log_debug("check collisions id='%s' uid='%s'", ty_name, uid_name);
   ast_t* redef;
+
+  bool same_name = strcmp(ty_name, uid_name) == 0;
+
   do {
     // a function cannot collide with a variable
     redef = (ast_t*)hash_get(scope->block.variables, ty_name);
@@ -166,6 +170,15 @@ bool __fn_collision(ast_t* where, ast_t* scope, char* ty_name) {
           where,
           "Function name '%s' in use by a type, previously defined at %s",
           ty_name, ast_get_location(redef)->value);
+    }
+    if (!same_name) {
+      // if my UID != ID, i must not collide with functions
+      redef = (ast_t*)hash_get(scope->block.functions, uid_name);
+      if (redef) {
+        ast_raise_error(where, "Function UID '%s' in use by other function, "
+                               "previously defined at %s",
+                        uid_name, ast_get_location(redef)->value);
+      }
     }
   } while (scope->block.scope != AST_SCOPE_GLOBAL &&
            (scope = ast_get_scope(scope)));
@@ -330,12 +343,12 @@ bool ty_compatible_struct(u64 a, u64 b) {
 
 u64 ty_create_fn(ast_t* decl) {
   string* id = decl->func.id->identifier.string;
-  char* cstr = id->value;
+  char* fn_id = id->value;
   string* uid;
 
   ast_t* rscope = ast_get_global_scope(decl);
 
-  ast_t* t = hash_get(rscope->block.uids, cstr);
+  ast_t* t = hash_get(rscope->block.uids, fn_id);
 
   // check for collisions
   if (t != 0) {
@@ -343,11 +356,10 @@ u64 ty_create_fn(ast_t* decl) {
     if (decl->func.uid) {
       t = hash_get(rscope->block.uids, decl->func.uid->value);
       if (t != 0) {
+        ast_dump_s(t);
         ast_raise_error(decl,
                         "Function #id collision found, previously used at %s",
                         ast_get_location(t)->value);
-        log_debug_level = 10;
-        ast_dump(t);
       }
     } else {
       // create a unique name!
@@ -363,6 +375,8 @@ u64 ty_create_fn(ast_t* decl) {
   } else if (!decl->func.uid) {
     decl->func.uid = st_clone(id);
   }
+
+  char* fn_uid = decl->func.uid->value;
 
   assert(decl->func.uid != 0);
 
@@ -393,19 +407,27 @@ u64 ty_create_fn(ast_t* decl) {
   ast_t* from;
   attach_to = ast_get_scope(decl);
 
-  if (!__fn_collision(decl, attach_to, id->value)) {
-    array* lfunc = hash_get(attach_to->block.functions, cstr);
-    log_debug("type register (fn) id='%s' ty=%zu @[%p]", cstr, i, lfunc);
+  if (!__fn_collision(decl, attach_to, fn_id, fn_uid)) {
+    array* lfunc = hash_get(attach_to->block.functions, fn_id);
+    log_debug("type register (fn) id='%s' uid='%s' ty=%zu @[%p]", fn_id, fn_uid,
+              i, lfunc);
 
+    // define the function with ID
     if (!lfunc) {
       lfunc = pool_new(sizeof(array));
       array_new(lfunc);
-      hash_set(attach_to->block.functions, cstr, lfunc);
+      hash_set(attach_to->block.functions, fn_id, lfunc);
     }
     array_push(lfunc, decl);
-    hash_set(attach_to->block.types, cstr, decl);
+    // define the function with UID
+    lfunc = pool_new(sizeof(array));
+    array_new(lfunc);
+    array_push(lfunc, decl);
+    hash_set(attach_to->block.functions, fn_uid, lfunc);
 
-    hash_set(rscope->block.uids, decl->func.uid->value, decl);
+    hash_set(attach_to->block.types, fn_id, decl);
+
+    hash_set(rscope->block.uids, fn_uid, decl);
 
     // check param names don't collide
     if (!decl->func.ffi && !decl->func.templated) {

@@ -10,11 +10,21 @@ fn sum ($t __a, $t __b) : $t {
 // implement for given types, also give them a name
 implement sum(i8, i8) as sum_i8;
 implement sum(i16, i16) as sum_i16;
-implement sum(i16, i32) as sum_i32;
+implement sum(i32, i32) as sum_i32;
 
 var i8 a_i8 = 10;
 var i8 b_i8 = 20;
 
+var i16 a_i16 = 100;
+var i16 b_i16 = 200;
+
+var i32 a_i32 = 1000;
+var i32 b_i32 = 2000;
+
 // both should be used
+printf("r_i8 = %d\n", sum_i8(a_i8, b_i8));
 printf("r_i8 = %d\n", sum(a_i8, b_i8));
-//printf("r_i8 = %d\n", sum_18(a_i8, b_i8));
+printf("r_i16 = %d\n", sum_i16(a_i16, b_i16));
+printf("r_i16 = %d\n", sum(a_i16, b_i16));
+printf("r_i32 = %d\n", sum_i32(a_i32, b_i32));
+printf("r_i32 = %d\n", sum(a_i32, b_i32));

@@ -154,15 +154,16 @@ TASK_IMPL(flang_files) {
       "memory/pointers2",                   "memory/pointer-math",
       "memory/memory3",                     "memory/pointers",
       "memory/memory",                      "misc/globals",
-      "misc/log",                           "misc/globals2",
+      "misc/log",
+      // "misc/globals2",
       "misc/fibonacci",
       //"misc/string",
       //"misc/hello-world",
-      "functions/templates",                "functions/functions",
-      "functions/function-pointer",
+      "functions/templates",                "functions/templates2",
+      "functions/functions",                "functions/function-pointer",
   };
 
-  test_file_list(test_files, 26, "./test/codegen/");
+  test_file_list(test_files, 24, "./test/codegen/");
 
   char* perf_files[] = {"array-reverse"};
 

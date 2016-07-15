@@ -41,10 +41,6 @@ char* __ast_block_hash_append(hash_t* ht) {
 void ast_dump_one(ast_t* node) {
   assert(node != 0);
 
-  if (log_debug_level < 2) {
-    return;
-  }
-
   switch (node->type) {
   case AST_PROGRAM:
     printf("program [path='%s']", node->program.file->value);
@@ -256,4 +252,12 @@ void ast_dump(ast_t* node) {
   if (log_debug_level > 2) {
     ast_traverse(node, __ast_dump_cb, 0, 0, 0, 0);
   }
+}
+
+void ast_dump_s(ast_t* node) {
+  int x = log_debug_level;
+  log_debug_level = 10;
+  ast_traverse(node, __ast_dump_cb, 0, 0, 0, 0);
+
+  log_debug_level = x;
 }

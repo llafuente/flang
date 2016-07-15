@@ -41,7 +41,7 @@ ast_t* ast_implement_fn(ast_t* call, ast_t* decl, string* uid) {
 
   fn->func.uid = uid; // if 0 -> auto
   ast_parent(fn);
-  fn->parent = decl->parent;
+
   ast_mk_insert_before(decl->parent, decl, fn);
 
   // todo replace types!

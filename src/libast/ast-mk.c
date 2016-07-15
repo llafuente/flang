@@ -123,6 +123,7 @@ ast_t* ast_mk_insert_before(ast_t* list, ast_t* search_item,
   }
 
   ast_mk_list_insert(list, insert_item, idx);
+  insert_item->parent = list;
   return list;
 }
 
@@ -219,7 +220,7 @@ ast_t* ast_mk_lit_integer(char* text) {
   char* end;
   long long val = strtol(text, &end, 10);
 
-  log_silly("read [%lld] [%d == %d]", val, errno, ERANGE);
+  log_silly("read [%lld] errno? [%d == %d]", val, errno, ERANGE);
   if (*end == '\0') {
     // conversion OK!
     node->integer.signed_value = val;

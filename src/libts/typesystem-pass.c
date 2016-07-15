@@ -57,7 +57,6 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
   } break;
   case AST_LIT_IDENTIFIER: {
     if (!node->ty_id) {
-      ast_dump(node->parent);
       log_debug("search id: '%s' resolve:%d", node->identifier.string->value,
                 node->identifier.resolve);
 
@@ -123,9 +122,8 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
         if (tmp->func.templated) {
           if (fn) {
             // raise! double template!
-            log_debug_level = 10;
-            ast_dump(fn);
-            ast_dump(tmp);
+            ast_dump_s(fn);
+            ast_dump_s(tmp);
             ast_raise_error(
                 node,
                 "typesystem - Cannot implement multiple functions (atm?)");
@@ -172,13 +170,19 @@ ast_action_t __ts_cast_operation_pass_cb(ast_trav_mode_t mode, ast_t* node,
 }
 
 ast_t* ts_pass(ast_t* node) {
-  log_debug("(typesystem) ts_inference");
+  /*
+  log_debug2("ts_inference");
+  ast_dump_one(node);
+  printf("\n");
+  log_debug2("\n");
+  */
+
   ts_inference(node);
   if (ast_last_error_node != 0) {
     return node;
   }
 
-  log_debug("(typesystem) casting");
+  log_debug("typesystem pass start");
   // first create casting
   ast_traverse(node, __trav_casting, 0, 0, 0, 0);
   if (ast_last_error_node != 0) {
@@ -191,7 +195,7 @@ ast_t* ts_pass(ast_t* node) {
     return node;
   }
 
-  log_debug("(typesystem) done!");
+  log_debug("typesystem passed");
 
   return node; // TODO this should be the error
 }

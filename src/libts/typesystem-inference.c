@@ -129,7 +129,6 @@ ast_action_t __ts_inference_fn_ret(ast_trav_mode_t mode, ast_t* node,
     return 0;
 
   if (node->type == AST_DECL_FUNCTION && node->func.ret_type->ty_id == 0) {
-    // ast_dump_one(node);
     ast_t* ret = node->func.ret_type;
     ast_t* body = node->func.body;
     array* list = ast_search_node_type(node, AST_STMT_RETURN);

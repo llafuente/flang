@@ -559,6 +559,12 @@ libexport void ast_dump_one(ast_t* node);
  * @node
  */
 libexport void ast_dump(ast_t* node);
+/* Debug: Recursive print to stderr a node as text
+ * but ignoring log level
+ *
+ * @node
+ */
+libexport void ast_dump_s(ast_t* node);
 
 /* Debug: Recursive print to stderr a node as text (do not follow imports)
  *
