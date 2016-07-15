@@ -402,7 +402,7 @@ u64 ty_create_fn(ast_t* decl) {
       array_new(lfunc);
       hash_set(attach_to->block.functions, cstr, lfunc);
     }
-    array_append(lfunc, decl);
+    array_push(lfunc, decl);
     hash_set(attach_to->block.types, cstr, decl);
 
     hash_set(rscope->block.uids, decl->func.uid->value, decl);

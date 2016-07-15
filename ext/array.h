@@ -6,7 +6,7 @@
 #ifndef ARRAY_T
 // Define a vector type
 typedef struct {
-  int size;
+  u64 length;
   int capacity;
   void** data; // array of pointers
 } array;
@@ -27,7 +27,7 @@ void array_replace_allocators(array_malloc_func malloc_func,
 void array_new(array* arr);
 void array_newcap(array* arr, size_t cap);
 
-void array_append(array* arr, ARRAY_T value);
+void array_push(array* arr, ARRAY_T value);
 
 void array_concat(array* arr, array* arr2);
 

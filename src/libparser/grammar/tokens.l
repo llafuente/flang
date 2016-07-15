@@ -136,7 +136,7 @@ as        { SET_LOCATION; return TK_AS; }
 
 {ident}  {
   /* TODO save location!!! */
-  array_append(identifiers, st_newc(yytext, st_enc_utf8));
+  array_push(identifiers, st_newc(yytext, st_enc_utf8));
   SET_LOCATION; return IDENTIFIER;
 }
 

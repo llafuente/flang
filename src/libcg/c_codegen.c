@@ -38,7 +38,7 @@ string* cg_node(ast_t* node);
   do {                                                                         \
     string* str;                                                               \
     scan_string(str, format, ##__VA_ARGS__);                                   \
-    array_append(cg_stack, (void*)str);                                        \
+    array_push(cg_stack, (void*)str);                                          \
   } while (false);
 
 string* cg_type(u64 ty_id) {
@@ -220,7 +220,7 @@ void cg_dbg(ast_t* node, u64 level) {
   ast_dump_one(node);
   cg_debug("\n");
 
-  for (int i = 0; i < cg_stack->size; ++i) {
+  for (int i = 0; i < cg_stack->length; ++i) {
     cg_debug("// stack[%d] %s\n", i, ((string*)cg_stack->data[i])->value);
   }
 #endif
@@ -236,7 +236,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
   case AST_PROGRAM: {
     if (mode == AST_TRAV_LEAVE) {
       CG_OUTPUT(cg_fds->run, "int run()");
-      while (cg_stack->size) {
+      while (cg_stack->length) {
         CG_OUTPUT(cg_fds->run, "%s\n", ((string*)array_pop(cg_stack))->value);
       }
     }
@@ -252,28 +252,28 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
   case AST_BLOCK:
     if (mode == AST_TRAV_ENTER) {
       cg_indent += 2;
-      node->stack = cg_stack->size;
+      node->stack = cg_stack->length;
     } else {
       int buffer_size = 10 + cg_indent;
 
-      for (int i = node->stack; i < cg_stack->size; ++i) {
+      for (int i = node->stack; i < cg_stack->length; ++i) {
         buffer_size += cg_indent + ((string*)cg_stack->data[i])->length + 2;
       }
 
       string* block = st_new(buffer_size, st_enc_utf8);
       st_append_c(&block, "{\n");
 
-      for (int i = node->stack; i < cg_stack->size; ++i) {
+      for (int i = node->stack; i < cg_stack->length; ++i) {
         snprintf(buffer, 1024, "%*s%s;\n", cg_indent, " ",
                  ((string*)cg_stack->data[i])->value);
         st_append_c(&block, buffer);
       }
-      cg_stack->size = node->stack;
+      cg_stack->length = node->stack;
 
       cg_indent -= 2;
       snprintf(buffer, 1024, "%*s}\n", cg_indent, " ");
       st_append_c(&block, buffer);
-      array_append(cg_stack, (void*)block);
+      array_push(cg_stack, (void*)block);
     }
     break;
   case AST_EXPR_ASSIGNAMENT:
@@ -340,22 +340,22 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     // if (parent->type == AST_EXPR_CALL) return AST_SEARCH_CONTINUE;
 
     assert(node->identifier.string != 0);
-    array_append(cg_stack, (void*)node->identifier.string);
+    array_push(cg_stack, (void*)node->identifier.string);
     break;
 
   case AST_LIT_STRING:
     if (mode == AST_TRAV_LEAVE)
       return 0;
 
-    array_append(cg_stack, (void*)st_dquote(node->string.value));
+    array_push(cg_stack, (void*)st_dquote(node->string.value));
     break;
 
   case AST_LIT_BOOLEAN:
     if (mode == AST_TRAV_LEAVE)
       return 0;
 
-    array_append(cg_stack, node->boolean.value ? st_newc("true", st_enc_utf8)
-                                               : st_newc("false", st_enc_utf8));
+    array_push(cg_stack, node->boolean.value ? st_newc("true", st_enc_utf8)
+                                             : st_newc("false", st_enc_utf8));
     break;
 
   case AST_EXPR_LUNARY:
@@ -406,18 +406,18 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
   */
   case AST_DECL_STRUCT:
     if (mode == AST_TRAV_ENTER) {
-      node->stack = cg_stack->size;
+      node->stack = cg_stack->length;
     } else {
       int buffer_idx = 0;
       buffer2[0] = 0;
       string* id = (string*)cg_stack->data[node->stack];
       // TODO REVIEW skip the first one is the identifier atm
-      for (int i = node->stack + 1; i < cg_stack->size; ++i) {
+      for (int i = node->stack + 1; i < cg_stack->length; ++i) {
         string* arg = (string*)cg_stack->data[i];
 
         buffer_idx += snprintf(buffer2 + buffer_idx, 1024, "%s;\n", arg->value);
       }
-      cg_stack->size = node->stack;
+      cg_stack->length = node->stack;
 
       CG_OUTPUT(cg_fds->decls, "struct %s__cg;\n", id->value);
       CG_OUTPUT(cg_fds->decls, "typedef struct %s__cg %s;\n", id->value,
@@ -439,7 +439,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     }
 
     if (mode == AST_TRAV_ENTER) {
-      u64 current = cg_stack->size;
+      u64 current = cg_stack->length;
       int buffer_idx = 0;
       buffer[0] = 0;
 
@@ -510,22 +510,22 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
   case AST_EXPR_CALL:
 
     if (mode == AST_TRAV_ENTER) {
-      node->stack = cg_stack->size;
+      node->stack = cg_stack->length;
     } else {
       int buffer_idx = 0;
       buffer2[0] = 0;
       // TODO REVIEW skip the first one is the identifier atm
-      for (int i = node->stack + 1; i < cg_stack->size; ++i) {
+      for (int i = node->stack + 1; i < cg_stack->length; ++i) {
         string* arg = (string*)cg_stack->data[i];
 
-        if (i == cg_stack->size - 1) {
+        if (i == cg_stack->length - 1) {
           buffer_idx += snprintf(buffer2 + buffer_idx, 1024, "%s", arg->value);
         } else {
           buffer_idx +=
               snprintf(buffer2 + buffer_idx, 1024, "%s, ", arg->value);
         }
       }
-      cg_stack->size = node->stack;
+      cg_stack->length = node->stack;
 
       stack_append("%s(%s)", node->call.decl->func.uid->value, buffer2);
     }
@@ -615,18 +615,18 @@ case AST_STMT_LOG:
 }
 
 string* cg_node(ast_t* node) {
-  node->stack = cg_stack->size;
+  node->stack = cg_stack->length;
   ast_traverse(node, __codegen_cb, node, 0, 0, 0);
   int buffer_size;
-  for (int i = node->stack; i < cg_stack->size; ++i) {
+  for (int i = node->stack; i < cg_stack->length; ++i) {
     buffer_size += ((string*)cg_stack->data[i])->length;
   }
 
   string* node_str = st_new(buffer_size, st_enc_utf8);
-  for (int i = node->stack; i < cg_stack->size; ++i) {
+  for (int i = node->stack; i < cg_stack->length; ++i) {
     st_append(&node_str, cg_stack->data[i]);
   }
-  cg_stack->size = node->stack; // restore
+  cg_stack->length = node->stack; // restore
 
   return node_str;
 }

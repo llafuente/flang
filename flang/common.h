@@ -1,9 +1,5 @@
 #include <inttypes.h>
-#include <stdbool.h>   // import bool
-#include "ext/hash.h"  // import hash_t
-#include "ext/array.h" // import array_t
-#include "ext/pool.h"  // import array_t
-#include "stringc.h"   // import string
+#include <stdbool.h> // import bool
 
 #define null 0
 #define true 1
@@ -21,6 +17,11 @@
 #define f64 double
 
 #define libexport extern
+
+#include "ext/hash.h"  // import hash_t
+#include "ext/array.h" // import array_t
+#include "ext/pool.h"  // import pool_t
+#include "stringc.h"   // import string
 
 // defined @flang-typesystem
 enum ts_types;

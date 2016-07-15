@@ -118,7 +118,7 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     } else {
       ast_t* fn = 0;
       ast_t* tmp = 0;
-      for (int i = 0; i < arr->size; ++i) {
+      for (int i = 0; i < arr->length; ++i) {
         tmp = (ast_t*)arr->data[i];
         if (tmp->func.templated) {
           if (fn) {

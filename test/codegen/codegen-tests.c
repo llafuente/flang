@@ -107,10 +107,13 @@ void test_file_list(char** files, size_t nfiles, char* path) {
     flang_exit(root);
 
     // compile
-    execute("clang -std=c11 -Wno-parentheses-equality -lpthread -luv -lstringc "
-            "-D_GNU_SOURCE ./codegen/run.c -o ./codegen/app");
-    // execut
-    string* output = execute("././codegen/app");
+    string* output = execute(
+        "clang -std=c11 -Wno-parentheses-equality -lpthread -luv -lstringc "
+        "-D_GNU_SOURCE ./codegen/run.c -o ./codegen/app");
+    st_delete(&output);
+
+    // execute
+    output = execute("././codegen/app");
     if (output->value[0] == '\0') {
       fprintf(stderr,
               "Test executed but no output. At least one line is required");

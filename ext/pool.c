@@ -1,4 +1,4 @@
-#include "pool.h"
+#include "flang/common.h"
 #include <math.h>
 
 array* pool_pages = 0;
@@ -7,7 +7,7 @@ size_t pool_page_size = 0;
 void pool_init(size_t bytes) {
   pool_pages = malloc(sizeof(array));
   // array_new(pool_pages);
-  pool_pages->size = 0;
+  pool_pages->length = 0;
   pool_pages->capacity = 100;
   pool_pages->data = malloc(sizeof(ARRAY_T) * 100);
 
@@ -16,8 +16,8 @@ void pool_init(size_t bytes) {
 }
 
 void pool_new_page(size_t bytes) {
-  if (pool_pages->size == pool_pages->capacity) {
-    pool_pages->capacity = pool_pages->size + 50;
+  if (pool_pages->length == pool_pages->capacity) {
+    pool_pages->capacity = pool_pages->length + 50;
     pool_pages->data =
         realloc(pool_pages->data, sizeof(ARRAY_T) * pool_pages->capacity);
   }
@@ -25,7 +25,7 @@ void pool_new_page(size_t bytes) {
   pool_page_t* page = (pool_page_t*)calloc(sizeof(pool_page_t) + bytes, 1);
   page->next = page->ptr;
   page->free = bytes;
-  array_append(pool_pages, (void*)page);
+  array_push(pool_pages, (void*)page);
 }
 
 void* pool_new(size_t bytes) {
@@ -37,7 +37,7 @@ void* pool_new(size_t bytes) {
   bytes = bt;
 
   size_t i = 0;
-  for (; i < pool_pages->size; ++i) {
+  for (; i < pool_pages->length; ++i) {
     pool_page_t* p = (pool_page_t*)pool_pages->data[i];
     if (p->free >= bytes) {
       void* ret = p->next;
@@ -53,13 +53,13 @@ void* pool_new(size_t bytes) {
   return pool_new(bytes);
 }
 
-// TODO this is a HUGE bug mess!!
+// TODO this is a HUGE bug mess!! because we don't know the old size!
 void* pool_realloc(void* ptr, size_t bytes) { return pool_new(bytes); }
 void pool_free(void* ptr) {}
 
 void pool_destroy() {
   size_t i = 0;
-  for (; i < pool_pages->size; ++i) {
+  for (; i < pool_pages->length; ++i) {
     free(pool_pages->data[i]);
   }
 

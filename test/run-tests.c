@@ -27,7 +27,7 @@
 
 #include "tasks.h"
 #include "fixtures.h"
-#include "ext/array.h"
+#include "flang/common.h"
 
 int main(int argc, const char* argv[]) {
   printf("    ###############\n");

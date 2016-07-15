@@ -139,7 +139,7 @@ ast_action_t __ts_inference_fn_ret(ast_trav_mode_t mode, ast_t* node,
       ast_t* el;
       u64 ct = 0;
 
-      for (; i < list->size; ++i) {
+      for (; i < list->length; ++i) {
         el = ((ast_t*)list->data[i])->ret.argument;
         if (!el->ty_id) {
           // this need inference...

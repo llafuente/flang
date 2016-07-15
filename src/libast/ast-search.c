@@ -63,7 +63,7 @@ ast_t* ast_search_fn(ast_t* node, string* identifier, u64* args, u64 nargs,
 
   u64 i;
   ast_t* fn;
-  for (i = 0; i < arr->size; ++i) {
+  for (i = 0; i < arr->length; ++i) {
     fn = arr->data[i];
     if (st_cmp(identifier, fn->func.id->identifier.string) == 0) {
       log_verbose("function name found");
@@ -105,7 +105,7 @@ ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
                       id->value);
       exit(5);
     }
-    printf("type: %d\n\n", decl->ty_id);
+    printf("type: %lu\n\n", decl->ty_id);
     ty_t fn_ty = ts_type_table[decl->ty_id];
     if (fn_ty.of != FL_FUNCTION) {
       ast_raise_error(args_call->parent,
@@ -116,11 +116,11 @@ ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
     return fn_ty.func.decl;
   }
 
-  log_verbose("declarations with same name = %d\n", arr->size);
+  log_verbose("declarations with same name = %lu\n", arr->length);
 
   ast_t* ret_decl = 0;
 
-  if (arr->size == 1) {
+  if (arr->length == 1) {
     ret_decl = array_get(arr, 0);
     goto fn_wargs_return;
   }
@@ -133,7 +133,7 @@ ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
 
   u64 i, j;
   u64 imax = args_call->list.count;
-  u64 jmax = arr->size;
+  u64 jmax = arr->length;
 
   // strict and no template
   for (j = 0; j < jmax; ++j) {
@@ -184,7 +184,7 @@ array* ast_search_fns(ast_t* node, string* id) {
     }
   } while (scope->block.scope != AST_SCOPE_GLOBAL);
 
-  if (arr->size) {
+  if (arr->length) {
     return arr;
   }
 
@@ -200,7 +200,7 @@ ast_action_t __trav_get_list_node(ast_trav_mode_t mode, ast_t* node,
     return 0;
 
   if (node->type == *(ast_types_t*)userdata_in) {
-    array_append((array*)userdata_out, node);
+    array_push((array*)userdata_out, node);
   }
 
   return AST_SEARCH_CONTINUE;
@@ -212,7 +212,7 @@ array* ast_search_node_type(ast_t* node, ast_types_t t) {
 
   ast_traverse(node, __trav_get_list_node, 0, 0, (void*)&t, (void*)userdata);
 
-  if (userdata->size) {
+  if (userdata->length) {
     return userdata;
   }
 
