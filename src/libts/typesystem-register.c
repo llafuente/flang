@@ -166,6 +166,8 @@ ast_action_t __trav_register_types(ast_trav_mode_t mode, ast_t* node, ast_t* par
       // LLVMSizeOf
       p->ty_id = TS_I64;
       break;
+      case AST_LIST: // TODO this need review
+      break;
     default: {
       ast_dump(p);
       log_error("what is this?!");

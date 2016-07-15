@@ -36,7 +36,7 @@ u64 ts_type_size_s = 0;
 // x... user
 void ts_init() {
   if (!ts_type_table) {
-    ts_type_table = calloc(sizeof(ty_t), 100);
+    ts_type_table = calloc(sizeof(ty_t), 200);
 
     // 0 means infer!
     ts_type_table[0].of = FL_INFER;

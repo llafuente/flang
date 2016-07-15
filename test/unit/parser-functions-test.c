@@ -67,7 +67,12 @@ TASK_IMPL(parser_functions) {
                     });
 
   TEST_PARSER_ERROR(
-      "function err 05", "ffi fn x () { var x; }",
+      "function err 05-a", "ffi fn x () { var x; }",
+      "syntax error, ffi function require a return type",
+      {});
+
+  TEST_PARSER_ERROR(
+      "function err 05-b", "ffi fn x () : i8 { var x; }",
       "syntax error, ffi cannot have a body and must have declared return type",
       {});
 
@@ -77,8 +82,6 @@ TASK_IMPL(parser_functions) {
   TEST_PARSER_ERROR("function err 06", "fn printf2( ptr(i8) format, ... ) ;",
                     "syntax error, unexpected ';', expecting '{' or ':'", {});
 
-  TEST_PARSER_ERROR("function err 05", "ffi fn x () : i32 { var x; }",
-                    "syntax error, ffi cannot have a body", {});
   // TODO 'template'
   TEST_PARSER_OK("function 03", "var i8 zz; fn x(i8 arg1, i8 arg2) : i8 {"
                                 "return arg1 + arg2;"
@@ -98,7 +101,7 @@ TASK_IMPL(parser_functions) {
     ASSERT(body[0]->func.ffi == true, "function is ffi");
     ASSERT(body[0]->func.varargs == true, "function is varargs");
   });
-
+  /*
   TEST_PARSER_OK("poly 01", "#id=sum_i32\n"
                             "fn sum(i32 a, i32 b) : i32 {"
                             "  return a + b;"
@@ -118,6 +121,7 @@ TASK_IMPL(parser_functions) {
     ASSERT(strcmp(body[1]->func.uid->value, "sum_i8") == 0,
            "function uid is what we manually set");
   });
+  */
 
   TEST_PARSER_ERROR("function err 05", "fn x (i8 a) : i32 { var x; }",
                     "Variable name 'x' in use by a type, previously defined at "
@@ -135,7 +139,7 @@ TASK_IMPL(parser_functions) {
                     {});
 
   TEST_PARSER_OK("template 01", "template $t;\n"
-                                "#id=sum_i32\n"
+                                //"#id=sum_i32\n"
                                 "fn sum($t a, i8 b) : i8 {"
                                 "  return a + b;"
                                 "}"

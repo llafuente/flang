@@ -29,18 +29,21 @@
 #include "flang/libparser.h"
 
 // return error
-ast_t* ast_expand_fn(ast_t* call, ast_t* decl) {
+ast_t* ast_implement_fn(ast_t* call, ast_t* decl, string* uid) {
   assert(call->type == AST_EXPR_CALL);
   assert(decl->type == AST_DECL_FUNCTION);
   assert(decl->func.templated);
 
   ast_t* fn = ast_clone(decl);
-  fn->func.uid = 0; // remove uid, so no collision, a new one
+
+  fn->func.tpl_fn = fn; // comes from this template
+  fn->func.templated = false;
+
+  fn->func.uid = uid; // if 0 -> auto
   ast_parent(fn);
   fn->parent = decl->parent;
   ast_mk_insert_before(decl->parent, decl, fn);
 
-  fn->func.templated = false;
 
   // todo replace types!
   u64 old;

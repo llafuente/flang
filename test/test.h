@@ -36,6 +36,12 @@
 // last core typeid + 1
 #define TEST_TYPEID 16
 
+#define STRING_MATCH(a, b)                                                         \
+if (strcmp(a, b) != 0) { \
+  fprintf(stderr, "expected: %s\nfound:%s\n", b, a);  \
+  ASSERT(false, "error message match"); \
+}
+
 #define CHK_BODY(root)                                                         \
   ASSERT(root != 0, "root is not null");                                       \
   ASSERT(root->type == AST_PROGRAM, "root is a program");                   \
@@ -52,7 +58,7 @@
   ASSERT(root->type == AST_PROGRAM, "root is a program");                   \
   target = root->program.body;                                                 \
   ASSERT(target->type == AST_ERROR, "body is an error");                    \
-  ASSERT(strcmp(target->err.message->value, msg) == 0, "error message match");
+  STRING_MATCH(target->err.message->value, msg);
 
 #define CHK_ERROR_RANGE(target, sc, sl, ec, el)
 /*
@@ -88,11 +94,10 @@
     ast_t* err = root->program.body;                                           \
     ast_mindump(root);                                                         \
     if (err->type == AST_ERROR) {                                           \
-      ASSERT(strcmp(err->err.message->value, msg) == 0,                        \
-             "error message match");                                           \
+      STRING_MATCH(err->err.message->value, msg);                                \
     } else {                                                                   \
       root = typesystem(root);                                                 \
-      ASSERT(strcmp(ast_last_error_message, msg) == 0, "error message match"); \
+      STRING_MATCH(ast_last_error_message, msg); \
     }                                                                          \
     code_block;                                                                \
     flang_exit(root);                                                          \

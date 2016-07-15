@@ -74,7 +74,7 @@ TASK_IMPL(codegen_functions) {
                   {});
 
   TEST_CODEGEN_OK("function 09", "template $t;\n"
-                                 "#id=sum_i32\n"
+                                // "#id=sum_i32\n"
                                  "fn sum($t _a, i8 _b) : i8 {\n"
                                  "  return _a + _b;\n"
                                  "}\n"

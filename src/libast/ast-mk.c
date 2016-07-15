@@ -68,7 +68,7 @@ ast_t* ast_mk_list() {
   node->type = AST_LIST;
 
   node->list.count = 0;
-  u64 s = 300 * sizeof(ast_t*);
+  u64 s = 400 * sizeof(ast_t*);
   node->list.elements = pool_new(s);
   memset(node->list.elements, 0, s);
 
@@ -77,7 +77,7 @@ ast_t* ast_mk_list() {
 
 ast_t* ast_mk_list_push(ast_t* list, ast_t* node) {
   // printf("ast_mk_list_push [%p]\n", list);
-  assert(list->type == AST_LIST);
+  fl_assert(list->type == AST_LIST);
 
   list->list.elements[list->list.count++] = node;
   return list;
@@ -614,6 +614,16 @@ ast_t* ast_mk_template(ast_t* id, ast_t* block) {
   ast_t* node = ast_new();
   node->type = AST_DECL_TEMPLATE;
   node->tpl.id = id;
+  id->identifier.resolve = false; // do not resolve it, it's a type
+
+  return node;
+}
+
+ast_t* ast_mk_implement(ast_t* call, ast_t* id) {
+  ast_t* node = ast_new();
+  node->type = AST_IMPLEMENT;
+  node->impl.id = id;
+  node->impl.call = call;
   id->identifier.resolve = false; // do not resolve it, it's a type
 
   return node;

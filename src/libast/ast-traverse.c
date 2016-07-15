@@ -172,6 +172,10 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
     TRAVERSE(ast->attr.id);
     TRAVERSE(ast->attr.value);
   } break;
+  case AST_IMPLEMENT: {
+    TRAVERSE(ast->impl.id);
+    TRAVERSE(ast->impl.call);
+  }
   default: {}
   }
 

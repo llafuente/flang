@@ -49,7 +49,7 @@
 
 
 /* keywords */
-%token <token> TK_UNDERSCORE TK_AS TK_ANY TK_BREAK TK_CONST
+%token <token> TK_UNDERSCORE TK_AS TK_ANY TK_BREAK TK_CONST TK_IMPLEMENT
 %token <token> TK_CONTINUE TK_ELSE TK_ENUM TK_FN
 %token <token> TK_FFI TK_FOR TK_IF TK_IN TK_MATCH
 %token <token> TK_IMPORT TK_FORWARD TK_PUB TK_REF TK_RETURN TK_STATIC
@@ -74,6 +74,7 @@
  */
 %type <node> program stmts
 %type <node> stmt var_decl maybe_argument_expression_list argument_expression_list comment
+%type <node> maybe_type_list type_list
 %type <node> struct_decl struct_decl_fields struct_decl_fields_list struct_decl_field
 %type <node> block maybe_stmts log_expression
 
@@ -100,8 +101,8 @@
 %type <node> expr_if block_or_if
 /* loops */
 %type <node> expr_while expr_dowhile expr_for import_stmt
-%type <node> attributes attribute attributes_and_fn
-%type <node> fn_full_decl fn_partial_decl fn_decl fn_parameters fn_parameter_list fn_parameter
+%type <node> attributes attribute
+%type <node> fn_decl_with_return_type fn_decl_without_return_type fn_decl fn_parameters fn_parameter_list fn_parameter
 
 %type <token> assignament_operator equality_operator relational_operator additive_operator multiplicative_operator unary_operator
 
@@ -242,6 +243,13 @@ stmt
     $$ = ast_mk_template($2, 0);
     ast_position($$, @1, @3);
   }
+  | TK_IMPLEMENT ident '(' maybe_type_list ')' TK_AS ident ';' {
+    ast_t* call = ast_mk_call_expr($2, $4);
+    ast_position(call, @2, @4);
+
+    $$ = ast_mk_implement(call, $7);
+    ast_position($$, @1, @8);
+  }
   ;
 
 import_stmt
@@ -340,13 +348,8 @@ attributes
     ast_mk_list_push($1, $2);
     $$ = $1;
   }
+  | %empty { $$ = 0; }
   ;
-
-attributes_and_fn
-  : attributes TK_FN { $$ = $1; }
-  | TK_FN { $$ = 0; }
-  ;
-
 
 attribute
   : '#' ident '=' literal {
@@ -368,26 +371,20 @@ attribute
   }
   ;
 
-fn_partial_decl
-  : attributes_and_fn ident fn_parameters {
-    $$ = ast_mk_fn_decl($2, $3, 0, 0, $1);
+fn_decl_without_return_type
+  : TK_FN ident fn_parameters {
+    $$ = ast_mk_fn_decl($2, $3, 0, 0, 0);
     // XXX Hack!
     if ($3->parent == (ast_t*)1) {
       $$->func.varargs = true;
-    }
-
-    if ($1) {
-      if (ast_get_attribute($1, st_newc("ffi", st_enc_utf8))) {
-        $$->func.ffi = true;
-      }
     }
 
     ast_position($$, @1, @3);
   }
   ;
 
-fn_full_decl
-  : fn_partial_decl ':' type {
+fn_decl_with_return_type
+  : fn_decl_without_return_type ':' type {
     $$ = $1;
     $$->func.ret_type = $3;
     ast_position($$, @1, @3);
@@ -395,7 +392,22 @@ fn_full_decl
   ;
 
 fn_decl
-  : fn_full_decl block {
+  // readable error
+  : TK_FFI fn_decl_with_return_type block {
+    yyerror(root, "syntax error, ffi cannot have a body and must have declared return type"); YYERROR;
+  }
+  // this is the good one
+  | TK_FFI fn_decl_with_return_type {
+    $$ = $2;
+    $$->func.ffi = true;
+
+    ast_position($$, @1, @2);
+  }
+  // readable error
+  | TK_FFI fn_decl_without_return_type {
+    yyerror(root, "syntax error, ffi function require a return type"); YYERROR;
+  }
+  | fn_decl_with_return_type block {
     $$ = $1;
     ast_mk_fn_decl_body($$, $2);
 
@@ -406,16 +418,9 @@ fn_decl
 
     ast_position($$, @1, @2);
   }
-  | fn_full_decl {
-    $$ = $1;
-  }
-  | fn_partial_decl block {
+  | fn_decl_without_return_type block {
     $$ = $1;
     ast_mk_fn_decl_body($$, $2);
-
-    if ($1->func.ffi) {
-      yyerror(root, "syntax error, ffi cannot have a body and must have declared return type"); YYERROR;
-    }
 
     ast_position($$, @1, @2);
   }
@@ -705,6 +710,22 @@ argument_expression_list
     ast_mk_list_push($$, $1);
   }
   | argument_expression_list ',' assignment_expression {
+    ast_mk_list_push($1, $3);
+    $$ = $1;
+  }
+  ;
+
+maybe_type_list
+  : %empty                          { $$ = ast_mk_list(); }
+  | type_list
+  ;
+
+type_list
+  : type {
+    $$ = ast_mk_list();
+    ast_mk_list_push($$, $1);
+  }
+  | type_list ',' type {
     ast_mk_list_push($1, $3);
     $$ = $1;
   }

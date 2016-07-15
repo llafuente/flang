@@ -87,6 +87,7 @@ enum ast_types {
   AST_DECL_STRUCT = 41,
   AST_DECL_STRUCT_FIELD = 42,
   AST_DECL_TEMPLATE = 43,
+  AST_IMPLEMENT = 44,
 
   AST_DECL_FUNCTION = 50,
   AST_PARAMETER = 51,
@@ -122,6 +123,8 @@ struct ast {
   bool dirty;
 
   u64 stack;
+
+  u64 ts_passes;
 
   union {
     struct ast_error {
@@ -252,6 +255,7 @@ struct ast {
       ast_t* body;
       ast_t* ret_type;
       ast_t* attributes;
+      ast_t* tpl_fn;
       bool varargs;
       bool templated;
       bool ffi; // TODO maybe ffi_type, 0 means flang, 1 means c...
@@ -260,6 +264,11 @@ struct ast {
     struct ast_decl_template {
       ast_t* id;
     } tpl;
+
+    struct ast_implement {
+      ast_t* call;
+      ast_t* id;
+    } impl;
 
     struct ast_parameter {
       ast_t* id;
@@ -404,6 +413,7 @@ libexport ast_t* ast_mk_binop(ast_t* left, int op, ast_t* right);
 libexport ast_t* ast_mk_assignament(ast_t* left, int op, ast_t* right);
 libexport ast_t* ast_mk_call_expr(ast_t* callee, ast_t* arguments);
 libexport ast_t* ast_mk_template(ast_t* id, ast_t* block);
+libexport ast_t* ast_mk_implement(ast_t* fn_decl, ast_t* id);
 libexport ast_t* ast_mk_type_auto();
 libexport ast_t* ast_mk_type_void();
 libexport ast_t* ast_mk_type(string* id, ast_t* child);
@@ -479,12 +489,12 @@ libexport ast_t* ast_reduce(ast_t* node);
 
 /* cldoc:begin-category(ast-expand.c) */
 
-/* Expand function templates
+/* Implement a function template for a given call
  *
  * @node should be root
  * @return node o error
  */
-libexport ast_t* ast_expand_fn(ast_t* call, ast_t* decl);
+libexport ast_t* ast_implement_fn(ast_t* call, ast_t* decl, string* uid);
 
 /* cldoc:end-category() */
 
@@ -514,47 +524,6 @@ libexport void ast_replace_types(ast_t* node, u64 old, u64 new);
  */
 libexport void ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent,
                            u64 level, void* userdata_in, void* userdata_out);
-
-/* cldoc:end-category() */
-
-/* cldoc:begin-category(ast-search.c) */
-
-/* From give node reverse the tree searching given identifier
- * @node
- * @identifier
- */
-libexport ast_t* ast_search_id_decl(ast_t* node, string* identifier);
-
-/* From give node reverse the tree search searching given function
- * prototype
- * @node
- * @identifier
- * @args
- * @nargs
- * @ret_ty
- * @var_args
- */
-libexport ast_t* ast_search_fn(ast_t* node, string* identifier, u64* args,
-                               u64 nargs, u64 ret_ty, bool var_args);
-
-/* Search a matching function prototype given "expression call"
- * @id
- * @args_call
- */
-libexport ast_t* ast_search_fn_wargs(string* id, ast_t* args_call);
-
-/* Search all function with given name
- * @node
- * @id
- */
-libexport array* ast_search_fns(ast_t* node, string* id);
-
-/* Traverse given tree and return all aparences of t
- * @node
- * @t
- * @return array or null
- */
-libexport array* ast_search_node_type(ast_t* node, ast_types_t t);
 
 /* cldoc:end-category() */
 

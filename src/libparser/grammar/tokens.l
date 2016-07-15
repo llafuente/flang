@@ -129,6 +129,11 @@ true     { SET_LOCATION; return TK_TRUE; }
 null     { SET_LOCATION; return TK_NULL; }
 nil      { SET_LOCATION; return TK_NULL; }
 
+implement { SET_LOCATION; return TK_IMPLEMENT; }
+as        { SET_LOCATION; return TK_AS; }
+
+
+
 {ident}  {
   /* TODO save location!!! */
   array_append(identifiers, st_newc(yytext, st_enc_utf8));

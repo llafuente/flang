@@ -4,7 +4,7 @@ template $t;
 // it's used affects your program
 // this could be harmful at some extend...
 // maybe we need something to implement a templated function
-// implement sum(i8, i8) : i8;
+// implement sum(i8, i8) : i8 as sum_i8;
 
 
 fn sum ($t __a, $t __b) : $t {

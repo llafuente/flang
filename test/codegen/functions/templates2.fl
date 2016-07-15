@@ -1,0 +1,20 @@
+// Create a templated function and implement it manually
+
+template $t;
+fn sum ($t __a, $t __b) : $t {
+  return __a + __b;
+}
+// TODO give an error if the template is only in the return
+// this is not allowed
+
+// implement for given types, also give them a name
+implement sum(i8, i8) as sum_i8;
+implement sum(i16, i16) as sum_i16;
+implement sum(i16, i32) as sum_i32;
+
+var i8 a_i8 = 10;
+var i8 b_i8 = 20;
+
+// both should be used
+printf("r_i8 = %d\n", sum(a_i8, b_i8));
+//printf("r_i8 = %d\n", sum_18(a_i8, b_i8));

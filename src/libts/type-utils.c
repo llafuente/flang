@@ -346,7 +346,9 @@ u64 ty_create_fn(ast_t* decl) {
       if (t != 0) {
         ast_raise_error(decl,
                         "Function #id collision found, previously used at %s",
-                        ast_get_location(t));
+                        ast_get_location(t)->value);
+                        log_debug_level = 10;
+                        ast_dump(t);
       }
     } else {
       // create a unique name!

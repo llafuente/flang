@@ -226,6 +226,8 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 
   case AST_TYPE:
   case AST_PARAMETER: // manually handled @AST_DECL_FUNCTION
   break;
+  case AST_IMPLEMENT: // handled @typesystem
+    return AST_SEARCH_SKIP;
   case AST_BLOCK:
     if (mode == AST_TRAV_ENTER) {
       cg_indent += 2;

@@ -25,14 +25,15 @@
 
 #include "flang/common.h"
 #include "flang/libts.h"
+#include "flang/debug.h"
 
 // only promote numbers
 u64 ts_promote_typeid(u64 a, u64 b) {
   ty_t t_a = ts_type_table[a];
   ty_t t_b = ts_type_table[b];
 
-  assert(t_a.of == FL_NUMBER);
-  assert(t_b.of == FL_NUMBER);
+  fl_assert(t_a.of == FL_NUMBER);
+  fl_assert(t_b.of == FL_NUMBER);
 
   // check floating point
   if (t_a.number.fp && !t_b.number.fp) {
