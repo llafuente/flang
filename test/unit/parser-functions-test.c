@@ -31,15 +31,13 @@ TASK_IMPL(parser_functions) {
 
   TEST_PARSER_OK("function 01", "fn x() {}", {
     ASSERT(body[0]->type == AST_DECL_FUNCTION, "AST_DECL_FUNCTION");
-    ASSERT(body[0]->func.id->type == AST_LIT_IDENTIFIER,
-           "AST_LIT_IDENTIFIER");
+    ASSERT(body[0]->func.id->type == AST_LIT_IDENTIFIER, "AST_LIT_IDENTIFIER");
     ASSERT(body[0]->func.params->list.count == 0, "no args");
   });
 
   TEST_PARSER_OK("function 02", "fn x(yy, zz , mm ,xx) {}", {
     ASSERT(body[0]->type == AST_DECL_FUNCTION, "AST_DECL_FUNCTION");
-    ASSERT(body[0]->func.id->type == AST_LIT_IDENTIFIER,
-           "AST_LIT_IDENTIFIER");
+    ASSERT(body[0]->func.id->type == AST_LIT_IDENTIFIER, "AST_LIT_IDENTIFIER");
     ASSERT(body[0]->func.params != 0, "no args");
   });
   TEST_PARSER_ERROR("function err 01", "fn {} var x;",
@@ -49,7 +47,8 @@ TASK_IMPL(parser_functions) {
 
   TEST_PARSER_ERROR(
       "function err 02", "fn hell ({}",
-      "syntax error, unexpected '{', expecting TK_ANY or IDENTIFIER or ')'", {});
+      "syntax error, unexpected '{', expecting TK_ANY or IDENTIFIER or ')'",
+      {});
 
   TEST_PARSER_ERROR("function err 03", "fn x a",
                     "syntax error, unexpected IDENTIFIER, expecting '{' or ':'",
@@ -66,10 +65,8 @@ TASK_IMPL(parser_functions) {
                     {/*CHK_ERROR_RANGE(err, 14, 1, 15, 1);*/
                     });
 
-  TEST_PARSER_ERROR(
-      "function err 05-a", "ffi fn x () { var x; }",
-      "syntax error, ffi function require a return type",
-      {});
+  TEST_PARSER_ERROR("function err 05-a", "ffi fn x () { var x; }",
+                    "syntax error, ffi function require a return type", {});
 
   TEST_PARSER_ERROR(
       "function err 05-b", "ffi fn x () : i8 { var x; }",

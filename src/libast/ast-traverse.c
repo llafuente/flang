@@ -28,24 +28,23 @@
 #include "flang/libts.h"
 #include "flang/debug.h"
 
-ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
-                            u64 level, void* userdata_in,
-                            void* userdata_out) {
+ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, u64 level,
+                            void* userdata_in, void* userdata_out) {
 #define TRAVERSE(node)                                                         \
   if (node) {                                                                  \
     switch (__ast_traverse(node, cb, ast, level, userdata_in, userdata_out)) { \
-    case AST_SEARCH_STOP:                                                           \
-      return AST_SEARCH_STOP;                                                       \
-    case AST_SEARCH_SKIP:                                                           \
-      return AST_SEARCH_CONTINUE;                                                   \
-    case AST_SEARCH_CONTINUE: {                                                     \
+    case AST_SEARCH_STOP:                                                      \
+      return AST_SEARCH_STOP;                                                  \
+    case AST_SEARCH_SKIP:                                                      \
+      return AST_SEARCH_CONTINUE;                                              \
+    case AST_SEARCH_CONTINUE: {                                                \
     }                                                                          \
     }                                                                          \
   }
 
 #define TRAVERSE_LIST(node)                                                    \
   {                                                                            \
-    u64 i = 0;                                                              \
+    u64 i = 0;                                                                 \
     ast_t* tmp;                                                                \
                                                                                \
     if (node) {                                                                \
@@ -53,11 +52,11 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent,
         if (tmp) {                                                             \
           switch (__ast_traverse(tmp, cb, ast, level, userdata_in,             \
                                  userdata_out)) {                              \
-          case AST_SEARCH_SKIP:                                                     \
-          case AST_SEARCH_CONTINUE:                                                 \
+          case AST_SEARCH_SKIP:                                                \
+          case AST_SEARCH_CONTINUE:                                            \
             continue;                                                          \
-          case AST_SEARCH_STOP:                                                     \
-            return AST_SEARCH_STOP;                                                 \
+          case AST_SEARCH_STOP:                                                \
+            return AST_SEARCH_STOP;                                            \
           }                                                                    \
         }                                                                      \
       }                                                                        \

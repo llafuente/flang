@@ -37,13 +37,11 @@ TASK_IMPL(parser_literals) {
     ASSERT(body[0]->type == AST_LIT_STRING, "AST_LIT_STRING");
   });
 
-  TEST_PARSER_OK("null literals 01", "null", {
-    ASSERT(body[0]->type == AST_LIT_NULL, "AST_LIT_NULL");
-  });
+  TEST_PARSER_OK("null literals 01", "null",
+                 { ASSERT(body[0]->type == AST_LIT_NULL, "AST_LIT_NULL"); });
 
-  TEST_PARSER_OK("null literals 02", "nil", {
-    ASSERT(body[0]->type == AST_LIT_NULL, "AST_LIT_NULL");
-  });
+  TEST_PARSER_OK("null literals 02", "nil",
+                 { ASSERT(body[0]->type == AST_LIT_NULL, "AST_LIT_NULL"); });
 
   TEST_PARSER_OK("bool literals 01", "true", {
     ASSERT(body[0]->type == AST_LIT_BOOLEAN, "AST_LIT_BOOLEAN");

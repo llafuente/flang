@@ -53,8 +53,8 @@ ast_t* ast_search_id_decl(ast_t* node, string* identifier) {
   return 0;
 }
 
-ast_t* ast_search_fn(ast_t* node, string* identifier, u64* args,
-                     u64 nargs, u64 ret_ty, bool var_args) {
+ast_t* ast_search_fn(ast_t* node, string* identifier, u64* args, u64 nargs,
+                     u64 ret_ty, bool var_args) {
   array* arr = ast_search_fns(node, identifier);
 
   if (!arr) {
@@ -193,9 +193,11 @@ array* ast_search_fns(ast_t* node, string* id) {
   return 0;
 }
 
-ast_action_t __trav_get_list_node(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
-                                  void* userdata_in, void* userdata_out) {
-  if (mode == AST_TRAV_LEAVE) return 0;
+ast_action_t __trav_get_list_node(ast_trav_mode_t mode, ast_t* node,
+                                  ast_t* parent, u64 level, void* userdata_in,
+                                  void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE)
+    return 0;
 
   if (node->type == *(ast_types_t*)userdata_in) {
     array_append((array*)userdata_out, node);

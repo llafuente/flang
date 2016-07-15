@@ -348,7 +348,6 @@ struct ast {
   };
 };
 
-
 /*----------------------------------------------------------------------------*/
 /* cldoc:begin-category(parser/ast/ast.c) */
 
@@ -422,8 +421,8 @@ libexport ast_t* ast_mk_comment(string* text);
 libexport ast_t* ast_mk_lunary(ast_t* element, int operator);
 libexport ast_t* ast_mk_runary(ast_t* element, int operator);
 libexport ast_t* ast_mk_if(ast_t* test, ast_t* block, ast_t* alternate);
-libexport ast_t* ast_mk_loop(ast_types_t type, ast_t* init, ast_t* pre_cond, ast_t* update,
-                             ast_t* bloc, ast_t* post_cond);
+libexport ast_t* ast_mk_loop(ast_types_t type, ast_t* init, ast_t* pre_cond,
+                             ast_t* update, ast_t* bloc, ast_t* post_cond);
 libexport ast_t* ast_mk_struct_decl(ast_t* id, ast_t* fields);
 libexport ast_t* ast_mk_struct_decl_field(ast_t* id, ast_t* type);
 libexport ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression);
@@ -522,8 +521,8 @@ libexport void ast_replace_types(ast_t* node, u64 old, u64 new);
  * @userdata_in
  * @userdata_out
  */
-libexport void ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent,
-                           u64 level, void* userdata_in, void* userdata_out);
+libexport void ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent, u64 level,
+                           void* userdata_in, void* userdata_out);
 
 /* cldoc:end-category() */
 
@@ -683,9 +682,8 @@ libexport u64 ast_get_struct_prop_idx(ast_t* decl, string* id);
  * @userdata_in
  * @userdata_out
  */
-libexport void ast_traverse(ast_t* node, ast_cb_t cb, ast_t* parent,
-                            u64 level, void* userdata_in,
-                            void* userdata_out);
+libexport void ast_traverse(ast_t* node, ast_cb_t cb, ast_t* parent, u64 level,
+                            void* userdata_in, void* userdata_out);
 
 /* Traverse a list calling cb on each node
  * @node

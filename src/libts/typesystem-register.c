@@ -114,9 +114,11 @@ u64 __ts_string_to_tyid(ast_t* node) {
   return 0;
 }
 
-ast_action_t __trav_register_types(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
-                                   void* userdata_in, void* userdata_out) {
-  if (mode == AST_TRAV_LEAVE) return 0;
+ast_action_t __trav_register_types(ast_trav_mode_t mode, ast_t* node,
+                                   ast_t* parent, u64 level, void* userdata_in,
+                                   void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE)
+    return 0;
 
   if (node->ty_id)
     return AST_SEARCH_CONTINUE;
@@ -166,7 +168,7 @@ ast_action_t __trav_register_types(ast_trav_mode_t mode, ast_t* node, ast_t* par
       // LLVMSizeOf
       p->ty_id = TS_I64;
       break;
-      case AST_LIST: // TODO this need review
+    case AST_LIST: // TODO this need review
       break;
     default: {
       ast_dump(p);

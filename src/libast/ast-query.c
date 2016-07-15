@@ -32,9 +32,11 @@
 // is
 //
 
-ast_action_t __trav_is_literal(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
-                               void* userdata_in, void* userdata_out) {
-  if (mode == AST_TRAV_LEAVE) return 0;
+ast_action_t __trav_is_literal(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
+                               u64 level, void* userdata_in,
+                               void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE)
+    return 0;
 
   switch (node->type) {
   case AST_LIT_STRING:
@@ -132,8 +134,7 @@ ast_t* ast_get_root(ast_t* node) {
 char ast_get_location_buffer[1024];
 string* ast_get_location(ast_t* node) {
   ast_t* root = ast_get_root(node);
-  sprintf(ast_get_location_buffer, "%s:%d:%d",
-          root->program.file->value,
+  sprintf(ast_get_location_buffer, "%s:%d:%d", root->program.file->value,
           node->first_line, node->first_column);
 
   string* ret = st_newc(ast_get_location_buffer, st_enc_utf8);
@@ -145,8 +146,7 @@ ast_t* ast_get_scope(ast_t* node) {
   while (blk) {
     blk = blk->parent;
     assert(blk != 0);
-    if (blk->type == AST_BLOCK &&
-        blk->block.scope != AST_SCOPE_TRANSPARENT) {
+    if (blk->type == AST_BLOCK && blk->block.scope != AST_SCOPE_TRANSPARENT) {
       return blk;
     }
   }

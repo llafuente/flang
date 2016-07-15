@@ -48,9 +48,9 @@ bool ast_print_error(ast_t* node) {
 
   if (err->type == AST_ERROR) {
     fprintf(stderr, "\n\n\x1B[31mError: %s\x1B[39m\n", err->err.message->value);
-    fprintf(stderr, "File & Line: %s:%d:%d @ %d:%d\n\n", node->program.file->value,
-            err->first_line, err->first_column, err->last_line,
-            err->last_column);
+    fprintf(stderr, "File & Line: %s:%d:%d @ %d:%d\n\n",
+            node->program.file->value, err->first_line, err->first_column,
+            err->last_line, err->last_column);
 
     ast_last_error_node = err;
     ast_last_error_message = ast_last_error_node->err.message->value;
@@ -89,9 +89,9 @@ void ast_print_error_at(ast_t* node, char* message) {
     ast_last_error_node->last_column = node->last_column;
   }
 
-  fprintf(stderr, "File & Line: %s:%d:%d @ %d:%d\n\n", root->program.file->value,
-          node->first_line, node->first_column, node->last_line,
-          node->last_column);
+  fprintf(stderr, "File & Line: %s:%d:%d @ %d:%d\n\n",
+          root->program.file->value, node->first_line, node->first_column,
+          node->last_line, node->last_column);
 
   // TODO add context do not use global var
   st_line_iterator(root->program.code, __ast_print_error_lines);

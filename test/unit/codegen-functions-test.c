@@ -41,12 +41,11 @@ TASK_IMPL(codegen_functions) {
                                     "sum = x(1, 2);",
                   {});
 
-  TEST_CODEGEN_OK("cg function 03", "printf(\"%s\\n\", \"hello\");",
-                  { });
+  TEST_CODEGEN_OK("cg function 03", "printf(\"%s\\n\", \"hello\");", {});
 
   TEST_CODEGEN_OK("cg function 04",
                   "var ptr(i8) str; str = \"hello\"; printf(\"%s\\n\", str);",
-                  { });
+                  {});
 
   TEST_CODEGEN_OK("function 05",
                   "ffi fn x( i8 arg1 , i8 arg2 ) : i8 ;"
@@ -74,7 +73,7 @@ TASK_IMPL(codegen_functions) {
                   {});
 
   TEST_CODEGEN_OK("function 09", "template $t;\n"
-                                // "#id=sum_i32\n"
+                                 // "#id=sum_i32\n"
                                  "fn sum($t _a, i8 _b) : i8 {\n"
                                  "  return _a + _b;\n"
                                  "}\n"

@@ -28,9 +28,10 @@
 #include "flang/libast.h"
 #include "flang/debug.h"
 
-ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
-                            void* userdata_in, void* userdata_out) {
-  if (mode == AST_TRAV_LEAVE) return 0;
+ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
+                            u64 level, void* userdata_in, void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE)
+    return 0;
   ++node->ts_passes;
 
   switch (node->type) {
@@ -105,36 +106,41 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u6
     ts_cast_call(node);
   } break;
   case AST_IMPLEMENT: {
-    if (node->ts_passes > 1) return AST_SEARCH_SKIP;
+    if (node->ts_passes > 1)
+      return AST_SEARCH_SKIP;
 
     string* fn_id = node->impl.call->call.callee->identifier.string;
     array* arr = ast_search_fns(node, fn_id);
 
     if (!arr) {
-      ast_raise_error(node,
-                      "typesystem - Cannot find function named: '%s'",
-                    fn_id->value);
+      ast_raise_error(node, "typesystem - Cannot find function named: '%s'",
+                      fn_id->value);
     } else {
       ast_t* fn = 0;
       ast_t* tmp = 0;
       for (int i = 0; i < arr->size; ++i) {
-        tmp = (ast_t*) arr->data[i];
+        tmp = (ast_t*)arr->data[i];
         if (tmp->func.templated) {
           if (fn) {
             // raise! double template!
             log_debug_level = 10;
             ast_dump(fn);
             ast_dump(tmp);
-            ast_raise_error(node, "typesystem - Cannot implement multiple functions (atm?)");
+            ast_raise_error(
+                node,
+                "typesystem - Cannot implement multiple functions (atm?)");
           }
           fn = tmp;
         }
       }
 
       if (!fn) {
-        ast_raise_error(node, "typesystem - Cannot find function '%s' with templates", fn_id->value);
+        ast_raise_error(node,
+                        "typesystem - Cannot find function '%s' with templates",
+                        fn_id->value);
       } else {
-        ast_t* tmp = ast_implement_fn(node->impl.call, arr->data[0] , node->impl.id->identifier.string);
+        ast_t* tmp = ast_implement_fn(node->impl.call, arr->data[0],
+                                      node->impl.id->identifier.string);
         log_silly("fn expanded: %zu", tmp->ty_id);
       }
     }
@@ -151,10 +157,12 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u6
   return AST_SEARCH_CONTINUE;
 }
 
-ast_action_t __ts_cast_operation_pass_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
-                                         u64 level, void* userdata_in,
+ast_action_t __ts_cast_operation_pass_cb(ast_trav_mode_t mode, ast_t* node,
+                                         ast_t* parent, u64 level,
+                                         void* userdata_in,
                                          void* userdata_out) {
-  if (mode == AST_TRAV_LEAVE) return 0;
+  if (mode == AST_TRAV_LEAVE)
+    return 0;
 
   if (node->type == AST_CAST) {
     node->cast.operation = ts_cast_operation(node);

@@ -35,9 +35,11 @@ struct __id_search {
 
 typedef struct __id_search __id_search_t;
 
-ast_action_t __ast_find_identifier(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
-                                   void* userdata_in, void* userdata_out) {
-  if (mode == AST_TRAV_LEAVE) return 0;
+ast_action_t __ast_find_identifier(ast_trav_mode_t mode, ast_t* node,
+                                   ast_t* parent, u64 level, void* userdata_in,
+                                   void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE)
+    return 0;
 
   if (node->type == AST_LIT_IDENTIFIER) {
     __id_search_t* data = (__id_search_t*)userdata_in;
@@ -49,9 +51,11 @@ ast_action_t __ast_find_identifier(ast_trav_mode_t mode, ast_t* node, ast_t* par
   return AST_SEARCH_CONTINUE;
 }
 
-ast_action_t __ts_inference_dtors(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
-                                  void* userdata_in, void* userdata_out) {
-  if (mode == AST_TRAV_LEAVE) return 0;
+ast_action_t __ts_inference_dtors(ast_trav_mode_t mode, ast_t* node,
+                                  ast_t* parent, u64 level, void* userdata_in,
+                                  void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE)
+    return 0;
 
   if (node->type == AST_DTOR_VAR && node->var.type->ty_id == 0) {
     // search all ocurrences of this identifier
@@ -118,9 +122,11 @@ ast_action_t __ts_inference_dtors(ast_trav_mode_t mode, ast_t* node, ast_t* pare
   return AST_SEARCH_CONTINUE;
 }
 
-ast_action_t __ts_inference_fn_ret(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
-                                   void* userdata_in, void* userdata_out) {
-  if (mode == AST_TRAV_LEAVE) return 0;
+ast_action_t __ts_inference_fn_ret(ast_trav_mode_t mode, ast_t* node,
+                                   ast_t* parent, u64 level, void* userdata_in,
+                                   void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE)
+    return 0;
 
   if (node->type == AST_DECL_FUNCTION && node->func.ret_type->ty_id == 0) {
     // ast_dump_one(node);

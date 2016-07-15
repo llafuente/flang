@@ -122,7 +122,6 @@ struct ts_type {
   };
 };
 
-
 /* cldoc:begin-category(type-dump.c) */
 /* Get default colors for debugging
  *

@@ -39,13 +39,11 @@ TASK_IMPL(parser_variables) {
     ASSERTE(body[0]->var.type->ty_id, TS_I8, "%zu == %d", "typeid i8 is TS_I8");
   });
 
-  TEST_PARSER_OK("var decl 03", "var i8 hello = 1;", {
-    ASSERT(body[0]->type == AST_LIST, "type: AST_LIST");
-  });
+  TEST_PARSER_OK("var decl 03", "var i8 hello = 1;",
+                 { ASSERT(body[0]->type == AST_LIST, "type: AST_LIST"); });
 
-  TEST_PARSER_OK("var decl 04", "var hello = \"world!\";", {
-    ASSERT(body[0]->type == AST_LIST, "type: AST_LIST");
-  });
+  TEST_PARSER_OK("var decl 04", "var hello = \"world!\";",
+                 { ASSERT(body[0]->type == AST_LIST, "type: AST_LIST"); });
 
   return 0;
 }

@@ -44,7 +44,6 @@ ast_t* ast_implement_fn(ast_t* call, ast_t* decl, string* uid) {
   fn->parent = decl->parent;
   ast_mk_insert_before(decl->parent, decl, fn);
 
-
   // todo replace types!
   u64 old;
   u64 new;

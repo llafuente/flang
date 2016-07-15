@@ -1,9 +1,9 @@
 #include <inttypes.h>
-#include <stdbool.h> // import bool
-#include "ext/hash.h" // import hash_t
+#include <stdbool.h>   // import bool
+#include "ext/hash.h"  // import hash_t
 #include "ext/array.h" // import array_t
-#include "ext/pool.h" // import array_t
-#include "stringc.h" // import string
+#include "ext/pool.h"  // import array_t
+#include "stringc.h"   // import string
 
 #define null 0
 #define true 1
@@ -48,7 +48,7 @@ typedef struct ast ast_t;
 struct ast;
 typedef enum ast_trav_mode ast_trav_mode_t;
 
-
 // callback type for [ast_traverse](#ast_traverse) & [ast_reverse](#ast_reverse)
-typedef ast_action_t (*ast_cb_t)(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
-                                 void* userdata_in, void* userdata_out);
+typedef ast_action_t (*ast_cb_t)(ast_trav_mode_t mode, ast_t* node,
+                                 ast_t* parent, u64 level, void* userdata_in,
+                                 void* userdata_out);

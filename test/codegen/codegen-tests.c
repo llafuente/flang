@@ -107,11 +107,13 @@ void test_file_list(char** files, size_t nfiles, char* path) {
     flang_exit(root);
 
     // compile
-    execute("clang -std=c11 -Wno-parentheses-equality -lpthread -luv -lstringc -D_GNU_SOURCE ./codegen/run.c -o ./codegen/app");
+    execute("clang -std=c11 -Wno-parentheses-equality -lpthread -luv -lstringc "
+            "-D_GNU_SOURCE ./codegen/run.c -o ./codegen/app");
     // execut
     string* output = execute("././codegen/app");
     if (output->value[0] == '\0') {
-      fprintf(stderr, "Test executed but no output. At least one line is required");
+      fprintf(stderr,
+              "Test executed but no output. At least one line is required");
       exit(1);
     }
     string* output_cmp = psr_file_to_string(txt_file);
@@ -120,10 +122,9 @@ void test_file_list(char** files, size_t nfiles, char* path) {
 
     if (strcmp(output->value, output_cmp->value) != 0) {
       // save output to diff!
-      fprintf(
-          stderr,
-          "output of: %s\n--\n%s\n--\nexpected output \n--\n%s\n--\n",
-          fl_file, output->value, output_cmp->value);
+      fprintf(stderr,
+              "output of: %s\n--\n%s\n--\nexpected output \n--\n%s\n--\n",
+              fl_file, output->value, output_cmp->value);
       exit(1);
     }
     st_delete(&output);
@@ -141,32 +142,21 @@ TASK_IMPL(flang_files) {
   // find ./codegen/ | grep 'fl' | sed 's/\.fl//' | awk '{print "\"" $0 "\","}'
 
   char* test_files[] = {
-    "typesystem/autocast",
-    "typesystem/type-promotion-mix",
-    "typesystem/type-promotion-unsigned",
-    "typesystem/types",
-    "typesystem/casting",
-    "typesystem/expressions",
-    "typesystem/type-promotion-signed",
-    "statements/loops",
-    "statements/if",
-    "statements/loops2",
-    "math/arithmetic",
-    "math/increment",
-    "memory/pointers2",
-    "memory/pointer-math",
-    "memory/memory3",
-    "memory/pointers",
-    "memory/memory",
-    "misc/globals",
-    "misc/log",
-    "misc/globals2",
-    "misc/fibonacci",
-    //"misc/string",
-    //"misc/hello-world",
-    "functions/templates",
-    "functions/functions",
-    "functions/function-pointer",
+      "typesystem/autocast",                "typesystem/type-promotion-mix",
+      "typesystem/type-promotion-unsigned", "typesystem/types",
+      "typesystem/casting",                 "typesystem/expressions",
+      "typesystem/type-promotion-signed",   "statements/loops",
+      "statements/if",                      "statements/loops2",
+      "math/arithmetic",                    "math/increment",
+      "memory/pointers2",                   "memory/pointer-math",
+      "memory/memory3",                     "memory/pointers",
+      "memory/memory",                      "misc/globals",
+      "misc/log",                           "misc/globals2",
+      "misc/fibonacci",
+      //"misc/string",
+      //"misc/hello-world",
+      "functions/templates",                "functions/functions",
+      "functions/function-pointer",
   };
 
   test_file_list(test_files, 26, "./test/codegen/");

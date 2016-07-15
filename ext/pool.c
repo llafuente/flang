@@ -18,7 +18,8 @@ void pool_init(size_t bytes) {
 void pool_new_page(size_t bytes) {
   if (pool_pages->size == pool_pages->capacity) {
     pool_pages->capacity = pool_pages->size + 50;
-    pool_pages->data = realloc(pool_pages->data, sizeof(ARRAY_T) * pool_pages->capacity);
+    pool_pages->data =
+        realloc(pool_pages->data, sizeof(ARRAY_T) * pool_pages->capacity);
   }
 
   pool_page_t* page = (pool_page_t*)calloc(sizeof(pool_page_t) + bytes, 1);
@@ -53,9 +54,7 @@ void* pool_new(size_t bytes) {
 }
 
 // TODO this is a HUGE bug mess!!
-void* pool_realloc(void* ptr, size_t bytes) {
-  return pool_new(bytes);
-}
+void* pool_realloc(void* ptr, size_t bytes) { return pool_new(bytes); }
 void pool_free(void* ptr) {}
 
 void pool_destroy() {

@@ -33,7 +33,8 @@ void __psr_attach_core(ast_t* root) {
   ast_t* block = root->program.body;
 
   if (block->type != AST_ERROR) {
-    ast_t* import = ast_mk_import(ast_mk_lit_string("lib/core/core", false), true);
+    ast_t* import =
+        ast_mk_import(ast_mk_lit_string("lib/core/core", false), true);
     ast_mk_list_insert(block->block.body, import, 0);
   }
 }
@@ -42,7 +43,8 @@ ast_t* __psr_parse(string* code, const char* file) {
   // create program node, so error reporting could be nice!
   ast_t* root = ast_mk_program(0);
   root->program.code = code;
-  root->program.file = file ? st_newc(file, st_enc_utf8) : st_newc("memory:string", st_enc_utf8);
+  root->program.file =
+      file ? st_newc(file, st_enc_utf8) : st_newc("memory:string", st_enc_utf8);
 
   YY_BUFFER_STATE buf = yy_scan_string(code->value);
   yyparse(&root);
@@ -120,9 +122,11 @@ ast_t* psr_file_main(const char* filename) {
   return root;
 }
 
-ast_action_t __trav_load_imports(ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,
-                                 void* userdata_in, void* userdata_out) {
-  if (mode == AST_TRAV_LEAVE) return 0;
+ast_action_t __trav_load_imports(ast_trav_mode_t mode, ast_t* node,
+                                 ast_t* parent, u64 level, void* userdata_in,
+                                 void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE)
+    return 0;
 
   if (node->type == AST_IMPORT && !node->import.imported) {
     assert(parent->type == AST_LIST);

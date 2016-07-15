@@ -264,8 +264,7 @@ u64 ty_create_struct(ast_t* decl) {
   return 0;
 }
 
-bool ty_compatible_fn(u64 ty_id, ast_t* arg_list, bool strict,
-                      bool template) {
+bool ty_compatible_fn(u64 ty_id, ast_t* arg_list, bool strict, bool template) {
   log_silly("fn ty_id %zu, strict? %d, template? %d", ty_id, strict, template);
   ty_t at = ts_type_table[ty_id];
 
@@ -347,8 +346,8 @@ u64 ty_create_fn(ast_t* decl) {
         ast_raise_error(decl,
                         "Function #id collision found, previously used at %s",
                         ast_get_location(t)->value);
-                        log_debug_level = 10;
-                        ast_dump(t);
+        log_debug_level = 10;
+        ast_dump(t);
       }
     } else {
       // create a unique name!

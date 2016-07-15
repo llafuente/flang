@@ -65,15 +65,12 @@ TASK_IMPL(parser_expressions) {
 
   TEST_PARSER_OK("expressions 01", "1+2;", {
     ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
-    ASSERT(body[0]->binop.left->type == AST_LIT_INTEGER,
-           "AST_LIT_INTEGER");
-    ASSERT(body[0]->binop.right->type == AST_LIT_INTEGER,
-           "AST_LIT_INTEGER");
+    ASSERT(body[0]->binop.left->type == AST_LIT_INTEGER, "AST_LIT_INTEGER");
+    ASSERT(body[0]->binop.right->type == AST_LIT_INTEGER, "AST_LIT_INTEGER");
   });
   TEST_PARSER_OK("expressions 02", "1+2+3;", {
     ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
-    ASSERT(body[0]->binop.right->type == AST_LIT_INTEGER,
-           "AST_LIT_INTEGER");
+    ASSERT(body[0]->binop.right->type == AST_LIT_INTEGER, "AST_LIT_INTEGER");
     ASSERT(body[0]->binop.left->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
     ASSERT(body[0]->binop.left->binop.left->type == AST_LIT_INTEGER,
            "AST_LIT_INTEGER");
@@ -82,11 +79,9 @@ TASK_IMPL(parser_expressions) {
   });
   TEST_PARSER_OK("expressions 03", "1*2;", {
     ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
-    ASSERT(body[0]->binop.left->type == AST_LIT_INTEGER,
-           "AST_LIT_INTEGER");
+    ASSERT(body[0]->binop.left->type == AST_LIT_INTEGER, "AST_LIT_INTEGER");
     ASSERT(body[0]->binop.operator== '*', "'*'");
-    ASSERT(body[0]->binop.right->type == AST_LIT_INTEGER,
-           "AST_LIT_INTEGER");
+    ASSERT(body[0]->binop.right->type == AST_LIT_INTEGER, "AST_LIT_INTEGER");
   });
 
   TEST_PARSER_OK("expressions 04", "1*2+3;", {
@@ -99,15 +94,13 @@ TASK_IMPL(parser_expressions) {
            "AST_LIT_INTEGER");
 
     ASSERT(body[0]->binop.operator== '+', "'+'");
-    ASSERT(body[0]->binop.right->type == AST_LIT_INTEGER,
-           "AST_LIT_INTEGER");
+    ASSERT(body[0]->binop.right->type == AST_LIT_INTEGER, "AST_LIT_INTEGER");
   });
 
   TEST_PARSER_OK("unary 01", "-2;", {
     ASSERT(body[0]->type == AST_EXPR_LUNARY, "ast is AST_EXPR_LUNARY");
 
-    ASSERT(body[0]->lunary.element->type == AST_LIT_INTEGER,
-           "AST_LIT_INTEGER");
+    ASSERT(body[0]->lunary.element->type == AST_LIT_INTEGER, "AST_LIT_INTEGER");
     ASSERT(body[0]->lunary.operator== '-', "operator '-'");
   });
 
@@ -157,10 +150,9 @@ TASK_IMPL(parser_expressions) {
   });
 
   // TODO fix, should be string type
-  TEST_PARSER_OK(
-      "function call 01", "fn printf(ptr(i8) str) {}"
-                          "printf ( \"xxx\" );",
-      { ASSERT(body[1]->type == AST_EXPR_CALL, "AST_EXPR_CALL"); });
+  TEST_PARSER_OK("function call 01", "fn printf(ptr(i8) str) {}"
+                                     "printf ( \"xxx\" );",
+                 { ASSERT(body[1]->type == AST_EXPR_CALL, "AST_EXPR_CALL"); });
 
   TEST_PARSER_OK("chained assignament", "var x; var y; x = y = 1;", {});
 
@@ -180,8 +172,7 @@ TASK_IMPL(parser_expressions) {
 
   TEST_PARSER_OK("expr priority (parethesis)", "1*(2+3);", {
     ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
-    ASSERT(body[0]->binop.left->type == AST_LIT_INTEGER,
-           "AST_LIT_INTEGER");
+    ASSERT(body[0]->binop.left->type == AST_LIT_INTEGER, "AST_LIT_INTEGER");
     ASSERT(body[0]->binop.operator== '*', "operator *");
 
     ASSERT(body[0]->binop.right->binop.left->type == AST_LIT_INTEGER,
@@ -241,14 +232,12 @@ TASK_IMPL(parser_expressions) {
                                             "x = x + 1;",
                  {
     ASSERT(body[1]->ty_id == TS_I32, "assignament type TS_I32");
-    ASSERT(body[1]->type == AST_EXPR_ASSIGNAMENT,
-           "1st AST_EXPR_ASSIGNAMENT");
+    ASSERT(body[1]->type == AST_EXPR_ASSIGNAMENT, "1st AST_EXPR_ASSIGNAMENT");
     ASSERT(body[1]->assignament.left->type == AST_LIT_IDENTIFIER,
            "left AST_LIT_IDENTIFIER");
     ASSERT(body[1]->assignament.right->type == AST_EXPR_BINOP,
            "right AST_EXPR_BINOP");
-    ASSERT(body[1]->assignament.right->binop.left->type ==
-               AST_LIT_IDENTIFIER,
+    ASSERT(body[1]->assignament.right->binop.left->type == AST_LIT_IDENTIFIER,
            "right.left AST_LIT_IDENTIFIER");
     ASSERT(body[1]->assignament.right->binop.right->type == AST_LIT_INTEGER,
            "right.left AST_LIT_INTEGER");
