@@ -631,6 +631,21 @@ string* cg_node(ast_t* node) {
   return node_str;
 }
 
+char* cg_type_table(ast_t* root) {
+  CG_OUTPUT(cg_fds->types, "type_t types[] = {\n");
+  for (int i = 0; i < ts_type_size_s; ++i) {
+    if (ts_type_table[i].id != 0) {
+      st_dump_header(ts_type_table[i].id, buffer2);
+      CG_OUTPUT(cg_fds->types, "{(string*)\"%s\" \"%s\", %d},\n", buffer2, ts_type_table[i].id->value, ts_type_table[i].of);
+    } else {
+      // WTF!
+      CG_OUTPUT(cg_fds->types, "{(string*)0, %d},\n", ts_type_table[i].of);
+    }
+  }
+
+  CG_OUTPUT(cg_fds->types, "};\n");
+}
+
 char* fl_codegen(ast_t* root) {
   // log_debug_level = 10;
   // ast_dump(root);
@@ -654,6 +669,7 @@ char* fl_codegen(ast_t* root) {
                          "#include \"types.c\"\n"
                          "#include \"functions.c\"\n\n");
 
+  cg_type_table(root);
   ast_traverse(root, __codegen_cb, 0, 0, 0, 0);
 
   fclose(cg_fds->decls);

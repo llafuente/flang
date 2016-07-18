@@ -35,6 +35,30 @@ typedef struct {
 } process_t;
 globvar process_t* process;
 
+//
+// types are incomplete atm. need review on
+// what to expose, and how inside the language...
+//
+
+typedef enum {
+  FL_VOID = 1,
+  FL_NUMBER = 2,
+  FL_POINTER = 3, // wrapper
+  FL_VECTOR = 4,  // wrapper
+  FL_FUNCTION = 5,
+  FL_STRUCT = 6,
+  // FL_ENUM = 7, // TODO this is in fact an "int"
+
+  FL_INFER = 10,
+
+  FL_TEMPLATE = 20,
+} types_t;
+
+typedef struct {
+  string* id;
+  types_t of;
+} type_t;
+
 /// DECL
 
 /// END OF DECL
