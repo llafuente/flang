@@ -148,5 +148,26 @@ TASK_IMPL(parser_functions) {
 
     ASSERT(body[0]->tpl.id->ty_id == body[2]->ty_id, "tpl type var");
   });
+
+  TEST_PARSER_ERROR("type demotion", "template $t;\n"
+                                     "fn sum ($t __a, $t __b) : $t {\n"
+                                     "  return __a + __b;\n"
+                                     "}\n"
+                                     "implement sum(i8, i8) as sum_i8;\n"
+                                     "fn sum_i8 () {}\n",
+                    "Function #id collision found for 'sum_i8', previously "
+                    "used at memory:string:6:1",
+                    {});
+
+  TEST_PARSER_ERROR("type demotion", "template $t;\n"
+                                     "fn sum ($t __a, $t __b) : $t {\n"
+                                     "  return __a + __b;\n"
+                                     "}\n"
+                                     "implement sum(i8, i8) as sum_i8;\n"
+                                     "implement sum(i16, i16) as sum_i8;\n",
+                    "Function #id collision found for 'sum_i8', previously "
+                    "used at memory:string:2:1",
+                    {});
+
   return 0;
 }

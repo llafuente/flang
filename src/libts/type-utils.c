@@ -357,9 +357,11 @@ u64 ty_create_fn(ast_t* decl) {
       t = hash_get(rscope->block.uids, decl->func.uid->value);
       if (t != 0) {
         ast_dump_s(t);
-        ast_raise_error(decl,
-                        "Function #id collision found, previously used at %s",
-                        ast_get_location(t)->value);
+        ast_raise_error(
+            decl,
+            "Function #id collision found for '%s', previously used at %s",
+            decl->func.uid->value, ast_get_location(t)->value);
+        return 0;
       }
     } else {
       // create a unique name!
