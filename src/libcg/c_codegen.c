@@ -634,14 +634,27 @@ string* cg_node(ast_t* node) {
 char* cg_type_table(ast_t* root) {
   CG_OUTPUT(cg_fds->types, "type_t types[] = {\n");
   for (int i = 0; i < ts_type_size_s; ++i) {
+    CG_OUTPUT(cg_fds->types, "{\n");
     if (ts_type_table[i].id != 0) {
       st_dump_header(ts_type_table[i].id, buffer2);
-      CG_OUTPUT(cg_fds->types, "{(string*)\"%s\" \"%s\", %d},\n", buffer2, ts_type_table[i].id->value, ts_type_table[i].of);
+      CG_OUTPUT(cg_fds->types, ".id = (string*)\"%s\" \"%s\",\n", buffer2, ts_type_table[i].id->value);
     } else {
       // WTF!
-      CG_OUTPUT(cg_fds->types, "{(string*)0, %d},\n", ts_type_table[i].of);
+      CG_OUTPUT(cg_fds->types, ".id = (string*)0,\n");
     }
+    CG_OUTPUT(cg_fds->types, ".of = %d,\n", ts_type_table[i].of);
+    switch(ts_type_table[i].of) {
+    case FL_NUMBER:
+      CG_OUTPUT(cg_fds->types, ".number.bits = %d,\n", ts_type_table[i].number.bits);
+      CG_OUTPUT(cg_fds->types, ".number.fp = %s,\n", ts_type_table[i].number.fp ? "true" : "false");
+      CG_OUTPUT(cg_fds->types, ".number.sign = %s,\n", ts_type_table[i].number.sign ? "true" : "false");
+    break;
+    }
+    CG_OUTPUT(cg_fds->types, "},\n");
   }
+
+
+  //number
 
   CG_OUTPUT(cg_fds->types, "};\n");
 }

@@ -2,19 +2,19 @@
 // * means pointer, cannot be moved, it's just s ref to one single
 // [] array
 
-// arrays always live in the heap
-wrapper array($tpl) {
-  // foreach wrapper declare it's type
-  // because $tpl is used, and give a unique name
-  struct array_t { // @heap
-    u64 length;
-    u64 capacity;
-    $tpl* values;
+template $tpl;
 
-    alias len length; // internal alias
-    alias cap capacity;
-  };
-}
+// arrays always live in the heap
+// foreach wrapper declare it's type
+// because $tpl is used, and give a unique name
+struct array_t($tpl) { // @heap
+  u64 length;
+  u64 capacity;
+  $tpl* values;
+
+  alias len length; // internal alias
+  alias cap capacity;
+};
 
 // implement array(u8) as string;
 // also string should extend the type adding encoding
@@ -62,12 +62,13 @@ function operator delete (ref array($tpl) arr) {
   *arr = 0;
 }
 
-// this function is duplicated because it's use $tpl and return
+// this function is duplicated because it's use $tpl
 function operator new (ref array($tpl) arr, u64 cap) {
-  *arr = malloc(sizeof(array_t), sizeof($tpl) * cap)
+  *arr = malloc(sizeof(array_t), sizeof($tpl) * cap);
   // initialize size and capacity
   *arr.length = 0;
   *arr.capacity = cap;
+  *arr.values = arr + sizeof(array_t);
 }
 
 // push arr[]= 1;

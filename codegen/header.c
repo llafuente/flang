@@ -57,6 +57,13 @@ typedef enum {
 typedef struct {
   string* id;
   types_t of;
+  union {
+    struct {
+      unsigned char bits;
+      bool fp;
+      bool sign;
+    } number;
+  };
 } type_t;
 
 /// DECL
