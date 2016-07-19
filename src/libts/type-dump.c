@@ -182,6 +182,10 @@ void ty_dump(u64 ty_id) {
     log_debug2(") : ");
     ty_dump(ty.func.ret);
   } break;
+  case FL_TEMPLATE: {
+    assert(ty.tpl.decl->type == AST_DECL_TEMPLATE);
+    log_debug2(" %s ", ty.tpl.decl->tpl.id->identifier.string->value);
+  } break;
   case FL_INFER: {
     log_debug("Unknown");
   } break;
@@ -217,7 +221,7 @@ void __ty_dump_cell(u64 ty_id, int indent) {
     }
   } break;
   case FL_FUNCTION: {
-    log_debug("%*sFunction [%s] arity(%zu) -> [%zu]", indent, " ",
+    log_debug("%*s[%zu] Function [%s] arity(%zu) -> [%zu]", indent, " ", ty_id,
               ty.id ? ty.id->value : "Anonymous", ty.func.nparams, ty.func.ret);
     u64 i;
     __ty_dump_cell(ty.func.ret, indent + 2);
@@ -226,7 +230,10 @@ void __ty_dump_cell(u64 ty_id, int indent) {
     }
   } break;
   case FL_INFER: {
-    log_debug("%*sUnknown", indent, " ");
+    log_debug("%*s[0] Infer", indent, " ");
+  } break;
+  case FL_TEMPLATE: {
+    log_debug("%*s[%zu] Template", indent, " ", ty_id);
   } break;
   default: { log_error("ty_dump(%u) not implement", ty.of); }
   }

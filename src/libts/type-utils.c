@@ -241,6 +241,10 @@ bool __struct_collision(ast_t* where, ast_t* scope, char* ty_name) {
 
 // transfer list ownership
 u64 ty_create_struct(ast_t* decl) {
+  // assert(decl->structure.tpls == 0);
+  ast_dump(decl);
+  fl_assert(decl->structure.id != 0);
+
   u64 i;
   u64 j;
   ast_t* list = decl->structure.fields;

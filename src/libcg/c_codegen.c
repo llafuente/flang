@@ -44,7 +44,7 @@ string* cg_node(ast_t* node);
 string* cg_type(u64 ty_id) {
   ty_t ty = ts_type_table[ty_id];
   // cached?
-  if (ty.cg) {
+  if (ty.cg != 0) {
     return ty.cg;
   }
 
@@ -68,9 +68,14 @@ string* cg_type(u64 ty_id) {
     st_append_c(&buffer, ty.id->value);
     st_append_c(&buffer, "__fnptr");
   } break;
+  case FL_TEMPLATE: {
+    // fl_assert(false); // a template cannot be in the typesystem is not a real
+    // type
+  } break;
   default: {} // remove warning
   }
-  assert(buffer->length != 0);
+
+  fl_assert(buffer->length != 0);
   return ty.cg = buffer;
 }
 
@@ -405,6 +410,11 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     break;
   */
   case AST_DECL_STRUCT:
+    // if it's a template, cannot be in c
+    if (mode == AST_TRAV_ENTER && node->structure.tpls != 0) {
+      return AST_SEARCH_SKIP;
+    }
+
     if (mode == AST_TRAV_ENTER) {
       node->stack = cg_stack->length;
     } else {
@@ -637,31 +647,34 @@ char* cg_type_table(ast_t* root) {
     CG_OUTPUT(cg_fds->types, "{\n");
     if (ts_type_table[i].id != 0) {
       st_dump_header(ts_type_table[i].id, buffer2);
-      CG_OUTPUT(cg_fds->types, ".id = (string*)\"%s\" \"%s\",\n", buffer2, ts_type_table[i].id->value);
+      CG_OUTPUT(cg_fds->types, ".id = (string*)\"%s\" \"%s\",\n", buffer2,
+                ts_type_table[i].id->value);
     } else {
       // WTF!
       CG_OUTPUT(cg_fds->types, ".id = (string*)0,\n");
     }
     CG_OUTPUT(cg_fds->types, ".of = %d,\n", ts_type_table[i].of);
-    switch(ts_type_table[i].of) {
+    switch (ts_type_table[i].of) {
     case FL_NUMBER:
-      CG_OUTPUT(cg_fds->types, ".number.bits = %d,\n", ts_type_table[i].number.bits);
-      CG_OUTPUT(cg_fds->types, ".number.fp = %s,\n", ts_type_table[i].number.fp ? "true" : "false");
-      CG_OUTPUT(cg_fds->types, ".number.sign = %s,\n", ts_type_table[i].number.sign ? "true" : "false");
-    break;
+      CG_OUTPUT(cg_fds->types, ".number.bits = %d,\n",
+                ts_type_table[i].number.bits);
+      CG_OUTPUT(cg_fds->types, ".number.fp = %s,\n",
+                ts_type_table[i].number.fp ? "true" : "false");
+      CG_OUTPUT(cg_fds->types, ".number.sign = %s,\n",
+                ts_type_table[i].number.sign ? "true" : "false");
+      break;
     }
     CG_OUTPUT(cg_fds->types, "},\n");
   }
 
-
-  //number
+  // number
 
   CG_OUTPUT(cg_fds->types, "};\n");
 }
 
 char* fl_codegen(ast_t* root) {
-  // log_debug_level = 10;
-  // ast_dump(root);
+  log_debug_level = 10;
+  ast_dump(root);
   // exit(0);
 
   cg_stack = calloc(sizeof(array), 1);
@@ -681,6 +694,8 @@ char* fl_codegen(ast_t* root) {
                          "#include \"decls.c\"\n"
                          "#include \"types.c\"\n"
                          "#include \"functions.c\"\n\n");
+
+  ty_dump_table();
 
   cg_type_table(root);
   ast_traverse(root, __codegen_cb, 0, 0, 0, 0);

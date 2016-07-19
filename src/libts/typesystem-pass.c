@@ -112,7 +112,18 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     array* arr = ast_search_fns(node, fn_id);
 
     if (!arr) {
-      ast_raise_error(node, "typesystem - Cannot find function named: '%s'",
+      // maybe a struct ?!
+      ast_t* decl = ast_get_type_from_scope(node, fn_id);
+      if (decl && decl->type == AST_DECL_STRUCT) {
+        // STRUCT
+        ast_t* tmp = ast_implement_struct(node->impl.call, decl,
+                                          node->impl.id->identifier.string);
+        log_silly("fn expanded: %zu", tmp->ty_id);
+        return AST_SEARCH_SKIP;
+      }
+
+      ast_raise_error(node,
+                      "typesystem - Cannot find function or struct named: '%s'",
                       fn_id->value);
     } else {
       ast_t* fn = 0;

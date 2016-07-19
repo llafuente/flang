@@ -41,61 +41,61 @@ u64 __ts_string_to_tyid(ast_t* node) {
 
   // built-in
   if (strcmp(tcstr, "auto") == 0) {
-    return node->ty_id = 0;
+    return node->ty.id->ty_id = node->ty_id = 0; // inference
   }
   if (strcmp(tcstr, "bool") == 0) {
-    return node->ty_id = TS_BOOL;
+    return node->ty.id->ty_id = node->ty_id = TS_BOOL;
   }
   if (strcmp(tcstr, "void") == 0) {
-    return node->ty_id = TS_VOID;
+    return node->ty.id->ty_id = node->ty_id = TS_VOID;
   }
   if (strcmp(tcstr, "i8") == 0) {
-    return node->ty_id = TS_I8;
+    return node->ty.id->ty_id = node->ty_id = TS_I8;
   }
   if (strcmp(tcstr, "u8") == 0) {
-    return node->ty_id = TS_U8;
+    return node->ty.id->ty_id = node->ty_id = TS_U8;
   }
   if (strcmp(tcstr, "i16") == 0) {
-    return node->ty_id = TS_I16;
+    return node->ty.id->ty_id = node->ty_id = TS_I16;
   }
   if (strcmp(tcstr, "u16") == 0) {
-    return node->ty_id = TS_U16;
+    return node->ty.id->ty_id = node->ty_id = TS_U16;
   }
   if (strcmp(tcstr, "i32") == 0) {
-    return node->ty_id = TS_I32;
+    return node->ty.id->ty_id = node->ty_id = TS_I32;
   }
   if (strcmp(tcstr, "u32") == 0) {
-    return node->ty_id = TS_U32;
+    return node->ty.id->ty_id = node->ty_id = TS_U32;
   }
   if (strcmp(tcstr, "i64") == 0) {
-    return node->ty_id = TS_I64;
+    return node->ty.id->ty_id = node->ty_id = TS_I64;
   }
   if (strcmp(tcstr, "u64") == 0) {
-    return node->ty_id = TS_U64;
+    return node->ty.id->ty_id = node->ty_id = TS_U64;
   }
   if (strcmp(tcstr, "f32") == 0) {
-    return node->ty_id = TS_F32;
+    return node->ty.id->ty_id = node->ty_id = TS_F32;
   }
   if (strcmp(tcstr, "f64") == 0) {
-    return node->ty_id = TS_F64;
+    return node->ty.id->ty_id = node->ty_id = TS_F64;
   }
   if (strcmp(tcstr, "string") == 0) {
-    // return node->ty_id = TS_CSTR; // TODO TS_STRING
-    // return node->ty_id = TS_STRING;
-    return node->ty_id = 16;
+    // return node->ty.id->ty_id = node->ty_id = TS_CSTR; // TODO TS_STRING
+    // return node->ty.id->ty_id = node->ty_id = TS_STRING;
+    return node->ty.id->ty_id = node->ty_id = 16;
   }
 
   if (strcmp(tcstr, "ptr") == 0) {
     assert(node->ty.child != 0);
     u64 t = __ts_string_to_tyid(node->ty.child);
-    return node->ty_id = ty_create_wrapped(FL_POINTER, t);
+    return node->ty.id->ty_id = node->ty_id = ty_create_wrapped(FL_POINTER, t);
   }
 
   if (strcmp(tcstr, "vector") == 0) {
     assert(node->ty.child != 0);
 
     u64 t = __ts_string_to_tyid(node->ty.child);
-    return node->ty_id = ty_create_wrapped(FL_VECTOR, t);
+    return node->ty.id->ty_id = node->ty_id = ty_create_wrapped(FL_VECTOR, t);
   }
 
   char* id = node->identifier.string->value;
@@ -106,7 +106,14 @@ u64 __ts_string_to_tyid(ast_t* node) {
     scope = ast_get_scope(scope);
     el = hash_get(scope->block.types, tcstr);
     if (el != 0) {
-      return node->ty_id = el->ty_id;
+      // check if it's a struct with templates, in wich case, we need to
+      // implement
+      if (el->type == AST_DECL_STRUCT && el->structure.tpls != 0) {
+        // implement!!!
+        el = ast_implement_struct(node, el,
+                                  st_newc("jdshjfshdfshk", st_enc_utf8));
+      }
+      return node->ty.id->ty_id = node->ty_id = el->ty_id;
     }
   } while (scope->block.scope != AST_SCOPE_GLOBAL);
 
@@ -125,17 +132,22 @@ ast_action_t __trav_register_types(ast_trav_mode_t mode, ast_t* node,
 
   switch (node->type) {
   case AST_DECL_TEMPLATE:
-    node->tpl.id->ty_id = node->ty_id = ty_create_template(node);
+    node->tpl.id->ty_id = node->ty.id->ty_id = node->ty_id =
+        ty_create_template(node);
     break;
   case AST_DECL_STRUCT:
+    // TODO this need review, we don't want a gap in the type table...
+    // if has templates need to be implemented before has a ty_id
+    // if (node->structure.tpls == 0) {
     ts_register_types(node->structure.fields);
-    node->ty_id = ty_create_struct(node);
+    node->ty.id->ty_id = node->ty_id = ty_create_struct(node);
+    //}
     break;
   case AST_DECL_FUNCTION:
     // declare the function
     ts_register_types(node->func.params);
     ts_register_types(node->func.ret_type);
-    node->ty_id = ty_create_fn(node);
+    node->ty.id->ty_id = node->ty_id = ty_create_fn(node);
     break;
   case AST_TYPE: {
     // check wrappers

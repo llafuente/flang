@@ -149,6 +149,7 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, u64 level,
   case AST_DECL_STRUCT: {
     TRAVERSE(ast->structure.id);
     TRAVERSE(ast->structure.fields);
+    TRAVERSE(ast->structure.tpls);
   } break;
   case AST_DECL_STRUCT_FIELD: {
     TRAVERSE(ast->field.id);

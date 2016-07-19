@@ -240,7 +240,10 @@ struct ast {
     struct ast_decl_struct {
       ast_t* id;
       ast_t* fields; // list
-    } structure;     // aggregate
+      ast_t* tpls;   // AST_LIST of idents
+
+      ast_t* from_tpl; // cames from which template?
+    } structure;       // aggregate
 
     struct ast_decl_struct_field {
       ast_t* type;
@@ -255,7 +258,7 @@ struct ast {
       ast_t* body;
       ast_t* ret_type;
       ast_t* attributes;
-      ast_t* tpl_fn;
+      ast_t* from_tpl; // cames from which template?
       bool varargs;
       bool templated;
       bool ffi; // TODO maybe ffi_type, 0 means flang, 1 means c...
@@ -413,6 +416,7 @@ libexport ast_t* ast_mk_assignament(ast_t* left, int op, ast_t* right);
 libexport ast_t* ast_mk_call_expr(ast_t* callee, ast_t* arguments);
 libexport ast_t* ast_mk_template(ast_t* id, ast_t* block);
 libexport ast_t* ast_mk_implement(ast_t* fn_decl, ast_t* id);
+libexport ast_t* ast_implement_struct(ast_t* call, ast_t* decl, string* uid);
 libexport ast_t* ast_mk_type_auto();
 libexport ast_t* ast_mk_type_void();
 libexport ast_t* ast_mk_type(string* id, ast_t* child);
@@ -423,7 +427,7 @@ libexport ast_t* ast_mk_runary(ast_t* element, int operator);
 libexport ast_t* ast_mk_if(ast_t* test, ast_t* block, ast_t* alternate);
 libexport ast_t* ast_mk_loop(ast_types_t type, ast_t* init, ast_t* pre_cond,
                              ast_t* update, ast_t* bloc, ast_t* post_cond);
-libexport ast_t* ast_mk_struct_decl(ast_t* id, ast_t* fields);
+libexport ast_t* ast_mk_struct_decl(ast_t* id, ast_t* tpls, ast_t* fields);
 libexport ast_t* ast_mk_struct_decl_field(ast_t* id, ast_t* type);
 libexport ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression);
 libexport ast_t* ast_mk_sizeof(ast_t* type);
@@ -676,6 +680,7 @@ libexport u64 ast_get_typeid(ast_t* node);
  */
 libexport u64 ast_get_struct_prop_idx(ast_t* decl, string* id);
 
+libexport ast_t* ast_get_type_from_scope(ast_t* node, string* id);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(ast-traverse.c) */

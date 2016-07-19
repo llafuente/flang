@@ -255,3 +255,18 @@ u64 ast_get_struct_prop_idx(ast_t* decl, string* id) {
   }
   return -1;
 }
+
+ast_t* ast_get_type_from_scope(ast_t* node, string* id) {
+  ast_t* scope = node;
+  ast_t* el;
+
+  do {
+    scope = ast_get_scope(scope);
+    el = hash_get(scope->block.types, id->value);
+    if (el != 0) {
+      return el;
+    }
+  } while (scope->block.scope != AST_SCOPE_GLOBAL);
+
+  return 0;
+}

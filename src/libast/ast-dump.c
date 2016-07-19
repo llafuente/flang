@@ -165,6 +165,9 @@ void ast_dump_one(ast_t* node) {
   case AST_CAST:
     printf("cast T(%zu) O(%u)", node->ty_id, node->cast.operation);
     break;
+  case AST_IMPLEMENT:
+    printf("implement");
+    break;
   case AST_ATTRIBUTE:
     printf("attribute");
     break;

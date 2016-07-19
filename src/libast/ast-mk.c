@@ -518,7 +518,7 @@ ast_t* ast_mk_loop(ast_types_t type, ast_t* init, ast_t* pre_cond,
   return node;
 }
 
-ast_t* ast_mk_struct_decl(ast_t* id, ast_t* fields) {
+ast_t* ast_mk_struct_decl(ast_t* id, ast_t* tpls, ast_t* fields) {
   // printf("ast_mk_struct_decl\n");
   ast_t* node = ast_new();
   node->type = AST_DECL_STRUCT;
@@ -526,6 +526,7 @@ ast_t* ast_mk_struct_decl(ast_t* id, ast_t* fields) {
   id->identifier.resolve = false;
   node->structure.id = id;
   node->structure.fields = fields;
+  node->structure.tpls = tpls;
 
   return node;
 }
