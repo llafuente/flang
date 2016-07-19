@@ -105,57 +105,6 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     ts_cast_call(node);
   } break;
   case AST_IMPLEMENT: {
-    if (node->ts_passes > 1)
-      return AST_SEARCH_SKIP;
-
-    string* fn_id = node->impl.call->call.callee->identifier.string;
-    array* arr = ast_search_fns(node, fn_id);
-
-    if (!arr) {
-      // maybe a struct ?!
-      ast_t* decl = ast_get_type_from_scope(node, fn_id);
-      if (decl && decl->type == AST_DECL_STRUCT) {
-        // STRUCT
-        ast_t* tmp = ast_implement_struct(node->impl.call, decl,
-                                          node->impl.id->identifier.string);
-        log_silly("fn expanded: %zu", tmp->ty_id);
-        return AST_SEARCH_SKIP;
-      }
-
-      ast_raise_error(node,
-                      "typesystem - Cannot find function or struct named: '%s'",
-                      fn_id->value);
-    } else {
-      ast_t* fn = 0;
-      ast_t* tmp = 0;
-      for (int i = 0; i < arr->length; ++i) {
-        tmp = (ast_t*)arr->data[i];
-        if (tmp->func.templated) {
-          if (fn) {
-            // raise! double template!
-            ast_dump_s(fn);
-            ast_dump_s(tmp);
-            ast_raise_error(
-                node,
-                "typesystem - Cannot implement multiple functions (atm?)");
-          }
-          fn = tmp;
-        }
-      }
-
-      if (!fn) {
-        ast_raise_error(node,
-                        "typesystem - Cannot find function '%s' with templates",
-                        fn_id->value);
-      } else {
-        ast_t* tmp = ast_implement_fn(node->impl.call, arr->data[0],
-                                      node->impl.id->identifier.string);
-        log_silly("fn expanded: %zu", tmp->ty_id);
-      }
-    }
-    array_delete(arr);
-    free(arr);
-
     return AST_SEARCH_SKIP;
   }
   case AST_EXPR_BINOP: {

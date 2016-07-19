@@ -28,10 +28,15 @@
 #include "flang/libast.h"
 #include "flang/libparser.h"
 
+static int ts_pending = 0;
 ast_t* typesystem(ast_t* root) {
+  ts_pending = 0;
+
   psr_ast_imports(root);
 
   ts_register_types(root);
+  ts_implement(root);
+  ts_register_types(root); // it's not redundant
 
   // do inference
   root = ts_pass(root);

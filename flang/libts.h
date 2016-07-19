@@ -421,6 +421,14 @@ libexport ast_t* ts_register_types(ast_t* node);
 
 /* cldoc:end-category() */
 
+/* cldoc:begin-category(implement.c) */
+
+/* Traverse the tree implementing all types
+ */
+libexport ast_t* ts_implement(ast_t* node);
+
+/* cldoc:end-category() */
+
 /* cldoc:begin-category(typesystem.c) */
 
 /* This will transform the raw tree parsed by

@@ -79,7 +79,7 @@ void array_concat(array* arr, array* arr2) {
 
 ARRAY_T array_get(array* arr, int index) {
   if (index >= arr->length || index < 0) {
-    fprintf(stderr, "Index %d out of bounds for vector of size %d\n", index,
+    fprintf(stderr, "Index %d out of bounds for vector of size %lu\n", index,
             arr->length);
     exit(1);
   }

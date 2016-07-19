@@ -230,6 +230,7 @@ struct ast {
       ast_t* id;
       ast_t* type;
       ast_scope_t scope;
+      bool scoped; // a variable is attached to a scope?
     } var;
 
     struct ast_idtype {

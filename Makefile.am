@@ -55,7 +55,7 @@ check_PROGRAMS = tests
 tests_CFLAGS = $(LLVM_CC_FLAGS) -O1
 tests_LDFLAGS = $(LLVM_LINK_FLAGS) -O1 -lstdc++ -lrt -L/usr/local/lib '-lstringc'
 tests_LDADD = libfl_codegen.a libfl_ts.a libfl_parser.a libfl_ast.a $(LIBS)
-tests_DEPENDENCIES = libfl_codegen.a libfl_ts.a libfl_parser.a libfl_ast.a 
+tests_DEPENDENCIES = libfl_codegen.a libfl_ts.a libfl_parser.a libfl_ast.a
 
 tests_SOURCES = test/run-tests.c
 #tests_SOURCES = test/run-benchmarks.c
@@ -91,7 +91,9 @@ libfl_ts_a_SOURCES = src/libts/type-utils.c \
                         src/libts/typesystem-alloc.c \
                         src/libts/typesystem-casting.c \
                         src/libts/typesystem.c \
-                        src/libts/typesystem-register.c
+                        src/libts/typesystem-register.c \
+                        src/libts/implement.c
+
 libfl_ts_a_LIBADD = libfl_ast.a
 
 libfl_codegen_a_SOURCES = src/libcg/c_codegen.c

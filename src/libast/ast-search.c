@@ -98,14 +98,13 @@ ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
     // search a variable with function type
     log_verbose("undefined function: '%s' must be a variable", id->value);
     ast_t* decl = ast_search_id_decl(args_call, id);
-    printf("decl: %p\n\n", decl);
     if (decl == 0) {
       ast_raise_error(args_call->parent,
                       "typesystem - cannot find function or variable: '%s'",
                       id->value);
       exit(5);
     }
-    printf("type: %lu\n\n", decl->ty_id);
+
     ty_t fn_ty = ts_type_table[decl->ty_id];
     if (fn_ty.of != FL_FUNCTION) {
       ast_raise_error(args_call->parent,

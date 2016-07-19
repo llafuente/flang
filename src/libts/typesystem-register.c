@@ -109,7 +109,8 @@ u64 __ts_string_to_tyid(ast_t* node) {
       // check if it's a struct with templates, in wich case, we need to
       // implement
       if (el->type == AST_DECL_STRUCT && el->structure.tpls != 0) {
-        // implement!!!
+        fl_assert(false); // TODO
+        // TODO transform: this is not a expr call
         el = ast_implement_struct(node, el,
                                   st_newc("jdshjfshdfshk", st_enc_utf8));
       }
@@ -117,7 +118,7 @@ u64 __ts_string_to_tyid(ast_t* node) {
     }
   } while (scope->block.scope != AST_SCOPE_GLOBAL);
 
-  log_warning("delayed type!?");
+  log_warning("delayed type '%s'", tcstr);
   return 0;
 }
 
@@ -153,6 +154,9 @@ ast_action_t __trav_register_types(ast_trav_mode_t mode, ast_t* node,
     // check wrappers
     ast_t* p = node->parent;
     __ts_string_to_tyid(node);
+
+    // sometimes the types are not fully built so wait for the second pass
+    // if (!node->ty_id) return AST_SEARCH_CONTINUE;
 
     switch (p->type) {
     case AST_DECL_FUNCTION:

@@ -78,7 +78,7 @@ void bootstrap() {
   assert(err == 0);
 }
 
-int run();
+void run();
 
 int main() {
   bootstrap();

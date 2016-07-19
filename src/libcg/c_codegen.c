@@ -240,7 +240,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
   switch (node->type) {
   case AST_PROGRAM: {
     if (mode == AST_TRAV_LEAVE) {
-      CG_OUTPUT(cg_fds->run, "int run()");
+      CG_OUTPUT(cg_fds->run, "void run()");
       while (cg_stack->length) {
         CG_OUTPUT(cg_fds->run, "%s\n", ((string*)array_pop(cg_stack))->value);
       }
@@ -518,6 +518,9 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     break;
 
   case AST_EXPR_CALL:
+    if (node->parent->type == AST_IMPLEMENT) {
+      return AST_SEARCH_SKIP;
+    }
 
     if (mode == AST_TRAV_ENTER) {
       node->stack = cg_stack->length;
@@ -641,7 +644,7 @@ string* cg_node(ast_t* node) {
   return node_str;
 }
 
-char* cg_type_table(ast_t* root) {
+void cg_type_table(ast_t* root) {
   CG_OUTPUT(cg_fds->types, "type_t types[] = {\n");
   for (int i = 0; i < ts_type_size_s; ++i) {
     CG_OUTPUT(cg_fds->types, "{\n");
@@ -663,6 +666,7 @@ char* cg_type_table(ast_t* root) {
       CG_OUTPUT(cg_fds->types, ".number.sign = %s,\n",
                 ts_type_table[i].number.sign ? "true" : "false");
       break;
+    default: {} // TODO handle the rest of type table
     }
     CG_OUTPUT(cg_fds->types, "},\n");
   }
@@ -673,8 +677,8 @@ char* cg_type_table(ast_t* root) {
 }
 
 char* fl_codegen(ast_t* root) {
-  log_debug_level = 10;
-  ast_dump(root);
+  // log_debug_level = 10;
+  // ast_dump(root);
   // exit(0);
 
   cg_stack = calloc(sizeof(array), 1);
@@ -695,7 +699,7 @@ char* fl_codegen(ast_t* root) {
                          "#include \"types.c\"\n"
                          "#include \"functions.c\"\n\n");
 
-  ty_dump_table();
+  // ty_dump_table();
 
   cg_type_table(root);
   ast_traverse(root, __codegen_cb, 0, 0, 0, 0);

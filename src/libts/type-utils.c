@@ -242,7 +242,6 @@ bool __struct_collision(ast_t* where, ast_t* scope, char* ty_name) {
 // transfer list ownership
 u64 ty_create_struct(ast_t* decl) {
   // assert(decl->structure.tpls == 0);
-  ast_dump(decl);
   fl_assert(decl->structure.id != 0);
 
   u64 i;
@@ -460,6 +459,12 @@ u64 ty_create_fn(ast_t* decl) {
 // transfer list ownership
 void ty_create_var(ast_t* decl) {
   assert(decl->type == AST_DTOR_VAR);
+
+  // do not attach the same variable to a scope many times
+  // register need to be called many times but this not
+  if (decl->var.scoped)
+    return;
+  decl->var.scoped = true;
 
   char* cstr = decl->var.id->identifier.string->value;
   ast_t* attach_to;
