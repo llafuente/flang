@@ -258,17 +258,45 @@ u64 ty_create_struct(ast_t* decl) {
     properties[i] = elements[i]->field.id->identifier.string;
   }
 
-  // add it!
-  i = ts_type_size_s++;
-  ts_type_table[i].of = FL_STRUCT;
-  ts_type_table[i].id = id;
-  ts_type_table[i].structure.decl = decl;
-  ts_type_table[i].structure.fields = fields;
-  ts_type_table[i].structure.properties = properties;
-  ts_type_table[i].structure.nfields = length;
+  // check for a struct with the same properties / types
+  int same_struct_found = -1;
+  for (i = 0; i < ts_type_size_s; ++i) {
+    ty_t* t = &ts_type_table[i];
+
+    if (t->of == FL_STRUCT && t->structure.nfields == length) {
+      bool same_props = true;
+      for (int j = 0; j < length; ++j) {
+        if (fields[j] != t->structure.fields[j] ||
+            st_cmp(properties[j], t->structure.properties[j]) != 0) {
+          same_props = false;
+          break;
+        }
+      }
+
+      if (same_props) {
+        free(fields);
+        free(properties);
+        same_struct_found = i;
+        break;
+      }
+    }
+  }
+
+  if (same_struct_found == -1) {
+    // add it!
+    i = ts_type_size_s++;
+    ts_type_table[i].of = FL_STRUCT;
+    ts_type_table[i].id = id;
+    ts_type_table[i].structure.decl = decl;
+    ts_type_table[i].structure.fields = fields;
+    ts_type_table[i].structure.properties = properties;
+    ts_type_table[i].structure.nfields = length;
+  } else {
+    i = same_struct_found;
+  }
 
   log_debug("type register (struct) id='%s' ty=%zu", id->value, i);
-
+  // even with ty_id uniques, we need to declare the struct in the scope
   // search nearest scope and add it
   ast_t* x = ast_get_scope(decl);
   if (!__struct_collision(decl, x, id->value)) {

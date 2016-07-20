@@ -108,14 +108,40 @@ TASK_IMPL(parser_types) {
                                    "}",
                  { ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid"); });
 
-  TEST_PARSER_OK("struct not unique 01", "struct test {"
-                                         "i8 t1,"
-                                         "i32 t2"
-                                         "}"
-                                         "struct test2 {"
-                                         "i8 t1,"
-                                         "i32 t2"
-                                         "}",
+  TEST_PARSER_OK("struct unique with same type/props", "struct test {"
+                                                       "i8 t1,"
+                                                       "i32 t2"
+                                                       "}"
+                                                       "struct test2 {"
+                                                       "i8 t1,"
+                                                       "i32 t2"
+                                                       "}",
+                 {
+    ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid struct 1");
+    ASSERT(body[1]->ty_id == TEST_TYPEID, "typeid struct 2");
+  });
+
+  TEST_PARSER_OK("struct unique with same type/props", "struct test {"
+                                                       "i8 t1,"
+                                                       "i32 t2"
+                                                       "}"
+                                                       "struct test2 {"
+                                                       "i8 t1,"
+                                                       "i32 t3"
+                                                       "}",
+                 {
+    ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid struct 1");
+    ASSERT(body[1]->ty_id == TEST_TYPEID + 1, "typeid struct 2");
+  });
+
+  TEST_PARSER_OK("struct unique with same type/props", "struct test {"
+                                                       "i8 t1,"
+                                                       "i32 t2"
+                                                       "}"
+                                                       "struct test2 {"
+                                                       "i8 t1,"
+                                                       "i8 t2"
+                                                       "}",
                  {
     ASSERT(body[0]->ty_id == TEST_TYPEID, "typeid struct 1");
     ASSERT(body[1]->ty_id == TEST_TYPEID + 1, "typeid struct 2");
@@ -190,13 +216,28 @@ TASK_IMPL(parser_types) {
                     "defined at memory:string:1:3",
                     {});
 
-  TEST_PARSER_ERROR("empty struct", "struct a { i8 b, };"
-                                    "struct b { i8 b, };"
-                                    "var a _a;"
-                                    "var b _b;"
-                                    "_b = _a;",
+  TEST_PARSER_ERROR("empty struct", "struct a { i8 b, };\n"
+                                    "struct b { i8 c, };\n"
+                                    "var a _a;\n"
+                                    "var b _b;\n"
+                                    "_b = _a;\n",
                     "manual casting is required: '_a' is struct a { i8 b, } "
-                    "and must be struct b { i8 b, }",
+                    "and must be struct b { i8 c, }",
                     {});
+
+  TEST_PARSER_OK("a/b are the same type", "struct a { i8 b, };\n"
+                                          "struct b { i8 b, };\n"
+                                          "var a _a;\n"
+                                          "var b _b;\n"
+                                          "_b = cast(b) _a;\n",
+                 {
+    u64 a_ty_id = body[0]->ty_id;
+    u64 b_ty_id = body[1]->ty_id;
+    u64 vara_ty_id = body[2]->ty_id;
+    u64 varb_ty_id = body[3]->ty_id;
+    ASSERT(a_ty_id == vara_ty_id, "typeid ptr(void)");
+    ASSERT(b_ty_id == varb_ty_id, "typeid ptr(void)");
+    ASSERT(a_ty_id == b_ty_id, "typeid ptr(void)");
+  });
   return 0;
 }
