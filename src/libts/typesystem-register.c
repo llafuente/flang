@@ -110,9 +110,10 @@ u64 __ts_string_to_tyid(ast_t* node) {
       // implement
       if (el->type == AST_DECL_STRUCT && el->structure.tpls != 0) {
         fl_assert(false); // TODO
-        // TODO transform: this is not a expr call
-        el = ast_implement_struct(node, el,
-                                  st_newc("jdshjfshdfshk", st_enc_utf8));
+                          // TODO transform: this is not a expr call
+                          //        el = ast_implement_struct(node, el,
+        //                                  st_newc("jdshjfshdfshk",
+        //                                  st_enc_utf8));
       }
       return node->ty.id->ty_id = node->ty_id = el->ty_id;
     }

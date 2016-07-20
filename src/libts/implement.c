@@ -40,7 +40,7 @@ ast_action_t __trav_implement(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
 
     node->ts_passes = 1;
 
-    string* fn_id = node->impl.call->call.callee->identifier.string;
+    string* fn_id = node->impl.type_id->identifier.string;
     array* arr = ast_search_fns(node, fn_id);
 
     if (!arr) {
@@ -48,8 +48,8 @@ ast_action_t __trav_implement(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       ast_t* decl = ast_get_type_from_scope(node, fn_id);
       if (decl && decl->type == AST_DECL_STRUCT) {
         // STRUCT
-        ast_t* tmp = ast_implement_struct(node->impl.call, decl,
-                                          node->impl.id->identifier.string);
+        ast_t* tmp = ast_implement_struct(node->impl.type_list, decl,
+                                          node->impl.uid->identifier.string);
         log_silly("fn expanded: %zu", tmp->ty_id);
         return AST_SEARCH_SKIP;
       }
@@ -80,8 +80,8 @@ ast_action_t __trav_implement(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
                         "typesystem - Cannot find function '%s' with templates",
                         fn_id->value);
       } else {
-        ast_t* tmp = ast_implement_fn(node->impl.call, arr->data[0],
-                                      node->impl.id->identifier.string);
+        ast_t* tmp = ast_implement_fn(node->impl.type_list, arr->data[0],
+                                      node->impl.uid->identifier.string);
         log_silly("fn expanded: %zu", tmp->ty_id);
       }
     }

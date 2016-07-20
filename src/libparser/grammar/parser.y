@@ -244,11 +244,8 @@ stmt
     $$ = ast_mk_template($2, 0);
     ast_position($$, @1, @3);
   }
-  | TK_IMPLEMENT ident '(' maybe_type_list ')' TK_AS ident ';' {
-    ast_t* call = ast_mk_call_expr($2, $4);
-    ast_position(call, @2, @4);
-
-    $$ = ast_mk_implement(call, $7);
+  | TK_IMPLEMENT ident '(' type_list ')' TK_AS ident ';' {
+    $$ = ast_mk_implement($2, $4, $7);
     ast_position($$, @1, @8);
   }
   ;

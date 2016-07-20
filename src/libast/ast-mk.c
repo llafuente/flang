@@ -423,7 +423,6 @@ ast_t* ast_mk_call_expr(ast_t* callee, ast_t* arguments) {
 
   node->call.callee = callee;
   node->call.arguments = arguments;
-  node->call.narguments = arguments ? arguments->list.count : 0;
 
   return node;
 }
@@ -621,12 +620,13 @@ ast_t* ast_mk_template(ast_t* id, ast_t* block) {
   return node;
 }
 
-ast_t* ast_mk_implement(ast_t* call, ast_t* id) {
+ast_t* ast_mk_implement(ast_t* type_id, ast_t* type_list, ast_t* uid) {
   ast_t* node = ast_new();
   node->type = AST_IMPLEMENT;
-  node->impl.id = id;
-  node->impl.call = call;
-  id->identifier.resolve = false; // do not resolve it, it's a type
+  node->impl.type_id = type_id;
+  node->impl.type_list = type_list;
+  node->impl.uid = uid;
+  uid->identifier.resolve = false; // do not resolve it, it's a type
 
   return node;
 }

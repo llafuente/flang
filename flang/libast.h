@@ -270,8 +270,9 @@ struct ast {
     } tpl;
 
     struct ast_implement {
-      ast_t* call;
-      ast_t* id;
+      ast_t* type_id;
+      ast_t* type_list;
+      ast_t* uid;
     } impl;
 
     struct ast_parameter {
@@ -312,7 +313,6 @@ struct ast {
     struct ast_expr_call {
       ast_t* callee;
       ast_t* arguments;
-      u64 narguments;
 
       ast_t* decl; // set by typesystem
     } call;
@@ -416,8 +416,7 @@ libexport ast_t* ast_mk_binop(ast_t* left, int op, ast_t* right);
 libexport ast_t* ast_mk_assignament(ast_t* left, int op, ast_t* right);
 libexport ast_t* ast_mk_call_expr(ast_t* callee, ast_t* arguments);
 libexport ast_t* ast_mk_template(ast_t* id, ast_t* block);
-libexport ast_t* ast_mk_implement(ast_t* fn_decl, ast_t* id);
-libexport ast_t* ast_implement_struct(ast_t* call, ast_t* decl, string* uid);
+libexport ast_t* ast_mk_implement(ast_t* type_id, ast_t* type_list, ast_t* uid);
 libexport ast_t* ast_mk_type_auto();
 libexport ast_t* ast_mk_type_void();
 libexport ast_t* ast_mk_type(string* id, ast_t* child);
@@ -436,6 +435,10 @@ libexport ast_t* ast_mk_cast(ast_t* type, ast_t* element);
 libexport ast_t* ast_mk_import(ast_t* string_lit, bool foward);
 libexport ast_t* ast_mk_log(ast_t* list);
 libexport ast_t* ast_mk_attribute(ast_t* id, ast_t* value);
+
+libexport ast_t* ast_implement_fn(ast_t* type_list, ast_t* decl, string* uid);
+libexport ast_t* ast_implement_struct(ast_t* type_list, ast_t* decl,
+                                      string* uid);
 
 /* cldoc:end-category() */
 /*----------------------------------------------------------------------------*/

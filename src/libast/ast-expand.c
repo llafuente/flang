@@ -30,10 +30,11 @@
 #include "flang/debug.h"
 
 // return error
-ast_t* ast_implement_fn(ast_t* call, ast_t* decl, string* uid) {
-  assert(call->type == AST_EXPR_CALL);
-  assert(decl->type == AST_DECL_FUNCTION);
-  assert(decl->func.templated);
+ast_t* ast_implement_fn(ast_t* type_list, ast_t* decl, string* uid) {
+  ast_dump_s(type_list);
+  fl_assert(type_list->type == AST_LIST);
+  fl_assert(decl->type == AST_DECL_FUNCTION);
+  fl_assert(decl->func.templated);
 
   ast_t* fn = ast_clone(decl);
 
@@ -61,24 +62,21 @@ ast_t* ast_implement_fn(ast_t* call, ast_t* decl, string* uid) {
     param_ty = &ts_type_table[param_ty_id];
     if (param_ty->of == FL_TEMPLATE) {
       // search type and replace!
-      ast_replace_types(fn, param_ty_id,
-                        call->call.arguments->list.elements[i]->ty_id);
+      ast_replace_types(fn, param_ty_id, type_list->list.elements[i]->ty_id);
     }
   }
 
   // ast_replace_types(fn, 21, 4);
   fn->ty_id = ty_create_fn(fn);
   typesystem(fn);
-
-  call->call.decl = fn;
   return fn;
 }
 
 // return error
-ast_t* ast_implement_struct(ast_t* call, ast_t* decl, string* uid) {
-  assert(call->type == AST_EXPR_CALL); // hackish :) for fun and profit!
-  assert(decl->type == AST_DECL_STRUCT);
-  assert(decl->structure.tpls != 0);
+ast_t* ast_implement_struct(ast_t* type_list, ast_t* decl, string* uid) {
+  fl_assert(type_list->type == AST_LIST);
+  fl_assert(decl->type == AST_DECL_STRUCT);
+  fl_assert(decl->structure.tpls != 0);
 
   ast_t* clone = ast_clone(decl);
 
@@ -108,9 +106,8 @@ ast_t* ast_implement_struct(ast_t* call, ast_t* decl, string* uid) {
     if (param_ty->of == FL_TEMPLATE) {
       // search type and replace!
       log_silly("replace type %lu to %lu", param_ty_id,
-                call->call.arguments->list.elements[i]->ty_id);
-      ast_replace_types(clone, param_ty_id,
-                        call->call.arguments->list.elements[i]->ty_id);
+                type_list->list.elements[i]->ty_id);
+      ast_replace_types(clone, param_ty_id, type_list->list.elements[i]->ty_id);
     }
   }
 
@@ -118,6 +115,5 @@ ast_t* ast_implement_struct(ast_t* call, ast_t* decl, string* uid) {
   clone->ty_id = ty_create_struct(clone);
   typesystem(clone);
 
-  call->call.decl = clone; // TODO this maybe be very dangerous!
   return clone;
 }

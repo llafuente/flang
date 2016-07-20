@@ -58,7 +58,6 @@ void __ast_reduce_log(ast_t* node) {
   node->type = AST_EXPR_CALL;
   node->call.callee = ast_mk_lit_id(st_newc("printf", st_enc_utf8), true);
   node->call.arguments = list;
-  node->call.narguments = list->list.count;
   // typesystem need to pass again...
   ast_parent(node);
   node->call.callee->parent = node;

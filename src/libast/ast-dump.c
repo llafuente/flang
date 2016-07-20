@@ -107,7 +107,8 @@ void ast_dump_one(ast_t* node) {
     }
     break;
   case AST_EXPR_CALL:
-    printf("call T(%zu) [arguments=%zu]", node->ty_id, node->call.narguments);
+    printf("call T(%zu) [arguments=%zu]", node->ty_id,
+           node->call.arguments->list.count);
     break;
   case AST_EXPR_MEMBER:
     printf("member T(%zu) idx(%zu) expression(%d)", node->ty_id,

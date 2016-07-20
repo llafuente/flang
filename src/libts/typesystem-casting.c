@@ -409,7 +409,7 @@ void ts_cast_call(ast_t* node) {
     }
 
     if (tmp->func.templated) {
-      tmp = ast_implement_fn(node, tmp, 0);
+      tmp = ast_implement_fn(node->call.arguments, tmp, 0);
       log_silly("fn expanded: %zu", tmp->ty_id);
     }
 
