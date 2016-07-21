@@ -29,7 +29,7 @@
 #include "flang/debug.h"
 
 u64 __ts_string_to_tyid(ast_t* node) {
-  assert(node->type == AST_TYPE);
+  fl_assert(node->type == AST_TYPE);
 
   // empty var_decl for example
   if (!node->ty.id) {
@@ -86,15 +86,18 @@ u64 __ts_string_to_tyid(ast_t* node) {
   }
 
   if (strcmp(tcstr, "ptr") == 0) {
-    assert(node->ty.child != 0);
-    u64 t = __ts_string_to_tyid(node->ty.child);
+    assert(node->ty.children != 0);
+    assert(node->ty.children->list.count == 1); // TODO raise
+
+    u64 t = __ts_string_to_tyid(node->ty.children->list.elements[0]);
     return node->ty.id->ty_id = node->ty_id = ty_create_wrapped(FL_POINTER, t);
   }
 
   if (strcmp(tcstr, "vector") == 0) {
-    assert(node->ty.child != 0);
+    assert(node->ty.children != 0);
+    assert(node->ty.children->list.count == 1); // TODO raise
 
-    u64 t = __ts_string_to_tyid(node->ty.child);
+    u64 t = __ts_string_to_tyid(node->ty.children->list.elements[0]);
     return node->ty.id->ty_id = node->ty_id = ty_create_wrapped(FL_VECTOR, t);
   }
 
@@ -109,11 +112,21 @@ u64 __ts_string_to_tyid(ast_t* node) {
       // check if it's a struct with templates, in wich case, we need to
       // implement
       if (el->type == AST_DECL_STRUCT && el->structure.tpls != 0) {
-        fl_assert(false); // TODO
-                          // TODO transform: this is not a expr call
-                          //        el = ast_implement_struct(node, el,
-        //                                  st_newc("jdshjfshdfshk",
-        //                                  st_enc_utf8));
+        // if it has children defined, then implement
+        // TODO check there is no template type in the list
+        if (node->ty.children) {
+          ast_dump_s(node);
+          ast_dump_s(el);
+          fl_assert(false); // TODO
+
+          // TODO transform: this is not a expr call
+          // el = ast_implement_struct(node, el,
+          //   st_newc("jdshjfshdfshk",
+          //   st_enc_utf8));
+        } else {
+          // if not it just is just a reference, get the type and wait to
+          // be implemented later
+        }
       }
       return node->ty.id->ty_id = node->ty_id = el->ty_id;
     }

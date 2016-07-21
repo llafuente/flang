@@ -69,8 +69,9 @@ string* cg_type(u64 ty_id) {
     st_append_c(&buffer, "__fnptr");
   } break;
   case FL_TEMPLATE: {
-    // fl_assert(false); // a template cannot be in the typesystem is not a real
-    // type
+    // REVIEW assert... will see in the future if needed, i consider this
+    // dangerous atm.
+    // st_append_c(&buffer, "0");
   } break;
   default: {} // remove warning
   }

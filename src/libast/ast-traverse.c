@@ -163,7 +163,7 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, u64 level,
   } break;
   case AST_TYPE: {
     TRAVERSE(ast->ty.id);
-    TRAVERSE(ast->ty.child);
+    TRAVERSE(ast->ty.children);
   } break;
   case AST_STMT_LOG: {
     TRAVERSE(ast->log.list);

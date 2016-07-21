@@ -78,6 +78,14 @@ bool ty_is_function(u64 id) {
   return t.of == FL_FUNCTION;
 }
 
+bool ty_is_templated(u64 id) {
+  ty_t t = ts_type_table[id];
+
+  return (t.of == FL_TEMPLATE) ||
+         (t.of == FL_STRUCT && t.structure.templated) ||
+         (t.of == FL_FUNCTION && t.func.templated);
+}
+
 // wrapper types are
 // * FL_POINTER
 // * FL_VECTOR
@@ -252,9 +260,12 @@ u64 ty_create_struct(ast_t* decl) {
   string** properties = calloc(length, sizeof(string*));
   string* id = decl->structure.id->identifier.string;
 
+  int templates = 0;
+
   ast_t** elements = list->list.elements;
   for (i = 0; i < length; ++i) {
     fields[i] = elements[i]->field.type->ty_id;
+    templates += ty_is_templated(fields[i]);
     properties[i] = elements[i]->field.id->identifier.string;
   }
 
@@ -291,6 +302,7 @@ u64 ty_create_struct(ast_t* decl) {
     ts_type_table[i].structure.fields = fields;
     ts_type_table[i].structure.properties = properties;
     ts_type_table[i].structure.nfields = length;
+    ts_type_table[i].structure.templated = templates > 0;
   } else {
     i = same_struct_found;
   }
@@ -418,12 +430,17 @@ u64 ty_create_fn(ast_t* decl) {
   u64* tparams = calloc(length, sizeof(u64));
   u64 ret = decl->func.ret_type->ty_id;
   u64 i;
+  int templates = 0;
 
   for (i = 0; i < length; ++i) {
     tparams[i] = params->list.elements[i]->ty_id;
-    if (ts_type_table[tparams[i]].of == FL_TEMPLATE) {
-      decl->func.templated = true;
-    }
+    templates += ty_is_templated(tparams[i]);
+
+    log_silly("param %s %lu is ty_id = %lu", fn_uid, i, tparams[i])
+  }
+
+  if (templates) {
+    decl->func.templated = true;
   }
 
   // add it!
@@ -435,6 +452,7 @@ u64 ty_create_fn(ast_t* decl) {
   ts_type_table[ty_id].func.nparams = length;
   ts_type_table[ty_id].func.ret = ret;
   ts_type_table[ty_id].func.varargs = decl->func.varargs;
+  ts_type_table[ty_id].func.templated = templates > 0;
 
   ast_t* attach_to;
   ast_t* from;
@@ -443,7 +461,7 @@ u64 ty_create_fn(ast_t* decl) {
   if (!__fn_collision(decl, attach_to, fn_id, fn_uid)) {
     array* lfunc = hash_get(attach_to->block.functions, fn_id);
     log_debug("type register (fn) id='%s' uid='%s' ty=%zu @[%p]", fn_id, fn_uid,
-              i, lfunc);
+              ty_id, lfunc);
 
     // define the function with ID
     if (!lfunc) {

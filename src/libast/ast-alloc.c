@@ -162,12 +162,17 @@ void __ast_delete_props(ast_t* ast) {
   } break;
   case AST_TYPE: {
     SAFE_DEL(ast->ty.id);
-    SAFE_DEL(ast->ty.child);
-  }
+    SAFE_DEL(ast->ty.children);
+  } break;
+  case AST_IMPLEMENT: {
+    SAFE_DEL(ast->impl.uid);
+    SAFE_DEL(ast->impl.type_id);
+    SAFE_DEL(ast->impl.type_list);
+  } break;
   case AST_ERROR: {
     SAFE_DEL_STR(ast->err.message);
     SAFE_DEL_STR(ast->err.type);
-  }
+  } break;
   default: {}
   }
 }
@@ -298,7 +303,7 @@ ast_t* __ast_clone(ast_t* node) {
   } break;
   case AST_TYPE: {
     CLONE(ty.id);
-    CLONE(ty.child);
+    CLONE(ty.children);
   } break;
   case AST_STMT_LOG: {
     CLONE(log.list);
@@ -306,6 +311,11 @@ ast_t* __ast_clone(ast_t* node) {
   case AST_ATTRIBUTE: {
     CLONE(attr.id);
     CLONE(attr.value);
+  } break;
+  case AST_IMPLEMENT: {
+    CLONE(impl.uid);
+    CLONE(impl.type_id);
+    CLONE(impl.type_list);
   } break;
   default: {}
   }

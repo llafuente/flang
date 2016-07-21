@@ -97,6 +97,8 @@ struct ts_type {
       u64 nparams;
       bool varargs;
 
+      bool templated;
+
     } func;
 
     struct ts_type_struct {
@@ -105,6 +107,8 @@ struct ts_type {
       u64* fields;
       string** properties;
       u64 nfields;
+
+      bool templated;
 
     } structure;
 

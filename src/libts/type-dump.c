@@ -213,16 +213,18 @@ void __ty_dump_cell(u64 ty_id, int indent) {
     __ty_dump_cell(ty.vector.to, indent + 2);
     break;
   case FL_STRUCT: {
-    log_debug("%*s[%zu] Struct [%s]", indent, " ", ty_id,
-              ty.structure.decl->structure.id->identifier.string->value);
+    log_debug("%*s[%zu] Struct [%s] tpl(%d)", indent, " ", ty_id,
+              ty.structure.decl->structure.id->identifier.string->value,
+              ty.structure.templated);
     u64 i;
     for (i = 0; i < ty.structure.nfields; ++i) {
       __ty_dump_cell(ty.structure.fields[i], indent + 2);
     }
   } break;
   case FL_FUNCTION: {
-    log_debug("%*s[%zu] Function [%s] arity(%zu) -> [%zu]", indent, " ", ty_id,
-              ty.id ? ty.id->value : "Anonymous", ty.func.nparams, ty.func.ret);
+    log_debug("%*s[%zu] Function [%s] tpl(%d) arity(%zu) -> [%zu]", indent, " ",
+              ty_id, ty.id ? ty.id->value : "Anonymous", ty.func.templated,
+              ty.func.nparams, ty.func.ret);
     u64 i;
     __ty_dump_cell(ty.func.ret, indent + 2);
     for (i = 0; i < ty.func.nparams; ++i) {

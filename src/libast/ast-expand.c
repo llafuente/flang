@@ -60,7 +60,9 @@ ast_t* ast_implement_fn(ast_t* type_list, ast_t* decl, string* uid) {
   for (i = 0; i < count; ++i) {
     param_ty_id = params->list.elements[i]->ty_id;
     param_ty = &ts_type_table[param_ty_id];
-    if (param_ty->of == FL_TEMPLATE) {
+    if (ty_is_templated(param_ty_id)) {
+      log_silly("replace type %lu -> %lu", param_ty_id,
+                type_list->list.elements[i]->ty_id);
       // search type and replace!
       ast_replace_types(fn, param_ty_id, type_list->list.elements[i]->ty_id);
     }

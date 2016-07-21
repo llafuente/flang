@@ -863,9 +863,9 @@ type
     $$ = $1;
     ast_position($$, @1, @1);
   }
-  | %prec TYPE ty_primitive '(' type ')' {
+  | %prec TYPE ty_primitive '(' type_list ')' {
     //printf("ty_primitive<ty_primitive>\n");
-    $1->ty.child = $3;
+    $1->ty.children = $3;
     ast_position($1, @1, @4);
     $$ = $1;
   }

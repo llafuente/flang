@@ -435,24 +435,28 @@ ast_t* ast_mk_type_void() {
   return ast_mk_type(st_newc("void", st_enc_utf8), 0);
 }
 
-ast_t* ast_mk_type(string* id, ast_t* child) {
+ast_t* ast_mk_type(string* id, ast_t* children) {
+  fl_assert(children == 0 || children->type == AST_LIST);
+
   // printf("ast_mk_type\n");
   ast_t* node = ast_new();
   node->type = AST_TYPE;
 
   node->ty.id = id ? ast_mk_lit_id(id, false) : 0;
-  node->ty.child = child;
+  node->ty.children = children;
 
   return node;
 }
 
-ast_t* ast_mk_type2(ast_t* id, ast_t* child) {
+ast_t* ast_mk_type2(ast_t* id, ast_t* children) {
+  fl_assert(children->type == AST_LIST);
+
   // printf("ast_mk_type\n");
   ast_t* node = ast_new();
   node->type = AST_TYPE;
 
   node->ty.id = id;
-  node->ty.child = child;
+  node->ty.children = children;
 
   return node;
 }

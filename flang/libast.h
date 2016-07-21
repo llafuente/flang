@@ -235,7 +235,7 @@ struct ast {
 
     struct ast_idtype {
       ast_t* id;
-      ast_t* child;
+      ast_t* children;
     } ty;
 
     struct ast_decl_struct {
