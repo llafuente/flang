@@ -17,6 +17,7 @@ cd ..
 
 #/usr/bin/time -v ./build/flang ./test/codegen/functions/templates2.fl
 /usr/bin/time -v ./build/flang ./test/codegen/typesystem/templates.fl
+#/usr/bin/time -v ./build/flang ./test/test.fl
 
 clang -std=c11 -Wno-parentheses-equality -lpthread -luv -lstringc -D_GNU_SOURCE codegen/run.c -o codegen/app
 

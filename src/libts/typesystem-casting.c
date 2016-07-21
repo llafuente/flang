@@ -310,6 +310,9 @@ void __ts_create_binop_cast(ast_t* bo) {
 void ts_cast_return(ast_t* node) {
   assert(node->type == AST_STMT_RETURN);
 
+  if (node->ty_id)
+    return;
+
   ast_t* decl = node->parent;
   while (decl->parent && decl->type != AST_DECL_FUNCTION) {
     decl = decl->parent;
@@ -327,6 +330,7 @@ void ts_cast_return(ast_t* node) {
     ast_t* cast = __ts_create_cast(arg, t);
     node->ret.argument = cast;
   }
+  node->ty_id = t;
 }
 
 void ts_cast_lunary(ast_t* node) {
@@ -369,10 +373,13 @@ void ts_cast_assignament(ast_t* node) {
 void ts_cast_call(ast_t* node) {
   assert(node->type == AST_EXPR_CALL);
 
-  log_debug("call type: %zu", node->ty_id);
   if (node->ty_id) {
     return;
   }
+
+  // TODO this fail when calling a member
+  log_debug("call '%s' ty_id[%zu]", node->call.callee->identifier.string->value,
+            node->ty_id);
 
   u64 i;
   ast_t* args = node->call.arguments;
@@ -390,6 +397,7 @@ void ts_cast_call(ast_t* node) {
 
   // no-identifier, check compatibility
   u64 cty_id = node->call.callee->ty_id;
+  log_debug("call current ty_id[%lu]", cty_id);
   if (cty_id) {
     // this happend when calle it's not a literal
     // check if it's compatible
@@ -412,8 +420,8 @@ void ts_cast_call(ast_t* node) {
       tmp = ast_implement_fn(node->call.arguments, tmp, 0);
       log_silly("fn expanded: %zu", tmp->ty_id);
     }
-
     node->call.callee->ty_id = cty_id = tmp->ty_id;
+    log_silly("set callee ty_id[%lu]", node->call.callee->ty_id);
   }
 
   if (!cty_id) {
@@ -423,7 +431,9 @@ void ts_cast_call(ast_t* node) {
 
   ast_t* decl = ts_type_table[cty_id].func.decl;
   node->call.decl = decl;
+
   node->ty_id = ts_type_table[cty_id].func.ret;
+  log_silly("set return ty_id[%lu]", node->ty_id);
 
   ty_t* t = &ts_type_table[cty_id];
   assert(t->of == FL_FUNCTION);

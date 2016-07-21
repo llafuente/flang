@@ -648,7 +648,7 @@ string* cg_node(ast_t* node) {
 void cg_type_table(ast_t* root) {
   CG_OUTPUT(cg_fds->types, "type_t types[] = {\n");
   for (int i = 0; i < ts_type_size_s; ++i) {
-    CG_OUTPUT(cg_fds->types, "{\n");
+    CG_OUTPUT(cg_fds->types, "{// id: %d\n", i);
     if (ts_type_table[i].id != 0) {
       st_dump_header(ts_type_table[i].id, buffer2);
       CG_OUTPUT(cg_fds->types, ".id = (string*)\"%s\" \"%s\",\n", buffer2,

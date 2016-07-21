@@ -31,7 +31,6 @@
 
 // return error
 ast_t* ast_implement_fn(ast_t* type_list, ast_t* decl, string* uid) {
-  ast_dump_s(type_list);
   fl_assert(type_list->type == AST_LIST);
   fl_assert(decl->type == AST_DECL_FUNCTION);
   fl_assert(decl->func.templated);
@@ -115,6 +114,7 @@ ast_t* ast_implement_struct(ast_t* type_list, ast_t* decl, string* uid) {
 
   // ast_replace_types(fn, 21, 4);
   clone->ty_id = ty_create_struct(clone);
+  clone->structure.id->ty_id = clone->ty_id;
   typesystem(clone);
 
   return clone;

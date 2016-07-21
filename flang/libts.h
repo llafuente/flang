@@ -446,5 +446,5 @@ libexport ast_t* ts_implement(ast_t* node);
  * * Function operators (are like casting)
  */
 libexport ast_t* typesystem(ast_t* root);
-
+libexport ast_t* ts_raise_no_type(ast_t* root);
 /* cldoc:end-category() */

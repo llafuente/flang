@@ -46,3 +46,41 @@ ast_t* typesystem(ast_t* root) {
 
   return root;
 }
+
+ast_action_t __trav_raise_no_type(ast_trav_mode_t mode, ast_t* node,
+                                  ast_t* parent, u64 level, void* userdata_in,
+                                  void* userdata_out) {
+
+  // these don't have a type
+  switch (node->type) {
+  case AST_DECL_FUNCTION:
+    if (node->func.templated) {
+      // functions with templates are not generated. typesystem ignore them
+      // until they are implemented by expr-call or implement stmt
+      return AST_SEARCH_SKIP;
+    }
+    return AST_SEARCH_CONTINUE;
+    break;
+  case AST_IMPLEMENT:
+    return AST_SEARCH_SKIP;
+  case AST_BLOCK:
+  case AST_PROGRAM:
+  case AST_MODULE:
+  case AST_LIST:
+  case AST_STMT_COMMENT:
+  case AST_IMPORT:
+    return AST_SEARCH_CONTINUE;
+  }
+  if (!node->ty_id) {
+    ast_dump_s(node->parent);
+    ast_dump_s(node);
+    // ast_dump_s(node->parent->structure.from_tpl);
+    ast_raise_error(node, "Cannot determine type");
+    return AST_SEARCH_STOP;
+  }
+}
+
+ast_t* ts_raise_no_type(ast_t* root) {
+  ast_traverse(root, __trav_raise_no_type, 0, 0, 0, 0);
+  return root;
+}
