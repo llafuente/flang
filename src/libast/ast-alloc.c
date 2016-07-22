@@ -33,15 +33,17 @@ ast_t* ast_new() {
   // return (ast_t*)calloc(1, sizeof(ast_t));
 }
 
-void __ast_delete_list(ast_t** list) {
-  u64 i = 0;
+void __ast_delete_list(ast_t* list) {
+
   ast_t* tmp;
 
   if (list) {
-    while ((tmp = list[i++]) != 0) {
-      ast_delete(tmp);
+    for (u64 i = 0; i < list->list.length; ++i) {
+      ast_delete(list->list.values[i]);
     }
   }
+
+  array_delete((array*) &list->list);
 
   // pool is used to handle memory on errors
   // free(list);
@@ -58,7 +60,6 @@ void __ast_delete_props(ast_t* ast) {
 #define SAFE_DEL_LIST(test)                                                    \
   if (test) {                                                                  \
     __ast_delete_list(test);                                                   \
-    test = 0;                                                                  \
   }
 
 #define SAFE_DEL_STR(test)                                                     \
@@ -82,7 +83,8 @@ void __ast_delete_props(ast_t* ast) {
     // hash_delete(ast->block.variables);
   } break;
   case AST_LIST: {
-    SAFE_DEL_LIST(ast->list.elements);
+    SAFE_DEL_LIST(ast);
+    ast->list.values = 0;
   } break;
   case AST_EXPR_ASSIGNAMENT: {
     SAFE_DEL(ast->assignament.left);
@@ -220,14 +222,14 @@ ast_t* __ast_clone(ast_t* node) {
   } break;
   case AST_LIST: {
     u64 i = 0;
-    u64 max = node->list.count;
+    u64 max = node->list.length;
     ast_t* tmp;
 
     // +1 null at end
-    t->list.elements = pool_new(max * sizeof(ast_t*) + 1);
+    t->list.values = pool_new(max * sizeof(ast_t*) + 1);
 
     for (i = 0; i < max; ++i) {
-      t->list.elements[i] = __ast_clone(node->list.elements[i]);
+      t->list.values[i] = __ast_clone(node->list.values[i]);
     }
 
   } break;

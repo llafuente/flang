@@ -9,7 +9,7 @@ void pool_init(size_t bytes) {
   // array_new(pool_pages);
   pool_pages->length = 0;
   pool_pages->capacity = 100;
-  pool_pages->data = malloc(sizeof(ARRAY_T) * 100);
+  pool_pages->values = malloc(sizeof(ARRAY_T) * 100);
 
   pool_new_page(bytes);
   pool_page_size = bytes;
@@ -18,8 +18,8 @@ void pool_init(size_t bytes) {
 void pool_new_page(size_t bytes) {
   if (pool_pages->length == pool_pages->capacity) {
     pool_pages->capacity = pool_pages->length + 50;
-    pool_pages->data =
-        realloc(pool_pages->data, sizeof(ARRAY_T) * pool_pages->capacity);
+    pool_pages->values =
+        realloc(pool_pages->values, sizeof(ARRAY_T) * pool_pages->capacity);
   }
 
   pool_page_t* page = (pool_page_t*)calloc(sizeof(pool_page_t) + bytes, 1);
@@ -38,7 +38,7 @@ void* pool_new(size_t bytes) {
 
   size_t i = 0;
   for (; i < pool_pages->length; ++i) {
-    pool_page_t* p = (pool_page_t*)pool_pages->data[i];
+    pool_page_t* p = (pool_page_t*)pool_pages->values[i];
     if (p->free >= bytes) {
       void* ret = p->next;
 
@@ -60,10 +60,10 @@ void pool_free(void* ptr) {}
 void pool_destroy() {
   size_t i = 0;
   for (; i < pool_pages->length; ++i) {
-    free(pool_pages->data[i]);
+    free(pool_pages->values[i]);
   }
 
-  free(pool_pages->data);
+  free(pool_pages->values);
   free(pool_pages);
   pool_pages = 0;
 }

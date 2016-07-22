@@ -67,11 +67,7 @@ ast_t* ast_mk_list() {
   ast_t* node = ast_new();
   node->type = AST_LIST;
 
-  node->list.count = 0;
-  u64 s = 400 * sizeof(ast_t*);
-  node->list.elements = pool_new(s);
-  memset(node->list.elements, 0, s);
-
+  array_newcap((array*) &node->list, 10);
   return node;
 }
 
@@ -79,7 +75,8 @@ ast_t* ast_mk_list_push(ast_t* list, ast_t* node) {
   // printf("ast_mk_list_push [%p]\n", list);
   fl_assert(list->type == AST_LIST);
 
-  list->list.elements[list->list.count++] = node;
+  //list->list.values[list->list.length++] = node;
+  array_push((array*) &list->list, (void*)node);
   return list;
 }
 
@@ -87,25 +84,14 @@ ast_t* ast_mk_list_pop(ast_t* list) {
   // printf("ast_mk_list_push [%p]\n", list);
   assert(list->type == AST_LIST);
 
-  ast_t* node = list->list.elements[list->list.count - 1];
-  --list->list.count;
-  list->list.elements[list->list.count - 1] = 0;
-
-  return node;
+  return (ast_t*) array_pop((array*) &list->list);
 }
 
 ast_t* ast_mk_list_insert(ast_t* list, ast_t* node, u64 idx) {
   // printf("ast_mk_list_push [%p]\n", list);
   assert(list->type == AST_LIST);
 
-  u64 count = list->list.count;
-  assert(count > idx);
-
-  memmove(list->list.elements + idx + 1, list->list.elements + idx,
-          sizeof(ast_t*) * count - idx);
-
-  list->list.elements[idx] = node;
-  ++list->list.count;
+  array_insert((array*) &list->list, idx, (void*) node);
 
   return list;
 }
@@ -114,9 +100,9 @@ ast_t* ast_mk_insert_before(ast_t* list, ast_t* search_item,
   assert(list->type == AST_LIST);
 
   u64 idx = 0;
-  while (list->list.elements[idx] != search_item) {
+  while (list->list.values[idx] != search_item) {
     ++idx;
-    if (idx > list->list.count) {
+    if (idx > list->list.length) {
       fprintf(stderr, "ast_mk_insert_before not found 'search_item'\n");
       exit(2);
     }
@@ -349,13 +335,13 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body,
     ast_t* attr_id;
     ast_t* attr_val;
     u64 i;
-    for (i = 0; i < attributes->list.count; ++i) {
-      attr_id = attributes->list.elements[i]->attr.id;
+    for (i = 0; i < attributes->list.length; ++i) {
+      attr_id = attributes->list.values[i]->attr.id;
       if (attr_id->type == AST_LIT_IDENTIFIER) {
         attr_id->identifier.resolve = false;
       }
 
-      attr_val = attributes->list.elements[i]->attr.value;
+      attr_val = attributes->list.values[i]->attr.value;
       if (attr_val && attr_val->type == AST_LIT_IDENTIFIER) {
         attr_val->identifier.resolve = false;
       }

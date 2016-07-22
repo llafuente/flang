@@ -114,7 +114,7 @@ string* ty_to_string(u64 ty_id) {
     for (i = 0; i < ty.structure.nfields; ++i) {
       st_append(&buffer, ty_to_string(ty.structure.fields[i]));
       st_append_c(&buffer, " ");
-      st_append(&buffer, ty.structure.properties[i]);
+      st_append(&buffer, ty.structure.properties.values[i]);
       st_append_c(&buffer, ", ");
     }
     st_append_c(&buffer, "}");

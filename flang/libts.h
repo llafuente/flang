@@ -105,7 +105,7 @@ struct ts_type {
       ast_t* decl;
 
       u64* fields;
-      string** properties;
+      array properties; // REVIEW memory managed by typesystem no array
       u64 nfields;
 
       bool templated;

@@ -171,9 +171,9 @@ ast_t* ast_get_attribute(ast_t* list, string* needle) {
   ast_t* attr;
   u64 i;
 
-  for (i = 0; i < list->list.count; ++i) {
+  for (i = 0; i < list->list.length; ++i) {
     // exit when reach parent
-    attr = list->list.elements[i];
+    attr = list->list.values[i];
     assert(attr->type == AST_ATTRIBUTE);
 
     if (st_cmp(needle, attr->attr.id->identifier.string) == 0) {
@@ -245,8 +245,8 @@ u64 ast_get_typeid(ast_t* node) {
 u64 ast_get_struct_prop_idx(ast_t* decl, string* id) {
   u64 i;
   ast_t* list = decl->structure.fields;
-  ast_t** elements = list->list.elements;
-  u64 length = list->list.count;
+  ast_t** elements = list->list.values;
+  u64 length = list->list.length;
 
   for (i = 0; i < length; ++i) {
     if (st_cmp(elements[i]->field.id->identifier.string, id)) {

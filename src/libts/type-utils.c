@@ -123,7 +123,7 @@ u64 ty_get_struct_prop_idx(u64 id, string* property) {
   }
 
   ty_t t = ts_type_table[id];
-  string** properties = t.structure.properties;
+  void** properties = t.structure.properties.values;
 
   u64 i;
   for (i = 0; i < t.structure.nfields; ++i) {
@@ -143,7 +143,7 @@ u64 ty_get_struct_prop_type(u64 id, string* property) {
   }
 
   ty_t t = ts_type_table[id];
-  string** properties = t.structure.properties;
+  void** properties = t.structure.properties.values;
 
   u64 i;
   for (i = 0; i < t.structure.nfields; ++i) {
@@ -255,14 +255,14 @@ u64 ty_create_struct(ast_t* decl) {
   u64 i;
   u64 j;
   ast_t* list = decl->structure.fields;
-  u64 length = list->list.count;
+  u64 length = list->list.length;
   u64* fields = calloc(length, sizeof(u64));
   string** properties = calloc(length, sizeof(string*));
   string* id = decl->structure.id->identifier.string;
 
   int templates = 0;
 
-  ast_t** elements = list->list.elements;
+  ast_t** elements = list->list.values;
   for (i = 0; i < length; ++i) {
     fields[i] = elements[i]->field.type->ty_id;
     templates += ty_is_templated(fields[i]);
@@ -278,7 +278,7 @@ u64 ty_create_struct(ast_t* decl) {
       bool same_props = true;
       for (int j = 0; j < length; ++j) {
         if (fields[j] != t->structure.fields[j] ||
-            st_cmp(properties[j], t->structure.properties[j]) != 0) {
+            st_cmp(properties[j], t->structure.properties.values[j]) != 0) {
           same_props = false;
           break;
         }
@@ -300,7 +300,9 @@ u64 ty_create_struct(ast_t* decl) {
     ts_type_table[i].id = id;
     ts_type_table[i].structure.decl = decl;
     ts_type_table[i].structure.fields = fields;
-    ts_type_table[i].structure.properties = properties;
+    ts_type_table[i].structure.properties.values = properties;
+    ts_type_table[i].structure.properties.length = nfields;
+    ts_type_table[i].structure.properties.capacity = nfields;
     ts_type_table[i].structure.nfields = length;
     ts_type_table[i].structure.templated = templates > 0;
   } else {
@@ -332,12 +334,12 @@ bool ty_compatible_fn(u64 ty_id, ast_t* arg_list, bool strict, bool template) {
   u64 i;
   u64 current;
   u64 expected;
-  for (i = 0; i < arg_list->list.count; ++i) {
+  for (i = 0; i < arg_list->list.length; ++i) {
     // end reached it's compatible, the rest is varargs
     if (at.func.varargs && i == at.func.nparams)
       break;
 
-    current = arg_list->list.elements[i]->ty_id;
+    current = arg_list->list.values[i]->ty_id;
     expected = at.func.params[i];
 
     // strict - same type
@@ -426,14 +428,14 @@ u64 ty_create_fn(ast_t* decl) {
   assert(decl->func.uid != 0);
 
   ast_t* params = decl->func.params;
-  u64 length = params->list.count;
+  u64 length = params->list.length;
   u64* tparams = calloc(length, sizeof(u64));
   u64 ret = decl->func.ret_type->ty_id;
   u64 i;
   int templates = 0;
 
   for (i = 0; i < length; ++i) {
-    tparams[i] = params->list.elements[i]->ty_id;
+    tparams[i] = params->list.values[i]->ty_id;
     templates += ty_is_templated(tparams[i]);
 
     log_silly("param %s %lu is ty_id = %lu", fn_uid, i, tparams[i])
@@ -486,7 +488,7 @@ u64 ty_create_fn(ast_t* decl) {
       ast_t* body = decl->func.body;
 
       for (i = 0; i < length; ++i) {
-        p = params->list.elements[i];
+        p = params->list.values[i];
         if (__param_collision(p, body, p->param.id->identifier.string->value)) {
           return 0;
         } else {

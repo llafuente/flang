@@ -32,7 +32,7 @@ TASK_IMPL(parser_functions) {
   TEST_PARSER_OK("function 01", "fn x() {}", {
     ASSERT(body[0]->type == AST_DECL_FUNCTION, "AST_DECL_FUNCTION");
     ASSERT(body[0]->func.id->type == AST_LIT_IDENTIFIER, "AST_LIT_IDENTIFIER");
-    ASSERT(body[0]->func.params->list.count == 0, "no args");
+    ASSERT(body[0]->func.params->list.length == 0, "no args");
   });
   /* TODO inference should work here!
     TEST_PARSER_OK("function 02", "fn x(yy, zz , mm ,xx) {\n"
@@ -150,7 +150,7 @@ TASK_IMPL(parser_functions) {
                                 "var $t tpl;",
                  {
     ASSERT(body[0]->tpl.id->ty_id ==
-               body[1]->func.params->list.elements[0]->ty_id,
+               body[1]->func.params->list.values[0]->ty_id,
            "tpl type param");
 
     ASSERT(body[0]->tpl.id->ty_id == body[2]->ty_id, "tpl type var");

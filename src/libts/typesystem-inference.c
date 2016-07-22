@@ -102,12 +102,12 @@ ast_action_t __ts_inference_dtors(ast_trav_mode_t mode, ast_t* node,
               continue;
             }
             u64 idx = 0;
-            while (parent->list.elements[idx] != fnod) {
+            while (parent->list.values[idx] != fnod) {
               ++idx;
             }
 
             node->var.type->ty_id =
-                decl->func.params->list.elements[idx]->ty_id;
+                decl->func.params->list.values[idx]->ty_id;
 
             ((*(u64*)userdata_out))++;
             break;
@@ -139,7 +139,7 @@ ast_action_t __ts_inference_fn_ret(ast_trav_mode_t mode, ast_t* node,
       u64 ct = 0;
 
       for (; i < list->length; ++i) {
-        el = ((ast_t*)list->data[i])->ret.argument;
+        el = ((ast_t*)list->values[i])->ret.argument;
         if (!el->ty_id) {
           // this need inference...
           // wait for later...

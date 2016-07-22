@@ -48,8 +48,8 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, u64 level,
     ast_t* tmp;                                                                \
                                                                                \
     if (node) {                                                                \
-      while ((tmp = node[i++]) != 0) {                                         \
-        if (tmp) {                                                             \
+      for(u64 i = 0; i < (node)->list.length; ++i) {  \
+      tmp = (ast_t*) (node->list.values)[i]; \
           switch (__ast_traverse(tmp, cb, ast, level, userdata_in,             \
                                  userdata_out)) {                              \
           case AST_SEARCH_SKIP:                                                \
@@ -58,7 +58,6 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, u64 level,
           case AST_SEARCH_STOP:                                                \
             return AST_SEARCH_STOP;                                            \
           }                                                                    \
-        }                                                                      \
       }                                                                        \
     }                                                                          \
   }
@@ -88,7 +87,7 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, u64 level,
     TRAVERSE(ast->block.body);
   } break;
   case AST_LIST: {
-    TRAVERSE_LIST(ast->list.elements);
+    TRAVERSE_LIST(ast);
   } break;
   case AST_EXPR_ASSIGNAMENT:
     TRAVERSE(ast->assignament.left);
@@ -195,13 +194,13 @@ void ast_traverse_list(ast_t* node, ast_cb_t cb, ast_t* until, u64 level,
   assert(node->type == AST_LIST);
 
   u64 i;
-  for (i = 0; i < node->list.count; ++i) {
+  for (i = 0; i < node->list.length; ++i) {
     // exit when reach parent
-    if (node->list.elements[i] == until) {
+    if (node->list.values[i] == until) {
       return;
     }
 
-    switch (__ast_traverse(node->list.elements[i], cb, node, level + 1,
+    switch (__ast_traverse(node->list.values[i], cb, node, level + 1,
                            userdata_in, userdata_out)) {
     case AST_SEARCH_SKIP:
     case AST_SEARCH_CONTINUE:

@@ -111,6 +111,16 @@ ARRAY_T array_unshift(array* arr) {
   return t;
 }
 
+void array_insert(array* arr, u64 index, ARRAY_T value) {
+  array_double_capacity_if_full(arr);
+
+  memmove(arr->values + index + 1, arr->values + index,
+          sizeof(ast_t*) * arr->length - index);
+
+  arr->values[index] = value;
+  ++arr->length;
+}
+
 void array_set(array* arr, int index, ARRAY_T value) {
   // zero fill the vector up to the desired index
   while (index >= arr->length) {

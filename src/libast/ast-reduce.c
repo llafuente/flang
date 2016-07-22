@@ -36,8 +36,8 @@ void __ast_reduce_log(ast_t* node) {
   char buffer[256];
   buffer[0] = '\0';
 
-  for (i = 0; i < list->list.count; ++i) {
-    ast_t* el = list->list.elements[i];
+  for (i = 0; i < list->list.length; ++i) {
+    ast_t* el = list->list.values[i];
 
     ast_mk_list_insert(list, ast_mk_lit_string2(ast_get_code(el), false, true),
                        i);

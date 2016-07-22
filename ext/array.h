@@ -8,7 +8,7 @@
 typedef struct {
   u64 length;
   u64 capacity;
-  (void*)* values; // array of pointers void*
+  void** values; // array of pointers void*
 } array;
 
 typedef void* (*array_malloc_func)(size_t size);
@@ -34,7 +34,7 @@ void array_concat(array* arr, array* arr2);
 ARRAY_T array_get(array* arr, int index);
 
 ARRAY_T array_pop(array* arr);
-
+void array_insert(array* arr, u64 index, ARRAY_T value);
 ARRAY_T array_unshift(array* arr);
 
 void array_set(array* arr, int index, ARRAY_T value);

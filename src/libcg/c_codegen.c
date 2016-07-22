@@ -227,7 +227,7 @@ void cg_dbg(ast_t* node, u64 level) {
   cg_debug("\n");
 
   for (int i = 0; i < cg_stack->length; ++i) {
-    cg_debug("// stack[%d] %s\n", i, ((string*)cg_stack->data[i])->value);
+    cg_debug("// stack[%d] %s\n", i, ((string*)cg_stack->values[i])->value);
   }
 #endif
 }
@@ -263,7 +263,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       int buffer_size = 10 + cg_indent;
 
       for (int i = node->stack; i < cg_stack->length; ++i) {
-        buffer_size += cg_indent + ((string*)cg_stack->data[i])->length + 2;
+        buffer_size += cg_indent + ((string*)cg_stack->values[i])->length + 2;
       }
 
       string* block = st_new(buffer_size, st_enc_utf8);
@@ -271,7 +271,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
 
       for (int i = node->stack; i < cg_stack->length; ++i) {
         snprintf(buffer, 1024, "%*s%s;\n", cg_indent, " ",
-                 ((string*)cg_stack->data[i])->value);
+                 ((string*)cg_stack->values[i])->value);
         st_append_c(&block, buffer);
       }
       cg_stack->length = node->stack;
@@ -421,10 +421,10 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     } else {
       int buffer_idx = 0;
       buffer2[0] = 0;
-      string* id = (string*)cg_stack->data[node->stack];
+      string* id = (string*)cg_stack->values[node->stack];
       // TODO REVIEW skip the first one is the identifier atm
       for (int i = node->stack + 1; i < cg_stack->length; ++i) {
-        string* arg = (string*)cg_stack->data[i];
+        string* arg = (string*)cg_stack->values[i];
 
         buffer_idx += snprintf(buffer2 + buffer_idx, 1024, "%s;\n", arg->value);
       }
@@ -454,10 +454,10 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       int buffer_idx = 0;
       buffer[0] = 0;
 
-      if (node->func.params->list.count) {
+      if (node->func.params->list.length) {
         u64 i = 0;
         ast_t* tmp;
-        ast_t** itr = node->func.params->list.elements;
+        ast_t** itr = node->func.params->list.values;
 
         while ((tmp = itr[i++]) != 0) {
           ast_traverse(tmp, __codegen_cb, 0, 0, 0, 0);
@@ -530,7 +530,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       buffer2[0] = 0;
       // TODO REVIEW skip the first one is the identifier atm
       for (int i = node->stack + 1; i < cg_stack->length; ++i) {
-        string* arg = (string*)cg_stack->data[i];
+        string* arg = (string*)cg_stack->values[i];
 
         if (i == cg_stack->length - 1) {
           buffer_idx += snprintf(buffer2 + buffer_idx, 1024, "%s", arg->value);
@@ -637,12 +637,12 @@ string* cg_node(ast_t* node) {
   ast_traverse(node, __codegen_cb, node, 0, 0, 0);
   int buffer_size;
   for (int i = node->stack; i < cg_stack->length; ++i) {
-    buffer_size += ((string*)cg_stack->data[i])->length;
+    buffer_size += ((string*)cg_stack->values[i])->length;
   }
 
   string* node_str = st_new(buffer_size, st_enc_utf8);
   for (int i = node->stack; i < cg_stack->length; ++i) {
-    st_append(&node_str, cg_stack->data[i]);
+    st_append(&node_str, cg_stack->values[i]);
   }
   cg_stack->length = node->stack; // restore
 

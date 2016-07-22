@@ -82,9 +82,9 @@ TASK_IMPL(parser_scopes) {
 
     ast_t* t1 = (ast_t*)hash_get(body[0]->block.types, "x");
     ast_t* t2 = (ast_t*)hash_get(body[1]->block.types, "x");
-    ASSERT(body[0]->block.body->list.elements[1]->ty_id == t1->ty_id,
+    ASSERT(body[0]->block.body->list.values[1]->ty_id == t1->ty_id,
            "1st block c type ok");
-    ASSERT(body[1]->block.body->list.elements[1]->ty_id == t2->ty_id,
+    ASSERT(body[1]->block.body->list.values[1]->ty_id == t2->ty_id,
            "2nd block c type ok");
   });
 

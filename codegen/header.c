@@ -11,6 +11,14 @@
 #define var
 #define cstr char*
 
+# ifdef __GNUC__
+#  define force_inline      __attribute__ ((always_inline)) inline
+# elif defined(_MSC_VER)
+#  define force_inline      __forceinline
+# else
+#  define force_inline
+# endif
+
 // hints
 #define virtual
 #define wrapper

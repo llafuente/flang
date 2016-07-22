@@ -161,10 +161,11 @@ struct ast {
     } block;
 
     struct ast_list {
-      // list of statements
-      ast_t** elements;
       // count
-      u64 count;
+      u64 length;
+      u64 capacity;
+      // list of statements
+      ast_t** values;
     } list;
 
     struct ast_lit_boolean {

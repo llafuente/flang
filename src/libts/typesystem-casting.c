@@ -392,13 +392,13 @@ void ts_cast_call(ast_t* node) {
   u64 i;
   ast_t* args = node->call.arguments;
   ast_t* arg;
-  u64 count = args->list.count;
+  u64 count = args->list.length;
 
   // get types from arguments first
   log_debug("callee and arguments must pass first!");
   ts_pass(node->call.callee);
   for (i = 0; i < count; ++i) {
-    ts_pass(args->list.elements[i]);
+    ts_pass(args->list.values[i]);
   }
 
   // NOTE: polymorph - callee must be an identifier
@@ -452,7 +452,7 @@ void ts_cast_call(ast_t* node) {
   log_verbose("varargs[%d] params[%zu] args[%zu]", t->func.varargs,
               t->func.nparams, count);
   for (i = 0; i < count; ++i) {
-    arg = args->list.elements[i];
+    arg = args->list.values[i];
 
     // do not cast varags
     /* TODO ??
@@ -467,7 +467,7 @@ void ts_cast_call(ast_t* node) {
     if (arg->ty_id != t->func.params[i]) {
       // cast right side
       log_debug("cast argument %zu != %zu", arg->ty_id, t->func.params[i]);
-      args->list.elements[i] = __ts_create_cast(arg, t->func.params[i]);
+      args->list.values[i] = __ts_create_cast(arg, t->func.params[i]);
     }
   }
 }

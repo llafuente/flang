@@ -63,7 +63,7 @@ void ast_dump_one(ast_t* node) {
     printf(" fns [%s]", __ast_block_hash_append(node->block.functions));
     break;
   case AST_LIST:
-    printf("list [count=%zu]", node->list.count);
+    printf("list [count=%zu]", node->list.length);
     break;
   case AST_EXPR_ASSIGNAMENT:
     printf("assignament T(%zu)", node->ty_id);
@@ -108,7 +108,7 @@ void ast_dump_one(ast_t* node) {
     break;
   case AST_EXPR_CALL:
     printf("call T(%zu) [arguments=%zu]", node->ty_id,
-           node->call.arguments->list.count);
+           node->call.arguments->list.length);
     break;
   case AST_EXPR_MEMBER:
     printf("member T(%zu) idx(%zu) expression(%d)", node->ty_id,
@@ -133,7 +133,7 @@ void ast_dump_one(ast_t* node) {
            node->ty_id, node->func.id->identifier.string->value,
            node->func.uid ? node->func.uid->value : "(nil)", node->func.ffi,
            node->func.varargs, node->func.templated,
-           node->func.params->list.count);
+           node->func.params->list.length);
     break;
   case AST_DECL_TEMPLATE:
     printf("template");
