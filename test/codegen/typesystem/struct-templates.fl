@@ -1,0 +1,27 @@
+template $tpl;
+
+/*
+  TODO assert using template without the proper syntax
+*/
+struct array($tpl) {
+  u64 length,
+  u64 capacity,
+  $tpl values,
+};
+
+
+implement array(i8) as array_i8;
+
+// this works
+function sizeof_arr($tpl arr) {
+  printf("sizeof as template: %lu\n", sizeof($tpl));
+}
+function sizeof_arr2(array arr) {
+  printf("sizeof as array: %lu\n", sizeof(array));
+}
+
+
+var ptr(u64) xy;
+var array_i8 xx;
+sizeof_arr(xx);
+sizeof_arr2(xx);

@@ -64,7 +64,7 @@ ast_t* ast_search_fn(ast_t* node, string* identifier, u64* args, u64 nargs,
   u64 i;
   ast_t* fn;
   for (i = 0; i < arr->length; ++i) {
-    fn = arr->data[i];
+    fn = arr->values[i];
     if (st_cmp(identifier, fn->func.id->identifier.string) == 0) {
       log_verbose("function name found");
       ty_t t = ts_type_table[fn->ty_id];

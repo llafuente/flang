@@ -7,8 +7,8 @@
 // Define a vector type
 typedef struct {
   u64 length;
-  int capacity;
-  void** data; // array of pointers
+  u64 capacity;
+  (void*)* values; // array of pointers void*
 } array;
 
 typedef void* (*array_malloc_func)(size_t size);

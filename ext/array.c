@@ -49,8 +49,8 @@ void array_new(array* arr) {
   arr->length = 0;
   arr->capacity = 10;
 
-  // allocate memory for arr->data
-  arr->data = __array_malloc(sizeof(ARRAY_T) * arr->capacity);
+  // allocate memory for arr->values
+  arr->values = __array_malloc(sizeof(ARRAY_T) * arr->capacity);
 }
 
 void array_newcap(array* arr, size_t cap) {
@@ -58,8 +58,8 @@ void array_newcap(array* arr, size_t cap) {
   arr->length = 0;
   arr->capacity = cap;
 
-  // allocate memory for arr->data
-  arr->data = __array_malloc(sizeof(ARRAY_T) * cap);
+  // allocate memory for arr->values
+  arr->values = __array_malloc(sizeof(ARRAY_T) * cap);
 }
 
 void array_push(array* arr, ARRAY_T value) {
@@ -67,13 +67,13 @@ void array_push(array* arr, ARRAY_T value) {
   array_double_capacity_if_full(arr);
 
   // append the value and increment arr->length
-  arr->data[arr->length++] = value;
+  arr->values[arr->length++] = value;
 }
 
 void array_concat(array* arr, array* arr2) {
   size_t i;
   for (i = 0; i < arr2->length; ++i) {
-    array_push(arr, arr2->data[i]);
+    array_push(arr, arr2->values[i]);
   }
 }
 
@@ -83,7 +83,7 @@ ARRAY_T array_get(array* arr, int index) {
             arr->length);
     exit(1);
   }
-  return arr->data[index];
+  return arr->values[index];
 }
 
 ARRAY_T array_pop(array* arr) {
@@ -92,7 +92,7 @@ ARRAY_T array_pop(array* arr) {
     exit(1);
   }
 
-  return arr->data[--arr->length];
+  return arr->values[--arr->length];
 }
 
 ARRAY_T array_unshift(array* arr) {
@@ -101,11 +101,11 @@ ARRAY_T array_unshift(array* arr) {
     exit(1);
   }
 
-  ARRAY_T t = arr->data[0];
+  ARRAY_T t = arr->values[0];
 
   --arr->length;
   if (arr->length) {
-    memmove(arr->data, arr->data + 1, sizeof(ARRAY_T) * arr->length);
+    memmove(arr->values, arr->values + 1, sizeof(ARRAY_T) * arr->length);
   }
 
   return t;
@@ -118,18 +118,18 @@ void array_set(array* arr, int index, ARRAY_T value) {
   }
 
   // set the value at the desired index
-  arr->data[index] = value;
+  arr->values[index] = value;
 }
 
 void array_double_capacity_if_full(array* arr) {
   if (arr->length >= arr->capacity) {
     arr->capacity = arr->length + 50;
-    ARRAY_T p = __array_realloc(arr->data, sizeof(ARRAY_T) * arr->capacity);
+    ARRAY_T p = __array_realloc(arr->values, sizeof(ARRAY_T) * arr->capacity);
     // TODO this shouldn't be necessary, pool_realloc is buggy!
-    memcpy(p, arr->data, sizeof(ARRAY_T) * arr->length);
-    __array_free(arr->data);
-    arr->data = p;
+    memcpy(p, arr->values, sizeof(ARRAY_T) * arr->length);
+    __array_free(arr->values);
+    arr->values = p;
   }
 }
 
-void array_delete(array* arr) { __array_free(arr->data); }
+void array_delete(array* arr) { __array_free(arr->values); }
