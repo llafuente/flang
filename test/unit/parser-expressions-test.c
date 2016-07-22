@@ -150,8 +150,8 @@ TASK_IMPL(parser_expressions) {
   });
 
   // TODO fix, should be string type
-  TEST_PARSER_OK("function call 01", "fn printf(ptr(i8) str) {}"
-                                     "printf ( \"xxx\" );",
+  TEST_PARSER_OK("function call 01", "fn xprintf(ptr(i8) str) {}\n"
+                                     "xprintf ( \"xxx\" );",
                  { ASSERT(body[1]->type == AST_EXPR_CALL, "AST_EXPR_CALL"); });
 
   TEST_PARSER_OK("chained assignament", "var x; var y; x = y = 1;", {});

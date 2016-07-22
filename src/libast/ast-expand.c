@@ -69,7 +69,7 @@ ast_t* ast_implement_fn(ast_t* type_list, ast_t* decl, string* uid) {
 
   // ast_replace_types(fn, 21, 4);
   fn->ty_id = ty_create_fn(fn);
-  typesystem(fn);
+  _typesystem(fn);
   return fn;
 }
 
@@ -115,7 +115,7 @@ ast_t* ast_implement_struct(ast_t* type_list, ast_t* decl, string* uid) {
   // ast_replace_types(fn, 21, 4);
   clone->ty_id = ty_create_struct(clone);
   clone->structure.id->ty_id = clone->ty_id;
-  typesystem(clone);
+  _typesystem(clone);
 
   return clone;
 }

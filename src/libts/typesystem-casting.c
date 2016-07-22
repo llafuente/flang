@@ -167,6 +167,7 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
 
     ast_t* callee = ast_mk_lit_id(st_clone(autocast->func.uid), false);
     callee->identifier.decl = autocast;
+    callee->ty_id = autocast->ty_id;
 
     ast_t* ecall = ast_mk_call_expr(callee, arguments);
     ecall->call.decl = autocast;
@@ -329,8 +330,10 @@ void ts_cast_return(ast_t* node) {
   if (t != node->ret.argument->ty_id) {
     ast_t* cast = __ts_create_cast(arg, t);
     node->ret.argument = cast;
+    node->ty_id = cast->ty_id;
+  } else {
+    node->ty_id = t;
   }
-  node->ty_id = t;
 }
 
 void ts_cast_lunary(ast_t* node) {
@@ -347,6 +350,11 @@ void ts_cast_lunary(ast_t* node) {
     ts_pass(node->lunary.element);
     node->ty_id = node->lunary.element->ty_id;
   }
+}
+
+void ts_cast_runary(ast_t* node) {
+  ts_pass(node->runary.element);
+  node->ty_id = node->runary.element->ty_id;
 }
 
 void ts_cast_assignament(ast_t* node) {
@@ -420,7 +428,7 @@ void ts_cast_call(ast_t* node) {
       tmp = ast_implement_fn(node->call.arguments, tmp, 0);
       log_silly("fn expanded: %zu", tmp->ty_id);
     }
-    node->call.callee->ty_id = cty_id = tmp->ty_id;
+    cty_id = tmp->ty_id;
     log_silly("set callee ty_id[%lu]", node->call.callee->ty_id);
   }
 
@@ -428,6 +436,8 @@ void ts_cast_call(ast_t* node) {
     log_warning("ignore expr call type");
     return; // TODO passthought printf atm
   }
+
+  node->call.callee->ty_id = cty_id;
 
   ast_t* decl = ts_type_table[cty_id].func.decl;
   node->call.decl = decl;
@@ -581,7 +591,8 @@ void ts_cast_expr_member(ast_t* node) {
   ty_t* type = &ts_type_table[l->ty_id];
   switch (type->of) {
   case FL_STRUCT: {
-    node->ty_id = ty_get_struct_prop_type(l->ty_id, p->identifier.string);
+    p->ty_id = node->ty_id =
+        ty_get_struct_prop_type(l->ty_id, p->identifier.string);
     node->member.idx = ty_get_struct_prop_idx(l->ty_id, p->identifier.string);
   } break;
   case FL_POINTER: {

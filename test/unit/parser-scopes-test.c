@@ -29,7 +29,7 @@
 TASK_IMPL(parser_scopes) {
   log_debug_level = 0;
 
-  TEST_PARSER_OK("scope 01 - test", "var a; var b; var c;"
+  TEST_PARSER_OK("scope 01 - test", "var i8 a; var i8 b; var i8 c;"
                                     "struct x { i8 b };",
                  {
     ASSERT(hash_has(mainblock->block.variables, "a"),

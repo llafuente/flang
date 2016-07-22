@@ -36,12 +36,8 @@ int main(int argc, char** argv) {
   if (ast_print_error(root)) {
     exit(4);
   }
-  // now everything must have a type != 0
-  // assert otherwise
-  root = ts_raise_no_type(root);
-  if (ast_print_error(root)) {
-    exit(4);
-  }
+
+  // ast_dump_s(root);
 
   // print to std atm...
   fl_codegen(root);

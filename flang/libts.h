@@ -204,12 +204,20 @@ libexport bool ty_is_int(u64 tyid);
  */
 libexport bool ty_is_pointer(u64 tyid);
 
-/* Check if given type is a template
+/* Check if given type is a template (pure)
  *
  * @tyid type id
  * @return is a pointer?
  */
 libexport bool ty_is_template(u64 tyid);
+
+/* Check if given type is a template, function with templates or struct with
+ * templates
+ *
+ * @tyid type id
+ * @return is a pointer?
+ */
+libexport bool ty_is_templated(u64 tyid);
 
 /* Return how many pointer deep is the current non-pointer type
  *
@@ -354,6 +362,11 @@ libexport void ts_cast_return(ast_t* node);
  */
 libexport void ts_cast_lunary(ast_t* node);
 
+/* Check if a right unary expression need to be casted
+ * @node node
+ */
+libexport void ts_cast_runary(ast_t* node);
+
 /* Check if an assignament expression need to be casted
  * @node node
  */
@@ -435,6 +448,9 @@ libexport ast_t* ts_implement(ast_t* node);
 
 /* cldoc:begin-category(typesystem.c) */
 
+/* Internal call to pass typesystem before current node
+*/
+libexport ast_t* _typesystem(ast_t* root);
 /* This will transform the raw tree parsed by
  * flex/bison to a good codegen friendly tree.
  * * Inference types
@@ -446,5 +462,4 @@ libexport ast_t* ts_implement(ast_t* node);
  * * Function operators (are like casting)
  */
 libexport ast_t* typesystem(ast_t* root);
-libexport ast_t* ts_raise_no_type(ast_t* root);
 /* cldoc:end-category() */

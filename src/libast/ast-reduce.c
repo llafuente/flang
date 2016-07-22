@@ -85,7 +85,7 @@ ast_t* ast_reduce(ast_t* node) {
     reduced = 0;
     ast_traverse(node, __trav_reduced, 0, 0, 0, (void*)&reduced);
     if (reduced) {
-      typesystem(node);
+      _typesystem(node);
     }
   } while (reduced);
 

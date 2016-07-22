@@ -154,17 +154,25 @@ ast_action_t __ts_inference_fn_ret(ast_trav_mode_t mode, ast_t* node,
           ct = el->ty_id;
         }
       }
-      node->func.ret_type->ty_id = ct;
+      node->func.ret_type->ty.id->ty_id = node->func.ret_type->ty_id = ct;
 
       array_delete(list);
       free(list);
     } else {
       // add return at last statement, and type to void
       node->func.ret_type->ty_id = TS_VOID;
-      ast_mk_list_push(body->block.body,
-                       ast_mk_return(ast_mk_lit_integer("0")));
+      if (node->func.ret_type->ty.id) {
+        node->func.ret_type->ty.id->ty_id = TS_VOID;
+      }
+      ast_t* ret = ast_mk_return(0);
+      ret->ty_id = TS_VOID;
+      ast_mk_list_push(body->block.body, ret);
       ast_parent(node);
     }
+
+    // now update the type
+
+    ts_type_table[node->ty_id].func.ret = node->func.ret_type->ty_id;
   }
 
   return AST_SEARCH_CONTINUE;

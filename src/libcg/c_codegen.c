@@ -385,10 +385,10 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     if (mode == AST_TRAV_LEAVE) {
       string* right = (string*)array_pop(cg_stack);
       string* left = (string*)array_pop(cg_stack);
-      if (ty_is_number(node->member.property->ty_id)) {
-        stack_append("(%s[%s])", left->value, right->value);
-      } else {
+      if (ty_is_struct(node->member.left->ty_id)) {
         stack_append("(%s.%s)", left->value, right->value);
+      } else {
+        stack_append("(%s[%s])", left->value, right->value);
       }
     }
     break;
@@ -551,9 +551,13 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     break;
   case AST_STMT_RETURN:
     if (mode == AST_TRAV_LEAVE) {
-      string* expr = (string*)array_pop(cg_stack);
+      if (node->ret.argument) {
+        string* expr = (string*)array_pop(cg_stack);
 
-      stack_append("return %s", expr->value);
+        stack_append("return %s", expr->value);
+      } else {
+        stack_append("return"); // ; ?
+      }
     }
     break;
   /*

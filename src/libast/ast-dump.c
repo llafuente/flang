@@ -142,7 +142,7 @@ void ast_dump_one(ast_t* node) {
     printf("parameter");
     break;
   case AST_STMT_RETURN:
-    printf("return");
+    printf("return T(%zu)", node->ty_id);
     break;
   case AST_ERROR:
     printf("ERROR [%s: %s]", node->err.type->value, node->err.message->value);

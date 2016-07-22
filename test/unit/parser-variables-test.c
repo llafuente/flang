@@ -29,7 +29,7 @@
 TASK_IMPL(parser_variables) {
   log_debug_level = 0;
 
-  TEST_PARSER_OK("var decl 01", "var hello;", {
+  TEST_PARSER_OK("var decl 01", "var hello; hello = 1;", {
     ASSERT(body[0]->type == AST_DTOR_VAR, "type: AST_DTOR_VAR");
   });
 

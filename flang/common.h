@@ -17,6 +17,7 @@
 #define f64 double
 
 #define libexport extern
+#define internal static
 
 #include "ext/hash.h"  // import hash_t
 #include "ext/array.h" // import array_t

@@ -29,9 +29,8 @@
 #include "flang/libparser.h"
 
 static int ts_pending = 0;
-ast_t* typesystem(ast_t* root) {
-  ts_pending = 0;
 
+ast_t* _typesystem(ast_t* root) {
   psr_ast_imports(root);
 
   ts_register_types(root);
@@ -43,14 +42,11 @@ ast_t* typesystem(ast_t* root) {
 
   // reduce ast to it's minimal form
   root = ast_reduce(root);
-
-  return root;
 }
 
 ast_action_t __trav_raise_no_type(ast_trav_mode_t mode, ast_t* node,
                                   ast_t* parent, u64 level, void* userdata_in,
                                   void* userdata_out) {
-
   // these don't have a type
   switch (node->type) {
   case AST_DECL_FUNCTION:
@@ -69,8 +65,12 @@ ast_action_t __trav_raise_no_type(ast_trav_mode_t mode, ast_t* node,
   case AST_LIST:
   case AST_STMT_COMMENT:
   case AST_IMPORT:
+  case AST_STMT_IF:   // REVIEW this may be and expr in the future
+  case AST_STMT_LOOP: // REVIEW this may be and expr in the future
     return AST_SEARCH_CONTINUE;
+  default: {} // remove warning
   }
+
   if (!node->ty_id) {
     ast_dump_s(node->parent);
     ast_dump_s(node);
@@ -78,9 +78,21 @@ ast_action_t __trav_raise_no_type(ast_trav_mode_t mode, ast_t* node,
     ast_raise_error(node, "Cannot determine type");
     return AST_SEARCH_STOP;
   }
+
+  return AST_SEARCH_CONTINUE;
 }
 
-ast_t* ts_raise_no_type(ast_t* root) {
+ast_t* typesystem(ast_t* root) {
+  ts_pending = 1;
+
+  while (ts_pending) {
+    _typesystem(root);
+    ts_pending = 0; // just exit atm.
+  }
+
+  // now everything must have a type != 0
+  // assert otherwise
   ast_traverse(root, __trav_raise_no_type, 0, 0, 0, 0);
+
   return root;
 }

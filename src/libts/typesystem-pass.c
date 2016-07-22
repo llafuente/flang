@@ -98,6 +98,9 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
   case AST_EXPR_LUNARY: {
     ts_cast_lunary(node);
   } break;
+  case AST_EXPR_RUNARY: {
+    ts_cast_runary(node);
+  } break;
   case AST_EXPR_ASSIGNAMENT: {
     ts_cast_assignament(node);
   } break;
@@ -130,13 +133,6 @@ ast_action_t __ts_cast_operation_pass_cb(ast_trav_mode_t mode, ast_t* node,
 }
 
 ast_t* ts_pass(ast_t* node) {
-  /*
-  log_debug2("ts_inference");
-  ast_dump_one(node);
-  printf("\n");
-  log_debug2("\n");
-  */
-
   ts_inference(node);
   if (ast_last_error_node != 0) {
     return node;
@@ -154,6 +150,8 @@ ast_t* ts_pass(ast_t* node) {
   if (ast_last_error_node != 0) {
     return node;
   }
+  // inference again now that we have more info
+  ts_inference(node);
 
   log_debug("typesystem passed");
 
