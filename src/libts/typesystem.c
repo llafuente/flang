@@ -24,9 +24,11 @@
 */
 
 #include "flang/common.h"
+#include "flang/flang.h"
 #include "flang/libts.h"
 #include "flang/libast.h"
 #include "flang/libparser.h"
+#include <setjmp.h>
 
 static int ts_pending = 0;
 
@@ -85,8 +87,11 @@ ast_action_t __trav_raise_no_type(ast_trav_mode_t mode, ast_t* node,
 ast_t* typesystem(ast_t* root) {
   ts_pending = 1;
 
-  while (ts_pending) {
-    _typesystem(root);
+  while (ts_pending && !ast_last_error_message) {
+    if (!setjmp(fl_on_error_jmp)) {
+      printf("setjmp!!\n");
+      _typesystem(root);
+    }
     ts_pending = 0; // just exit atm.
   }
 

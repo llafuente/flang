@@ -24,17 +24,22 @@
 */
 
 #include "flang/common.h"
+#include "flang/flang.h"
 #include "flang/libparser.h"
 #include "flang/debug.h"
 #include "flang/libast.h"
 #include "flang/libts.h"
 #include "stringc.h"
+#include <setjmp.h>
 
 array* identifiers;
 extern int yycolumn;
 extern int yylineno;
+jmp_buf fl_on_error_jmp;
 
 void flang_init() {
+  memset(fl_on_error_jmp, 0, sizeof(jmp_buf));
+
   // reset flex/bison
   yycolumn = 1;
   yylineno = 1;

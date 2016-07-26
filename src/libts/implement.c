@@ -86,7 +86,7 @@ ast_action_t __trav_implement(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       }
     }
     array_delete(arr);
-    free(arr);
+    pool_free(arr);
   } break;
   default: {}
   }

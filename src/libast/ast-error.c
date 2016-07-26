@@ -24,8 +24,10 @@
 */
 
 #include "flang/common.h"
+#include "flang/flang.h"
 #include "flang/libast.h"
 #include "flang/debug.h"
+#include <setjmp.h>
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
@@ -122,4 +124,7 @@ void ast_raise_error(ast_t* node, char* message, ...) {
   fprintf(stderr, "\n\nStackTrace:\n");
 
   __sanitizer_print_stack_trace();
+
+  printf("longjmp!!\n");
+  longjmp(fl_on_error_jmp, 0);
 }

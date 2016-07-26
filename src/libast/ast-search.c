@@ -62,6 +62,7 @@ ast_t* ast_search_fn(ast_t* node, string* identifier, u64* args, u64 nargs,
   }
 
   u64 i;
+  ast_t* ret = 0;
   ast_t* fn;
   for (i = 0; i < arr->length; ++i) {
     fn = arr->values[i];
@@ -79,15 +80,16 @@ ast_t* ast_search_fn(ast_t* node, string* identifier, u64* args, u64 nargs,
       if (t.func.nparams == nargs &&
           memcmp(args, t.func.params, nargs * sizeof(u64)) == 0 &&
           t.func.varargs == var_args && t.func.ret == ret_ty) {
-        array_delete(arr);
-        free(arr);
-        return fn;
+        ret = fn;
+        goto cleanup;
       }
     }
   }
+
+cleanup:
   array_delete(arr);
-  free(arr);
-  return 0;
+  pool_free(arr);
+  return ret;
 }
 
 // TODO handle args
@@ -161,13 +163,13 @@ ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
 
 fn_wargs_return:
   array_delete(arr);
-  free(arr);
+  pool_free(arr);
 
   return ret_decl;
 }
 
 array* ast_search_fns(ast_t* node, string* id) {
-  array* arr = malloc(sizeof(array));
+  array* arr = pool_new(sizeof(array));
   array* arr2;
   array_new(arr);
 
@@ -188,7 +190,7 @@ array* ast_search_fns(ast_t* node, string* id) {
   }
 
   array_delete(arr);
-  free(arr);
+  pool_free(arr);
   return 0;
 }
 

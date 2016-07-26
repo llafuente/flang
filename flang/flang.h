@@ -23,5 +23,11 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <setjmp.h>
+
+extern jmp_buf fl_on_error_jmp;
+extern ast_t* ast_last_error_node;
+extern char* ast_last_error_message;
+
 libexport void flang_init();
 libexport void flang_exit(ast_t* root);
