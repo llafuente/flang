@@ -23,7 +23,7 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang/common.h"
+#include "flang/flang.h"
 #include "flang/libast.h"
 
 ast_action_t __trav_replace_types(ast_trav_mode_t mode, ast_t* node,

@@ -23,7 +23,7 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang/common.h"
+#include "flang/flang.h"
 #include "flang/libts.h"
 #include "src/libparser/grammar/tokens.h"
 #include "flang/libast.h"

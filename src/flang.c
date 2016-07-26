@@ -23,7 +23,6 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang/common.h"
 #include "flang/flang.h"
 #include "flang/libparser.h"
 #include "flang/debug.h"

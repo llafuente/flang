@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "flang/common.h"
+#include "flang/flang.h"
 
 array_malloc_func __array_replaced_malloc = 0;
 array_free_func __array_replaced_free = 0;

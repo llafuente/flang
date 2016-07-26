@@ -23,7 +23,7 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang/common.h"
+#include "flang/flang.h"
 #include "flang/libast.h"
 
 // NOTE this file contains all allocation-ast related functions

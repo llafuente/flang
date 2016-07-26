@@ -10,8 +10,7 @@ COMPILER_SOURCES = src/flang.c \
 AM_CPPFLAGS = -I$(top_srcdir)/ext \
               -I$(top_srcdir)/src
 
-include_HEADERS = flang/common.h \
-  flang/flang.h \
+include_HEADERS = flang/flang.h \
   flang/debug.h \
   flang/libast.h \
   flang/libparser.h \

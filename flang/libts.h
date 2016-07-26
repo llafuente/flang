@@ -457,7 +457,7 @@ libexport ast_t* ts_implement(ast_t* node);
 
 /* Internal call to pass typesystem before current node
 */
-libexport ast_t* _typesystem(ast_t* root);
+libexport void _typesystem(ast_t* root);
 /* This will transform the raw tree parsed by
  * flex/bison to a good codegen friendly tree.
  * * Inference types

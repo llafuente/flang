@@ -1,4 +1,4 @@
-#include "flang/common.h"
+#include "flang/flang.h"
 #include "flang/libast.h"
 #include "flang/libparser.h"
 #include "flang/libts.h"

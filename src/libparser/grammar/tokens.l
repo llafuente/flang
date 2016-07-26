@@ -1,5 +1,5 @@
 %{
-#include "flang/common.h"
+#include "flang/flang.h"
 #include "flang/libast.h"
 
 #define TOKEN(t)    (yylval.token = t)

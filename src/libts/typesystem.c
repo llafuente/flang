@@ -23,7 +23,6 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "flang/common.h"
 #include "flang/flang.h"
 #include "flang/libts.h"
 #include "flang/libast.h"
@@ -32,7 +31,7 @@
 
 static int ts_pending = 0;
 
-ast_t* _typesystem(ast_t* root) {
+void _typesystem(ast_t* root) {
   psr_ast_imports(root);
 
   ts_register_types(root);

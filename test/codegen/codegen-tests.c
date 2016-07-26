@@ -24,10 +24,9 @@
 */
 
 #include "../tasks.h"
-#include "flang/common.h"
+#include "flang/flang.h"
 #include "flang/libast.h"
 #include "flang/debug.h"
-#include "flang/flang.h"
 #include "flang/libparser.h"
 #include "flang/./libcg.h"
 #include "flang/libts.h"
