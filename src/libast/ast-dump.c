@@ -127,6 +127,9 @@ void ast_dump_one(ast_t* node) {
   case AST_DECL_STRUCT_FIELD:
     printf("field T(%zu)", node->ty_id);
     break;
+  case AST_DECL_STRUCT_ALIAS:
+    printf("alias T(%zu)", node->ty_id);
+    break;
   case AST_DECL_FUNCTION:
     printf("function T(%zu) id(%s) uid(%s) ffi(%d) varargs(%d) tpl(%d) "
            "[params=%zu]",

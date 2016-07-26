@@ -86,8 +86,9 @@ enum ast_types {
   AST_TYPE = 40,
   AST_DECL_STRUCT = 41,
   AST_DECL_STRUCT_FIELD = 42,
-  AST_DECL_TEMPLATE = 43,
-  AST_IMPLEMENT = 44,
+  AST_DECL_STRUCT_ALIAS = 43,
+  AST_DECL_TEMPLATE = 44,
+  AST_IMPLEMENT = 45,
 
   AST_DECL_FUNCTION = 50,
   AST_PARAMETER = 51,
@@ -242,7 +243,7 @@ struct ast {
     struct ast_decl_struct {
       ast_t* id;
       ast_t* fields; // list
-      ast_t* tpls;   // AST_LIST of idents
+      ast_t* tpls; // AST_LIST of ast_decl_struct_field or ast_decl_struct_alias
 
       ast_t* from_tpl; // cames from which template?
     } structure;       // aggregate
@@ -251,6 +252,12 @@ struct ast {
       ast_t* type;
       ast_t* id;
     } field; // aggregate
+
+    struct ast_decl_struct_alias {
+      u64 index;
+      ast_t* name;
+      ast_t* id;
+    } alias; // aggregate
 
     struct ast_decl_function {
       // TODO use ty_t*
@@ -430,6 +437,7 @@ libexport ast_t* ast_mk_loop(ast_types_t type, ast_t* init, ast_t* pre_cond,
                              ast_t* update, ast_t* bloc, ast_t* post_cond);
 libexport ast_t* ast_mk_struct_decl(ast_t* id, ast_t* tpls, ast_t* fields);
 libexport ast_t* ast_mk_struct_decl_field(ast_t* id, ast_t* type);
+libexport ast_t* ast_mk_struct_decl_alias(ast_t* name, ast_t* id);
 libexport ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression);
 libexport ast_t* ast_mk_sizeof(ast_t* type);
 libexport ast_t* ast_mk_cast(ast_t* type, ast_t* element);

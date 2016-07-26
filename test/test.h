@@ -46,8 +46,8 @@
   ASSERT(root != 0, "root is not null");                                       \
   ASSERT(root->type == AST_PROGRAM, "root is a program");                      \
   ASSERT(root->program.body->type == AST_BLOCK, "program has body");           \
-  ASSERT(root->program.body->block.body->list.length > 0, "body has "           \
-                                                         "statements");
+  ASSERT(root->program.body->block.body->list.length > 0, "body has "          \
+                                                          "statements");
 
 #define CHK_GET_BODY(root, target)                                             \
   CHK_BODY(root);                                                              \
@@ -79,7 +79,7 @@
       exit(1);                                                                 \
     }                                                                          \
     ast_t* mainblock = root->program.body;                                     \
-    ast_t** body = root->program.body->block.body->list.values;              \
+    ast_t** body = root->program.body->block.body->list.values;                \
     code_block;                                                                \
     flang_exit(root);                                                          \
   }
@@ -115,7 +115,7 @@
       fprintf(stderr, "unexpected typesystem error");                          \
       exit(1);                                                                 \
     }                                                                          \
-    ast_t** body = root->program.body->block.body->list.values;              \
+    ast_t** body = root->program.body->block.body->list.values;                \
     fl_codegen(root);                                                          \
     code_block;                                                                \
     flang_exit(root);                                                          \
@@ -130,7 +130,7 @@
     ts_register_types(root);                                                   \
     root = ts_pass(root);                                                      \
     ast_mindump(root);                                                         \
-    ast_t** body = root->program.body->block.body->list.values;              \
+    ast_t** body = root->program.body->block.body->list.values;                \
     fl_codegen(root);                                                          \
     code_block;                                                                \
     flang_exit(root);                                                          \

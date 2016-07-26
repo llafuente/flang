@@ -253,7 +253,8 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
   case AST_TYPE:
   case AST_PARAMETER: // manually handled @AST_DECL_FUNCTION
     break;
-  case AST_IMPLEMENT: // handled @typesystem
+  case AST_IMPLEMENT:         // handled @typesystem
+  case AST_DECL_STRUCT_ALIAS: // not needed
     return AST_SEARCH_SKIP;
   case AST_BLOCK:
     if (mode == AST_TRAV_ENTER) {
@@ -386,7 +387,14 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       string* right = (string*)array_pop(cg_stack);
       string* left = (string*)array_pop(cg_stack);
       if (ty_is_struct(node->member.left->ty_id)) {
-        stack_append("(%s.%s)", left->value, right->value);
+        // we can be aliasing, so we can trust right->value
+        // instead we just use the property name of the type
+        ty_t t = ts_type_table[node->member.left->ty_id];
+
+        // stack_append("(%s.%s)", left->value, right->value);
+        stack_append(
+            "(%s.%s)", left->value,
+            ((string**)t.structure.properties.values)[node->member.idx]->value);
       } else {
         stack_append("(%s[%s])", left->value, right->value);
       }

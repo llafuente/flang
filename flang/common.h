@@ -31,6 +31,15 @@ typedef enum ts_types ts_types_t;
 struct ts_type;
 typedef struct ts_type ty_t;
 
+struct ts_type_struct_alias;
+typedef struct ts_type_struct_alias ts_type_struct_alias_t;
+
+struct ts_struct_alias;
+typedef struct ts_struct_alias ts_struct_alias_t;
+
+struct ts_struct_virtual;
+typedef struct ts_struct_virtual ts_struct_virtual_t;
+
 // defined @flang-ast
 enum ast_action;
 typedef enum ast_action ast_action_t;

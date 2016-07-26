@@ -123,15 +123,27 @@ u64 ty_get_struct_prop_idx(u64 id, string* property) {
   }
 
   ty_t t = ts_type_table[id];
-  void** properties = t.structure.properties.values;
+  array* props = (array*)&t.structure.properties;
+  void** properties = props->values;
 
+  // check properties first
   u64 i;
-  for (i = 0; i < t.structure.nfields; ++i) {
+  for (i = 0; i < props->length; ++i) {
     if (st_cmp((const string*)properties[i], property) == 0) {
       return i;
     }
   }
 
+  // check aliases
+  array* aliases = (array*)&t.structure.alias;
+  properties = props->values;
+  ts_type_struct_alias_t* alias;
+  for (i = 0; i < aliases->length; ++i) {
+    alias = aliases->values[i];
+    if (st_cmp((const string*)alias->name, property) == 0) {
+      return alias->index;
+    }
+  }
   return -1;
 }
 
@@ -142,17 +154,12 @@ u64 ty_get_struct_prop_type(u64 id, string* property) {
     log_error("type [%zu] is not an struct", id);
   }
 
+  u64 index = ty_get_struct_prop_idx(id, property);
+  if (index == -1)
+    return 0;
+
   ty_t t = ts_type_table[id];
-  void** properties = t.structure.properties.values;
-
-  u64 i;
-  for (i = 0; i < t.structure.nfields; ++i) {
-    if (st_cmp((const string*)properties[i], property) == 0) {
-      return t.structure.fields[i];
-    }
-  }
-
-  return 0;
+  return t.structure.fields[index];
 }
 
 bool __fn_collision(ast_t* where, ast_t* scope, char* ty_name, char* uid_name) {
@@ -257,28 +264,55 @@ u64 ty_create_struct(ast_t* decl) {
   ast_t* list = decl->structure.fields;
   u64 length = list->list.length;
   u64* fields = calloc(length, sizeof(u64));
-  string** properties = calloc(length, sizeof(string*));
+  array properties;
+  array alias;
+  array_new(&properties);
+  array_new(&alias);
   string* id = decl->structure.id->identifier.string;
 
   int templates = 0;
 
   ast_t** elements = list->list.values;
+  // field pass
   for (i = 0; i < length; ++i) {
-    fields[i] = elements[i]->field.type->ty_id;
-    templates += ty_is_templated(fields[i]);
-    properties[i] = elements[i]->field.id->identifier.string;
+    if (elements[i]->type == AST_DECL_STRUCT_FIELD) {
+      fields[i] = elements[i]->field.type->ty_id;
+      templates += ty_is_templated(fields[i]);
+      array_push(&properties, elements[i]->field.id->identifier.string);
+    }
+  }
+  // alias pass
+  for (i = 0; i < length; ++i) {
+    if (elements[i]->type == AST_DECL_STRUCT_ALIAS) {
+      ts_type_struct_alias_t* als = pool_new(sizeof(ts_type_struct_alias_t));
+      als->name = elements[i]->alias.name->identifier.string;
+      als->id = elements[i]->alias.id->identifier.string;
+      for (int j = 0; j < properties.length; ++j) {
+        if (st_cmp(properties.values[j], als->id) == 0) {
+          als->index = j;
+          elements[i]->alias.id->ty_id = elements[i]->alias.name->ty_id =
+              elements[i]->ty_id = fields[j];
+          // fail later!
+        }
+      }
+
+      array_push(&alias, als); // add the AST directly
+                               // calc type
+    }
   }
 
-  // check for a struct with the same properties / types
+  // check for a struct with the same properties / types / alias
   int same_struct_found = -1;
   for (i = 0; i < ts_type_size_s; ++i) {
     ty_t* t = &ts_type_table[i];
 
-    if (t->of == FL_STRUCT && t->structure.nfields == length) {
+    if (t->of == FL_STRUCT &&
+        t->structure.properties.length == properties.length) {
       bool same_props = true;
-      for (int j = 0; j < length; ++j) {
+      for (int j = 0; j < properties.length; ++j) {
         if (fields[j] != t->structure.fields[j] ||
-            st_cmp(properties[j], t->structure.properties.values[j]) != 0) {
+            st_cmp(properties.values[j], t->structure.properties.values[j]) !=
+                0) {
           same_props = false;
           break;
         }
@@ -286,7 +320,8 @@ u64 ty_create_struct(ast_t* decl) {
 
       if (same_props) {
         free(fields);
-        free(properties);
+        array_delete(&properties);
+        array_delete(&alias);
         same_struct_found = i;
         break;
       }
@@ -300,10 +335,8 @@ u64 ty_create_struct(ast_t* decl) {
     ts_type_table[i].id = id;
     ts_type_table[i].structure.decl = decl;
     ts_type_table[i].structure.fields = fields;
-    ts_type_table[i].structure.properties.values = properties;
-    ts_type_table[i].structure.properties.length = nfields;
-    ts_type_table[i].structure.properties.capacity = nfields;
-    ts_type_table[i].structure.nfields = length;
+    ts_type_table[i].structure.properties = properties;
+    ts_type_table[i].structure.alias = alias;
     ts_type_table[i].structure.templated = templates > 0;
   } else {
     i = same_struct_found;
@@ -372,9 +405,9 @@ bool ty_compatible_struct(u64 a, u64 b) {
   //  return false;
   //}
   u64 i;
-  for (i = 0; i < at.structure.nfields; ++i) {
+  for (i = 0; i < at.structure.properties.length; ++i) {
     // reach the end of b, and all is compatible!
-    if (i == bt.structure.nfields) {
+    if (i == bt.structure.properties.length) {
       return true;
     }
 

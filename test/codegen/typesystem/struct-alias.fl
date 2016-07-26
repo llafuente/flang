@@ -1,0 +1,27 @@
+template $tpl;
+
+/*
+  TODO assert using template without the proper syntax
+*/
+struct array($tpl) {
+  u64 length,
+  u64 capacity,
+  $tpl values,
+
+  alias len length,
+  alias cap capacity,
+};
+
+
+implement array(i8) as array_i8;
+
+
+var array_i8 xx;
+
+xx.len = 100;
+xx.cap = 101;
+
+printf("array len: %lu\n", xx.len);
+printf("array cap: %lu\n", xx.cap);
+printf("array length: %lu\n", xx.length);
+printf("array capacity: %lu\n", xx.capacity);

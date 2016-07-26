@@ -48,16 +48,16 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, u64 level,
     ast_t* tmp;                                                                \
                                                                                \
     if (node) {                                                                \
-      for(u64 i = 0; i < (node)->list.length; ++i) {  \
-      tmp = (ast_t*) (node->list.values)[i]; \
-          switch (__ast_traverse(tmp, cb, ast, level, userdata_in,             \
-                                 userdata_out)) {                              \
-          case AST_SEARCH_SKIP:                                                \
-          case AST_SEARCH_CONTINUE:                                            \
-            continue;                                                          \
-          case AST_SEARCH_STOP:                                                \
-            return AST_SEARCH_STOP;                                            \
-          }                                                                    \
+      for (u64 i = 0; i < (node)->list.length; ++i) {                          \
+        tmp = (ast_t*)(node->list.values)[i];                                  \
+        switch (                                                               \
+            __ast_traverse(tmp, cb, ast, level, userdata_in, userdata_out)) {  \
+        case AST_SEARCH_SKIP:                                                  \
+        case AST_SEARCH_CONTINUE:                                              \
+          continue;                                                            \
+        case AST_SEARCH_STOP:                                                  \
+          return AST_SEARCH_STOP;                                              \
+        }                                                                      \
       }                                                                        \
     }                                                                          \
   }
@@ -154,6 +154,10 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, u64 level,
     TRAVERSE(ast->field.id);
     TRAVERSE(ast->field.type);
   } break;
+  case AST_DECL_STRUCT_ALIAS: {
+    TRAVERSE(ast->alias.name);
+    TRAVERSE(ast->alias.id);
+  }
   case AST_DECL_TEMPLATE: {
     TRAVERSE(ast->tpl.id);
   } break;

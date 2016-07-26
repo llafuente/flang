@@ -53,7 +53,7 @@
 %token <token> TK_CONTINUE TK_ELSE TK_ENUM TK_FN
 %token <token> TK_FFI TK_FOR TK_IF TK_IN TK_MATCH
 %token <token> TK_IMPORT TK_FORWARD TK_PUB TK_REF TK_RETURN TK_STATIC
-%token <token> TK_STRUCT TK_TYPE TK_TYPEOF TK_USE
+%token <token> TK_STRUCT TK_ALIAS TK_TYPE TK_TYPEOF TK_USE
 %token <token> TK_VAR TK_GLOBAL TK_WHERE TK_WHILE TK_DO TK_SIZEOF TK_LOG
 
 %token <token> TK_FALSE TK_TRUE TK_NULL
@@ -342,7 +342,11 @@ struct_decl_fields_list
 struct_decl_field
   : type ident { $$ = ast_mk_struct_decl_field($2, $1); ast_position($$, @1, @2); }
   | ident      { $$ = ast_mk_struct_decl_field($1, 0);  ast_position($$, @1, @1); }
-
+  | TK_ALIAS ident ident {
+    $$ = ast_mk_struct_decl_alias($2, $3);
+    ast_position($$, @1, @3);
+  }
+  ;
 
 attributes
   : attribute {

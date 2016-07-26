@@ -1,0 +1,4 @@
+array len: 100
+array cap: 101
+array length: 100
+array capacity: 101

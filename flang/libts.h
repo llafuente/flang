@@ -105,8 +105,9 @@ struct ts_type {
       ast_t* decl;
 
       u64* fields;
-      array properties; // REVIEW memory managed by typesystem no array
-      u64 nfields;
+      array properties; // array of strings*
+      array alias;      // array of ts_type_struct_alias_t
+      array virtuals;   // array of ast* (AST_DECL_FUNCTION)
 
       bool templated;
 
@@ -124,6 +125,12 @@ struct ts_type {
       ast_t* decl;
     } tpl;
   };
+};
+
+struct ts_type_struct_alias {
+  string* name;
+  string* id;
+  u64 index;
 };
 
 /* cldoc:begin-category(type-dump.c) */

@@ -106,8 +106,7 @@ ast_action_t __ts_inference_dtors(ast_trav_mode_t mode, ast_t* node,
               ++idx;
             }
 
-            node->var.type->ty_id =
-                decl->func.params->list.values[idx]->ty_id;
+            node->var.type->ty_id = decl->func.params->list.values[idx]->ty_id;
 
             ((*(u64*)userdata_out))++;
             break;

@@ -67,7 +67,7 @@ ast_t* ast_mk_list() {
   ast_t* node = ast_new();
   node->type = AST_LIST;
 
-  array_newcap((array*) &node->list, 10);
+  array_newcap((array*)&node->list, 10);
   return node;
 }
 
@@ -75,8 +75,8 @@ ast_t* ast_mk_list_push(ast_t* list, ast_t* node) {
   // printf("ast_mk_list_push [%p]\n", list);
   fl_assert(list->type == AST_LIST);
 
-  //list->list.values[list->list.length++] = node;
-  array_push((array*) &list->list, (void*)node);
+  // list->list.values[list->list.length++] = node;
+  array_push((array*)&list->list, (void*)node);
   return list;
 }
 
@@ -84,14 +84,14 @@ ast_t* ast_mk_list_pop(ast_t* list) {
   // printf("ast_mk_list_push [%p]\n", list);
   assert(list->type == AST_LIST);
 
-  return (ast_t*) array_pop((array*) &list->list);
+  return (ast_t*)array_pop((array*)&list->list);
 }
 
 ast_t* ast_mk_list_insert(ast_t* list, ast_t* node, u64 idx) {
   // printf("ast_mk_list_push [%p]\n", list);
   assert(list->type == AST_LIST);
 
-  array_insert((array*) &list->list, idx, (void*) node);
+  array_insert((array*)&list->list, idx, (void*)node);
 
   return list;
 }
@@ -528,6 +528,21 @@ ast_t* ast_mk_struct_decl_field(ast_t* id, ast_t* type) {
   id->identifier.resolve = false;
   node->field.id = id;
   node->field.type = type;
+
+  return node;
+}
+
+ast_t* ast_mk_struct_decl_alias(ast_t* name, ast_t* id) {
+  // printf("ast_mk_struct_decl_field\n");
+  ast_t* node = ast_new();
+  node->type = AST_DECL_STRUCT_ALIAS;
+
+  id->identifier.resolve = false;
+  name->identifier.resolve = false;
+
+  node->alias.name = name;
+  node->alias.id = id;
+  // node->field.index when type is created
 
   return node;
 }

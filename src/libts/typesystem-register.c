@@ -191,6 +191,10 @@ ast_action_t __trav_register_types(ast_trav_mode_t mode, ast_t* node,
       p->ty_id = node->ty_id;
       p->field.id->ty_id = node->ty_id;
       break;
+    case AST_DECL_STRUCT_ALIAS:
+      // at this point, struct is no created, so we cannot determine
+      // the real type. we will do it @ty_create_struct
+      break;
     case AST_CAST:
       p->ty_id = node->ty_id;
       break;

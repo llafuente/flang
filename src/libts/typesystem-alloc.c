@@ -152,7 +152,8 @@ void ts_exit() {
     // struct and same length?
     if (ts_type_table[i].of == FL_STRUCT) {
       free(ts_type_table[i].structure.fields);
-      free(ts_type_table[i].structure.properties.values);
+      array_delete(&ts_type_table[i].structure.properties);
+      array_delete(&ts_type_table[i].structure.alias);
     } else if (ts_type_table[i].of == FL_FUNCTION) {
       free(ts_type_table[i].func.params);
     }

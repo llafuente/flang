@@ -106,12 +106,13 @@ if       { SET_LOCATION; return TK_IF; }
 in       { SET_LOCATION; return TK_IN; }
 match    { SET_LOCATION; return TK_MATCH; }
 import   { SET_LOCATION; return TK_IMPORT; }
-forward   { SET_LOCATION; return TK_FORWARD; }
+forward  { SET_LOCATION; return TK_FORWARD; }
 pub      { SET_LOCATION; return TK_PUB; }
 ref      { SET_LOCATION; return TK_REF; }
 return   { SET_LOCATION; return TK_RETURN; }
 static   { SET_LOCATION; return TK_STATIC; }
 struct   { SET_LOCATION; return TK_STRUCT; }
+alias    { SET_LOCATION; return TK_ALIAS; }
 type     { SET_LOCATION; return TK_TYPE; }
 typeof   { SET_LOCATION; return TK_TYPEOF; }
 use      { SET_LOCATION; return TK_USE; }

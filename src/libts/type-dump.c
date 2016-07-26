@@ -111,7 +111,7 @@ string* ty_to_string(u64 ty_id) {
     st_append_c(&buffer, " { ");
 
     u64 i;
-    for (i = 0; i < ty.structure.nfields; ++i) {
+    for (i = 0; i < ty.structure.properties.length; ++i) {
       st_append(&buffer, ty_to_string(ty.structure.fields[i]));
       st_append_c(&buffer, " ");
       st_append(&buffer, ty.structure.properties.values[i]);
@@ -165,7 +165,7 @@ void ty_dump(u64 ty_id) {
     log_debug2("struct %s {",
                ty.structure.decl->structure.id->identifier.string->value);
     u64 i;
-    for (i = 0; i < ty.structure.nfields; ++i) {
+    for (i = 0; i < ty.structure.properties.length; ++i) {
       ty_dump(ty.structure.fields[i]);
       log_debug2(", ");
     }
@@ -217,7 +217,7 @@ void __ty_dump_cell(u64 ty_id, int indent) {
               ty.structure.decl->structure.id->identifier.string->value,
               ty.structure.templated);
     u64 i;
-    for (i = 0; i < ty.structure.nfields; ++i) {
+    for (i = 0; i < ty.structure.properties.length; ++i) {
       __ty_dump_cell(ty.structure.fields[i], indent + 2);
     }
   } break;

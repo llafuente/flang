@@ -43,7 +43,7 @@ void __ast_delete_list(ast_t* list) {
     }
   }
 
-  array_delete((array*) &list->list);
+  array_delete((array*)&list->list);
 
   // pool is used to handle memory on errors
   // free(list);
