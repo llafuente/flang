@@ -19,21 +19,21 @@ struct array_t($tpl) { // @heap
 // implement array(u8) as string;
 // also string should extend the type adding encoding
 
-function propery first(array($tpl) arr) : $tpl {
+function property first(array arr) {
   return arr.values[0];
 }
 
-function propery last(array($tpl) arr) : $tpl {
+function property last(array arr) {
   return arr.values[arr.length - 1];
 }
 
-function propery is_full(array($tpl) arr) : bool {
+function property is_full(array arr) : bool {
   return arr.length == arr.capacity;
 }
 
 // virtual are transform to functions with force inline
-// bool is_empty(array($tpl)* arr) { return arr->length == 0; }
-function propery is_empty(array($tpl) arr) : bool {
+// bool is_empty(array* arr) { return arr->length == 0; }
+function property is_empty(array arr) : bool {
   return length == 0;
 }
 
@@ -49,7 +49,7 @@ function propery is_empty(array($tpl) arr) : bool {
 // replace each argument with the return value
 // replace #transclude with the block of code
 // usage: arr.each(var i, var t) {}
-macro each(array($tpl), u64 #index, $T #value) {
+macro each(array, u64 #index, $T #value) {
   for (var #index == 0; #index < length; ++i) {
     #value = values[i];
     #transclude
@@ -57,13 +57,13 @@ macro each(array($tpl), u64 #index, $T #value) {
 }
 
 // this function is not duplicated per type, because $tpl is not used
-function operator delete (ref array($tpl) arr) {
+function operator delete (ref array arr) {
   free(*arr);
   *arr = 0;
 }
 
 // this function is duplicated because it's use $tpl
-function operator new (ref array($tpl) arr, u64 cap) {
+function operator new (ref array arr, u64 cap) {
   *arr = malloc(sizeof(array_t), sizeof($tpl) * cap);
   // initialize size and capacity
   *arr.length = 0;
@@ -72,7 +72,7 @@ function operator new (ref array($tpl) arr, u64 cap) {
 }
 
 // push arr[]= 1;
-function operator []= (array($tpl) arr, $tpl value) : void {
+function operator []= (array arr, $tpl value) : void {
   // $tpl is backed in all operators
   // function is not duplicated
   if (type($tpl).is_ptr) {
@@ -85,7 +85,7 @@ function operator []= (array($tpl) arr, $tpl value) : void {
 function alias array_push operator []=;
 
 // push arr[]= 1;
-function operator []= (array($tpl) arr, u64 index, $tpl value) : void {
+function operator []= (array arr, u64 index, $tpl value) : void {
   #assert(index > arr.length, 'out of bounds: use push instead or fill before');
 
   if ($tpl.is_ptr) {
@@ -97,7 +97,7 @@ function operator []= (array($tpl) arr, u64 index, $tpl value) : void {
 
 alias array_set operator []=;
 
-function operator [] (array($tpl) arr, u64 index) : $tpl {
+function operator [] (array arr, u64 index) {
   #assert(index > arr.length, 'out of bounds');
 
   return ($tpl) arr.data[index];

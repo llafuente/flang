@@ -197,3 +197,69 @@ ast_t* psr_ast_imports(ast_t* node) {
 
   return 0;
 }
+
+char psr_buffer[10] = "";
+char* psr_operator_str(int operator) {
+  if (operator<127) {
+    snprintf((char*)psr_buffer, 1024, "%c", operator);
+    return (char*)psr_buffer;
+  }
+
+  switch (operator) {
+  case TK_DOTDOTDOT:
+    return "...";
+  case TK_DOTDOT:
+    return "..";
+  case TK_EQEQ:
+    return "==";
+  case TK_FAT_ARROW:
+    return "=>";
+  case TK_NE:
+    return "!=";
+  case TK_LE:
+    return "<=";
+  case TK_SHL:
+    return "<<";
+  case TK_SHLEQ:
+    return "<<=";
+  case TK_GE:
+    return ">=";
+  case TK_SHR:
+    return ">>";
+  case TK_SHREQ:
+    return ">>=";
+  case TK_RARROW:
+    return "->";
+  case TK_MINUSMINUS:
+    return "--";
+  case TK_MINUSEQ:
+    return "-=";
+  case TK_ANDAND:
+    return "&&";
+  case TK_ANDEQ:
+    return "&=";
+  case TK_OROR:
+    return "||";
+  case TK_OREQ:
+    return "|=";
+  case TK_PLUSPLUS:
+    return "++";
+  case TK_PLUSEQ:
+    return "+=";
+  case TK_STAREQ:
+    return "*=";
+  case TK_SLASHEQ:
+    return "/=";
+  case TK_CARETEQ:
+    return "^=";
+  case TK_PERCENTEQ:
+    return "%=";
+  case TK_ACCESS:
+    return "[]";
+  case TK_PUSH:
+    return "[]=";
+  }
+
+  fl_fatal_error("%s: %d", "unkown operator found", operator);
+  return 0;
+}

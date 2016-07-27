@@ -55,4 +55,10 @@ libexport string* psr_file_to_string(const char* filename);
  */
 libexport ast_t* psr_ast_imports(ast_t* node);
 
+/* Return the string representation of given operator
+ * Returned string is static/buffered, do not free it
+ * @operator
+ */
+libexport char* psr_operator_str(int operator);
+
 /* cldoc:end-category() */

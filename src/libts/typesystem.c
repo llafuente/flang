@@ -88,7 +88,6 @@ ast_t* typesystem(ast_t* root) {
 
   while (ts_pending && !ast_last_error_message) {
     if (!setjmp(fl_on_error_jmp)) {
-      printf("setjmp!!\n");
       _typesystem(root);
     }
     ts_pending = 0; // just exit atm.

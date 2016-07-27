@@ -269,6 +269,7 @@ struct ast {
       ast_t* attributes;
       ast_t* from_tpl; // cames from which template?
       bool varargs;
+      int operator;
       bool templated;
       bool ffi; // TODO maybe ffi_type, 0 means flang, 1 means c...
     } func;
@@ -417,7 +418,7 @@ libexport ast_t* ast_mk_break(ast_t* argument);
 libexport ast_t* ast_mk_continue(ast_t* argument);
 libexport ast_t* ast_mk_var_decl(ast_t* type, ast_t* id, ast_scope_t scope);
 libexport ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type,
-                                ast_t* body, ast_t* attibutes);
+                                ast_t* body, ast_t* attibutes, int operator);
 libexport void ast_mk_fn_decl_body(ast_t* fn, ast_t* body);
 libexport ast_t* ast_mk_fn_param(ast_t* id, ast_t* type, ast_t* def);
 libexport ast_t* ast_mk_binop(ast_t* left, int op, ast_t* right);

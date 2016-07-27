@@ -100,6 +100,7 @@ else     { SET_LOCATION; return TK_ELSE; }
 enum     { SET_LOCATION; return TK_ENUM; }
 fn       { SET_LOCATION; return TK_FN; }
 function { SET_LOCATION; return TK_FN; }
+operator { SET_LOCATION; return TK_OPERATOR; }
 ffi      { SET_LOCATION; return TK_FFI; }
 for      { SET_LOCATION; return TK_FOR; }
 if       { SET_LOCATION; return TK_IF; }
@@ -161,6 +162,8 @@ as        { SET_LOCATION; return TK_AS; }
 \}     { SET_LOCATION; return '}'; }
 \[     { SET_LOCATION; return '['; }
 \]     { SET_LOCATION; return ']'; }
+\[\]=  { SET_LOCATION; return TK_PUSH; }
+\[\]   { SET_LOCATION; return TK_ACCESS; }
 @      { SET_LOCATION; return '@'; }
 #      { SET_LOCATION; return '#'; } // TODO: handle shebang
 

@@ -32,6 +32,8 @@
 #include <errno.h>
 #include <math.h> // HUGE_VAL
 
+char ast_mk_buffer[64];
+
 // TODO redefinition atm...
 // ast_t* ast_new() { return (ast_t*)calloc(1, sizeof(ast_t)); }
 
@@ -308,17 +310,25 @@ ast_t* ast_mk_var_decl(ast_t* type, ast_t* id, ast_scope_t scope) {
 }
 
 ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body,
-                      ast_t* attributes) {
+                      ast_t* attributes, int operator) {
   // printf("ast_mk_fn_decl\n");
   ast_t* node = ast_new();
   node->type = AST_DECL_FUNCTION;
 
-  // function id not need to be resolved
-  id->identifier.resolve = false;
-  node->func.id = id;
-
   node->func.ret_type = ret_type ? ret_type : ast_mk_type_auto();
   node->func.params = params = params ? params : ast_mk_list();
+  node->func.operator= operator;
+
+  // function id don't need to be resolved
+  if (operator) {
+    snprintf(ast_mk_buffer, 64, "operator_%d", operator);
+    string* op_id = st_newc(ast_mk_buffer, st_enc_utf8);
+
+    node->func.id = ast_mk_lit_id(op_id, false);
+  } else {
+    id->identifier.resolve = false;
+    node->func.id = id;
+  }
 
   if (body) {
     ast_mk_fn_decl_body(node, body);

@@ -46,11 +46,12 @@
 %token <token> TK_STAREQ TK_SLASHEQ TK_CARETEQ TK_PERCENTEQ
 %token <token> TK_DOTDOTDOT TK_DOTDOT TK_PLUSPLUS TK_MINUSMINUS
 %token <token> TK_CAST TK_TEMPLATE
+%token <token> TK_ACCESS TK_PUSH
 
 
 /* keywords */
 %token <token> TK_UNDERSCORE TK_AS TK_ANY TK_BREAK TK_CONST TK_IMPLEMENT
-%token <token> TK_CONTINUE TK_ELSE TK_ENUM TK_FN
+%token <token> TK_CONTINUE TK_ELSE TK_ENUM TK_FN TK_OPERATOR
 %token <token> TK_FFI TK_FOR TK_IF TK_IN TK_MATCH
 %token <token> TK_IMPORT TK_FORWARD TK_PUB TK_REF TK_RETURN TK_STATIC
 %token <token> TK_STRUCT TK_ALIAS TK_TYPE TK_TYPEOF TK_USE
@@ -104,7 +105,7 @@
 %type <node> attributes attribute
 %type <node> fn_decl_with_return_type fn_decl_without_return_type fn_decl fn_parameters fn_parameter_list fn_parameter
 
-%type <token> assignament_operator equality_operator relational_operator additive_operator multiplicative_operator unary_operator
+%type <token> assignament_operator equality_operator relational_operator additive_operator multiplicative_operator unary_operator function_operators
 
 /* terminals */
 %type <node> type ty_primitive ident literal lit_integer lit_numeric lit_string
@@ -382,13 +383,22 @@ attribute
 
 fn_decl_without_return_type
   : TK_FN ident fn_parameters {
-    $$ = ast_mk_fn_decl($2, $3, 0, 0, 0);
+    $$ = ast_mk_fn_decl($2, $3, 0, 0, 0, 0);
     // XXX Hack!
     if ($3->parent == (ast_t*)1) {
       $$->func.varargs = true;
     }
 
     ast_position($$, @1, @3);
+  }
+  | TK_FN TK_OPERATOR function_operators fn_parameters {
+    // can't be varargs
+    if ($4->parent == (ast_t*)1) {
+      yyerror(root, "syntax error, operator overloding is incompatible with varargs"); YYERROR;
+    }
+    $$ = ast_mk_fn_decl(0, $4, 0, 0, 0, $3);
+
+    ast_position($$, @1, @4);
   }
   ;
 
@@ -471,6 +481,12 @@ fn_parameter
     $$ = ast_mk_fn_param($1, 0, 0);
     ast_position($$, @1, @1);
   }
+  ;
+
+function_operators
+  : additive_operator
+  | multiplicative_operator
+  | TK_ACCESS    { $$ = TK_ACCESS; }
   ;
 
 assignament_operator

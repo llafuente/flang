@@ -158,67 +158,6 @@ string* st_dquote(const string* str) {
   return out;
 }
 
-char* readable_operator(int operator) {
-  if (operator<127) {
-    snprintf(buffer2, 1024, "%c", operator);
-    return buffer2;
-  }
-
-  switch (operator) {
-  case TK_DOTDOTDOT:
-    return "...";
-  case TK_DOTDOT:
-    return "..";
-  case TK_EQEQ:
-    return "==";
-  case TK_FAT_ARROW:
-    return "=>";
-  case TK_NE:
-    return "!=";
-  case TK_LE:
-    return "<=";
-  case TK_SHL:
-    return "<<";
-  case TK_SHLEQ:
-    return "<<=";
-  case TK_GE:
-    return ">=";
-  case TK_SHR:
-    return ">>";
-  case TK_SHREQ:
-    return ">>=";
-  case TK_RARROW:
-    return "->";
-  case TK_MINUSMINUS:
-    return "--";
-  case TK_MINUSEQ:
-    return "-=";
-  case TK_ANDAND:
-    return "&&";
-  case TK_ANDEQ:
-    return "&=";
-  case TK_OROR:
-    return "||";
-  case TK_OREQ:
-    return "|=";
-  case TK_PLUSPLUS:
-    return "++";
-  case TK_PLUSEQ:
-    return "+=";
-  case TK_STAREQ:
-    return "*=";
-  case TK_SLASHEQ:
-    return "/=";
-  case TK_CARETEQ:
-    return "^=";
-  case TK_PERCENTEQ:
-    return "%=";
-  }
-
-  fl_fatal_error("%s: %d", "unkown operator found", operator);
-  return 0;
-}
-
 void cg_dbg(ast_t* node, u64 level) {
 #ifdef CG_DEBUG
   cg_debug("%*s", (int)level, " ");
@@ -304,7 +243,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       assert(right != 0);
 
       stack_append("(%s %s %s)", left->value,
-                   readable_operator(node->binop.operator), right->value);
+                   psr_operator_str(node->binop.operator), right->value);
     }
     break;
 
@@ -369,7 +308,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     if (mode == AST_TRAV_LEAVE) {
       string* right = (string*)array_pop(cg_stack);
 
-      stack_append("(%s%s)", readable_operator(node->lunary.operator),
+      stack_append("(%s%s)", psr_operator_str(node->lunary.operator),
                    right->value);
     }
     break;
@@ -379,7 +318,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       string* left = (string*)array_pop(cg_stack);
 
       stack_append("(%s%s)", left->value,
-                   readable_operator(node->runary.operator));
+                   psr_operator_str(node->runary.operator));
     }
     break;
   case AST_EXPR_MEMBER:
