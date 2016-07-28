@@ -1,0 +1,85 @@
+ffi fn printf(ptr(i8) format, ...) : i32;
+
+struct v2 {
+  f32 x,
+  f32 y,
+};
+
+function operator +(v2 a, v2 b) : v2 {
+  var v2 ret;
+  ret.x = a.x + b.x;
+  ret.y = a.y + b.y;
+
+  return ret;
+}
+
+function operator -(v2 a, v2 b) : v2 {
+  var v2 ret;
+  ret.x = a.x - b.x;
+  ret.y = a.y - b.y;
+
+  return ret;
+}
+
+function operator *(v2 a, v2 b) : v2 {
+  var v2 ret;
+  ret.x = a.x * b.x;
+  ret.y = a.y * b.y;
+
+  return ret;
+}
+
+function operator /(v2 a, v2 b) : v2 {
+  var v2 ret;
+  ret.x = a.x / b.x;
+  ret.y = a.y / b.y;
+
+  return ret;
+}
+
+function operator [](v2 a, u64 index) : f32 {
+  if (index == 0) { return a.x; }
+  if (index == 1) { return a.y; }
+  return -1;
+}
+
+
+var v2 v2_a;
+var v2 v2_b;
+var v2 v2_c;
+
+v2_a.x = 1;
+v2_a.y = 1;
+
+v2_b.x = 3;
+v2_b.y = 3;
+
+printf("v2 a (%f , %f)\n", v2_a.x, v2_a.y);
+printf("v2 b (%f , %f)\n", v2_b.x, v2_b.y);
+printf("v2 c (%f , %f)\n", v2_c.x, v2_c.y);
+
+v2_c = v2_a + v2_b;
+
+printf("v2 a (%f , %f)\n", v2_a.x, v2_a.y);
+printf("v2 b (%f , %f)\n", v2_b.x, v2_b.y);
+printf("v2 c (%f , %f)\n", v2_c.x, v2_c.y);
+
+v2_c = v2_a - v2_b;
+
+printf("v2 a (%f , %f)\n", v2_a.x, v2_a.y);
+printf("v2 b (%f , %f)\n", v2_b.x, v2_b.y);
+printf("v2 c (%f , %f)\n", v2_c.x, v2_c.y);
+
+v2_c = v2_a * v2_b;
+
+printf("v2 a (%f , %f)\n", v2_a.x, v2_a.y);
+printf("v2 b (%f , %f)\n", v2_b.x, v2_b.y);
+printf("v2 c (%f , %f)\n", v2_c.x, v2_c.y);
+
+v2_c = v2_a / v2_b;
+
+printf("v2 a (%f , %f)\n", v2_a.x, v2_a.y);
+printf("v2 b (%f , %f)\n", v2_b.x, v2_b.y);
+printf("v2 c (%f , %f)\n", v2_c.x, v2_c.y);
+
+printf("v2 c as member (%f , %f)\n", v2_c[0], v2_c[1]);

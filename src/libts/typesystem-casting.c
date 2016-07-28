@@ -25,6 +25,7 @@
 
 #include "flang/flang.h"
 #include "flang/libts.h"
+#include "flang/libparser.h"
 #include "src/libparser/grammar/tokens.h"
 #include "flang/libast.h"
 #include "flang/debug.h"
@@ -502,7 +503,7 @@ void ts_cast_binop(ast_t* node) {
       if (!ty_is_number(r_type)) {
         ast_raise_error(
             node,
-            "Invalid operants. left is (%s) but right is not numeric (%s).",
+            "Invalid operants: left is (%s) but right is not numeric (%s).",
             ty_to_string(l_type)->value, ty_to_string(r_type)->value);
       }
       node->ty_id = l_type;
@@ -513,7 +514,7 @@ void ts_cast_binop(ast_t* node) {
       if (!ty_is_number(l_type)) {
         ast_raise_error(
             node,
-            "Invalid operants. right is (%s) but left is not numeric (%s).",
+            "Invalid operants: right is (%s) but left is not numeric (%s).",
             ty_to_string(r_type)->value, ty_to_string(l_type)->value);
       }
       node->binop.right = l;
@@ -555,7 +556,35 @@ void ts_cast_binop(ast_t* node) {
 
     log_verbose("static %d == %d", l_static, r_static);
 
-    if ((l_static && r_static) || (!l_static && !r_static)) {
+    if (!ty_is_number(l_type) || !ty_is_number(r_type)) {
+      // one of each is not a number, so need to be operator overloaded
+      // get all operator overloading available for left type
+      ast_t* fn = ast_search_fn_op(node, node->binop.operator, l_type);
+
+      if (!fn) {
+        ast_raise_error(
+            node,
+            "cannot find a proper overloading function for %s",
+            psr_operator_str(node->binop.operator));
+      }
+
+      // transform binop into function call
+      ast_t* arguments = ast_mk_list();
+      ast_mk_list_push(arguments, l);
+      ast_mk_list_push(arguments, r);
+
+      // clear
+      ast_clear(node, AST_EXPR_CALL);
+      node->call.callee = fn->func.id;
+      node->call.arguments = arguments;
+      node->call.decl = fn;
+
+      // NOTE this is needed to handle all types, and no create unnecesary
+      // castings
+      _typesystem(node);
+
+      log_verbose("operator overloading: binop to expr call.");
+    } else if ((l_static && r_static) || (!l_static && !r_static)) {
       node->ty_id = ts_promote_typeid(l_type, r_type);
       log_verbose("bigger! %zu", node->ty_id);
       __ts_create_binop_cast(node);
@@ -591,9 +620,38 @@ void ts_cast_expr_member(ast_t* node) {
   ty_t* type = &ts_type_table[l->ty_id];
   switch (type->of) {
   case FL_STRUCT: {
-    p->ty_id = node->ty_id =
-        ty_get_struct_prop_type(l->ty_id, p->identifier.string);
-    node->member.idx = ty_get_struct_prop_idx(l->ty_id, p->identifier.string);
+    if (node->member.brakets) {
+      // operator overloading TK_ACCESS
+      ast_t* fn = ast_search_fn_op(node, TK_ACCESS, l->ty_id);
+
+      if (!fn) {
+        ast_raise_error(
+            node,
+            "cannot find a proper overloading function for []");
+      }
+
+      // transform binop into function call
+      ast_t* arguments = ast_mk_list();
+      ast_mk_list_push(arguments, l);
+      ast_mk_list_push(arguments, p);
+
+      // clear
+      ast_clear(node, AST_EXPR_CALL);
+      node->call.callee = fn->func.id;
+      node->call.arguments = arguments;
+      node->call.decl = fn;
+
+      // NOTE this is needed to handle all types, and no create unnecesary
+      // castings
+      _typesystem(node);
+
+      log_verbose("operator overloading: binop to expr call.");
+
+    } else {
+      p->ty_id = node->ty_id =
+          ty_get_struct_prop_type(l->ty_id, p->identifier.string);
+      node->member.idx = ty_get_struct_prop_idx(l->ty_id, p->identifier.string);
+    }
   } break;
   case FL_POINTER: {
     node->ty_id = type->ptr.to;
@@ -602,6 +660,6 @@ void ts_cast_expr_member(ast_t* node) {
   case FL_VECTOR: {
     node->ty_id = type->vector.to;
   } break;
-  default: { ast_raise_error(node, "invalid member access type"); }
+  default: { ast_raise_error(node, "Invalid member access type"); }
   }
 }

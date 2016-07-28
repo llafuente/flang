@@ -330,9 +330,13 @@ struct ast {
       ast_t* left;
       ast_t* property;
       bool expression;
+      // true if brakets where used so -> access operator overloading
+      // false means dot access -> no operator overloading
+      bool brakets;
 
       u64 idx; // calc by typesystem
     } member;
+
     struct ast_expr_sizeof {
       ast_t* type;
     } sof;
@@ -439,7 +443,8 @@ libexport ast_t* ast_mk_loop(ast_types_t type, ast_t* init, ast_t* pre_cond,
 libexport ast_t* ast_mk_struct_decl(ast_t* id, ast_t* tpls, ast_t* fields);
 libexport ast_t* ast_mk_struct_decl_field(ast_t* id, ast_t* type);
 libexport ast_t* ast_mk_struct_decl_alias(ast_t* name, ast_t* id);
-libexport ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression);
+libexport ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression,
+                               bool brakets);
 libexport ast_t* ast_mk_sizeof(ast_t* type);
 libexport ast_t* ast_mk_cast(ast_t* type, ast_t* element);
 libexport ast_t* ast_mk_import(ast_t* string_lit, bool foward);
@@ -471,6 +476,14 @@ libexport ast_t* ast_search_id_decl(ast_t* node, string* identifier);
  */
 libexport ast_t* ast_search_fn(ast_t* node, string* identifier, u64* args,
                                u64 nargs, u64 ret_ty, bool var_args);
+
+/* Search a matching function prototype for given operator and first argument
+ * type ty_id
+ * @node
+ * @operator
+ * @ty_id
+ */
+libexport ast_t* ast_search_fn_op(ast_t* node, int operator, u64 ty_id);
 
 /* Search a matching function prototype given "expression call"
  * @id
@@ -516,6 +529,14 @@ libexport ast_t* ast_implement_fn(ast_t* call, ast_t* decl, string* uid);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(ast-modify.c) */
+
+/* clear (memset 0) but keep parent and set type
+ *
+ * @node
+ * @old type id
+ * @new type id
+ */
+libexport void ast_clear(ast_t* node, ast_types_t type);
 
 /* change all type found while traversing
  *

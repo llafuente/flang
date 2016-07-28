@@ -92,6 +92,36 @@ cleanup:
   return ret;
 }
 
+ast_t* ast_search_fn_op(ast_t* node, int operator, u64 ty_id) {
+  char buffer[64];
+  snprintf(buffer, 64, "operator_%d", operator);
+  string* id = st_newc(buffer, st_enc_utf8);
+  array* arr = ast_search_fns(node, id);
+
+  if (!arr) {
+    return 0;
+  }
+
+  u64 i;
+  ast_t* ret = 0;
+  ast_t* fn;
+  for (i = 0; i < arr->length; ++i) {
+    fn = arr->values[i];
+    ty_t t = ts_type_table[fn->ty_id];
+    // binary atm!
+    if (fn->func.operator== operator&& t.func.nparams == 2 &&
+        t.func.params[0] == ty_id) {
+      ret = fn;
+      goto cleanup;
+    }
+  }
+
+cleanup:
+  array_delete(arr);
+  pool_free(arr);
+  return ret;
+}
+
 // TODO handle args
 ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
   // search function

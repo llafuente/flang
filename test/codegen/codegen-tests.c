@@ -148,13 +148,13 @@ TASK_IMPL(flang_files) {
       "typesystem/type-promotion-unsigned", "typesystem/types",
       "typesystem/casting",                 "typesystem/expressions",
       "typesystem/type-promotion-signed",   "typesystem/struct-templates",
-      "typesystem/struct-alias",            "statements/loops",
-      "statements/if",                      "statements/loops2",
-      "math/arithmetic",                    "math/increment",
-      "memory/pointers2",                   "memory/pointer-math",
-      "memory/memory3",                     "memory/pointers",
-      "memory/memory",                      "misc/globals",
-      "misc/log",
+      "typesystem/struct-alias",            "typesystem/operator-overloading",
+      "statements/loops",                   "statements/if",
+      "statements/loops2",                  "math/arithmetic",
+      "math/increment",                     "memory/pointers2",
+      "memory/pointer-math",                "memory/memory3",
+      "memory/pointers",                    "memory/memory",
+      "misc/globals",                       "misc/log",
       // "misc/globals2",
       "misc/fibonacci",
       //"misc/string",
@@ -163,7 +163,7 @@ TASK_IMPL(flang_files) {
       "functions/functions",                "functions/function-pointer",
   };
 
-  test_file_list(test_files, 26, "./test/codegen/");
+  test_file_list(test_files, 27, "./test/codegen/");
 
   char* perf_files[] = {"array-reverse"};
 

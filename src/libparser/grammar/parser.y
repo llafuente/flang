@@ -552,12 +552,12 @@ postfix_expression
   : primary_expression
   | postfix_expression '[' expression ']' {
     /* TODO maybe_expr? */
-    $$ = ast_mk_member($1, $3, true);
+    $$ = ast_mk_member($1, $3, true, true);
     ast_position($$, @1, @4);
   }
   | postfix_expression '[' lit_integer ']' {
     /* TODO maybe_expr? */
-    $$ = ast_mk_member($1, $3, false);
+    $$ = ast_mk_member($1, $3, false, true);
     ast_position($$, @1, @4);
   }
   | postfix_expression '(' maybe_argument_expression_list ')' {
@@ -566,11 +566,11 @@ postfix_expression
     ast_position($$, @1, @4);
   }
   | postfix_expression '.' ident {
-    $$ = ast_mk_member($1, $3, false);
+    $$ = ast_mk_member($1, $3, false, false);
     ast_position($$, @1, @3);
   }
   | postfix_expression '.' lit_integer {
-    $$ = ast_mk_member($1, $3, false);
+    $$ = ast_mk_member($1, $3, false, false);
     ast_position($$, @1, @3);
   }
   | postfix_expression TK_PLUSPLUS   { $$ = ast_mk_runary($1, TK_PLUSPLUS); ast_position($$, @1, @2); }

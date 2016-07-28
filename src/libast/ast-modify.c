@@ -42,3 +42,10 @@ ast_action_t __trav_replace_types(ast_trav_mode_t mode, ast_t* node,
 void ast_replace_types(ast_t* node, u64 old, u64 new) {
   ast_traverse(node, __trav_replace_types, 0, 0, (void*)&old, (void*)&new);
 }
+
+void ast_clear(ast_t* node, ast_types_t type) {
+  ast_t* p = node->parent;
+  memset(node, 0, sizeof(ast_t));
+  node->parent = p;
+  node->type = type;
+}

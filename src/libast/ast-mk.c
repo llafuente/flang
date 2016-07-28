@@ -557,7 +557,8 @@ ast_t* ast_mk_struct_decl_alias(ast_t* name, ast_t* id) {
   return node;
 }
 
-ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression) {
+ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression,
+                     bool brakets) {
   // printf("ast_mk_member\n");
   ast_t* node = ast_new();
   node->type = AST_EXPR_MEMBER;
@@ -569,6 +570,7 @@ ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression) {
   node->member.left = left;
   node->member.property = property;
   node->member.expression = expression;
+  node->member.brakets = brakets;
 
   return node;
 }

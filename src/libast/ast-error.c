@@ -44,6 +44,9 @@ void __ast_print_error_lines(const string* line, st_len_t pos,
 }
 
 bool ast_print_error(ast_t* node) {
+  if (ast_last_error_message)
+    return true;
+
   assert(node->type == AST_PROGRAM);
   ast_t* err = node->program.body;
 
@@ -124,6 +127,5 @@ void ast_raise_error(ast_t* node, char* message, ...) {
 
   __sanitizer_print_stack_trace();
 
-  printf("longjmp!!\n");
   longjmp(fl_on_error_jmp, 0);
 }
