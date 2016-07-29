@@ -883,11 +883,21 @@ type
     $$ = $1;
     ast_position($$, @1, @1);
   }
+  | %prec TYPE ty_primitive '*' {
+    ast_t* list = ast_mk_list();
+    ast_mk_list_push(list, $1);
+
+    $$ = ast_mk_type(st_newc("ref", st_enc_utf8), list);
+    ast_position($$, @1, @2);
+  }
   | %prec TYPE ty_primitive '(' type_list ')' {
-    //printf("ty_primitive<ty_primitive>\n");
     $1->ty.children = $3;
     ast_position($1, @1, @4);
     $$ = $1;
+  }
+  | %prec TYPE TK_REF '(' type_list ')' {
+    $$ = ast_mk_type(st_newc("ref", st_enc_utf8), $3);
+    ast_position($$, @1, @4);
   }
   ;
 

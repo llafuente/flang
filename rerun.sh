@@ -21,8 +21,9 @@ cd ..
 #/usr/bin/time -v ./build/flang ./test/test.fl
 #/usr/bin/time -v ./build/flang ./test/codegen/math/arithmetic.fl
 #/usr/bin/time -v ./build/flang ./test/codegen/typesystem/struct-alias.fl
+#/usr/bin/time -v ./build/flang ./test/codegen/typesystem/operator-overloading.fl
 
-/usr/bin/time -v ./build/flang ./test/codegen/typesystem/operator-overloading.fl
+/usr/bin/time -v ./build/flang ./test/codegen/typesystem/references.fl
 
 
 clang -std=c11 -Wno-parentheses-equality -lpthread -luv -lstringc -D_GNU_SOURCE codegen/run.c -o codegen/app

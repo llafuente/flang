@@ -69,7 +69,7 @@ ast_t* ast_search_fn(ast_t* node, string* identifier, u64* args, u64 nargs,
     if (st_cmp(identifier, fn->func.id->identifier.string) == 0) {
       log_verbose("function name found");
       ty_t t = ts_type_table[fn->ty_id];
-      assert(t.of == FL_FUNCTION);
+      assert(t.of == TY_FUNCTION);
 
       log_verbose("varargs %d == %d", t.func.varargs, var_args);
       log_verbose("nparams %zu == %zu", t.func.nparams, nargs);
@@ -138,7 +138,7 @@ ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
     }
 
     ty_t fn_ty = ts_type_table[decl->ty_id];
-    if (fn_ty.of != FL_FUNCTION) {
+    if (fn_ty.of != TY_FUNCTION) {
       ast_raise_error(args_call->parent,
                       "typesystem - invalid variable type, not a function");
       exit(5);

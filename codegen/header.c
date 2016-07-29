@@ -49,17 +49,18 @@ globvar process_t* process;
 //
 
 typedef enum {
-  FL_VOID = 1,
-  FL_NUMBER = 2,
-  FL_POINTER = 3, // wrapper
-  FL_VECTOR = 4,  // wrapper
-  FL_FUNCTION = 5,
-  FL_STRUCT = 6,
-  // FL_ENUM = 7, // TODO this is in fact an "int"
+  TY_VOID = 1,
+  TY_NUMBER = 2,
+  TY_REFERENCE = 3, // wrapper
+  TY_POINTER = 4, // wrapper
+  TY_VECTOR = 5,  // wrapper
+  TY_FUNCTION = 6,
+  TY_STRUCT = 7,
+  // FL_ENUM = 8, // TODO this is in fact an "int"
 
-  FL_INFER = 10,
+  TY_INFER = 10,
 
-  FL_TEMPLATE = 20,
+  TY_TEMPLATE = 20,
 } types_t;
 
 typedef struct {

@@ -38,9 +38,9 @@ function operator /(v2 a, v2 b) : v2 {
 }
 
 function operator [](v2 a, u64 index) : f32 {
-  if (index == 0) { return a.x; }
-  if (index == 1) { return a.y; }
-  return -1;
+  var ptr(f32) x = cast(ptr(f32)) &a;
+
+  return x[index];
 }
 
 
@@ -83,3 +83,5 @@ printf("v2 b (%f , %f)\n", v2_b.x, v2_b.y);
 printf("v2 c (%f , %f)\n", v2_c.x, v2_c.y);
 
 printf("v2 c as member (%f , %f)\n", v2_c[0], v2_c[1]);
+
+// FIXME: v2_c[0] = 10;

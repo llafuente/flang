@@ -48,14 +48,14 @@ bool ts_castable(u64 current, u64 expected) {
 
   if (btype.of == atype.of) {
     switch (btype.of) {
-    case FL_POINTER:
+    case TY_POINTER:
       // void* to anything is ok, to avoid casting malloc
       // anything else bad
       if (atype.ptr.to == TS_VOID) {
         return true;
       }
       break;
-    case FL_NUMBER:
+    case TY_NUMBER:
       // b is bigger & both floating/number
       if (atype.number.bits <= btype.number.bits &&
           btype.number.fp == atype.number.fp) {
@@ -71,10 +71,10 @@ bool ts_castable(u64 current, u64 expected) {
   }
 
   // vector-ptr casting
-  if ((btype.of == FL_POINTER && atype.of == FL_VECTOR)) {
+  if ((btype.of == TY_POINTER && atype.of == TY_VECTOR)) {
     return btype.ptr.to == atype.vector.to;
   }
-  if ((atype.of == FL_POINTER && btype.of == FL_VECTOR)) {
+  if ((atype.of == TY_POINTER && btype.of == TY_VECTOR)) {
     return atype.ptr.to == btype.vector.to;
   }
 
@@ -97,7 +97,7 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
 
   if (ex_type.of == cu_type.of) {
     switch (ex_type.of) {
-    case FL_NUMBER:
+    case TY_NUMBER:
       // fpto*i
       log_verbose("%d && %d", cu_type.number.fp, ex_type.number.fp);
 
@@ -142,7 +142,7 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
         }
         return AST_CAST_TRUNC;
       }
-    case FL_POINTER:
+    case TY_POINTER:
       // only allow it if both are same type
       // or one is void
       if (ts_type_table[ex_type.ptr.to].of ==
@@ -207,6 +207,11 @@ ast_t* __ts_autocast(ast_t* node, u64 input, u64 output) {
 
 bool ts_cast_literal(ast_t* node, u64 type_id) {
   if (node->type == AST_LIT_FLOAT || node->type == AST_LIT_INTEGER) {
+    // destination value must also be a number!
+    if (!ty_is_number(type_id)) {
+      ast_raise_error(node, "Number cannot be casted to: %s",
+                      ty_to_string(type_id)->value);
+    }
     node->ty_id = type_id;
     return node;
   }
@@ -222,7 +227,7 @@ ast_t* __ts_create_cast(ast_t* node, u64 type_id) {
     return node;
   }
 
-  // literals are always castables
+  // if it's a literal, can be casted to a compatible type directly
   if (ts_cast_literal(node, type_id)) {
     log_verbose("literal casted");
     return node;
@@ -342,10 +347,21 @@ void ts_cast_lunary(ast_t* node) {
   case '!':
     node->ty_id = 2; // bool
     break;
+  case '*': { // dereference, pointer/reference
+    ast_t* el = node->lunary.element;
+    ts_pass(el);
+
+    if (!ty_is_pointer_like(el->ty_id)) {
+      ast_raise_error(el, "type cannot be dereferenced: %s",
+                      ty_to_string(el->ty_id)->value);
+    }
+
+    node->ty_id = ty(el->ty_id).ptr.to;
+  } break;
   case '&': {
     ast_t* el = node->lunary.element;
     ts_pass(el);
-    node->ty_id = ty_create_wrapped(FL_POINTER, el->ty_id);
+    node->ty_id = ty_create_wrapped(TY_POINTER, el->ty_id);
   } break;
   default:
     ts_pass(node->lunary.element);
@@ -447,7 +463,7 @@ void ts_cast_call(ast_t* node) {
   log_silly("set return ty_id[%lu]", node->ty_id);
 
   ty_t* t = &ts_type_table[cty_id];
-  assert(t->of == FL_FUNCTION);
+  assert(t->of == TY_FUNCTION);
 
   // cast arguments
   log_verbose("varargs[%d] params[%zu] args[%zu]", t->func.varargs,
@@ -562,10 +578,9 @@ void ts_cast_binop(ast_t* node) {
       ast_t* fn = ast_search_fn_op(node, node->binop.operator, l_type);
 
       if (!fn) {
-        ast_raise_error(
-            node,
-            "cannot find a proper overloading function for %s",
-            psr_operator_str(node->binop.operator));
+        ast_raise_error(node,
+                        "cannot find a proper overloading function for %s",
+                        psr_operator_str(node->binop.operator));
       }
 
       // transform binop into function call
@@ -619,15 +634,14 @@ void ts_cast_expr_member(ast_t* node) {
   // TODO perf
   ty_t* type = &ts_type_table[l->ty_id];
   switch (type->of) {
-  case FL_STRUCT: {
+  case TY_STRUCT: {
     if (node->member.brakets) {
       // operator overloading TK_ACCESS
       ast_t* fn = ast_search_fn_op(node, TK_ACCESS, l->ty_id);
 
       if (!fn) {
-        ast_raise_error(
-            node,
-            "cannot find a proper overloading function for []");
+        ast_raise_error(node,
+                        "cannot find a proper overloading function for []");
       }
 
       // transform binop into function call
@@ -653,11 +667,11 @@ void ts_cast_expr_member(ast_t* node) {
       node->member.idx = ty_get_struct_prop_idx(l->ty_id, p->identifier.string);
     }
   } break;
-  case FL_POINTER: {
+  case TY_POINTER: {
     node->ty_id = type->ptr.to;
     node->member.property = __ts_create_cast(p, 9);
   } break;
-  case FL_VECTOR: {
+  case TY_VECTOR: {
     node->ty_id = type->vector.to;
   } break;
   default: { ast_raise_error(node, "Invalid member access type"); }

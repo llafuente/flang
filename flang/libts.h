@@ -46,17 +46,18 @@ extern u64 ts_type_size_s;
 // DECL
 
 enum ts_types {
-  FL_VOID = 1,
-  FL_NUMBER = 2,
-  FL_POINTER = 3, // wrapper
-  FL_VECTOR = 4,  // wrapper
-  FL_FUNCTION = 5,
-  FL_STRUCT = 6,
-  // FL_ENUM = 7, // TODO this is in fact an "int"
+  TY_VOID = 1,
+  TY_NUMBER = 2,
+  TY_REFERENCE = 3, // wrapper
+  TY_POINTER = 4,   // wrapper
+  TY_VECTOR = 5,    // wrapper
+  TY_FUNCTION = 6,
+  TY_STRUCT = 7,
+  // FL_ENUM = 8, // TODO this is in fact an "int"
 
-  FL_INFER = 10,
+  TY_INFER = 10,
 
-  FL_TEMPLATE = 20,
+  TY_TEMPLATE = 20,
 };
 
 // type must be unique
@@ -83,6 +84,10 @@ struct ts_type {
     struct ts_type_pointer {
       u64 to;
     } ptr;
+
+    struct ts_type_reference {
+      u64 to;
+    } ref;
 
     struct ts_type_vector {
       u64 to;
@@ -134,6 +139,12 @@ struct ts_type_struct_alias {
 };
 
 /* cldoc:begin-category(type-dump.c) */
+/* Retrieve given type info or raise
+ *
+ * @ty_id type id
+ * @return type info
+ */
+ty_t ty(u64 ty_id);
 /* Get default colors for debugging
  *
  * @ty_id type id
@@ -210,6 +221,12 @@ libexport bool ty_is_int(u64 tyid);
  * @return is a pointer?
  */
 libexport bool ty_is_pointer(u64 tyid);
+/* Check if given type is a pointer or a reference
+ *
+ * @tyid type id
+ * @return is a pointer?
+ */
+libexport bool ty_is_pointer_like(u64 id);
 
 /* Check if given type is a template (pure)
  *

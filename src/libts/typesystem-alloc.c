@@ -39,18 +39,18 @@ void ts_init() {
     ts_type_table = calloc(sizeof(ty_t), 200);
 
     // 0 means infer!
-    ts_type_table[0].of = FL_INFER;
+    ts_type_table[0].of = TY_INFER;
     ts_type_table[0].id = st_newc("auto", st_enc_ascii);
     ts_type_table[0].decl = ts_type_table[0].id;
     ts_type_table[0].cg = ts_type_table[0].id;
     // [1] void
-    ts_type_table[TS_VOID].of = FL_VOID;
+    ts_type_table[TS_VOID].of = TY_VOID;
     ts_type_table[TS_VOID].id = st_newc("void", st_enc_ascii);
     ts_type_table[TS_VOID].decl = ts_type_table[TS_VOID].id;
     ts_type_table[TS_VOID].cg = ts_type_table[TS_VOID].id;
 
     // [2] bool
-    ts_type_table[TS_BOOL].of = FL_NUMBER;
+    ts_type_table[TS_BOOL].of = TY_NUMBER;
     ts_type_table[TS_BOOL].id = st_newc("bool", st_enc_ascii);
     ts_type_table[TS_BOOL].decl = ts_type_table[TS_BOOL].id;
     ts_type_table[TS_BOOL].cg = ts_type_table[TS_BOOL].id;
@@ -63,7 +63,7 @@ void ts_init() {
     char buffer[20];
     for (; i < 7; i++) {
       u64 bits = pow(2, i);
-      ts_type_table[++id].of = FL_NUMBER;
+      ts_type_table[++id].of = TY_NUMBER;
       ts_type_table[id].number.bits = bits;
       ts_type_table[id].number.fp = false;
       ts_type_table[id].number.sign = false;
@@ -72,7 +72,7 @@ void ts_init() {
       ts_type_table[id].decl = ts_type_table[id].id;
       ts_type_table[id].cg = ts_type_table[id].id;
 
-      ts_type_table[++id].of = FL_NUMBER;
+      ts_type_table[++id].of = TY_NUMBER;
       ts_type_table[id].number.bits = bits;
       ts_type_table[id].number.fp = false;
       ts_type_table[id].number.sign = true;
@@ -83,7 +83,7 @@ void ts_init() {
     }
 
     // [11] f32
-    ts_type_table[++id].of = FL_NUMBER;
+    ts_type_table[++id].of = TY_NUMBER;
     ts_type_table[id].id = st_newc("f32", st_enc_ascii);
     ts_type_table[id].decl = ts_type_table[id].id;
     ts_type_table[id].cg = ts_type_table[id].id;
@@ -92,7 +92,7 @@ void ts_init() {
     ts_type_table[id].number.sign = true;
 
     // [12] f64
-    ts_type_table[++id].of = FL_NUMBER;
+    ts_type_table[++id].of = TY_NUMBER;
     ts_type_table[id].id = st_newc("f64", st_enc_ascii);
     ts_type_table[id].decl = ts_type_table[id].id;
     ts_type_table[id].cg = ts_type_table[id].id;
@@ -101,21 +101,21 @@ void ts_init() {
     ts_type_table[id].number.sign = true;
 
     // [13] C-str (null-terminated)
-    ts_type_table[++id].of = FL_POINTER;
+    ts_type_table[++id].of = TY_POINTER;
     ts_type_table[id].id = st_newc("cstr", st_enc_ascii);
     ts_type_table[id].decl = ts_type_table[id].id;
     ts_type_table[id].cg = ts_type_table[id].id;
     ts_type_table[id].ptr.to = TS_I8;
 
     // [14] ptr void
-    ts_type_table[++id].of = FL_POINTER;
+    ts_type_table[++id].of = TY_POINTER;
     ts_type_table[id].id = st_newc("ptr<void>", st_enc_ascii);
     ts_type_table[id].decl = ts_type_table[id].id;
     ts_type_table[id].cg = 0;
     ts_type_table[id].ptr.to = TS_VOID;
 
     // [15] vector<i8>
-    ts_type_table[++id].of = FL_VECTOR;
+    ts_type_table[++id].of = TY_VECTOR;
     ts_type_table[id].id = st_newc("vector<i8>", st_enc_ascii);
     ts_type_table[id].decl = ts_type_table[id].id;
     ts_type_table[id].cg = 0;
@@ -126,7 +126,7 @@ void ts_init() {
     // add it!
     string* idstr = st_newc("string", st_enc_utf8);
     u64* fields = calloc(length, sizeof(u64));
-    ts_type_table[++id].of = FL_STRUCT;
+    ts_type_table[++id].of = TY_STRUCT;
     ts_type_table[id].id = idstr;
     ts_type_table[id].structure.decl = null;
     ts_type_table[id].structure.fields = fields;
@@ -150,11 +150,11 @@ void ts_exit() {
       st_delete(&ts_type_table[i].id);
     }
     // struct and same length?
-    if (ts_type_table[i].of == FL_STRUCT) {
+    if (ts_type_table[i].of == TY_STRUCT) {
       free(ts_type_table[i].structure.fields);
       array_delete(&ts_type_table[i].structure.properties);
       array_delete(&ts_type_table[i].structure.alias);
-    } else if (ts_type_table[i].of == FL_FUNCTION) {
+    } else if (ts_type_table[i].of == TY_FUNCTION) {
       free(ts_type_table[i].func.params);
     }
   }

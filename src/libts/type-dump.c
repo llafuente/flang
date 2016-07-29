@@ -35,14 +35,14 @@ char* ty_to_color(u64 ty_id) {
   }
   ty_t ty = ts_type_table[ty_id];
   switch (ty.of) {
-  case FL_NUMBER:
-  case FL_POINTER:
+  case TY_NUMBER:
+  case TY_POINTER:
     return "\x1B[33m";
-  case FL_VECTOR:
+  case TY_VECTOR:
     return "\x1B[30m";
-  case FL_STRUCT:
+  case TY_STRUCT:
     return "\x1B[31m";
-  case FL_FUNCTION:
+  case TY_FUNCTION:
     return "\x1B[32m";
   default:
     return "\x1B[32m";
@@ -73,12 +73,13 @@ char* ty_to_printf(u64 ty_id) {
 
   ty_t ty = ts_type_table[ty_id];
   switch (ty.of) {
-  case FL_POINTER:
-  case FL_VECTOR:
+  case TY_POINTER:
+  case TY_REFERENCE:
+  case TY_VECTOR:
     return "%p";
-  case FL_STRUCT:
+  case TY_STRUCT:
     return "%s";
-  case FL_FUNCTION:
+  case TY_FUNCTION:
     return "%s";
   default:
     return "";
@@ -95,17 +96,23 @@ string* ty_to_string(u64 ty_id) {
   string* buffer = st_new(64, st_enc_utf8);
 
   switch (ty.of) {
-  case FL_POINTER:
+  case TY_POINTER:
     st_append_c(&buffer, "ptr(");
     st_append(&buffer, ty_to_string(ty.ptr.to));
     st_append_c(&buffer, ")");
     break;
-  case FL_VECTOR:
+  case TY_REFERENCE:
+    // TODO maybe using the asterisk ?
+    st_append_c(&buffer, "ref(");
+    st_append(&buffer, ty_to_string(ty.ref.to));
+    st_append_c(&buffer, ")");
+    break;
+  case TY_VECTOR:
     st_append_c(&buffer, "vector(");
     st_append(&buffer, ty_to_string(ty.vector.to));
     st_append_c(&buffer, ")");
     break;
-  case FL_STRUCT: {
+  case TY_STRUCT: {
     st_append_c(&buffer, "struct ");
     st_append(&buffer, ty.id);
     st_append_c(&buffer, " { ");
@@ -119,7 +126,7 @@ string* ty_to_string(u64 ty_id) {
     }
     st_append_c(&buffer, "}");
   } break;
-  case FL_FUNCTION: {
+  case TY_FUNCTION: {
     st_append_c(&buffer, "fn ");
     st_append_c(&buffer, ty.id ? ty.id->value : "Anonymous");
     st_append_c(&buffer, " (");
@@ -145,23 +152,28 @@ void ty_dump(u64 ty_id) {
   log_debug2("[%zu]", ty_id);
 
   switch (ty.of) {
-  case FL_VOID:
+  case TY_VOID:
     log_debug2("void");
     break;
-  case FL_NUMBER:
+  case TY_NUMBER:
     log_debug2("%s", ty.id->value);
     break;
-  case FL_POINTER:
+  case TY_POINTER:
     log_debug2("ptr<");
     ty_dump(ty.ptr.to);
     log_debug2(">");
     break;
-  case FL_VECTOR:
+  case TY_REFERENCE:
+    log_debug2("ref<");
+    ty_dump(ty.ref.to);
+    log_debug2(">");
+    break;
+  case TY_VECTOR:
     log_debug2("vector<");
     ty_dump(ty.vector.to);
     log_debug2(">");
     break;
-  case FL_STRUCT: {
+  case TY_STRUCT: {
     log_debug2("struct %s {",
                ty.structure.decl->structure.id->identifier.string->value);
     u64 i;
@@ -171,7 +183,7 @@ void ty_dump(u64 ty_id) {
     }
     log_debug2("}");
   } break;
-  case FL_FUNCTION: {
+  case TY_FUNCTION: {
     log_debug2("fn %s(", ty.id ? ty.id->value : "Anonymous");
     u64 i;
     for (i = 0; i < ty.func.nparams; ++i) {
@@ -182,11 +194,11 @@ void ty_dump(u64 ty_id) {
     log_debug2(") : ");
     ty_dump(ty.func.ret);
   } break;
-  case FL_TEMPLATE: {
+  case TY_TEMPLATE: {
     assert(ty.tpl.decl->type == AST_DECL_TEMPLATE);
     log_debug2(" %s ", ty.tpl.decl->tpl.id->identifier.string->value);
   } break;
-  case FL_INFER: {
+  case TY_INFER: {
     log_debug("Unknown");
   } break;
   default: { log_error("ty_dump(%u) not implement", ty.of); }
@@ -197,22 +209,26 @@ void __ty_dump_cell(u64 ty_id, int indent) {
   ty_t ty = ts_type_table[ty_id];
 
   switch (ty.of) {
-  case FL_VOID:
+  case TY_VOID:
     log_debug("%*s[%zu] Void", indent, " ", ty_id);
     break;
-  case FL_NUMBER:
+  case TY_NUMBER:
     log_debug("%*s[%zu] Number (fp %d, bits %d, sign %d)", indent, " ", ty_id,
               ty.number.fp, ty.number.bits, ty.number.sign);
     break;
-  case FL_POINTER:
+  case TY_POINTER:
     log_debug("%*s[%zu] Pointer -> %zu", indent, " ", ty_id, ty.ptr.to);
     __ty_dump_cell(ty.ptr.to, indent + 2);
     break;
-  case FL_VECTOR:
+  case TY_REFERENCE:
+    log_debug("%*s[%zu] Reference -> %zu", indent, " ", ty_id, ty.ptr.to);
+    __ty_dump_cell(ty.ptr.to, indent + 2);
+    break;
+  case TY_VECTOR:
     log_debug("%*s[%zu] Vector -> %zu", indent, " ", ty_id, ty.ptr.to);
     __ty_dump_cell(ty.vector.to, indent + 2);
     break;
-  case FL_STRUCT: {
+  case TY_STRUCT: {
     log_debug("%*s[%zu] Struct [%s] tpl(%d)", indent, " ", ty_id,
               ty.structure.decl->structure.id->identifier.string->value,
               ty.structure.templated);
@@ -221,7 +237,7 @@ void __ty_dump_cell(u64 ty_id, int indent) {
       __ty_dump_cell(ty.structure.fields[i], indent + 2);
     }
   } break;
-  case FL_FUNCTION: {
+  case TY_FUNCTION: {
     log_debug("%*s[%zu] Function [%s] tpl(%d) arity(%zu) -> [%zu]", indent, " ",
               ty_id, ty.id ? ty.id->value : "Anonymous", ty.func.templated,
               ty.func.nparams, ty.func.ret);
@@ -231,10 +247,10 @@ void __ty_dump_cell(u64 ty_id, int indent) {
       __ty_dump_cell(ty.func.params[i], indent + 2);
     }
   } break;
-  case FL_INFER: {
+  case TY_INFER: {
     log_debug("%*s[0] Infer", indent, " ");
   } break;
-  case FL_TEMPLATE: {
+  case TY_TEMPLATE: {
     log_debug("%*s[%zu] Template", indent, " ", ty_id);
   } break;
   default: { log_error("ty_dump(%u) not implement", ty.of); }

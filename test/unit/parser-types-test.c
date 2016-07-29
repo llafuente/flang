@@ -239,5 +239,22 @@ TASK_IMPL(parser_types) {
     ASSERT(b_ty_id == varb_ty_id, "typeid ptr(void)");
     ASSERT(a_ty_id == b_ty_id, "typeid ptr(void)");
   });
+
+  TEST_PARSER_OK("references", "var u64* p;\n"
+                               "var ref(u64) p2;\n",
+                 {
+    u64 a_ty_id = body[0]->ty_id;
+    u64 b_ty_id = body[1]->ty_id;
+    ASSERT(a_ty_id == b_ty_id, "declared as ref or c-ptr, same type");
+  });
+
+  TEST_PARSER_OK("references", "var u64* p;\n"
+                               "var ptr(u64) p2;\n",
+                 {
+    u64 a_ty_id = body[0]->ty_id;
+    u64 b_ty_id = body[1]->ty_id;
+    ASSERT(a_ty_id != b_ty_id, "ref and pointers aren't the same type");
+  });
+
   return 0;
 }

@@ -53,10 +53,10 @@ TASK_IMPL(parser_functions) {
       {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/
       });
 
-  TEST_PARSER_ERROR(
-      "function err 02", "fn hell ({}",
-      "syntax error, unexpected '{', expecting TK_ANY or IDENTIFIER or ')'",
-      {});
+  TEST_PARSER_ERROR("function err 02", "fn hell ({}",
+                    "syntax error, unexpected '{', expecting TK_ANY or TK_REF "
+                    "or IDENTIFIER or ')'",
+                    {});
 
   TEST_PARSER_ERROR("function err 03", "fn x a",
                     "syntax error, unexpected IDENTIFIER, expecting '{' or ':'",

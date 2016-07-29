@@ -32,8 +32,8 @@ u64 ts_promote_typeid(u64 a, u64 b) {
   ty_t t_a = ts_type_table[a];
   ty_t t_b = ts_type_table[b];
 
-  fl_assert(t_a.of == FL_NUMBER);
-  fl_assert(t_b.of == FL_NUMBER);
+  fl_assert(t_a.of == TY_NUMBER);
+  fl_assert(t_b.of == TY_NUMBER);
 
   // check floating point
   if (t_a.number.fp && !t_b.number.fp) {

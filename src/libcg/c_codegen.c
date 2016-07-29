@@ -51,24 +51,25 @@ string* cg_type(u64 ty_id) {
   string* buffer = st_new(64, st_enc_utf8);
 
   switch (ty.of) {
-  case FL_POINTER:
+  case TY_POINTER:
+  case TY_REFERENCE:
     st_append(&buffer, cg_type(ty.ptr.to));
     st_append_c(&buffer, "*");
     break;
-  case FL_VECTOR:
+  case TY_VECTOR:
     st_append(&buffer, cg_type(ty.vector.to));
     st_append_c(&buffer, "[]");
     break;
-  case FL_STRUCT: {
+  case TY_STRUCT: {
     st_append(&buffer, ty.id);
   } break;
-  case FL_FUNCTION: {
+  case TY_FUNCTION: {
     assert(ty.id != 0);
 
     st_append_c(&buffer, ty.id->value);
     st_append_c(&buffer, "__fnptr");
   } break;
-  case FL_TEMPLATE: {
+  case TY_TEMPLATE: {
     // REVIEW assert... will see in the future if needed, i consider this
     // dangerous atm.
     // st_append_c(&buffer, "0");
@@ -610,7 +611,7 @@ void cg_type_table(ast_t* root) {
     }
     CG_OUTPUT(cg_fds->types, ".of = %d,\n", ts_type_table[i].of);
     switch (ts_type_table[i].of) {
-    case FL_NUMBER:
+    case TY_NUMBER:
       CG_OUTPUT(cg_fds->types, ".number.bits = %d,\n",
                 ts_type_table[i].number.bits);
       CG_OUTPUT(cg_fds->types, ".number.fp = %s,\n",
@@ -630,6 +631,7 @@ void cg_type_table(ast_t* root) {
 
 char* fl_codegen(ast_t* root) {
   // log_debug_level = 10;
+  // ty_dump_table();
   // ast_dump(root);
   // exit(0);
 
@@ -651,11 +653,8 @@ char* fl_codegen(ast_t* root) {
                          "#include \"types.c\"\n"
                          "#include \"functions.c\"\n\n");
 
-  // ty_dump_table();
-
   cg_type_table(root);
   ast_traverse(root, __codegen_cb, 0, 0, 0, 0);
-
   fclose(cg_fds->decls);
   fclose(cg_fds->types);
   fclose(cg_fds->functions);

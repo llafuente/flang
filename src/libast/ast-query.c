@@ -68,7 +68,7 @@ bool ast_is_literal(ast_t* node) {
 
 bool ast_is_pointer(ast_t* node) {
   u64 id = ast_get_typeid(node);
-  return ts_type_table[id].of == FL_POINTER;
+  return ts_type_table[id].of == TY_POINTER;
 }
 
 //

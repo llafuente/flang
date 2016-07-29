@@ -104,7 +104,7 @@ ast_t* ast_implement_struct(ast_t* type_list, ast_t* decl, string* uid) {
     param_ty_id = params->list.values[i]->ty_id;
     param_ty = &ts_type_table[param_ty_id];
     log_silly("param type %lu", param_ty_id);
-    if (param_ty->of == FL_TEMPLATE) {
+    if (param_ty->of == TY_TEMPLATE) {
       // search type and replace!
       log_silly("replace type %lu to %lu", param_ty_id,
                 type_list->list.values[i]->ty_id);
