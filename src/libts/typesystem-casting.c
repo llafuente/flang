@@ -78,6 +78,15 @@ bool ts_castable(u64 current, u64 expected) {
     return atype.ptr.to == btype.vector.to;
   }
 
+  if ((atype.of == TY_REFERENCE && btype.of == TY_POINTER)) {
+    return atype.ref.to == btype.ptr.to;
+  }
+
+  // TODO REVIEW this maybe break code, could be dangerous
+  if ((atype.of == TY_POINTER && btype.of == TY_REFERENCE)) {
+    return atype.ref.to == btype.ptr.to;
+  }
+
   log_verbose("invalid cast [%s] to [%s]", ty_to_string(current)->value,
               ty_to_string(expected)->value);
 
@@ -296,10 +305,10 @@ void __ts_create_binop_cast(ast_t* bo) {
       return;
     }
 
-    expected_ty_id =
-        ts_promote_typeid(bo->binop.left->ty_id, bo->binop.right->ty_id);
-  } else {
-    expected_ty_id = bo->ty_id;
+    if (ty_is_number(l->ty_id) && ty_is_number(r->ty_id)) {
+      expected_ty_id =
+          ts_promote_typeid(l->ty_id, r->ty_id);
+        }
   }
 
   if (expected_ty_id != l->ty_id) {
@@ -385,6 +394,17 @@ void ts_cast_assignament(ast_t* node) {
 
   u64 l_type = l->ty_id;
   u64 r_type = r->ty_id;
+
+  // auto-dereference references
+  if (ty_is_reference(l_type) && !ty_is_pointer_like(r_type)) {
+    log_silly("auto-dereference");
+    ast_t* deref = ast_mk_lunary(l, '*');
+    l->parent = deref;
+    deref->parent = node;
+    node->assignament.left = deref;
+    ts_pass(deref);
+    l_type = deref->ty_id;
+  }
 
   if (l_type != r_type) {
     log_silly("assignament cast [%zu - %zu]", l_type, r_type);

@@ -240,11 +240,13 @@ stmt
     $$ = ast_mk_break($2);
     ast_position($$, @1, @3);
   }
+  // declare a template name
   | TK_TEMPLATE ident ';' {
     // TODO ensure ident start with '$' ??
     $$ = ast_mk_template($2, 0);
     ast_position($$, @1, @3);
   }
+  // implement a type or a function
   | TK_IMPLEMENT ident '(' type_list ')' TK_AS ident ';' {
     $$ = ast_mk_implement($2, $4, $7);
     ast_position($$, @1, @8);
@@ -252,10 +254,14 @@ stmt
   ;
 
 import_stmt
+  // import a module keeping with a new scope
+  // only functions will be available
   : TK_IMPORT lit_string {
     $$ = ast_mk_import($2, false);
     ast_position($$, @1, @2);
   }
+  // import a module and include all in the current scope
+  // everything at first level will be available
   | TK_FORWARD TK_IMPORT lit_string {
     $$ = ast_mk_import($3, true);
     ast_position($$, @1, @3);
@@ -263,6 +269,7 @@ import_stmt
   ;
 
 var_decl
+  // full local variable declaration and initialization
   : TK_VAR type ident '=' expression {
     $$ = ast_mk_list();
     ast_t* decl = ast_mk_var_decl($2, $3, AST_SCOPE_BLOCK);
@@ -273,6 +280,7 @@ var_decl
     ast_mk_list_push($$, assignament);
     ast_position($$, @1, @5);
   }
+  // inference local variable declaration and initialization
   | TK_VAR ident '=' expression {
     $$ = ast_mk_list();
     ast_t* decl = ast_mk_var_decl(0, $2, AST_SCOPE_BLOCK);
@@ -283,14 +291,17 @@ var_decl
     ast_mk_list_push($$, assignament);
     ast_position($$, @1, @4);
   }
+  // full local variable declaration
   | TK_VAR type ident {
     $$ = ast_mk_var_decl($2, $3, AST_SCOPE_BLOCK);
     ast_position($$, @1, @3);
   }
+  // inference local variable declaration
   | TK_VAR ident {
     $$ = ast_mk_var_decl(0, $2, AST_SCOPE_BLOCK);
     ast_position($$, @1, @2);
   }
+  // full global variable declaration
   | TK_GLOBAL type ident '=' expression {
     $$ = ast_mk_list();
     ast_t* decl = ast_mk_var_decl($2, $3, AST_SCOPE_GLOBAL);
@@ -301,6 +312,7 @@ var_decl
     ast_mk_list_push($$, assignament);
     ast_position($$, @1, @5);
   }
+  // coder hint for where the variable comes.
   | TK_GLOBAL ident {
     $$ = ast_mk_var_decl(0, $2, AST_SCOPE_GLOBAL);
     ast_position($$, @1, @2);

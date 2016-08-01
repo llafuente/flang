@@ -199,6 +199,7 @@ struct ast {
       ast_t* decl; // for codegen
     } identifier;
 
+    // NOTE: ast_expr_assignament & ast_expr_binop must be the same!
     struct ast_expr_assignament {
       ast_t* left;
       int operator; // enum yytokentype

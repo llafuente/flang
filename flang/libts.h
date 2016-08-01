@@ -221,17 +221,25 @@ libexport bool ty_is_int(u64 tyid);
  * @return is a pointer?
  */
 libexport bool ty_is_pointer(u64 tyid);
+
+/* Check if given type is a reference
+ *
+ * @tyid type id
+ * @return is a reference?
+ */
+libexport bool ty_is_reference(u64 id);
+
 /* Check if given type is a pointer or a reference
  *
  * @tyid type id
- * @return is a pointer?
+ * @return is a pointer-like?
  */
 libexport bool ty_is_pointer_like(u64 id);
 
 /* Check if given type is a template (pure)
  *
  * @tyid type id
- * @return is a pointer?
+ * @return is a template?
  */
 libexport bool ty_is_template(u64 tyid);
 
@@ -239,7 +247,7 @@ libexport bool ty_is_template(u64 tyid);
  * templates
  *
  * @tyid type id
- * @return is a pointer?
+ * @return is templated?
  */
 libexport bool ty_is_templated(u64 tyid);
 

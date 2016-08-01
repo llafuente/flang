@@ -64,6 +64,11 @@ bool ty_is_pointer(u64 id) {
   return t.of == TY_POINTER;
 }
 
+bool ty_is_reference(u64 id) {
+  ty_t t = ts_type_table[id];
+  return t.of == TY_REFERENCE;
+}
+
 bool ty_is_pointer_like(u64 id) {
   ty_t t = ts_type_table[id];
   return t.of == TY_POINTER || t.of == TY_REFERENCE;
