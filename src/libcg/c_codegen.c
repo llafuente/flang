@@ -64,7 +64,7 @@ string* cg_type(u64 ty_id) {
     st_append(&buffer, ty.id);
   } break;
   case TY_FUNCTION: {
-    assert(ty.id != 0);
+    fl_assert(ty.id != 0);
 
     st_append_c(&buffer, ty.id->value);
     st_append_c(&buffer, "__fnptr");
@@ -175,7 +175,7 @@ void cg_dbg(ast_t* node, u64 level) {
 ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
                           u64 level, void* userdata_in, void* userdata_out) {
 
-  assert(node != 0);
+  fl_assert(node != 0);
   cg_dbg(node, level);
 
   switch (node->type) {
@@ -228,8 +228,8 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       string* right = (string*)array_pop(cg_stack);
       string* left = (string*)array_pop(cg_stack);
 
-      assert(left != 0);
-      assert(right != 0);
+      fl_assert(left != 0);
+      fl_assert(right != 0);
 
       stack_append("(%s = %s)", left->value, right->value);
     }
@@ -240,8 +240,8 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       string* right = (string*)array_pop(cg_stack);
       string* left = (string*)array_pop(cg_stack);
 
-      assert(left != 0);
-      assert(right != 0);
+      fl_assert(left != 0);
+      fl_assert(right != 0);
 
       stack_append("(%s %s %s)", left->value,
                    psr_operator_str(node->binop.operator), right->value);
@@ -286,7 +286,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     // if (parent->type == AST_PARAMETER) return AST_SEARCH_CONTINUE;
     // if (parent->type == AST_EXPR_CALL) return AST_SEARCH_CONTINUE;
 
-    assert(node->identifier.string != 0);
+    fl_assert(node->identifier.string != 0);
     array_push(cg_stack, (void*)node->identifier.string);
     break;
 
@@ -549,13 +549,13 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       string* block = cg_node(node->loop.block);
       stack_append("do %s while (%s)", block->value, post_cond->value);
     } break;
-    default: { assert(0); }
+    default: { fl_assert(0); }
     }
     return AST_SEARCH_SKIP; // manual traverse
     break;
   case AST_EXPR_SIZEOF:
     // TODO handle typeof a variable
-    assert(node->sof.type->type == AST_TYPE);
+    fl_assert(node->sof.type->type == AST_TYPE);
     stack_append("sizeof(%s)", cg_type(node->sof.type->ty_id)->value);
     return AST_SEARCH_SKIP; // manual traverse
     break;

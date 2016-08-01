@@ -86,24 +86,24 @@ u64 __ts_string_to_tyid(ast_t* node) {
   }
 
   if (strcmp(tcstr, "ptr") == 0) {
-    assert(node->ty.children != 0);
-    assert(node->ty.children->list.length == 1); // TODO raise
+    fl_assert(node->ty.children != 0);
+    fl_assert(node->ty.children->list.length == 1); // TODO raise
 
     u64 t = __ts_string_to_tyid(node->ty.children->list.values[0]);
     return node->ty.id->ty_id = node->ty_id = ty_create_wrapped(TY_POINTER, t);
   }
 
   if (strcmp(tcstr, "vector") == 0) {
-    assert(node->ty.children != 0);
-    assert(node->ty.children->list.length == 1); // TODO raise
+    fl_assert(node->ty.children != 0);
+    fl_assert(node->ty.children->list.length == 1); // TODO raise
 
     u64 t = __ts_string_to_tyid(node->ty.children->list.values[0]);
     return node->ty.id->ty_id = node->ty_id = ty_create_wrapped(TY_VECTOR, t);
   }
 
   if (strcmp(tcstr, "ref") == 0) {
-    assert(node->ty.children != 0);
-    assert(node->ty.children->list.length == 1); // TODO raise
+    fl_assert(node->ty.children != 0);
+    fl_assert(node->ty.children->list.length == 1); // TODO raise
 
     u64 t = __ts_string_to_tyid(node->ty.children->list.values[0]);
     return node->ty.id->ty_id = node->ty_id =

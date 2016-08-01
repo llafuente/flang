@@ -47,7 +47,7 @@ bool ast_print_error(ast_t* node) {
   if (ast_last_error_message)
     return true;
 
-  assert(node->type == AST_PROGRAM);
+  fl_assert(node->type == AST_PROGRAM);
   ast_t* err = node->program.body;
 
   if (err->type == AST_ERROR) {

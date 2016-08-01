@@ -84,14 +84,14 @@ ast_t* ast_mk_list_push(ast_t* list, ast_t* node) {
 
 ast_t* ast_mk_list_pop(ast_t* list) {
   // printf("ast_mk_list_push [%p]\n", list);
-  assert(list->type == AST_LIST);
+  fl_assert(list->type == AST_LIST);
 
   return (ast_t*)array_pop((array*)&list->list);
 }
 
 ast_t* ast_mk_list_insert(ast_t* list, ast_t* node, u64 idx) {
   // printf("ast_mk_list_push [%p]\n", list);
-  assert(list->type == AST_LIST);
+  fl_assert(list->type == AST_LIST);
 
   array_insert((array*)&list->list, idx, (void*)node);
 
@@ -99,7 +99,7 @@ ast_t* ast_mk_list_insert(ast_t* list, ast_t* node, u64 idx) {
 }
 ast_t* ast_mk_insert_before(ast_t* list, ast_t* search_item,
                             ast_t* insert_item) {
-  assert(list->type == AST_LIST);
+  fl_assert(list->type == AST_LIST);
 
   u64 idx = 0;
   while (list->list.values[idx] != search_item) {

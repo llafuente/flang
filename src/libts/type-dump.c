@@ -195,7 +195,7 @@ void ty_dump(u64 ty_id) {
     ty_dump(ty.func.ret);
   } break;
   case TY_TEMPLATE: {
-    assert(ty.tpl.decl->type == AST_DECL_TEMPLATE);
+    fl_assert(ty.tpl.decl->type == AST_DECL_TEMPLATE);
     log_debug2(" %s ", ty.tpl.decl->tpl.id->identifier.string->value);
   } break;
   case TY_INFER: {

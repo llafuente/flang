@@ -1,0 +1,22 @@
+var u64* _ref;
+var ptr(u64) _ptr;
+var u64 x = 101;
+
+_ref = cast(u64*) malloc(sizeof(u64));
+_ptr = cast(ptr(u64)) malloc(sizeof(u64));
+
+*_ptr = 10;
+
+_ref = 10; // auto-dereference
+
+
+
+printf("value of ptr = %lu\n", *_ref);
+printf("value of ref = %lu\n", *_ptr);
+
+_ref = _ptr; // no auto-dereference
+
+printf("same addr = %d\n", _ref == *_ptr);
+
+printf("(u64) x + _ref = %lu\n", x + _ref);
+printf("(u64) _ref + x = %lu\n", _ref + x);

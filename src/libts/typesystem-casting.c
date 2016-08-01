@@ -94,7 +94,7 @@ bool ts_castable(u64 current, u64 expected) {
 }
 
 ast_cast_operations_t ts_cast_operation(ast_t* node) {
-  assert(node->type == AST_CAST);
+  fl_assert(node->type == AST_CAST);
 
   u64 expected = node->ty_id;
   u64 current = node->cast.element->ty_id;
@@ -269,7 +269,7 @@ ast_t* __ts_create_cast(ast_t* node, u64 type_id) {
 }
 
 ast_t* __ts_create_left_cast(ast_t* parent, ast_t* left) {
-  assert(parent->type == AST_EXPR_BINOP);
+  fl_assert(parent->type == AST_EXPR_BINOP);
   ast_t* cast = __ts_create_cast(left, parent->ty_id);
   parent->binop.left = cast;
 
@@ -277,7 +277,7 @@ ast_t* __ts_create_left_cast(ast_t* parent, ast_t* left) {
 }
 
 ast_t* __ts_create_right_cast(ast_t* parent, ast_t* right) {
-  assert(parent->type == AST_EXPR_BINOP);
+  fl_assert(parent->type == AST_EXPR_BINOP);
   ast_t* cast = __ts_create_cast(right, parent->ty_id);
   parent->binop.right = cast;
 
@@ -285,7 +285,7 @@ ast_t* __ts_create_right_cast(ast_t* parent, ast_t* right) {
 }
 
 void __ts_create_binop_cast(ast_t* bo) {
-  assert(bo->type == AST_EXPR_BINOP);
+  fl_assert(bo->type == AST_EXPR_BINOP);
 
   ast_t* l = bo->binop.left;
   ast_t* r = bo->binop.right;
@@ -306,9 +306,8 @@ void __ts_create_binop_cast(ast_t* bo) {
     }
 
     if (ty_is_number(l->ty_id) && ty_is_number(r->ty_id)) {
-      expected_ty_id =
-          ts_promote_typeid(l->ty_id, r->ty_id);
-        }
+      expected_ty_id = ts_promote_typeid(l->ty_id, r->ty_id);
+    }
   }
 
   if (expected_ty_id != l->ty_id) {
@@ -324,7 +323,7 @@ void __ts_create_binop_cast(ast_t* bo) {
 }
 
 void ts_cast_return(ast_t* node) {
-  assert(node->type == AST_STMT_RETURN);
+  fl_assert(node->type == AST_STMT_RETURN);
 
   if (node->ty_id)
     return;
@@ -383,40 +382,8 @@ void ts_cast_runary(ast_t* node) {
   node->ty_id = node->runary.element->ty_id;
 }
 
-void ts_cast_assignament(ast_t* node) {
-  assert(node->type == AST_EXPR_ASSIGNAMENT);
-
-  ast_t* l = node->assignament.left;
-  ast_t* r = node->assignament.right;
-
-  ts_pass(l);
-  ts_pass(r);
-
-  u64 l_type = l->ty_id;
-  u64 r_type = r->ty_id;
-
-  // auto-dereference references
-  if (ty_is_reference(l_type) && !ty_is_pointer_like(r_type)) {
-    log_silly("auto-dereference");
-    ast_t* deref = ast_mk_lunary(l, '*');
-    l->parent = deref;
-    deref->parent = node;
-    node->assignament.left = deref;
-    ts_pass(deref);
-    l_type = deref->ty_id;
-  }
-
-  if (l_type != r_type) {
-    log_silly("assignament cast [%zu - %zu]", l_type, r_type);
-    // cast will be validated later if it's posible
-    node->assignament.right = __ts_create_cast(r, l_type);
-  }
-
-  node->ty_id = l_type;
-}
-
 void ts_cast_call(ast_t* node) {
-  assert(node->type == AST_EXPR_CALL);
+  fl_assert(node->type == AST_EXPR_CALL);
 
   if (node->ty_id) {
     return;
@@ -483,7 +450,7 @@ void ts_cast_call(ast_t* node) {
   log_silly("set return ty_id[%lu]", node->ty_id);
 
   ty_t* t = &ts_type_table[cty_id];
-  assert(t->of == TY_FUNCTION);
+  fl_assert(t->of == TY_FUNCTION);
 
   // cast arguments
   log_verbose("varargs[%d] params[%zu] args[%zu]", t->func.varargs,
@@ -509,8 +476,17 @@ void ts_cast_call(ast_t* node) {
   }
 }
 
+ast_t* __ts_dereference(ast_t* node) {
+  log_silly("left: auto-dereference");
+  ast_t* deref = ast_mk_lunary(node, '*');
+  node->parent = deref;
+  ts_pass(deref);
+
+  return deref;
+}
+
 void ts_cast_binop(ast_t* node) {
-  assert(node->type == AST_EXPR_BINOP);
+  fl_assert(node->type == AST_EXPR_BINOP || node->type == AST_EXPR_ASSIGNAMENT);
 
   log_debug("binop found %d", node->binop.operator);
   // cast if necessary
@@ -524,18 +500,63 @@ void ts_cast_binop(ast_t* node) {
   u64 l_type = l->ty_id;
   u64 r_type = r->ty_id;
 
+  // left: auto-dereference if right is not a pointer or type compatible
+  if (ty_is_reference(l_type) && ty_is_reference(r_type)) {
+    // ast_dump_s(node);
+    // fl_assert(false); // TODO REVIEW need study
+  }
+  if (ty_is_reference(l_type)) {
+    if (!ty_is_pointer_like(r_type) || ts_castable(ty(l_type).ref.to, r_type)) {
+      ast_t* deref = __ts_dereference(l);
+      deref->parent = node;
+      node->binop.left = deref;
+      l_type = deref->ty_id;
+    }
+  } else if (ty_is_reference(r_type)) {
+    // right: auto-dereference when type compatible
+    if (ts_castable(ty(r_type).ref.to, l_type)) {
+      ast_t* deref = __ts_dereference(r);
+      deref->parent = node;
+      node->binop.right = deref;
+      r_type = deref->ty_id;
+    }
+  }
+
   log_verbose("l_type %zu r_type %zu", l_type, r_type);
 
   bool l_fp = ty_is_fp(l_type);
   bool r_fp = ty_is_fp(r_type);
 
-  // here handle pointer math '+' & '-'
-  // also normalize the tree for codegen, pointer on the left
   switch (node->binop.operator) {
+  // assignament
+  case '=':
+  case TK_SHLEQ:
+  case TK_SHREQ:
+  case TK_MINUSEQ:
+  case TK_ANDEQ:
+  case TK_OREQ:
+  case TK_PLUSEQ:
+  case TK_STAREQ:
+  case TK_SLASHEQ:
+  case TK_CARETEQ:
+  case TK_PERCENTEQ: {
+    fl_assert(node->type == AST_EXPR_ASSIGNAMENT);
+
+    if (l_type != r_type) {
+      log_silly("assignament cast [%zu - %zu]", l_type, r_type);
+      // cast will be validated later if it's posible
+      node->binop.right = __ts_create_cast(r, l_type);
+    }
+
+    node->ty_id = l_type;
+    return;
+  } break;
   case '-':
   case '+': {
+    // pointer arithmetic
+
+    // left is a pointer, right must be a number
     if (ty_is_pointer(l_type)) {
-      // rhs must be a numeric type
       if (!ty_is_number(r_type)) {
         ast_raise_error(
             node,
@@ -545,6 +566,8 @@ void ts_cast_binop(ast_t* node) {
       node->ty_id = l_type;
       return;
     }
+    // left is a number and right is a pointer
+    // normalize: put the pointer on the left side
     if (ty_is_pointer(r_type)) {
       // lhs must be a numeric type
       if (!ty_is_number(l_type)) {
@@ -636,7 +659,7 @@ void ts_cast_binop(ast_t* node) {
 }
 
 void ts_cast_expr_member(ast_t* node) {
-  assert(node->type == AST_EXPR_MEMBER);
+  fl_assert(node->type == AST_EXPR_MEMBER);
 
   if (node->ty_id)
     return;

@@ -102,7 +102,7 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     ts_cast_runary(node);
   } break;
   case AST_EXPR_ASSIGNAMENT: {
-    ts_cast_assignament(node);
+    ts_cast_binop(node);
   } break;
   case AST_EXPR_CALL: {
     ts_cast_call(node);

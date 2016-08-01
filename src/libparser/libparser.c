@@ -115,7 +115,7 @@ ast_t* psr_file_main(const char* filename) {
 
   ast_t* root = __psr_parse(code, filename);
 
-  assert(root->type == AST_PROGRAM);
+  fl_assert(root->type == AST_PROGRAM);
   __psr_attach_core(root);
   ast_parent(root);
 
@@ -129,7 +129,7 @@ ast_action_t __trav_load_imports(ast_trav_mode_t mode, ast_t* node,
     return 0;
 
   if (node->type == AST_IMPORT && !node->import.imported) {
-    assert(parent->type == AST_LIST);
+    fl_assert(parent->type == AST_LIST);
 
     char* file = node->import.path->string.value->value;
 
@@ -166,7 +166,7 @@ ast_action_t __trav_load_imports(ast_trav_mode_t mode, ast_t* node,
 
     module->parent = parent;
 
-    assert(module->parent != 0);
+    fl_assert(module->parent != 0);
 
     ((*(u64*)userdata_out))++;
 

@@ -1,0 +1,5 @@
+value of ptr = 10
+value of ref = 10
+same addr = 1
+(u64) x + _ref = 111
+(u64) _ref + x = 111

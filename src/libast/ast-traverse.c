@@ -195,7 +195,7 @@ void ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, u64 level,
 
 void ast_traverse_list(ast_t* node, ast_cb_t cb, ast_t* until, u64 level,
                        void* userdata_in, void* userdata_out) {
-  assert(node->type == AST_LIST);
+  fl_assert(node->type == AST_LIST);
 
   u64 i;
   for (i = 0; i < node->list.length; ++i) {

@@ -39,7 +39,7 @@ char* __ast_block_hash_append(hash_t* ht) {
 }
 
 void ast_dump_one(ast_t* node) {
-  assert(node != 0);
+  fl_assert(node != 0);
 
   switch (node->type) {
   case AST_PROGRAM:

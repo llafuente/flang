@@ -69,7 +69,7 @@ ast_t* ast_search_fn(ast_t* node, string* identifier, u64* args, u64 nargs,
     if (st_cmp(identifier, fn->func.id->identifier.string) == 0) {
       log_verbose("function name found");
       ty_t t = ts_type_table[fn->ty_id];
-      assert(t.of == TY_FUNCTION);
+      fl_assert(t.of == TY_FUNCTION);
 
       log_verbose("varargs %d == %d", t.func.varargs, var_args);
       log_verbose("nparams %zu == %zu", t.func.nparams, nargs);

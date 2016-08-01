@@ -145,7 +145,7 @@ ast_t* ast_get_scope(ast_t* node) {
   ast_t* blk = node;
   while (blk) {
     blk = blk->parent;
-    assert(blk != 0);
+    fl_assert(blk != 0);
     if (blk->type == AST_BLOCK && blk->block.scope != AST_SCOPE_TRANSPARENT) {
       return blk;
     }
@@ -167,14 +167,14 @@ ast_t* ast_get_global_scope(ast_t* node) {
 }
 
 ast_t* ast_get_attribute(ast_t* list, string* needle) {
-  assert(list->type == AST_LIST);
+  fl_assert(list->type == AST_LIST);
   ast_t* attr;
   u64 i;
 
   for (i = 0; i < list->list.length; ++i) {
     // exit when reach parent
     attr = list->list.values[i];
-    assert(attr->type == AST_ATTRIBUTE);
+    fl_assert(attr->type == AST_ATTRIBUTE);
 
     if (st_cmp(needle, attr->attr.id->identifier.string) == 0) {
       return attr;
@@ -185,7 +185,7 @@ ast_t* ast_get_attribute(ast_t* list, string* needle) {
 }
 
 u64 ast_get_typeid(ast_t* node) {
-  assert(node != 0);
+  fl_assert(node != 0);
   // check AST is somewhat "type-related"
   switch (node->type) {
   case AST_DTOR_VAR:

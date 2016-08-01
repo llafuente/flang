@@ -129,6 +129,11 @@ u64 ty_create_wrapped(ts_types_t wrapper, u64 child) {
     break;
   case TY_REFERENCE:
     ts_type_table[i].of = wrapper;
+
+    if (ts_type_table[child].of == wrapper) {
+      ast_raise_error(0, "Cannot create a reference of a reference.");
+    }
+
     ts_type_table[i].ref.to = child;
     break;
   default: { log_error("ty_create_wrapped unhandled"); }
@@ -276,7 +281,7 @@ bool __struct_collision(ast_t* where, ast_t* scope, char* ty_name) {
 
 // transfer list ownership
 u64 ty_create_struct(ast_t* decl) {
-  // assert(decl->structure.tpls == 0);
+  // fl_assert(decl->structure.tpls == 0);
   fl_assert(decl->structure.id != 0);
 
   u64 i;
@@ -417,8 +422,8 @@ bool ty_compatible_fn(u64 ty_id, ast_t* arg_list, bool strict, bool template) {
 bool ty_compatible_struct(u64 a, u64 b) {
   ty_t at = ts_type_table[a];
   ty_t bt = ts_type_table[b];
-  assert(at.of == TY_STRUCT);
-  assert(bt.of == TY_STRUCT);
+  fl_assert(at.of == TY_STRUCT);
+  fl_assert(bt.of == TY_STRUCT);
 
   // must be <= in length
   // if (at.structure.nfields > bt.structure.nfields) {
@@ -478,7 +483,7 @@ u64 ty_create_fn(ast_t* decl) {
 
   char* fn_uid = decl->func.uid->value;
 
-  assert(decl->func.uid != 0);
+  fl_assert(decl->func.uid != 0);
 
   ast_t* params = decl->func.params;
   u64 length = params->list.length;
@@ -559,7 +564,7 @@ u64 ty_create_fn(ast_t* decl) {
 
 // transfer list ownership
 void ty_create_var(ast_t* decl) {
-  assert(decl->type == AST_DTOR_VAR);
+  fl_assert(decl->type == AST_DTOR_VAR);
 
   // do not attach the same variable to a scope many times
   // register need to be called many times but this not
