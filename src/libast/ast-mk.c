@@ -585,13 +585,14 @@ ast_t* ast_mk_sizeof(ast_t* type) {
   return node;
 }
 
-ast_t* ast_mk_cast(ast_t* type, ast_t* element) {
+ast_t* ast_mk_cast(ast_t* type, ast_t* element, bool unsafe) {
   // printf("ast_mk_cast\n");
   ast_t* node = ast_new();
   node->type = AST_CAST;
 
   node->cast.type = type;
   node->cast.element = element;
+  node->cast.unsafe = unsafe;
 
   return node;
 }

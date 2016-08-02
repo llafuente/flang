@@ -66,6 +66,9 @@ typedef struct ts_struct_alias ts_struct_alias_t;
 struct ts_struct_virtual;
 typedef struct ts_struct_virtual ts_struct_virtual_t;
 
+enum ts_cast_modes;
+typedef enum ts_cast_modes ts_cast_modes_t;
+
 // defined @flang-ast
 enum ast_action;
 typedef enum ast_action ast_action_t;

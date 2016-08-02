@@ -92,6 +92,7 @@ ident [a-zA-Z\x80-\xff_\$][a-zA-Z0-9\x80-\xff_]*
 
 _        { SET_LOCATION; return TK_UNDERSCORE; }
 cast     { SET_LOCATION; return TK_CAST; }
+unsafe_cast     { SET_LOCATION; return TK_UNSAFE_CAST; }
 any      { SET_LOCATION; return TK_ANY; }
 break    { SET_LOCATION; return TK_BREAK; }
 const    { SET_LOCATION; return TK_CONST; }

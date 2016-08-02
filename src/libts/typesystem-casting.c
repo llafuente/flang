@@ -31,66 +31,96 @@
 #include "flang/debug.h"
 
 // TODO this should check if the type can be promoted
-bool ts_castable(u64 current, u64 expected) {
-  // same obviously true, no type yet also true
+// TODO check if struct are compatible
+ts_cast_modes_t ts_cast_mode(u64 current, u64 expected) {
+  // same obviously true, no type yet also true: no need cast
   if (current == expected || !current) {
-    return true;
+    return CAST_NONE;
   }
 
-  // TODO special cases atm
+  // TODO REVIEW special cases atm
   if ((current == TS_STRING && expected == TS_CSTR) ||
       (current == TS_CSTR && expected == TS_STRING)) {
-    return true;
+    return CAST_NONE;
   }
 
-  ty_t atype = ts_type_table[current];
-  ty_t btype = ts_type_table[expected];
+  ty_t cur_type = ty(current);
+  ty_t ex_type = ty(expected);
 
-  if (btype.of == atype.of) {
-    switch (btype.of) {
+  if (cur_type.of == ex_type.of) {
+    switch (ex_type.of) {
     case TY_POINTER:
       // void* to anything is ok, to avoid casting malloc
-      // anything else bad
-      if (atype.ptr.to == TS_VOID) {
-        return true;
+      if (cur_type.ptr.to == TS_VOID) {
+        return CAST_IMPLICIT;
       }
+      // if the target type are implicit castables, then it's ok
+      // fail otherwise
+      ts_cast_modes_t cm = ts_cast_mode(cur_type.ptr.to, ex_type.ptr.to);
+      if ((cm & 1) == 1) {
+        return CAST_IMPLICIT;
+      }
+
+      return CAST_INVALID;
       break;
     case TY_NUMBER:
       // b is bigger & both floating/number
-      if (atype.number.bits <= btype.number.bits &&
-          btype.number.fp == atype.number.fp) {
-        return true; // both numbers
+      if (cur_type.number.bits <= ex_type.number.bits &&
+          ex_type.number.fp == cur_type.number.fp) {
+        return CAST_IMPLICIT; // both numbers
       }
       // from integer to float
-      if (!atype.number.fp && btype.number.fp) {
-        return true;
+      if (!cur_type.number.fp && ex_type.number.fp) {
+        return CAST_IMPLICIT;
       }
+      return CAST_EXPLICIT;
       break;
     default: {}
     }
   }
 
   // vector-ptr casting
-  if ((btype.of == TY_POINTER && atype.of == TY_VECTOR)) {
-    return btype.ptr.to == atype.vector.to;
-  }
-  if ((atype.of == TY_POINTER && btype.of == TY_VECTOR)) {
-    return atype.ptr.to == btype.vector.to;
+  if (((ex_type.of == TY_POINTER && cur_type.of == TY_VECTOR) ||
+       (cur_type.of == TY_POINTER && ex_type.of == TY_VECTOR)) &&
+      ex_type.ptr.to == cur_type.vector.to) {
+    return CAST_IMPLICIT;
   }
 
-  if ((atype.of == TY_REFERENCE && btype.of == TY_POINTER)) {
-    return atype.ref.to == btype.ptr.to;
+  // pointer to reference
+  // printf("%d -> %d '%s'\n", cur_type.of, cur_type.of == TY_REFERENCE,
+  // ty_to_string(current)->value);
+  // printf("%d -> %d '%s'\n", ex_type.of, ex_type.of == TY_POINTER,
+  // ty_to_string(expected)->value);
+  // printf("same type %d\n", cur_type.ref.to == ex_type.ptr.to);
+  // printf("void %d\n", cur_type.ptr.to == TS_VOID);
+  if ((cur_type.of == TY_POINTER && ex_type.of == TY_REFERENCE) &&
+      (cur_type.ref.to == ex_type.ptr.to || // same type
+       cur_type.ptr.to == TS_VOID           // void pointer. autocast malloc
+       )) {
+    return CAST_IMPLICIT;
   }
 
   // TODO REVIEW this maybe break code, could be dangerous
-  if ((atype.of == TY_POINTER && btype.of == TY_REFERENCE)) {
-    return atype.ref.to == btype.ptr.to;
-  }
+  // if ((cur_type.of == TY_POINTER && ex_type.of == TY_REFERENCE)) {
+  //  return cur_type.ref.to == ex_type.ptr.to;
+  //}
 
   log_verbose("invalid cast [%s] to [%s]", ty_to_string(current)->value,
               ty_to_string(expected)->value);
 
-  return false;
+  return CAST_INVALID;
+}
+
+bool ts_explicit_cast(u64 current, u64 expected) {
+  return ts_cast_mode(current, expected) == CAST_EXPLICIT;
+}
+
+bool ts_implicit_cast(u64 current, u64 expected) {
+  return ts_cast_mode(current, expected) == CAST_IMPLICIT;
+}
+
+bool ts_castable(u64 current, u64 expected) {
+  return (ts_cast_mode(current, expected) & 1) == 1;
 }
 
 ast_cast_operations_t ts_cast_operation(ast_t* node) {
@@ -162,35 +192,6 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
     }
   }
 
-  string* name = st_newc("autocast", st_enc_ascii);
-  u64 args_ty[1];
-  args_ty[0] = current;
-  ast_t* autocast = ast_search_fn(node, name, args_ty, 1, expected, false);
-  st_delete(&name);
-
-  if (autocast) {
-    log_verbose("cast to expr-call");
-
-    ast_t* arguments = ast_mk_list();
-    ast_mk_list_push(arguments, node->cast.element);
-    node->parent = arguments;
-
-    ast_t* callee = ast_mk_lit_id(st_clone(autocast->func.uid), false);
-    callee->identifier.decl = autocast;
-    callee->ty_id = autocast->ty_id;
-
-    ast_t* ecall = ast_mk_call_expr(callee, arguments);
-    ecall->call.decl = autocast;
-
-    callee->parent = ecall;
-    arguments->parent = ecall;
-    ecall->parent = node;
-    ecall->ty_id = expected;
-    node->cast.element = ecall;
-
-    return AST_CAST_AUTO;
-  }
-
   return AST_CAST_BITCAST;
   /* TODO REVIEW !!!
   if (!current || !expected) {
@@ -230,27 +231,73 @@ bool ts_cast_literal(ast_t* node, u64 type_id) {
   return false;
 }
 
-ast_t* __ts_create_cast(ast_t* node, u64 type_id) {
+ast_t* __cast_node_to(ast_t* node, u64 type_id) {
+  fl_assert(node->ty_id > 0);
+
   // try to cast to "inference" type, just wait...
   if (!type_id) {
     return node;
   }
 
-  // if it's a literal, can be casted to a compatible type directly
+  // case 1: if it's a literal, can be casted to a compatible type directly
   if (ts_cast_literal(node, type_id)) {
     log_verbose("literal casted");
     return node;
   }
 
-  // do nothing, wait until the template is expanded.
+  // case 2: do nothing, wait until the template is expanded.
   if (ty_is_template(node->ty_id) || ty_is_template(type_id)) {
     return node;
   }
 
-  log_verbose("castable? %d", ts_castable(node->ty_id, type_id));
+  // case 3: there is a autocast function, cast it!
+  string* name = st_newc("autocast", st_enc_ascii);
+  u64 args_ty[1];
+  args_ty[0] = node->ty_id;
+  ast_t* autocast = ast_search_fn(node, name, args_ty, 1, type_id, false);
+  st_delete(&name);
+
+  if (autocast) {
+    log_verbose("cast to expr-call");
+
+    ast_t* arguments = ast_mk_list();
+    ast_mk_list_push(arguments, node);
+    node->parent = arguments;
+
+    ast_t* callee = ast_mk_lit_id(st_clone(autocast->func.uid), false);
+    callee->identifier.decl = autocast;
+    callee->ty_id = autocast->ty_id;
+
+    ast_t* ecall = ast_mk_call_expr(callee, arguments);
+    ecall->call.decl = autocast;
+
+    callee->parent = ecall;
+    arguments->parent = ecall;
+    ecall->parent = node;
+    ecall->ty_id = type_id;
+
+    return ecall;
+  }
+
+  // case 3: invalid cast, raise
+  ts_cast_modes_t cm = ts_cast_mode(node->ty_id, type_id);
+  if (cm == CAST_INVALID) {
+    ast_raise_error(node, "Invalid cast: types are not castables '%s' to '%s'",
+                    ty_to_string(node->ty_id)->value,
+                    ty_to_string(type_id)->value);
+  }
+
+  // case 4: explicit cast, raise
+  if (cm == CAST_EXPLICIT) {
+    ast_raise_error(node, "Explicit cast required between '%s' to '%s'",
+                    ty_to_string(node->ty_id)->value,
+                    ty_to_string(type_id)->value);
+  }
+  /*
+  log_verbose("cast mode? %d", ts_cast_mode(node->ty_id, type_id));
   log_verbose("autocast? %p", __ts_autocast(node, node->ty_id, type_id));
 
-  if (!ts_castable(node->ty_id, type_id) &&
+  if (ts_cast_mode(node->ty_id, type_id) == CAST_INVALID &&
       !__ts_autocast(node, node->ty_id, type_id)) {
     // TODO this need to be a bit more specific about what is casting to return
     // a readble error
@@ -260,7 +307,10 @@ ast_t* __ts_create_cast(ast_t* node, u64 type_id) {
                     ty_to_string(type_id)->value);
     return node; // almost an error!?
   }
-  ast_t* cast = ast_mk_cast(0, node);
+  */
+
+  // no error or ignore, so cast :)
+  ast_t* cast = ast_mk_cast(0, node, false);
   cast->parent = node->parent;
   node->parent = cast;
   cast->ty_id = type_id;
@@ -270,7 +320,7 @@ ast_t* __ts_create_cast(ast_t* node, u64 type_id) {
 
 ast_t* __ts_create_left_cast(ast_t* parent, ast_t* left) {
   fl_assert(parent->type == AST_EXPR_BINOP);
-  ast_t* cast = __ts_create_cast(left, parent->ty_id);
+  ast_t* cast = __cast_node_to(left, parent->ty_id);
   parent->binop.left = cast;
 
   return cast;
@@ -278,7 +328,7 @@ ast_t* __ts_create_left_cast(ast_t* parent, ast_t* left) {
 
 ast_t* __ts_create_right_cast(ast_t* parent, ast_t* right) {
   fl_assert(parent->type == AST_EXPR_BINOP);
-  ast_t* cast = __ts_create_cast(right, parent->ty_id);
+  ast_t* cast = __cast_node_to(right, parent->ty_id);
   parent->binop.right = cast;
 
   return cast;
@@ -294,13 +344,13 @@ void __ts_create_binop_cast(ast_t* bo) {
   if (expected_ty_id == TS_BOOL) {
     // both must have the same type!
     if (ast_is_literal(l)) {
-      ast_t* cast = __ts_create_cast(l, r->ty_id);
+      ast_t* cast = __cast_node_to(l, r->ty_id);
       bo->binop.left = cast;
       return;
     }
 
     if (ast_is_literal(r)) {
-      ast_t* cast = __ts_create_cast(r, l->ty_id);
+      ast_t* cast = __cast_node_to(r, l->ty_id);
       bo->binop.right = cast;
       return;
     }
@@ -312,12 +362,12 @@ void __ts_create_binop_cast(ast_t* bo) {
 
   if (expected_ty_id != l->ty_id) {
     // cast left side
-    ast_t* cast = __ts_create_cast(l, expected_ty_id);
+    ast_t* cast = __cast_node_to(l, expected_ty_id);
     bo->binop.left = cast;
   }
 
   if (expected_ty_id != r->ty_id) {
-    ast_t* cast = __ts_create_cast(r, expected_ty_id);
+    ast_t* cast = __cast_node_to(r, expected_ty_id);
     bo->binop.right = cast;
   }
 }
@@ -342,7 +392,7 @@ void ts_cast_return(ast_t* node) {
 
   u64 t = decl->func.ret_type->ty_id;
   if (t != node->ret.argument->ty_id) {
-    ast_t* cast = __ts_create_cast(arg, t);
+    ast_t* cast = __cast_node_to(arg, t);
     node->ret.argument = cast;
     node->ty_id = cast->ty_id;
   } else {
@@ -471,7 +521,7 @@ void ts_cast_call(ast_t* node) {
     if (arg->ty_id != t->func.params[i]) {
       // cast right side
       log_debug("cast argument %zu != %zu", arg->ty_id, t->func.params[i]);
-      args->list.values[i] = __ts_create_cast(arg, t->func.params[i]);
+      args->list.values[i] = __cast_node_to(arg, t->func.params[i]);
     }
   }
 }
@@ -506,7 +556,8 @@ void ts_cast_binop(ast_t* node) {
     // fl_assert(false); // TODO REVIEW need study
   }
   if (ty_is_reference(l_type)) {
-    if (!ty_is_pointer_like(r_type) || ts_castable(ty(l_type).ref.to, r_type)) {
+    if (!ty_is_pointer_like(r_type) ||
+        ts_cast_mode(ty(l_type).ref.to, r_type) != CAST_INVALID) {
       ast_t* deref = __ts_dereference(l);
       deref->parent = node;
       node->binop.left = deref;
@@ -514,7 +565,7 @@ void ts_cast_binop(ast_t* node) {
     }
   } else if (ty_is_reference(r_type)) {
     // right: auto-dereference when type compatible
-    if (ts_castable(ty(r_type).ref.to, l_type)) {
+    if (ts_cast_mode(ty(r_type).ref.to, l_type) != CAST_INVALID) {
       ast_t* deref = __ts_dereference(r);
       deref->parent = node;
       node->binop.right = deref;
@@ -545,7 +596,7 @@ void ts_cast_binop(ast_t* node) {
     if (l_type != r_type) {
       log_silly("assignament cast [%zu - %zu]", l_type, r_type);
       // cast will be validated later if it's posible
-      node->binop.right = __ts_create_cast(r, l_type);
+      node->binop.right = __cast_node_to(r, l_type);
     }
 
     node->ty_id = l_type;
@@ -712,7 +763,7 @@ void ts_cast_expr_member(ast_t* node) {
   } break;
   case TY_POINTER: {
     node->ty_id = type->ptr.to;
-    node->member.property = __ts_create_cast(p, 9);
+    node->member.property = __cast_node_to(p, 9);
   } break;
   case TY_VECTOR: {
     node->ty_id = type->vector.to;

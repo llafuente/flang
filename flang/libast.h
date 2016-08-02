@@ -226,6 +226,7 @@ struct ast {
       ast_cast_operations_t operation;
       ast_t* type;
       ast_t* element;
+      bool unsafe;
     } cast;
 
     struct ast_dtor_variable {
@@ -447,7 +448,7 @@ libexport ast_t* ast_mk_struct_decl_alias(ast_t* name, ast_t* id);
 libexport ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression,
                                bool brakets);
 libexport ast_t* ast_mk_sizeof(ast_t* type);
-libexport ast_t* ast_mk_cast(ast_t* type, ast_t* element);
+libexport ast_t* ast_mk_cast(ast_t* type, ast_t* element, bool unsafe);
 libexport ast_t* ast_mk_import(ast_t* string_lit, bool foward);
 libexport ast_t* ast_mk_log(ast_t* list);
 libexport ast_t* ast_mk_attribute(ast_t* id, ast_t* value);

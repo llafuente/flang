@@ -30,12 +30,9 @@
 
 ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
                             u64 level, void* userdata_in, void* userdata_out) {
-  if (mode == AST_TRAV_LEAVE)
-    return 0;
   ++node->ts_passes;
 
   switch (node->type) {
-
   // perf: types decl don't need to be casted.
   case AST_TYPE:
   // TODO attrbute may need to be resolved somehow/sometime
@@ -50,7 +47,9 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
   }
 
   case AST_STMT_RETURN: {
-    ts_cast_return(node);
+    if (mode == AST_TRAV_ENTER) {
+      ts_cast_return(node);
+    }
   } break;
   case AST_LIT_STRING: {
     node->ty_id = TS_STRING;
@@ -93,25 +92,37 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
 
   } break;
   case AST_EXPR_MEMBER: {
-    ts_cast_expr_member(node);
+    if (mode == AST_TRAV_LEAVE) {
+      ts_cast_expr_member(node);
+    }
   } break;
   case AST_EXPR_LUNARY: {
-    ts_cast_lunary(node);
+    if (mode == AST_TRAV_LEAVE) {
+      ts_cast_lunary(node);
+    }
   } break;
   case AST_EXPR_RUNARY: {
-    ts_cast_runary(node);
+    if (mode == AST_TRAV_LEAVE) {
+      ts_cast_runary(node);
+    }
   } break;
   case AST_EXPR_ASSIGNAMENT: {
-    ts_cast_binop(node);
+    if (mode == AST_TRAV_LEAVE) {
+      ts_cast_binop(node);
+    }
   } break;
   case AST_EXPR_CALL: {
-    ts_cast_call(node);
+    if (mode == AST_TRAV_LEAVE) {
+      ts_cast_call(node);
+    }
   } break;
   case AST_IMPLEMENT: {
     return AST_SEARCH_SKIP;
   }
   case AST_EXPR_BINOP: {
-    ts_cast_binop(node);
+    if (mode == AST_TRAV_LEAVE) {
+      ts_cast_binop(node);
+    }
   }
   default: {} // supress warning
   }
@@ -125,7 +136,14 @@ ast_action_t __ts_cast_operation_pass_cb(ast_trav_mode_t mode, ast_t* node,
   if (mode == AST_TRAV_LEAVE)
     return 0;
 
-  if (node->type == AST_CAST) {
+  if (node->type == AST_CAST && !node->cast.unsafe) {
+    // check if it's possible to cast those types
+    if (!ts_castable(node->cast.element->ty_id, node->ty_id)) {
+      ast_raise_error(node,
+                      "Invalid cast: types are not castables '%s' to '%s'",
+                      ty_to_string(node->cast.element->ty_id)->value,
+                      ty_to_string(node->ty_id)->value);
+    }
     node->cast.operation = ts_cast_operation(node);
   }
 

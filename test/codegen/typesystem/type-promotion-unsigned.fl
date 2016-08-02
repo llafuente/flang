@@ -1,6 +1,5 @@
 //assumes little endian
-fn to_bin (i32 size, ptr(void) p) : i32 {
-  var ptr(u8) b = cast(ptr(u8)) p;
+fn to_bin (i32 size, ptr(u8) b) : i32 {
   var u8 byte;
   var i32 i;
   var i32 j;
@@ -28,10 +27,10 @@ _u32 = _u16;
 _u64 = _u32;
 
 printf("u8 = 8 @ binary = ");
-to_bin(1, cast(ptr(void)) &_u8);
+to_bin(1, cast(ptr(u8)) &_u8);
 printf("u16 = (u8)-8 @ binary = ");
-to_bin(2, cast(ptr(void)) &_u16);
+to_bin(2, cast(ptr(u8)) &_u16);
 printf("_u32 = (u16)(u8)-8 @ binary = ");
-to_bin(4, cast(ptr(void)) &_u32);
+to_bin(4, cast(ptr(u8)) &_u32);
 printf("_u64 = (u32)(u16)(u8)-8 @ binary = ");
-to_bin(8, cast(ptr(void)) &_u64);
+to_bin(8, cast(ptr(u8)) &_u64);

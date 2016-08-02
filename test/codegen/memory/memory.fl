@@ -81,4 +81,4 @@ function as_pointer(ptr(abc) abc_i) {
 var ptr(abc) abc_ptr_param;
 abc_ptr_param = malloc(50);
 as_pointer(abc_ptr_param);
-free(cast(ptr(void)) abc_ptr_param);
+free(unsafe_cast(ptr(void)) abc_ptr_param);

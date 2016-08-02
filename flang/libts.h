@@ -45,6 +45,13 @@ extern u64 ts_type_size_s;
 
 // DECL
 
+enum ts_cast_modes {
+  CAST_INVALID = 0b00000000,
+  CAST_NONE = 0b00000001, // not needed
+  CAST_IMPLICIT = 0b00000011,
+  CAST_EXPLICIT = 0b00000101,
+};
+
 enum ts_types {
   TY_VOID = 1,
   TY_NUMBER = 2,
@@ -360,6 +367,12 @@ libexport void ts_exit();
 // TODO continue documenting
 
 /* cldoc:begin-category(typesystem-promotion.c) */
+/* Return cast mode needed for given types if possible.
+ *
+ * @current type id
+ * @expected type id
+ */
+libexport ts_cast_modes_t ts_cast_mode(u64 current, u64 expected);
 
 /* Return if current can be safetly casted to expected
  *
@@ -367,6 +380,19 @@ libexport void ts_exit();
  * @expected type id
  */
 libexport bool ts_castable(u64 current, u64 expected);
+
+/* Return if an explicit cast is required
+ *
+ * @current type id
+ * @expected type id
+ */
+libexport bool ts_explicit_cast(u64 current, u64 expected);
+/* Return if an implicit cast is required
+ *
+ * @current type id
+ * @expected type id
+ */
+libexport bool ts_implicit_cast(u64 current, u64 expected);
 
 /* Given a AST_CAST node, will determine the asm operation
  * needed to cast both types.

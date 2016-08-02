@@ -30,7 +30,6 @@
 
 ty_t ty(u64 ty_id) {
   // check out-of-bounds
-  printf("ty %lu\n", ty_id);
   return ts_type_table[ty_id];
 }
 
@@ -412,9 +411,15 @@ bool ty_compatible_fn(u64 ty_id, ast_t* arg_list, bool strict, bool template) {
         log_silly("(template) parameter %zu use", i) continue;
       }
       log_silly("(template) parameter %zu reject", i) return false;
-    } else if (!ts_castable(current, expected)) {
-      log_silly("(cast) parameter %zu cannot be casted", i);
-      return false;
+    } else {
+      ts_cast_modes_t cm = ts_cast_mode(current, expected);
+      // NOTE CAST_EXPLICIT it a not compatible type
+      // this is called by templates, if we cast down number
+      // we broke the template purpose so it's invalid
+      if (cm == CAST_EXPLICIT || cm == CAST_INVALID) {
+        log_silly("(cast) parameter %zu cannot be casted", i);
+        return false;
+      }
     }
   }
   return true;

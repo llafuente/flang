@@ -45,7 +45,7 @@
 %token <token> TK_ANDAND TK_ANDEQ TK_OROR TK_OREQ TK_PLUSEQ
 %token <token> TK_STAREQ TK_SLASHEQ TK_CARETEQ TK_PERCENTEQ
 %token <token> TK_DOTDOTDOT TK_DOTDOT TK_PLUSPLUS TK_MINUSMINUS
-%token <token> TK_CAST TK_TEMPLATE
+%token <token> TK_CAST TK_UNSAFE_CAST TK_TEMPLATE
 %token <token> TK_ACCESS TK_PUSH
 
 
@@ -617,7 +617,11 @@ unary_expression
 cast_expression
   : unary_expression
   | TK_CAST '(' type ')' cast_expression {
-    $$ = ast_mk_cast($3, $5);
+    $$ = ast_mk_cast($3, $5, false);
+    ast_position($$, @1, @5);
+  }
+  | TK_UNSAFE_CAST '(' type ')' cast_expression {
+    $$ = ast_mk_cast($3, $5, true);
     ast_position($$, @1, @5);
   }
   ;

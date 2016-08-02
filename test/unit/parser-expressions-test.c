@@ -27,7 +27,7 @@
 #include "../test.h"
 
 TASK_IMPL(parser_expressions) {
-  log_debug_level = 0;
+  log_debug_level = 10;
 
   /*
   TEST_PARSER_OK("sizeof parse",
@@ -258,8 +258,7 @@ TASK_IMPL(parser_expressions) {
   TEST_PARSER_ERROR("type demotion", "var i32 a = 1;\n"
                                      "var i64 b = 1;\n"
                                      "a = b;",
-                    "manual casting is required: 'b' is i64 and must be i32",
-                    {});
+                    "Explicit cast required between 'i64' to 'i32'", {});
 
   return 0;
 }

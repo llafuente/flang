@@ -221,8 +221,8 @@ TASK_IMPL(parser_types) {
                                     "var a _a;\n"
                                     "var b _b;\n"
                                     "_b = _a;\n",
-                    "manual casting is required: '_a' is struct a { i8 b, } "
-                    "and must be struct b { i8 c, }",
+                    "Invalid cast: types are not castables 'struct a { i8 b, "
+                    "}' to 'struct b { i8 c, }'",
                     {});
 
   TEST_PARSER_OK("a/b are the same type", "struct a { i8 b, };\n"
@@ -255,6 +255,14 @@ TASK_IMPL(parser_types) {
     u64 b_ty_id = body[1]->ty_id;
     ASSERT(a_ty_id != b_ty_id, "ref and pointers aren't the same type");
   });
+
+  TEST_PARSER_ERROR(
+      "a/b are the same type", "struct a { i32 b, };\n"
+                               "var a $a;\n"
+                               "var i8 $b = 100;\n"
+                               "$a = cast(a) $b;\n",
+      "Invalid cast: types are not castables 'i8' to 'struct a { i32 b, }'",
+      {});
 
   return 0;
 }

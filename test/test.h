@@ -37,7 +37,7 @@
 
 #define STRING_MATCH(a, b)                                                     \
   if (strcmp(a, b) != 0) {                                                     \
-    fprintf(stderr, "expected: %s\nfound:%s\n", b, a);                         \
+    fprintf(stderr, "expected: %s\nfound: %s\n", b, a);                        \
     ASSERT(false, "error message match");                                      \
   }
 
