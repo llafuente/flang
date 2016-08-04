@@ -76,7 +76,7 @@
 %type <node> program stmts
 %type <node> stmt var_decl maybe_argument_expression_list argument_expression_list comment
 %type <node> maybe_type_list type_list ident_list
-%type <node> struct_decl struct_tpl_decl struct_decl_fields struct_decl_fields_list struct_decl_field
+%type <node> struct_decl struct_decl_fields struct_decl_fields_list struct_decl_field
 %type <node> block maybe_stmts log_expression
 
 %type <node> expression maybe_expression
@@ -202,7 +202,6 @@ stmt
     $$ = 0; // empty stmt
   }
   | var_decl ';'
-  | struct_tpl_decl
   | struct_decl
   | fn_decl
   | '{' stmts '}' {
@@ -324,17 +323,16 @@ struct_decl
     $$ = ast_mk_struct_decl($2, 0, $3);
     ast_position($$, @1, @3);
   }
-  ;
-
-struct_tpl_decl
-  : TK_STRUCT ident '(' type_list ')' struct_decl_fields {
+  | TK_STRUCT ident '(' type_list ')' struct_decl_fields {
     $$ = ast_mk_struct_decl($2, $4, $6);
     ast_position($$, @1, @6);
   }
+  // TODO struct extend
   ;
 
 struct_decl_fields
   : '{' struct_decl_fields_list '}'      { $$ = $2; ast_position($$, @1, @3); }
+  // allow last comma
   | '{' struct_decl_fields_list ',' '}'  { $$ = $2; ast_position($$, @1, @4); }
   ;
 

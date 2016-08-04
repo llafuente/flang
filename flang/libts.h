@@ -160,11 +160,11 @@ ty_t ty(u64 ty_id);
 char* ty_to_color(u64 ty_id);
 
 /* Get printf token given ty_id, only built-in atm.
- *
+ * TODO buffer overrun
  * @ty_id type id
  * @return printf token
  */
-libexport char* ty_to_printf(u64 ty_id);
+libexport void ty_to_printf(u64 ty_id, char* buffer);
 
 /* Get string representation of given type.
  * Do not need to free ther string, it's allocated in the pool.
@@ -348,10 +348,6 @@ libexport u64 ty_create_template(ast_t* decl);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(typesystem-alloc.c) */
-
-extern ty_t* ts_type_table;
-
-extern u64 ts_type_size_s;
 
 /* Intialize type system global variables
  * Do not call this directly use: [flang_init](#flang_init)

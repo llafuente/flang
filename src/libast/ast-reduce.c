@@ -26,41 +26,71 @@
 #include "flang/flang.h"
 #include "flang/libast.h"
 #include "flang/libts.h"
+#include "flang/debug.h"
 
 void __ast_reduce_log(ast_t* node) {
   // this will mutate to expr-call
   // get each part code and inject it before in the list
   ast_t* list = node->log.list; // cache
 
-  u64 i;
-  char buffer[256];
+  char buffer[512];
   buffer[0] = '\0';
 
-  for (i = 0; i < list->list.length; ++i) {
-    ast_t* el = list->list.values[i];
+  fl_assert(list->list.length == 1); // just one atm!
 
-    ast_mk_list_insert(list, ast_mk_lit_string2(ast_get_code(el), false, true),
-                       i);
-    ++i;
-    ast_mk_list_insert(
-        list, ast_mk_lit_string2(ty_to_string(el->ty_id), false, true), i);
-    ++i; // advance another one, because we insert before current
-    // strcat(buffer, "%s \x1B[32m");
-    strcat(buffer, "%s ");
-    strcat(buffer, "\x1B[36m(%s)\x1B[39m = ");
+  // for (u64 i = 0; i < list->list.length; ++i) {
+  {
+    ast_t* arguments = ast_mk_list();
+    ast_t* el = list->list.values[0];
+
+    strcat(buffer, "$\x1B[36m(%s) %s\x1B[39m = ");
     strcat(buffer, ty_to_color(el->ty_id));
-    strcat(buffer, ty_to_printf(el->ty_id));
+    char* b = buffer + strlen(buffer);
+    ty_to_printf(el->ty_id, b);
     strcat(buffer, "\x1B[39m ");
-  }
-  buffer[strlen(buffer) - 1] = '\n';
-  ast_mk_list_insert(list, ast_mk_lit_string(buffer, false), 0);
 
-  node->type = AST_EXPR_CALL;
-  node->call.callee = ast_mk_lit_id(st_newc("printf", st_enc_utf8), true);
-  node->call.arguments = list;
+    // arg 0: format
+    buffer[strlen(buffer) - 1] = '\n';
+    ast_mk_list_push(arguments, ast_mk_lit_string(buffer, false));
+
+    // arg 1: type
+    ast_mk_list_push(arguments,
+                     ast_mk_lit_string2(ty_to_string(el->ty_id), false, true));
+
+    // arg 2: code
+    ast_mk_list_push(arguments,
+                     ast_mk_lit_string2(ast_get_code(el), false, true));
+
+    // arg 2+: logged values
+    ty_t type = ty(el->ty_id);
+
+    switch (type.of) {
+    case TY_REFERENCE: {
+      // auto-dereference
+      ast_t* deref = ast_mk_lunary(el, '*');
+      el->parent = deref;
+      ast_mk_list_push(arguments, deref);
+    } break;
+    case TY_STRUCT: {
+      // print each memeber
+      array* props = (array*)&type.structure.properties;
+      for (u64 j = 0; j < props->length; ++j) {
+        ast_t* prop = ast_mk_lit_id(type.structure.properties.values[j], false);
+        ast_t* member = ast_mk_member(el, prop, false, false);
+        ast_mk_list_push(arguments, member);
+      }
+    } break;
+    default:
+      ast_mk_list_push(arguments, el);
+    }
+
+    ast_clear(node, AST_EXPR_CALL);
+    node->call.callee = ast_mk_lit_id(st_newc("printf", st_enc_utf8), true);
+    node->call.arguments = arguments;
+  }
+
   // typesystem need to pass again...
   ast_parent(node);
-  node->call.callee->parent = node;
 }
 
 ast_action_t __trav_reduced(ast_trav_mode_t mode, ast_t* node, ast_t* parent,

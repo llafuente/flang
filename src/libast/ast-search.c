@@ -68,7 +68,7 @@ ast_t* ast_search_fn(ast_t* node, string* identifier, u64* args, u64 nargs,
     fn = arr->values[i];
     if (st_cmp(identifier, fn->func.id->identifier.string) == 0) {
       log_verbose("function name found");
-      ty_t t = ts_type_table[fn->ty_id];
+      ty_t t = ty(fn->ty_id);
       fl_assert(t.of == TY_FUNCTION);
 
       log_verbose("varargs %d == %d", t.func.varargs, var_args);
@@ -107,7 +107,7 @@ ast_t* ast_search_fn_op(ast_t* node, int operator, u64 ty_id) {
   ast_t* fn;
   for (i = 0; i < arr->length; ++i) {
     fn = arr->values[i];
-    ty_t t = ts_type_table[fn->ty_id];
+    ty_t t = ty(fn->ty_id);
     // binary atm!
     if (fn->func.operator== operator&& t.func.nparams == 2 &&
         t.func.params[0] == ty_id) {
@@ -137,7 +137,7 @@ ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
       exit(5);
     }
 
-    ty_t fn_ty = ts_type_table[decl->ty_id];
+    ty_t fn_ty = ty(decl->ty_id);
     if (fn_ty.of != TY_FUNCTION) {
       ast_raise_error(args_call->parent,
                       "typesystem - invalid variable type, not a function");

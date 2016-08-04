@@ -12,6 +12,9 @@ rm -f ./build/tests
 mkdir -p build
 cd build
 
+sh ../bootstrap
+../configure
+
 #always delete the test, so it will not run the previous compiled
 rm -f ./test/run-tests
 

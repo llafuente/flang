@@ -1,5 +1,8 @@
-1+2+3 [36m(i64)[39m = [33m6[39m
-a = 1 [36m(i32)[39m = [33m1[39m
-a [36m(i32)[39m = [33m1[39m
-str [36m(cstr)[39m = [32mblablabla[39m
-"string got duplicated, funny?"; [36m(cstr)[39m = [32mstring got duplicated, funny?[39m
+$[36m(i64) 1+2+3[39m = [33m6[39m
+$[36m(i32) a = 1[39m = [33m1[39m
+$[36m(i32) a = 2[39m = [33m2[39m
+$[36m(i32) a[39m = [33m2[39m
+$[36m(cstr) str[39m = [32mblablabla[39m
+$[36m(cstr) "string got duplicated, funny?";[39m = [32mstring got duplicated, funny?[39m
+$[36m(ref(u8)) b[39m = [33m100[39m
+$[36m(struct vec2 { i8 x, i8 y, i8 stop, }) v2[39m = [31m{x = 100, y = -56, stop = 0}[39m

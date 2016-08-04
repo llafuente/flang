@@ -2,6 +2,7 @@
 $log 1+2+3;
 var i32 a;
 $log a = 1;
+$log a = 2;
 $log a;
 
 // string
@@ -10,10 +11,11 @@ $log str;
 $log "string got duplicated, funny?";
 
 // ptr to number
-var ptr(u8) b = malloc(1);
-b[0] = 100;
+var u8* b = malloc(1);
+b = 100;
 
-//$log &b;
+//$log b; TODO address? people will expect auto-dereference
+$log b;
 
 struct vec2 {
   i8 x,
@@ -26,4 +28,4 @@ v2.x = 100;
 v2.y = 200;
 v2.stop = 0;
 
-//$log v2;
+$log v2;

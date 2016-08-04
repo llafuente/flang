@@ -33,8 +33,8 @@ char* ty_to_color(u64 ty_id) {
   if (ty_id == TS_STRING) {
     return "\x1B[32m";
   }
-  ty_t ty = ts_type_table[ty_id];
-  switch (ty.of) {
+  ty_t type = ty(ty_id);
+  switch (type.of) {
   case TY_NUMBER:
   case TY_POINTER:
     return "\x1B[33m";
@@ -42,47 +42,72 @@ char* ty_to_color(u64 ty_id) {
     return "\x1B[30m";
   case TY_STRUCT:
     return "\x1B[31m";
+  case TY_REFERENCE:
+    return ty_to_color(type.ref.to);
   case TY_FUNCTION:
     return "\x1B[32m";
   default:
     return "\x1B[32m";
   }
 }
-char* ty_to_printf(u64 ty_id) {
+void ty_to_printf(u64 ty_id, char* dest) {
   // only builtin atm
   switch (ty_id) {
   case TS_I8:
   case TS_I16:
-    return "%d";
+    strcat(dest, "%d");
+    return;
   case TS_U8:
   case TS_U16:
-    return "%u";
+    strcat(dest, "%u");
+    return;
   case TS_I32:
   case TS_I64:
-    return "%ld";
+    strcat(dest, "%ld");
+    return;
   case TS_U32:
   case TS_U64:
-    return "%zu";
+    strcat(dest, "%zu");
+    return;
   case TS_F32:
   case TS_F64:
-    return "%f";
+    strcat(dest, "%f");
+    return;
   case TS_STRING:
     // case TS_CSTR:
-    return "%s";
+    strcat(dest, "%s");
+    return;
   }
 
-  ty_t ty = ts_type_table[ty_id];
-  switch (ty.of) {
+  ty_t type = ty(ty_id);
+  switch (type.of) {
+  case TY_REFERENCE: // auto-dereference
+    ty_to_printf(type.ref.to, dest);
+    return;
   case TY_POINTER:
-  case TY_REFERENCE:
   case TY_VECTOR:
-    return "%p";
-  case TY_STRUCT:
-    return "%s";
+    strcat(dest, "%p");
+    return;
+  case TY_STRUCT: {
+    strcat(dest, "{");
+    array* props = (array*)&type.structure.properties;
+    u64 i;
+    for (i = 0; i < props->length; ++i) {
+      strcat(dest, ((string*)type.structure.properties.values[i])->value);
+      strcat(dest, " = ");
+
+      ty_to_printf(type.structure.fields[i], dest);
+      if (i != props->length - 1) {
+        strcat(dest, ", ");
+      }
+    }
+    strcat(dest, "}");
+    return;
+  }
   case TY_FUNCTION:
-    return "%s";
-  default:
-    return "";
+    strcat(dest, "%s");
+    return;
+  default: {}
   }
 }
 
@@ -159,19 +184,19 @@ void ty_dump(u64 ty_id) {
     log_debug2("%s", ty.id->value);
     break;
   case TY_POINTER:
-    log_debug2("ptr<");
+    log_debug2("ptr(");
     ty_dump(ty.ptr.to);
-    log_debug2(">");
+    log_debug2(")");
     break;
   case TY_REFERENCE:
-    log_debug2("ref<");
+    log_debug2("ref(");
     ty_dump(ty.ref.to);
-    log_debug2(">");
+    log_debug2(")");
     break;
   case TY_VECTOR:
-    log_debug2("vector<");
+    log_debug2("vector(");
     ty_dump(ty.vector.to);
-    log_debug2(">");
+    log_debug2(")");
     break;
   case TY_STRUCT: {
     log_debug2("struct %s {",

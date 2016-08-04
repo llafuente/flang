@@ -42,31 +42,31 @@ string* cg_node(ast_t* node);
   } while (false);
 
 string* cg_type(u64 ty_id) {
-  ty_t ty = ts_type_table[ty_id];
+  ty_t type = ty(ty_id);
   // cached?
-  if (ty.cg != 0) {
-    return ty.cg;
+  if (type.cg != 0) {
+    return type.cg;
   }
 
   string* buffer = st_new(64, st_enc_utf8);
 
-  switch (ty.of) {
+  switch (type.of) {
   case TY_POINTER:
   case TY_REFERENCE:
-    st_append(&buffer, cg_type(ty.ptr.to));
+    st_append(&buffer, cg_type(type.ptr.to));
     st_append_c(&buffer, "*");
     break;
   case TY_VECTOR:
-    st_append(&buffer, cg_type(ty.vector.to));
+    st_append(&buffer, cg_type(type.vector.to));
     st_append_c(&buffer, "[]");
     break;
   case TY_STRUCT: {
-    st_append(&buffer, ty.id);
+    st_append(&buffer, type.id);
   } break;
   case TY_FUNCTION: {
-    fl_assert(ty.id != 0);
+    fl_assert(type.id != 0);
 
-    st_append_c(&buffer, ty.id->value);
+    st_append_c(&buffer, type.id->value);
     st_append_c(&buffer, "__fnptr");
   } break;
   case TY_TEMPLATE: {
@@ -78,7 +78,7 @@ string* cg_type(u64 ty_id) {
   }
 
   fl_assert(buffer->length != 0);
-  return ty.cg = buffer;
+  return type.cg = buffer;
 }
 
 string* st_dquote(const string* str) {
@@ -100,7 +100,6 @@ string* st_dquote(const string* str) {
       rep = 0;
       if (isprint(ch)) {
         if (ch == '"') {
-          printf("quote!\n");
           st_append_c(&out, "\\\"");
           continue;
         }
@@ -252,15 +251,14 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     if (mode == AST_TRAV_LEAVE)
       return 0;
 
-    size_t ty = node->ty_id;
     // size_t ty = node->numeric.ty_id;
-    ty_t t = ts_type_table[ty];
+    ty_t type = ty(node->ty_id);
 
     // TODO REVIEW happens on cast, this should be promoted to AST_LIT_DECIMAL?
-    // if (t.number.fp) {
+    // if (type.number.fp) {
     //  return LLVMConstReal(tref, node->integer.signed_value ?
     //  node->integer.signed_value : node->integer.unsigned_value);
-    if (t.number.sign) {
+    if (type.number.sign) {
       stack_append("%ld", node->integer.signed_value);
     } else {
       stack_append("%zu", node->integer.unsigned_value);
@@ -329,12 +327,12 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       if (ty_is_struct(node->member.left->ty_id)) {
         // we can be aliasing, so we can trust right->value
         // instead we just use the property name of the type
-        ty_t t = ts_type_table[node->member.left->ty_id];
+        ty_t type = ty(node->member.left->ty_id);
 
         // stack_append("(%s.%s)", left->value, right->value);
-        stack_append(
-            "(%s.%s)", left->value,
-            ((string**)t.structure.properties.values)[node->member.idx]->value);
+        stack_append("(%s.%s)", left->value,
+                     ((string**)type.structure.properties
+                          .values)[node->member.idx]->value);
       } else {
         stack_append("(%s[%s])", left->value, right->value);
       }
@@ -601,23 +599,23 @@ void cg_type_table(ast_t* root) {
   CG_OUTPUT(cg_fds->types, "type_t types[] = {\n");
   for (int i = 0; i < ts_type_size_s; ++i) {
     CG_OUTPUT(cg_fds->types, "{// id: %d\n", i);
-    if (ts_type_table[i].id != 0) {
-      st_dump_header(ts_type_table[i].id, buffer2);
+    ty_t type = ty(i);
+    if (type.id != 0) {
+      st_dump_header(type.id, buffer2);
       CG_OUTPUT(cg_fds->types, ".id = (string*)\"%s\" \"%s\",\n", buffer2,
-                ts_type_table[i].id->value);
+                type.id->value);
     } else {
       // WTF!
       CG_OUTPUT(cg_fds->types, ".id = (string*)0,\n");
     }
-    CG_OUTPUT(cg_fds->types, ".of = %d,\n", ts_type_table[i].of);
-    switch (ts_type_table[i].of) {
+    CG_OUTPUT(cg_fds->types, ".of = %d,\n", type.of);
+    switch (type.of) {
     case TY_NUMBER:
-      CG_OUTPUT(cg_fds->types, ".number.bits = %d,\n",
-                ts_type_table[i].number.bits);
+      CG_OUTPUT(cg_fds->types, ".number.bits = %d,\n", type.number.bits);
       CG_OUTPUT(cg_fds->types, ".number.fp = %s,\n",
-                ts_type_table[i].number.fp ? "true" : "false");
+                type.number.fp ? "true" : "false");
       CG_OUTPUT(cg_fds->types, ".number.sign = %s,\n",
-                ts_type_table[i].number.sign ? "true" : "false");
+                type.number.sign ? "true" : "false");
       break;
     default: {} // TODO handle the rest of type table
     }
