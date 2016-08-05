@@ -47,33 +47,33 @@ TASK_IMPL(parser_functions) {
       ASSERT(body[0]->func.params != 0, "no args");
     });
   */
-  TEST_PARSER_ERROR(
-      "function err 01", "fn {} var x;",
-      "syntax error, unexpected '{', expecting TK_OPERATOR or IDENTIFIER",
-      {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/
-      });
-
-  TEST_PARSER_ERROR("function err 02", "fn hell ({}",
-                    "syntax error, unexpected '{', expecting TK_ANY or TK_REF "
-                    "or IDENTIFIER or ')'",
-                    {});
-
-  TEST_PARSER_ERROR("function err 03", "fn x a",
-                    "syntax error, unexpected IDENTIFIER, expecting '{' or ':'",
-                    {/*CHK_ERROR_RANGE(err, 6, 1, 9, 1);*/
+  TEST_PARSER_ERROR("function err 01", "fn {} var x;",
+                    "syntax error, unexpected '{', expecting operator or "
+                    "property or identifier",
+                    {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/
                     });
 
   TEST_PARSER_ERROR(
-      "function err 04", "fn (){};",
-      "syntax error, unexpected '(', expecting TK_OPERATOR or IDENTIFIER",
-      {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/
-      });
+      "function err 02", "fn hell ({}",
+      "syntax error, unexpected '{', expecting any or ref or identifier or ')'",
+      {});
 
-  TEST_PARSER_ERROR(
-      "function err 05", "fn x () { fn (){}; }",
-      "syntax error, unexpected '(', expecting TK_OPERATOR or IDENTIFIER",
-      {/*CHK_ERROR_RANGE(err, 14, 1, 15, 1);*/
-      });
+  TEST_PARSER_ERROR("function err 03", "fn x a",
+                    "syntax error, unexpected identifier, expecting '{' or ':'",
+                    {/*CHK_ERROR_RANGE(err, 6, 1, 9, 1);*/
+                    });
+
+  TEST_PARSER_ERROR("function err 04", "fn (){};", "syntax error, unexpected "
+                                                   "'(', expecting operator or "
+                                                   "property or identifier",
+                    {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/
+                    });
+
+  TEST_PARSER_ERROR("function err 05", "fn x () { fn (){}; }",
+                    "syntax error, unexpected '(', expecting operator or "
+                    "property or identifier",
+                    {/*CHK_ERROR_RANGE(err, 14, 1, 15, 1);*/
+                    });
 
   TEST_PARSER_ERROR("function err 05-a", "ffi fn x () { var x; }",
                     "syntax error, ffi function require a return type", {});

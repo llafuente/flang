@@ -45,28 +45,71 @@
 %token <token> TK_ANDAND TK_ANDEQ TK_OROR TK_OREQ TK_PLUSEQ
 %token <token> TK_STAREQ TK_SLASHEQ TK_CARETEQ TK_PERCENTEQ
 %token <token> TK_DOTDOTDOT TK_DOTDOT TK_PLUSPLUS TK_MINUSMINUS
-%token <token> TK_CAST TK_UNSAFE_CAST TK_TEMPLATE
 %token <token> TK_ACCESS TK_PUSH
 
 
 /* keywords */
-%token <token> TK_UNDERSCORE TK_AS TK_ANY TK_BREAK TK_CONST TK_IMPLEMENT
-%token <token> TK_CONTINUE TK_ELSE TK_ENUM TK_FN TK_OPERATOR
-%token <token> TK_FFI TK_FOR TK_IF TK_IN TK_MATCH
-%token <token> TK_IMPORT TK_FORWARD TK_PUB TK_REF TK_RETURN TK_STATIC
-%token <token> TK_STRUCT TK_ALIAS TK_TYPE TK_TYPEOF TK_USE
-%token <token> TK_VAR TK_GLOBAL TK_WHERE TK_WHILE TK_DO TK_SIZEOF TK_LOG
+%token <token> TK_UNDERSCORE "_"
+%token <token> TK_ANY "any"
 
-%token <token> TK_FALSE TK_TRUE TK_NULL
+%token <token> TK_TEMPLATE "template"
+%token <token> TK_IMPLEMENT "implement"
+
+
+%token <token> TK_IF "if"
+%token <token> TK_ELSE "else"
+
+%token <token> TK_AS  "as"
+%token <token> TK_CAST  "cast"
+%token <token> TK_UNSAFE_CAST  "unsafe_cast"
+
+%token <token> TK_FN  "fn' or 'function"
+%token <token> TK_OPERATOR  "operator"
+%token <token> TK_PROPERTY  "property"
+%token <token> TK_FFI  "ffi"
+%token <token> TK_RETURN  "return"
+
+%token <token> TK_IMPORT  "import"
+%token <token> TK_FORWARD  "forward"
+
+
+%token <token> TK_REF  "ref"
+
+%token <token> TK_STRUCT  "struct"
+%token <token> TK_ALIAS  "alias"
+%token <token> TK_TYPE  "type"
+%token <token> TK_TYPEOF  "typeof"
+%token <token> TK_USE  "use"
+
+%token <token> TK_FALSE  "false"
+%token <token> TK_TRUE  "true"
+%token <token> TK_NULL  "null"
+
+%token <token>TK_VAR  "var"
+%token <token>TK_GLOBAL  "global"
+
+%token <token> TK_WHILE  "while"
+%token <token> TK_DO  "do"
+%token <token> TK_BREAK  "break"
+%token <token> TK_CONTINUE  "continue"
+%token <token> TK_FOR  "for"
+
+%token <token> TK_SIZEOF  "sizeof"
+/* TODO rename to DOLLAR_LOG ? */
+%token <token> TK_LOG  "log"
 
 /* reserved but maybe not be used ever ^^ */
-%token <token> TK_FAT_ARROW
+%token <token> TK_FAT_ARROW TK_WHERE TK_PUB TK_STATIC TK_CONST
+%token <token> TK_ENUM TK_IN TK_MATCH
 
 /* ast */
 /* ast.literals */
-%token <node> LIT_INTEGER LIT_FLOAT LIT_STRING LIT_BYTE
-%token <node> IDENTIFIER
-%token <node> COMMENT
+%token <node> LIT_INTEGER "integer literal"
+%token <node> LIT_FLOAT "float literal"
+%token <node> LIT_STRING "string literal"
+%token <node> LIT_BYTE "byte literal"
+%token <node> IDENTIFIER "identifier"
+%token <node> COMMENT "comment"
 
 /* Define the type of node our nonterminal symbols represent.
    The types refer to the %union declaration above. Ex: when
@@ -149,6 +192,8 @@
 %precedence '{' '[' '(' '.'
 
 /* %precedence RANGE */
+
+%token END 0 "end of file"
 
 %start program
 
@@ -402,6 +447,15 @@ fn_decl_without_return_type
     ast_position($$, @1, @3);
   }
   | TK_FN TK_OPERATOR function_operators fn_parameters {
+    // can't be varargs
+    if ($4->parent == (ast_t*)1) {
+      yyerror(root, "syntax error, operator overloding is incompatible with varargs"); YYERROR;
+    }
+    $$ = ast_mk_fn_decl(0, $4, 0, 0, 0, $3);
+
+    ast_position($$, @1, @4);
+  }
+  | TK_FN TK_PROPERTY function_operators fn_parameters {
     // can't be varargs
     if ($4->parent == (ast_t*)1) {
       yyerror(root, "syntax error, operator overloding is incompatible with varargs"); YYERROR;

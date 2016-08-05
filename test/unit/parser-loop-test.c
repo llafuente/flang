@@ -34,31 +34,31 @@ TASK_IMPL(parser_loops) {
                  {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1; x < 10; ++x ",
-                    "syntax error, unexpected $end, expecting '{'", {});
+                    "syntax error, unexpected end of file, expecting '{'", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1; x < 10;",
                     //"expected update expression", {});
-                    "syntax error, unexpected $end", {});
+                    "syntax error, unexpected end of file", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1; x < 10",
                     //"expected semicolon", {});
-                    "syntax error, unexpected $end, expecting ';'", {});
+                    "syntax error, unexpected end of file, expecting ';'", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1;",
                     //"expected condition expression", {});
-                    "syntax error, unexpected IDENTIFIER, expecting ';'", {});
+                    "syntax error, unexpected identifier, expecting ';'", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; for x = 1",
-                    "syntax error, unexpected $end, expecting ';'", {});
+                    "syntax error, unexpected end of file, expecting ';'", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; for ",
                     //"expected initialization expression", {});
-                    "syntax error, unexpected IDENTIFIER, expecting ';'", {});
+                    "syntax error, unexpected identifier, expecting ';'", {});
 
   // TODO this should be valid!?
   TEST_PARSER_ERROR("loop 01", "for var i32 x = 1; x < 10; ++x {"
                                "}",
-                    "syntax error, unexpected TK_VAR", {});
+                    "syntax error, unexpected var", {});
 
   TEST_PARSER_OK("loop 01", "var i32 x; x = 1; while x < 10 {"
                             "++x;"
@@ -67,13 +67,13 @@ TASK_IMPL(parser_loops) {
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; while x < 10 {"
                                "++x;",
-                    "syntax error, unexpected $end, expecting '}'", {});
+                    "syntax error, unexpected end of file, expecting '}'", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; while x < 10",
-                    "syntax error, unexpected $end, expecting '{'", {});
+                    "syntax error, unexpected end of file, expecting '{'", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; while",
-                    "syntax error, unexpected IDENTIFIER, expecting ';'", {});
+                    "syntax error, unexpected identifier, expecting ';'", {});
 
   TEST_PARSER_OK("loop 01", "var i32 x; x = 1; do {"
                             "++x;"
@@ -83,19 +83,20 @@ TASK_IMPL(parser_loops) {
   TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; do {"
                                "++x;"
                                "} while ",
-                    "syntax error, unexpected $end", {});
+                    "syntax error, unexpected end of file", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; do {"
                                "++x;"
                                "}",
-                    "syntax error, unexpected $end, expecting TK_WHILE", {});
+                    "syntax error, unexpected end of file, expecting while",
+                    {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; do {"
                                "++x;",
-                    "syntax error, unexpected $end, expecting '}'", {});
+                    "syntax error, unexpected end of file, expecting '}'", {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; do ",
-                    "syntax error, unexpected $end, expecting '{'", {});
+                    "syntax error, unexpected end of file, expecting '{'", {});
 
   return 0;
 }

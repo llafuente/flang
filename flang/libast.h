@@ -30,6 +30,13 @@
 enum ast_action { AST_SEARCH_STOP = 0, AST_SEARCH_CONTINUE, AST_SEARCH_SKIP };
 enum ast_trav_mode { AST_TRAV_ENTER = 0, AST_TRAV_LEAVE };
 
+typedef enum ast_function_type ast_function_type_t;
+
+enum ast_function_type {
+  AST_FUNC_FUNCTION,
+  AST_FUNC_OPERATOR,
+  AST_FUNC_PROPERTY,
+};
 enum ast_cast_operations {
   AST_CAST_ERR = 0, // unkown
   AST_CAST_FPTOSI,  // LLVMBuildFPToSI
@@ -271,6 +278,7 @@ struct ast {
       ast_t* attributes;
       ast_t* from_tpl; // cames from which template?
       bool varargs;
+      ast_function_type_t type;
       int operator;
       bool templated;
       bool ffi; // TODO maybe ffi_type, 0 means flang, 1 means c...

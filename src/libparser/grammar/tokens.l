@@ -102,6 +102,7 @@ enum     { SET_LOCATION; return TK_ENUM; }
 fn       { SET_LOCATION; return TK_FN; }
 function { SET_LOCATION; return TK_FN; }
 operator { SET_LOCATION; return TK_OPERATOR; }
+property { SET_LOCATION; return TK_PROPERTY; }
 ffi      { SET_LOCATION; return TK_FFI; }
 for      { SET_LOCATION; return TK_FOR; }
 if       { SET_LOCATION; return TK_IF; }
