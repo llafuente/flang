@@ -264,5 +264,21 @@ TASK_IMPL(parser_types) {
       "Invalid cast: types are not castables 'i8' to 'struct a { i32 b, }'",
       {});
 
+  TEST_PARSER_OK("implement type when used",
+                 "template $tpl;\n"
+                 "struct a($tpl) { i32 b, ptr($tpl) c };\n"
+                 "var a(i8) a_instance;",
+                 {
+    // NOTE you my expect id=2, but the struct is duplicated
+    // var statement is the fourth
+    u64 var_ty_id = body[3]->ty_id;
+    ty_t type = ty(var_ty_id);
+    ASSERT(type.structure.properties.length == 2, "2 members");
+    ASSERT(type.structure.fields[0] == TS_I32, "first is I32");
+    ty_t ptr_ty = ty(type.structure.fields[1]);
+    ASSERT(ptr_ty.of == TY_POINTER, "second is a pointer");
+    ASSERT(ptr_ty.ptr.to == TS_I8, "ptr to I8");
+  });
+
   return 0;
 }

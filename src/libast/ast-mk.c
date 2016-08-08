@@ -310,7 +310,8 @@ ast_t* ast_mk_var_decl(ast_t* type, ast_t* id, ast_scope_t scope) {
 }
 
 ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body,
-                      ast_t* attributes, int operator) {
+                      ast_t* attributes, int operator,
+                      ast_function_type_t type) {
   // printf("ast_mk_fn_decl\n");
   ast_t* node = ast_new();
   node->type = AST_DECL_FUNCTION;
@@ -318,6 +319,7 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body,
   node->func.ret_type = ret_type ? ret_type : ast_mk_type_auto();
   node->func.params = params = params ? params : ast_mk_list();
   node->func.operator= operator;
+  node->func.type = type;
 
   // function id don't need to be resolved
   if (operator) {

@@ -438,7 +438,7 @@ attribute
 
 fn_decl_without_return_type
   : TK_FN ident fn_parameters {
-    $$ = ast_mk_fn_decl($2, $3, 0, 0, 0, 0);
+    $$ = ast_mk_fn_decl($2, $3, 0, 0, 0, 0, AST_FUNC_FUNCTION);
     // XXX Hack!
     if ($3->parent == (ast_t*)1) {
       $$->func.varargs = true;
@@ -449,20 +449,24 @@ fn_decl_without_return_type
   | TK_FN TK_OPERATOR function_operators fn_parameters {
     // can't be varargs
     if ($4->parent == (ast_t*)1) {
-      yyerror(root, "syntax error, operator overloding is incompatible with varargs"); YYERROR;
+      yyerror(root, "syntax error, operator overloading is incompatible with varargs"); YYERROR;
     }
-    $$ = ast_mk_fn_decl(0, $4, 0, 0, 0, $3);
+    $$ = ast_mk_fn_decl(0, $4, 0, 0, 0, $3, AST_FUNC_OPERATOR);
 
     ast_position($$, @1, @4);
   }
-  | TK_FN TK_PROPERTY function_operators fn_parameters {
-    // can't be varargs
-    if ($4->parent == (ast_t*)1) {
-      yyerror(root, "syntax error, operator overloding is incompatible with varargs"); YYERROR;
-    }
-    $$ = ast_mk_fn_decl(0, $4, 0, 0, 0, $3);
+  | TK_FN TK_PROPERTY ident fn_parameters {
+    $$ = ast_mk_fn_decl($3, $4, 0, 0, 0, 0, AST_FUNC_PROPERTY);
 
-    ast_position($$, @1, @4);
+    if ($4->list.length != 1) {
+      yyerror(root, "syntax error, struct property overloading must have an unique parameter"); YYERROR;
+    }
+
+    if ($4->parent == (ast_t*)1) {
+      yyerror(root, "syntax error, struct property overloading is incompatible with varargs"); YYERROR;
+    }
+
+    ast_position($$, @1, @3);
   }
   ;
 

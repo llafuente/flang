@@ -4,6 +4,7 @@ set -x
 set -e
 
 rm -f ./build/flang
+rm -f ./codegen/run.c
 
 cd build
 
@@ -24,7 +25,8 @@ cd ..
 #/usr/bin/time -v ./build/flang ./test/codegen/typesystem/operator-overloading.fl
 
 #/usr/bin/time -v ./build/flang ./test/codegen/typesystem/references.fl
-/usr/bin/time -v ./build/flang ./test/codegen/misc/log.fl
+#/usr/bin/time -v ./build/flang ./test/codegen/misc/log.fl
+/usr/bin/time -v ./build/flang ./test/codegen/typesystem/struct-properties.fl
 
 
 clang -std=c11 -Wno-parentheses-equality -lpthread -luv -lstringc -D_GNU_SOURCE codegen/run.c -o codegen/app

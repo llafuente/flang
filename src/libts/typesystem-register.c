@@ -35,6 +35,11 @@ u64 __ts_string_to_tyid(ast_t* node) {
   if (!node->ty.id) {
     return 0;
   }
+  // once set do not modify, unless you want it
+  // like when implementing a struct templated
+  if (node->ty_id) {
+    return node->ty_id;
+  }
 
   string* t_str = node->ty.id->identifier.string;
   char* tcstr = t_str->value;
@@ -88,6 +93,7 @@ u64 __ts_string_to_tyid(ast_t* node) {
   if (strcmp(tcstr, "ptr") == 0) {
     fl_assert(node->ty.children != 0);
     fl_assert(node->ty.children->list.length == 1); // TODO raise
+    ts_register_types(node->ty.children);
 
     u64 t = __ts_string_to_tyid(node->ty.children->list.values[0]);
     return node->ty.id->ty_id = node->ty_id = ty_create_wrapped(TY_POINTER, t);
@@ -96,6 +102,7 @@ u64 __ts_string_to_tyid(ast_t* node) {
   if (strcmp(tcstr, "vector") == 0) {
     fl_assert(node->ty.children != 0);
     fl_assert(node->ty.children->list.length == 1); // TODO raise
+    ts_register_types(node->ty.children);
 
     u64 t = __ts_string_to_tyid(node->ty.children->list.values[0]);
     return node->ty.id->ty_id = node->ty_id = ty_create_wrapped(TY_VECTOR, t);
@@ -104,6 +111,7 @@ u64 __ts_string_to_tyid(ast_t* node) {
   if (strcmp(tcstr, "ref") == 0) {
     fl_assert(node->ty.children != 0);
     fl_assert(node->ty.children->list.length == 1); // TODO raise
+    ts_register_types(node->ty.children);
 
     u64 t = __ts_string_to_tyid(node->ty.children->list.values[0]);
     return node->ty.id->ty_id = node->ty_id =
@@ -119,19 +127,16 @@ u64 __ts_string_to_tyid(ast_t* node) {
     el = hash_get(scope->block.types, tcstr);
     if (el != 0) {
       // check if it's a struct with templates, in wich case, we need to
-      // implement
+      // implement / reuse
       if (el->type == AST_DECL_STRUCT && el->structure.tpls != 0) {
         // if it has children defined, then implement
         // TODO check there is no template type in the list
         if (node->ty.children) {
-          ast_dump_s(node);
-          ast_dump_s(el);
-          fl_assert(false); // TODO
-
-          // TODO transform: this is not a expr call
-          // el = ast_implement_struct(node, el,
-          //   st_newc("jdshjfshdfshk",
-          //   st_enc_utf8));
+          // register children-types first
+          ts_register_types(node->ty.children);
+          // implement
+          el = ast_implement_struct(node->ty.children, el, 0);
+          // enjoy :)
         } else {
           // if not it just is just a reference, get the type and wait to
           // be implemented later

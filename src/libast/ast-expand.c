@@ -82,6 +82,19 @@ ast_t* ast_implement_struct(ast_t* type_list, ast_t* decl, string* uid) {
   clone->structure.from_tpl = decl; // comes from this template
   clone->structure.tpls = 0;
 
+  if (uid == 0) {
+    log_silly("compose a uid!");
+    ty_t type = ty(decl->ty_id);
+    uid = st_clone(type.id);
+    log_silly("uid %s", uid->value);
+    for (int i = 0; i < type_list->list.length; ++i) {
+      log_silly("append!!");
+      st_append_char(&uid, '_');
+      st_append(&uid, type_list->list.values[i]->ty.id->identifier.string);
+      log_silly("uid %s", uid->value);
+    }
+  }
+
   clone->structure.id = ast_mk_lit_id(uid, false);
   ast_parent(clone);
 
@@ -110,6 +123,7 @@ ast_t* ast_implement_struct(ast_t* type_list, ast_t* decl, string* uid) {
   }
 
   // ast_replace_types(fn, 21, 4);
+  clone->structure.templated = false;
   clone->ty_id = ty_create_struct(clone);
   clone->structure.id->ty_id = clone->ty_id;
   _typesystem(clone);

@@ -96,6 +96,10 @@ bool ty_is_function(u64 id) {
 bool ty_is_templated(u64 id) {
   ty_t t = ts_type_table[id];
 
+  if (t.of == TY_POINTER || t.of == TY_REFERENCE) {
+    return ty_is_templated(t.ptr.to);
+  }
+
   return (t.of == TY_TEMPLATE) ||
          (t.of == TY_STRUCT && t.structure.templated) ||
          (t.of == TY_FUNCTION && t.func.templated);
@@ -305,6 +309,12 @@ u64 ty_create_struct(ast_t* decl) {
       array_push(&properties, elements[i]->field.id->identifier.string);
     }
   }
+
+  if (templates) {
+    log_silly("has templates");
+    decl->structure.templated = true;
+  }
+
   // alias pass
   for (i = 0; i < length; ++i) {
     if (elements[i]->type == AST_DECL_STRUCT_ALIAS) {
@@ -619,8 +629,9 @@ void ty_create_var(ast_t* decl) {
 // templates are registered inside the block
 // always get a new id, be cautious atm
 u64 ty_create_template(ast_t* decl) {
-  string* realname = st_newc("$", st_enc_utf8);
-  st_append(&realname, decl->tpl.id->identifier.string);
+  // string* realname = st_newc("$", st_enc_utf8);
+  // st_append(&realname, decl->tpl.id->identifier.string);
+  string* realname = decl->tpl.id->identifier.string;
 
   // add it!
   u64 ty_id = ts_type_size_s++;
@@ -629,6 +640,7 @@ u64 ty_create_template(ast_t* decl) {
   ts_type_table[ty_id].tpl.decl = decl;
 
   ast_t* attach_to = ast_get_scope(decl);
+  log_silly("register template: %s", realname->value);
   hash_set(attach_to->block.types, realname->value, decl);
 
   return ty_id;

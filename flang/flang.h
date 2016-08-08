@@ -73,6 +73,9 @@ typedef enum ts_cast_modes ts_cast_modes_t;
 enum ast_action;
 typedef enum ast_action ast_action_t;
 
+enum ast_function_type;
+typedef enum ast_function_type ast_function_type_t;
+
 enum ast_cast_operations;
 typedef enum ast_cast_operations ast_cast_operations_t;
 

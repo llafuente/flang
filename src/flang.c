@@ -36,6 +36,15 @@ extern int yycolumn;
 extern int yylineno;
 jmp_buf fl_on_error_jmp;
 
+void* pool_realloc_fix_string(void* ptr, size_t bytes) {
+  string* str = (string*)ptr;
+  string* ret = st_new(bytes, st_enc_utf8);
+  st_copy(&ret, str);
+  pool_free(str);
+
+  return ret;
+}
+
 void flang_init() {
   memset(fl_on_error_jmp, 0, sizeof(jmp_buf));
 
@@ -49,7 +58,7 @@ void flang_init() {
 
   pool_init(2048);
 
-  st_replace_allocators(pool_new, pool_realloc, pool_free);
+  st_replace_allocators(pool_new, pool_realloc_fix_string, pool_free);
   hash_replace_allocators(pool_new, pool_realloc, pool_free);
   array_replace_allocators(pool_new, pool_realloc, pool_free);
 

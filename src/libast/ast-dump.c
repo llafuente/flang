@@ -122,7 +122,7 @@ void ast_dump_one(ast_t* node) {
     printf("type T(%zu)", node->ty_id);
     break;
   case AST_DECL_STRUCT:
-    printf("struct T(%zu)", node->ty_id);
+    printf("struct T(%zu) tpl(%d)", node->ty_id, node->structure.templated);
     break;
   case AST_DECL_STRUCT_FIELD:
     printf("field T(%zu)", node->ty_id);

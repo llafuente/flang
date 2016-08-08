@@ -30,8 +30,6 @@
 enum ast_action { AST_SEARCH_STOP = 0, AST_SEARCH_CONTINUE, AST_SEARCH_SKIP };
 enum ast_trav_mode { AST_TRAV_ENTER = 0, AST_TRAV_LEAVE };
 
-typedef enum ast_function_type ast_function_type_t;
-
 enum ast_function_type {
   AST_FUNC_FUNCTION,
   AST_FUNC_OPERATOR,
@@ -255,7 +253,8 @@ struct ast {
       ast_t* tpls; // AST_LIST of ast_decl_struct_field or ast_decl_struct_alias
 
       ast_t* from_tpl; // cames from which template?
-    } structure;       // aggregate
+      bool templated;
+    } structure; // aggregate
 
     struct ast_decl_struct_field {
       ast_t* type;
@@ -432,7 +431,8 @@ libexport ast_t* ast_mk_break(ast_t* argument);
 libexport ast_t* ast_mk_continue(ast_t* argument);
 libexport ast_t* ast_mk_var_decl(ast_t* type, ast_t* id, ast_scope_t scope);
 libexport ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type,
-                                ast_t* body, ast_t* attibutes, int operator);
+                                ast_t* body, ast_t* attibutes, int operator,
+                                ast_function_type_t type);
 libexport void ast_mk_fn_decl_body(ast_t* fn, ast_t* body);
 libexport ast_t* ast_mk_fn_param(ast_t* id, ast_t* type, ast_t* def);
 libexport ast_t* ast_mk_binop(ast_t* left, int op, ast_t* right);

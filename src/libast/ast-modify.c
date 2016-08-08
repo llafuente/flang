@@ -25,6 +25,8 @@
 
 #include "flang/flang.h"
 #include "flang/libast.h"
+#include "flang/libts.h"
+#include "flang/debug.h"
 
 ast_action_t __trav_replace_types(ast_trav_mode_t mode, ast_t* node,
                                   ast_t* parent, u64 level, void* userdata_in,
@@ -34,6 +36,25 @@ ast_action_t __trav_replace_types(ast_trav_mode_t mode, ast_t* node,
 
   if (node->ty_id == (*(u64*)userdata_in)) {
     node->ty_id = *((u64*)userdata_out);
+    log_silly("type changed to %lu", node->ty_id);
+
+    if (node->type == AST_TYPE) {
+      node->ty.id->ty_id = node->ty_id;
+
+      ast_t* p = node->parent;
+      while (p) {
+        if (p->type == AST_TYPE) {
+          log_silly("parent is type: before %lu", p->ty_id);
+          p->ty_id = 0;
+          ts_register_types(p);
+          log_silly("parent is type: after %lu", p->ty_id);
+        }
+
+        p = p->parent;
+      }
+
+      return AST_SEARCH_SKIP;
+    }
   }
 
   return AST_SEARCH_CONTINUE;

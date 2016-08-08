@@ -73,8 +73,12 @@ string* cg_type(u64 ty_id) {
     // REVIEW assert... will see in the future if needed, i consider this
     // dangerous atm.
     // st_append_c(&buffer, "0");
+    return type.id;
   } break;
-  default: {} // remove warning
+  default: {
+    printf("type.of %d\n", type.of);
+    fl_assert(false);
+  } // remove warning
   }
 
   fl_assert(buffer->length != 0);
@@ -631,7 +635,6 @@ char* fl_codegen(ast_t* root) {
   // log_debug_level = 10;
   // ty_dump_table();
   // ast_dump(root);
-  // exit(0);
 
   cg_stack = calloc(sizeof(array), 1);
   buffer = calloc(sizeof(char), 1024);
