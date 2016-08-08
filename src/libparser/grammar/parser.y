@@ -397,7 +397,8 @@ struct_decl_fields_list
 
 struct_decl_field
   : type ident { $$ = ast_mk_struct_decl_field($2, $1); ast_position($$, @1, @2); }
-  | ident      { $$ = ast_mk_struct_decl_field($1, 0);  ast_position($$, @1, @1); }
+  // REVIEW study if we want it back
+  // | ident      { $$ = ast_mk_struct_decl_field($1, 0);  ast_position($$, @1, @1); }
   | TK_ALIAS ident ident {
     $$ = ast_mk_struct_decl_alias($2, $3);
     ast_position($$, @1, @3);

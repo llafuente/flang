@@ -280,5 +280,11 @@ TASK_IMPL(parser_types) {
     ASSERT(ptr_ty.ptr.to == TS_I8, "ptr to I8");
   });
 
+  TEST_PARSER_ERROR("incomplete struct", "struct a { i32 b, xx };\n",
+                    "syntax error, unexpected '}', expecting identifier", {});
+
+  TEST_PARSER_ERROR("incomplete struct", "struct { i32 b, };\n",
+                    "syntax error, unexpected '{', expecting identifier", {});
+
   return 0;
 }

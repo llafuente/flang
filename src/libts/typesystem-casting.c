@@ -384,7 +384,7 @@ void ts_cast_return(ast_t* node) {
   }
 
   if (!decl) {
-    log_error("return statement found outside function scope");
+    ast_raise_error(node, "syntax error, return found outside function scope");
   }
 
   ast_t* arg = node->ret.argument;
