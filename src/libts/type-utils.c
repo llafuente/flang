@@ -694,3 +694,49 @@ u64 ty_create_template(ast_t* decl) {
 
   return ty_id;
 }
+
+void ty_struct_add_virtual(ast_t* decl) {
+  fl_assert(decl->type == AST_DECL_FUNCTION);
+
+  string* id = decl->func.id->identifier.string;
+  ast_t* params = decl->func.params;
+
+  fl_assert(params->list.length == 1);
+  u64 ty_id = params->list.values[0]->ty_id;
+  ty_t* type = &ts_type_table[ty_id];
+
+  if (type->of != TY_STRUCT) {
+    ast_raise_error(
+        decl, "function property first argument must be a struct given: %s",
+        ty_to_string(ty_id)->value);
+  }
+
+  array_push(&type->structure.virtuals, decl);
+}
+
+ast_t* ty_get_virtual(u64 ty_id, string* id, bool look_up) {
+  ty_t type = ty(ty_id);
+  fl_assert(type.of == TY_STRUCT);
+  u64 max = type.structure.virtuals.length;
+
+  log_silly("search @ %lu", max);
+
+  for (u64 i = 0; i < max; ++i) {
+    ast_t* node = (ast_t*)type.structure.virtuals.values[i];
+    log_silly("search: '%s'", node->func.id->identifier.string->value);
+
+    if (st_cmp((const string*)node->func.id->identifier.string, id) == 0) {
+      return node;
+    }
+  }
+  // try to lookup -> implement here ?
+  if (look_up && type.structure.from_tpl) {
+    log_silly("look_up: type.structure.from_tpl %lu", type.structure.from_tpl)
+        // REVIEW false has no meaning now, because tpl cannot inherit more than
+        // once...
+        // what happens in the future?
+        return ty_get_virtual(type.structure.from_tpl, id, false);
+  }
+
+  return 0;
+}

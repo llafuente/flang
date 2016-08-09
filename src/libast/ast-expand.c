@@ -125,8 +125,7 @@ ast_t* ast_implement_struct(ast_t* type_list, ast_t* decl, string* uid) {
   clone->structure.id->ty_id = clone->ty_id;
   _typesystem(clone);
 
-  ty_t type = ty(clone->ty_id);
-  type.structure.from_tpl = decl->ty_id;
+  ts_type_table[clone->ty_id].structure.from_tpl = decl->ty_id;
 
   return clone;
 }

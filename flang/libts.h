@@ -344,7 +344,11 @@ libexport u64 ty_create_fn(ast_t* decl);
  */
 libexport void ty_create_var(ast_t* decl);
 
+libexport ast_t* ty_get_virtual(u64 ty_id, string* id, bool look_up);
+
 libexport u64 ty_create_template(ast_t* decl);
+
+libexport void ty_struct_add_virtual(ast_t* decl);
 
 /* cldoc:end-category() */
 

@@ -1,0 +1,5 @@
+army.length = 2
+army.values[0] = 1
+first(army) = 1
+army.first = 1
+army.last = 2

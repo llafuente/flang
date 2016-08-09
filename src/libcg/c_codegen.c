@@ -633,7 +633,7 @@ void cg_type_table(ast_t* root) {
 
 char* fl_codegen(ast_t* root) {
   // log_debug_level = 10;
-  ty_dump_table();
+  // ty_dump_table();
   // ast_dump(root);
 
   cg_stack = calloc(sizeof(array), 1);

@@ -43,6 +43,11 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
   // do not pass typesystem to templates
   // templates are incomplete an raise many errors
   case AST_DECL_FUNCTION: {
+    if (node->func.type == AST_FUNC_PROPERTY) {
+      // add the virtual to the list in the type
+      ts_pass(node->func.params);
+      ty_struct_add_virtual(node);
+    }
     return node->func.templated ? AST_SEARCH_SKIP : AST_SEARCH_CONTINUE;
   }
 
@@ -151,23 +156,18 @@ ast_action_t __ts_cast_operation_pass_cb(ast_trav_mode_t mode, ast_t* node,
 }
 
 ast_t* ts_pass(ast_t* node) {
+  // TODO REVIEW this should be enabled...
+  // if (node->ty_id) return node;
+
   ts_inference(node);
-  if (ast_last_error_node != 0) {
-    return node;
-  }
 
   log_debug("typesystem pass start");
   // first create casting
   ast_traverse(node, __trav_casting, 0, 0, 0, 0);
-  if (ast_last_error_node != 0) {
-    return node;
-  }
 
   // validate casting, and assign a valid operation
   ast_traverse(node, __ts_cast_operation_pass_cb, 0, 0, 0, 0);
-  if (ast_last_error_node != 0) {
-    return node;
-  }
+
   // inference again now that we have more info
   ts_inference(node);
 

@@ -464,7 +464,8 @@ void ts_cast_call(ast_t* node) {
     // this happend when calle it's not a literal
     // check if it's compatible
     if (!ty_compatible_fn(cty_id, args, false, false)) {
-      ast_raise_error(node, "Incompatible call arguments");
+      ast_raise_error(node, "Incompatible call arguments expected: %s",
+                      ty_to_string(cty_id)->value);
       return;
     }
   } else {
@@ -726,8 +727,8 @@ void ts_cast_expr_member(ast_t* node) {
   // now we should know left type
   // get poperty index -> typeid
   // TODO perf
-  ty_t* type = &ts_type_table[l->ty_id];
-  switch (type->of) {
+  ty_t type = ty(l->ty_id);
+  switch (type.of) {
   case TY_STRUCT: {
     if (node->member.brakets) {
       // operator overloading TK_ACCESS
@@ -763,18 +764,54 @@ void ts_cast_expr_member(ast_t* node) {
       if (node->member.idx == -1) {
         // lookup for a function property
 
-        // not found, error!
-        ast_raise_error(node, "invalid member access '%s' for struct: %s",
-                        ast_get_code(p)->value, ty_to_string(l->ty_id)->value);
+        ast_t* fn_property =
+            ty_get_virtual(l->ty_id, p->identifier.string, false);
+
+        if (!fn_property) {
+          // lookup and implement
+          ty_t type2 = ty(l->ty_id);
+          if (type2.structure.from_tpl) {
+            fn_property = ty_get_virtual(type2.structure.from_tpl,
+                                         p->identifier.string, false);
+
+            ast_t* type_list = ast_mk_list();
+            ast_mk_list_push(type_list, l);
+
+            fn_property = ast_implement_fn(type_list, fn_property, 0);
+
+            // implement
+            log_silly("need to implement!")
+          }
+
+          if (!fn_property) {
+            // not found, error!
+            ast_raise_error(node, "invalid member access '%s' for struct: %s",
+                            ast_get_code(p)->value,
+                            ty_to_string(l->ty_id)->value);
+          }
+        }
+
+        // ty_get_virtual(u64 ty_id, string* id)
+
+        // transform member-access to expr-call
+        ast_clear(node, AST_EXPR_CALL);
+        node->call.callee = fn_property->func.id;
+
+        ast_t* arguments = ast_mk_list();
+        ast_mk_list_push(arguments, l);
+        node->call.arguments = arguments;
+
+        node->call.decl = fn_property;
+        node->ty_id = fn_property->func.ret_type->ty_id;
       }
     }
   } break;
   case TY_POINTER: {
-    node->ty_id = type->ptr.to;
+    node->ty_id = type.ptr.to;
     node->member.property = __cast_node_to(p, 9);
   } break;
   case TY_VECTOR: {
-    node->ty_id = type->vector.to;
+    node->ty_id = type.vector.to;
   } break;
   default: { ast_raise_error(node, "Invalid member access type"); }
   }

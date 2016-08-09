@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
     exit(2);
   }
 
-  log_debug_level = 10;
+  // log_debug_level = 10;
   flang_init();
 
   // debug single file

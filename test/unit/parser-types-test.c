@@ -293,5 +293,11 @@ TASK_IMPL(parser_types) {
                                "sti.c;\n",
       "invalid member access 'c' for struct: struct st { i32 b, }", {});
 
+  TEST_PARSER_ERROR(
+      "invalid member access", "function property first(i8 arr) {\n"
+                               "  return 0;\n"
+                               "}\n",
+      "function property first argument must be a struct given: i8", {});
+
   return 0;
 }

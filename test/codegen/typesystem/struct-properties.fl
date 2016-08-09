@@ -1,0 +1,47 @@
+ffi fn printf(ptr(i8) format, ...) : i32;
+ffi fn malloc(i32 format) : ptr(void);
+
+// typing
+// * means pointer, cannot be moved, it's just s ref to one single
+// [] array
+
+template $tpl;
+
+// arrays always live in the heap
+// foreach wrapper declare it's type
+// because $tpl is used, and give a unique name
+struct array($tpl) {
+  u64 length,
+  u64 capacity,
+  ptr($tpl) values,
+
+  alias len length,
+  alias cap capacity,
+};
+
+//implement array(void) as xx;
+//implement array(void) as yy;
+
+function property first(array arr) {
+  return arr.values[0];
+}
+
+function property last(array arr) {
+  return arr.values[arr.length - 1];
+}
+
+
+// $log 10;
+
+
+var array(u8) army;
+army.values = malloc(10);
+army.length = 2;
+army.values[0] = 1;
+army.values[1] = 2;
+
+printf("army.length = %lu\n", army.length);
+printf("army.values[0] = %d\n", army.values[0]);
+printf("first(army) = %d\n", first(army));
+printf("army.first = %d\n", army.first);
+printf("army.last = %d\n", army.last);
