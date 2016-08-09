@@ -73,10 +73,11 @@ void __ast_reduce_log(ast_t* node) {
     } break;
     case TY_STRUCT: {
       // print each memeber
-      array* props = (array*)&type.structure.properties;
+      array* props = (array*)&type.structure.members;
       for (u64 j = 0; j < props->length; ++j) {
-        ast_t* prop = ast_mk_lit_id(type.structure.properties.values[j], false);
-        ast_t* member = ast_mk_member(el, prop, false, false);
+        ast_t* property =
+            ast_mk_lit_id(type.structure.members.values[j], false);
+        ast_t* member = ast_mk_member(el, property, false, false);
         ast_mk_list_push(arguments, member);
       }
     } break;

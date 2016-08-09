@@ -759,6 +759,14 @@ void ts_cast_expr_member(ast_t* node) {
       p->ty_id = node->ty_id =
           ty_get_struct_prop_type(l->ty_id, p->identifier.string);
       node->member.idx = ty_get_struct_prop_idx(l->ty_id, p->identifier.string);
+
+      if (node->member.idx == -1) {
+        // lookup for a function property
+
+        // not found, error!
+        ast_raise_error(node, "invalid member access '%s' for struct: %s",
+                        ast_get_code(p)->value, ty_to_string(l->ty_id)->value);
+      }
     }
   } break;
   case TY_POINTER: {

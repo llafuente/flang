@@ -152,10 +152,12 @@ void ts_exit() {
     // struct and same length?
     if (ts_type_table[i].of == TY_STRUCT) {
       free(ts_type_table[i].structure.fields);
-      array_delete(&ts_type_table[i].structure.properties);
+      array_delete(&ts_type_table[i].structure.members);
       array_delete(&ts_type_table[i].structure.alias);
     } else if (ts_type_table[i].of == TY_FUNCTION) {
       free(ts_type_table[i].func.params);
+    } else if (ts_type_table[i].of == TY_TEMPLATE) {
+      array_delete(&ts_type_table[i].tpl.usedby);
     }
   }
 

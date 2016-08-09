@@ -334,9 +334,9 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
         ty_t type = ty(node->member.left->ty_id);
 
         // stack_append("(%s.%s)", left->value, right->value);
-        stack_append("(%s.%s)", left->value,
-                     ((string**)type.structure.properties
-                          .values)[node->member.idx]->value);
+        stack_append(
+            "(%s.%s)", left->value,
+            ((string**)type.structure.members.values)[node->member.idx]->value);
       } else {
         stack_append("(%s[%s])", left->value, right->value);
       }
@@ -633,7 +633,7 @@ void cg_type_table(ast_t* root) {
 
 char* fl_codegen(ast_t* root) {
   // log_debug_level = 10;
-  // ty_dump_table();
+  ty_dump_table();
   // ast_dump(root);
 
   cg_stack = calloc(sizeof(array), 1);

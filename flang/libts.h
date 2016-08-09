@@ -73,6 +73,8 @@ struct ts_type {
   string* decl;
   string* cg;
 
+  bool templated;
+
   ts_types_t of;
   void* codegen; // cache for codegen.
 
@@ -108,20 +110,17 @@ struct ts_type {
       u64* params;
       u64 nparams;
       bool varargs;
-
-      bool templated;
-
     } func;
 
     struct ts_type_struct {
       ast_t* decl;
 
       u64* fields;
-      array properties; // array of strings*
-      array alias;      // array of ts_type_struct_alias_t
-      array virtuals;   // array of ast* (AST_DECL_FUNCTION)
+      array members;  // array of strings*
+      array alias;    // array of ts_type_struct_alias_t
+      array virtuals; // array of ast* (AST_DECL_FUNCTION) function property x
 
-      bool templated;
+      u64 from_tpl;
 
     } structure;
 
@@ -135,6 +134,8 @@ struct ts_type {
 
     struct ts_type_template {
       ast_t* decl;
+
+      array usedby;
     } tpl;
   };
 };

@@ -90,10 +90,10 @@ void ty_to_printf(u64 ty_id, char* dest) {
     return;
   case TY_STRUCT: {
     strcat(dest, "{");
-    array* props = (array*)&type.structure.properties;
+    array* props = (array*)&type.structure.members;
     u64 i;
     for (i = 0; i < props->length; ++i) {
-      strcat(dest, ((string*)type.structure.properties.values[i])->value);
+      strcat(dest, ((string*)type.structure.members.values[i])->value);
       strcat(dest, " = ");
 
       ty_to_printf(type.structure.fields[i], dest);
@@ -143,10 +143,10 @@ string* ty_to_string(u64 ty_id) {
     st_append_c(&buffer, " { ");
 
     u64 i;
-    for (i = 0; i < ty.structure.properties.length; ++i) {
+    for (i = 0; i < ty.structure.members.length; ++i) {
       st_append(&buffer, ty_to_string(ty.structure.fields[i]));
       st_append_c(&buffer, " ");
-      st_append(&buffer, ty.structure.properties.values[i]);
+      st_append(&buffer, ty.structure.members.values[i]);
       st_append_c(&buffer, ", ");
     }
     st_append_c(&buffer, "}");
@@ -202,7 +202,7 @@ void ty_dump(u64 ty_id) {
     log_debug2("struct %s {",
                ty.structure.decl->structure.id->identifier.string->value);
     u64 i;
-    for (i = 0; i < ty.structure.properties.length; ++i) {
+    for (i = 0; i < ty.structure.members.length; ++i) {
       ty_dump(ty.structure.fields[i]);
       log_debug2(", ");
     }
@@ -242,29 +242,32 @@ void __ty_dump_cell(u64 ty_id, int indent) {
               ty.number.fp, ty.number.bits, ty.number.sign);
     break;
   case TY_POINTER:
-    log_debug("%*s[%zu] Pointer -> %zu", indent, " ", ty_id, ty.ptr.to);
+    log_debug("%*s[%zu] Pointer -> %zu tpl(%d)", indent, " ", ty_id, ty.ptr.to,
+              ty.templated);
     __ty_dump_cell(ty.ptr.to, indent + 2);
     break;
   case TY_REFERENCE:
-    log_debug("%*s[%zu] Reference -> %zu", indent, " ", ty_id, ty.ptr.to);
+    log_debug("%*s[%zu] Reference -> %zu tpl(%d)", indent, " ", ty_id,
+              ty.ptr.to, ty.templated);
     __ty_dump_cell(ty.ptr.to, indent + 2);
     break;
   case TY_VECTOR:
-    log_debug("%*s[%zu] Vector -> %zu", indent, " ", ty_id, ty.ptr.to);
+    log_debug("%*s[%zu] Vector -> %zu tpl(%d)", indent, " ", ty_id, ty.ptr.to,
+              ty.templated);
     __ty_dump_cell(ty.vector.to, indent + 2);
     break;
   case TY_STRUCT: {
-    log_debug("%*s[%zu] Struct [%s] tpl(%d)", indent, " ", ty_id,
+    log_debug("%*s[%zu] Struct [%s] tpl(%d) from_tpl(%lu)", indent, " ", ty_id,
               ty.structure.decl->structure.id->identifier.string->value,
-              ty.structure.templated);
+              ty.templated, ty.structure.from_tpl);
     u64 i;
-    for (i = 0; i < ty.structure.properties.length; ++i) {
+    for (i = 0; i < ty.structure.members.length; ++i) {
       __ty_dump_cell(ty.structure.fields[i], indent + 2);
     }
   } break;
   case TY_FUNCTION: {
     log_debug("%*s[%zu] Function [%s] tpl(%d) arity(%zu) -> [%zu]", indent, " ",
-              ty_id, ty.id ? ty.id->value : "Anonymous", ty.func.templated,
+              ty_id, ty.id ? ty.id->value : "Anonymous", ty.templated,
               ty.func.nparams, ty.func.ret);
     u64 i;
     __ty_dump_cell(ty.func.ret, indent + 2);
@@ -276,7 +279,9 @@ void __ty_dump_cell(u64 ty_id, int indent) {
     log_debug("%*s[0] Infer", indent, " ");
   } break;
   case TY_TEMPLATE: {
-    log_debug("%*s[%zu] Template", indent, " ", ty_id);
+    log_debug("%*s[%zu] Template [%s] usedby(%lu)", indent, " ", ty_id,
+              ty.tpl.decl->tpl.id->identifier.string->value,
+              ty.tpl.usedby.length);
   } break;
   default: { log_error("ty_dump(%u) not implement", ty.of); }
   }

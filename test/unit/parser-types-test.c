@@ -273,7 +273,7 @@ TASK_IMPL(parser_types) {
     // var statement is the fourth
     u64 var_ty_id = body[3]->ty_id;
     ty_t type = ty(var_ty_id);
-    ASSERT(type.structure.properties.length == 2, "2 members");
+    ASSERT(type.structure.members.length == 2, "2 members");
     ASSERT(type.structure.fields[0] == TS_I32, "first is I32");
     ty_t ptr_ty = ty(type.structure.fields[1]);
     ASSERT(ptr_ty.of == TY_POINTER, "second is a pointer");
@@ -285,6 +285,13 @@ TASK_IMPL(parser_types) {
 
   TEST_PARSER_ERROR("incomplete struct", "struct { i32 b, };\n",
                     "syntax error, unexpected '{', expecting identifier", {});
+
+  TEST_PARSER_ERROR(
+      "invalid member access", "struct st { i32 b, };\n"
+                               "var st sti;\n"
+                               "sti.b;\n"
+                               "sti.c;\n",
+      "invalid member access 'c' for struct: struct st { i32 b, }", {});
 
   return 0;
 }

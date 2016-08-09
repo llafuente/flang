@@ -100,9 +100,7 @@ bool ty_is_templated(u64 id) {
     return ty_is_templated(t.ptr.to);
   }
 
-  return (t.of == TY_TEMPLATE) ||
-         (t.of == TY_STRUCT && t.structure.templated) ||
-         (t.of == TY_FUNCTION && t.func.templated);
+  return (t.of == TY_TEMPLATE) || t.templated;
 }
 
 // wrapper types are
@@ -142,6 +140,8 @@ u64 ty_create_wrapped(ts_types_t wrapper, u64 child) {
   default: { log_error("ty_create_wrapped unhandled"); }
   }
 
+  ts_type_table[i].templated = ty_is_templated(child);
+
   return i;
 }
 
@@ -151,7 +151,7 @@ u64 ty_get_struct_prop_idx(u64 id, string* property) {
   }
 
   ty_t t = ts_type_table[id];
-  array* props = (array*)&t.structure.properties;
+  array* props = (array*)&t.structure.members;
   void** properties = props->values;
 
   // check properties first
@@ -282,9 +282,51 @@ bool __struct_collision(ast_t* where, ast_t* scope, char* ty_name) {
   return false;
 }
 
+void __ty_template_usedby(u64 id, ast_t* decl) {
+  log_silly("set: %lu %p", id, decl);
+
+  ty_t* type = &ts_type_table[id];
+
+  switch (type->of) {
+  case TY_VOID:
+  case TY_NUMBER:
+  case TY_INFER:
+    // ignore those types, appears when looping struct/functions
+    break;
+  case TY_REFERENCE:
+  case TY_POINTER:
+  case TY_VECTOR:
+    __ty_template_usedby(type->ptr.to, decl);
+    break;
+  case TY_STRUCT: {
+    // for each type
+    u64 max = type->structure.members.length;
+
+    // check properties first
+    u64 i;
+    for (i = 0; i < max; ++i) {
+      __ty_template_usedby(type->structure.fields[i], decl);
+    }
+  } break;
+  case TY_FUNCTION: {
+    // for each type
+    u64 max = type->func.nparams;
+
+    // check properties first
+    u64 i;
+    for (i = 0; i < max; ++i) {
+      __ty_template_usedby(type->func.params[i], decl);
+    }
+  } break;
+  case TY_TEMPLATE:
+    // add it!
+    array_push(&type->tpl.usedby, decl);
+    log_silly("push! %lu", type->tpl.usedby.length);
+  }
+}
+
 // transfer list ownership
 u64 ty_create_struct(ast_t* decl) {
-  // fl_assert(decl->structure.tpls == 0);
   fl_assert(decl->structure.id != 0);
 
   u64 i;
@@ -305,7 +347,10 @@ u64 ty_create_struct(ast_t* decl) {
   for (i = 0; i < length; ++i) {
     if (elements[i]->type == AST_DECL_STRUCT_FIELD) {
       fields[i] = elements[i]->field.type->ty_id;
-      templates += ty_is_templated(fields[i]);
+      if (ty_is_templated(fields[i])) {
+        ++templates;
+        __ty_template_usedby(fields[i], decl);
+      }
       array_push(&properties, elements[i]->field.id->identifier.string);
     }
   }
@@ -341,12 +386,11 @@ u64 ty_create_struct(ast_t* decl) {
     ty_t* t = &ts_type_table[i];
 
     if (t->of == TY_STRUCT &&
-        t->structure.properties.length == properties.length) {
+        t->structure.members.length == properties.length) {
       bool same_props = true;
       for (int j = 0; j < properties.length; ++j) {
         if (fields[j] != t->structure.fields[j] ||
-            st_cmp(properties.values[j], t->structure.properties.values[j]) !=
-                0) {
+            st_cmp(properties.values[j], t->structure.members.values[j]) != 0) {
           same_props = false;
           break;
         }
@@ -362,16 +406,16 @@ u64 ty_create_struct(ast_t* decl) {
     }
   }
 
-  if (same_struct_found == -1) {
+  if (same_struct_found == -1 || templates) {
     // add it!
     i = ts_type_size_s++;
     ts_type_table[i].of = TY_STRUCT;
     ts_type_table[i].id = id;
+    ts_type_table[i].templated = templates > 0;
     ts_type_table[i].structure.decl = decl;
     ts_type_table[i].structure.fields = fields;
-    ts_type_table[i].structure.properties = properties;
+    ts_type_table[i].structure.members = properties;
     ts_type_table[i].structure.alias = alias;
-    ts_type_table[i].structure.templated = templates > 0;
   } else {
     i = same_struct_found;
   }
@@ -445,9 +489,9 @@ bool ty_compatible_struct(u64 a, u64 b) {
   //  return false;
   //}
   u64 i;
-  for (i = 0; i < at.structure.properties.length; ++i) {
+  for (i = 0; i < at.structure.members.length; ++i) {
     // reach the end of b, and all is compatible!
-    if (i == bt.structure.properties.length) {
+    if (i == bt.structure.members.length) {
       return true;
     }
 
@@ -509,7 +553,10 @@ u64 ty_create_fn(ast_t* decl) {
 
   for (i = 0; i < length; ++i) {
     tparams[i] = params->list.values[i]->ty_id;
-    templates += ty_is_templated(tparams[i]);
+    if (ty_is_templated(tparams[i])) {
+      ++templates;
+      __ty_template_usedby(tparams[i], decl);
+    }
 
     log_silly("param %s %lu is ty_id = %lu", fn_uid, i, tparams[i])
   }
@@ -522,12 +569,12 @@ u64 ty_create_fn(ast_t* decl) {
   u64 ty_id = ts_type_size_s++;
   ts_type_table[ty_id].of = TY_FUNCTION;
   ts_type_table[ty_id].id = id;
+  ts_type_table[ty_id].templated = templates > 0;
   ts_type_table[ty_id].func.decl = decl;
   ts_type_table[ty_id].func.params = tparams;
   ts_type_table[ty_id].func.nparams = length;
   ts_type_table[ty_id].func.ret = ret;
   ts_type_table[ty_id].func.varargs = decl->func.varargs;
-  ts_type_table[ty_id].func.templated = templates > 0;
 
   ast_t* attach_to;
   ast_t* from;
@@ -638,6 +685,8 @@ u64 ty_create_template(ast_t* decl) {
   ts_type_table[ty_id].of = TY_TEMPLATE;
   ts_type_table[ty_id].id = realname;
   ts_type_table[ty_id].tpl.decl = decl;
+
+  array_new(&ts_type_table[ty_id].tpl.usedby);
 
   ast_t* attach_to = ast_get_scope(decl);
   log_silly("register template: %s", realname->value);
