@@ -711,6 +711,17 @@ void ty_struct_add_virtual(ast_t* decl) {
         ty_to_string(ty_id)->value);
   }
 
+  u64 max = type->structure.virtuals.length;
+  for (u64 i = 0; i < max; ++i) {
+    ast_t* ast = (ast_t*)type->structure.virtuals.values[i];
+    fl_assert(ast != decl);
+    if (st_cmp(ast->func.id->identifier.string, id) == 0) {
+      ast_raise_error(decl, "function property redefinition (same name), "
+                            "previously defined at %s",
+                      ast_get_location(ast)->value);
+    }
+  }
+
   array_push(&type->structure.virtuals, decl);
 }
 

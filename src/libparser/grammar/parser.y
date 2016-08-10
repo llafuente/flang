@@ -452,6 +452,12 @@ fn_decl_without_return_type
     if ($4->parent == (ast_t*)1) {
       yyerror(root, "syntax error, operator overloading is incompatible with varargs"); YYERROR;
     }
+
+    // TODO when add more params this may not be true anymore
+    if ($4->list.length != 2) {
+      yyerror(root, "syntax error, operator overloading require 2 params"); YYERROR;
+    }
+
     $$ = ast_mk_fn_decl(0, $4, 0, 0, 0, $3, AST_FUNC_OPERATOR);
 
     ast_position($$, @1, @4);

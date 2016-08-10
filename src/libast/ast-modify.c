@@ -66,7 +66,18 @@ void ast_replace_types(ast_t* node, u64 old, u64 new) {
 
 void ast_clear(ast_t* node, ast_types_t type) {
   ast_t* p = node->parent;
+  u32 first_line = node->first_line;
+  u32 first_column = node->first_column;
+  u32 last_line = node->last_line;
+  u32 last_column = node->last_column;
+
   memset(node, 0, sizeof(ast_t));
+
   node->parent = p;
+  node->first_line = first_line;
+  node->first_column = first_column;
+  node->last_line = last_line;
+  node->last_column = last_column;
+
   node->type = type;
 }

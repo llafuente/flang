@@ -294,10 +294,43 @@ TASK_IMPL(parser_types) {
       "invalid member access 'c' for struct: struct st { i32 b, }", {});
 
   TEST_PARSER_ERROR(
-      "invalid member access", "function property first(i8 arr) {\n"
-                               "  return 0;\n"
-                               "}\n",
+      "function property 01", "function property first(i8 arr) {\n"
+                              "  return 0;\n"
+                              "}\n",
       "function property first argument must be a struct given: i8", {});
+
+  TEST_PARSER_ERROR("function property 02",
+                    "struct arr {i8 a};\n"
+                    "function property first(arr ari) {\n"
+                    "  return 0;\n"
+                    "}\n"
+                    "function property first(arr ari) {\n"
+                    "  return 0;\n"
+                    "}\n",
+                    "function property redefinition (same name), previously "
+                    "defined at memory:string:2:1",
+                    {});
+
+  TEST_PARSER_ERROR(
+      "function property 03", "function property first() {\n"
+                              "  return 0;\n"
+                              "}\n",
+      "syntax error, struct property overloading must have an unique parameter",
+      {});
+
+#define V2_DECL "struct v2 {\nf32 x,\nf32 y,\n};\n"
+
+  TEST_PARSER_ERROR("function property 03",
+                    V2_DECL "function operator +(v2 a) : v2 {"
+                            "  return a;"
+                            "}",
+                    "syntax error, operator overloading require 2 params", {});
+
+  TEST_PARSER_ERROR("function property 03",
+                    V2_DECL "function operator +(v2 a, i8 x, i8b) : v2 {"
+                            "  return a;"
+                            "}",
+                    "syntax error, operator overloading require 2 params", {});
 
   return 0;
 }

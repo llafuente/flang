@@ -34,6 +34,7 @@ enum ast_function_type {
   AST_FUNC_FUNCTION,
   AST_FUNC_OPERATOR,
   AST_FUNC_PROPERTY,
+  AST_FUNC_ALIAS, // TODO doit!
 };
 enum ast_cast_operations {
   AST_CAST_ERR = 0, // unkown
@@ -115,10 +116,10 @@ enum ast_types {
 };
 
 struct ast {
-  int first_line;
-  int first_column;
-  int last_line;
-  int last_column;
+  u32 first_line;
+  u32 first_column;
+  u32 last_line;
+  u32 last_column;
 
   ast_types_t type;
   ast_t* parent;

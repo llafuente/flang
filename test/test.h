@@ -96,6 +96,10 @@
       STRING_MATCH(err->err.message->value, msg);                              \
     } else {                                                                   \
       root = typesystem(root);                                                 \
+      if (!ast_last_error_message) {                                           \
+        ast_dump_s(root);                                                      \
+        ASSERT(false, "Error was expected but program parsed OK.");            \
+      }                                                                        \
       STRING_MATCH(ast_last_error_message, msg);                               \
     }                                                                          \
     code_block;                                                                \
