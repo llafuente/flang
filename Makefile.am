@@ -76,6 +76,7 @@ libfl_ast_a_SOURCES = src/libast/ast-mk.c \
                         src/libast/ast-static.c \
                         src/libast/ast-expand.c \
                         src/libast/ast-reverse.c \
+                        src/libast/ast-scope.c \
                         src/libast/ast.c
 
 libfl_parser_a_SOURCES = src/libparser/grammar/parser.c \

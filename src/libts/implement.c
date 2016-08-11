@@ -41,7 +41,7 @@ ast_action_t __trav_implement(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     node->ts_passes = 1;
 
     string* fn_id = node->impl.type_id->identifier.string;
-    array* arr = ast_search_fns(node, fn_id);
+    array* arr = ast_scope_fns(node, fn_id);
 
     if (!arr) {
       // maybe a struct ?!

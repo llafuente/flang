@@ -175,6 +175,8 @@ libexport void ty_to_printf(u64 ty_id, char* buffer);
  */
 libexport string* ty_to_string(u64 ty_id);
 
+libexport string* ty_to_string_list(ast_t* list);
+
 /* Print string representation to stderr
  *
  * @ty_id type id

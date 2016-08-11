@@ -437,30 +437,42 @@ bool ty_compatible_fn(u64 ty_id, ast_t* arg_list, bool strict, bool template) {
   log_silly("fn ty_id %zu, strict? %d, template? %d", ty_id, strict, template);
   ty_t at = ts_type_table[ty_id];
 
-  // TODO assert?
-  if (at.of != TY_FUNCTION) {
-    return false;
-  }
+  fl_assert(ty_id > 0);
+  fl_assert(arg_list->type == AST_LIST);
+  fl_assert(at.of == TY_FUNCTION);
+
   // function, same parameters length return type and varargs?
   u64 i;
   u64 current;
   u64 expected;
-  for (i = 0; i < arg_list->list.length; ++i) {
+  u64 args_sent = arg_list->list.length;
+  u64 args_expected = at.func.nparams;
+  ast_t* arg;
+
+  if (!at.func.varargs && args_sent != args_expected) {
+    return false;
+  }
+
+  for (i = 0; i < args_sent; ++i) {
+    log_silly("parameter %zu of %zu/%zu", i, arg_list->list.length,
+              at.func.nparams);
+
     // end reached it's compatible, the rest is varargs
     if (at.func.varargs && i == at.func.nparams)
       break;
-
-    current = arg_list->list.values[i]->ty_id;
+    arg = arg_list->list.values[i];
+    current = arg->ty_id;
     expected = at.func.params[i];
 
     // strict - same type
     if (strict && current != expected) {
       log_silly("(strict) parameter %zu not compatible %zu != %zu", i, current,
-                expected) return false;
+                expected);
+      return false;
     }
 
     ty_t at2 = ts_type_table[expected];
-    if (at2.of == TY_TEMPLATE) {
+    if (at2.templated) {
       if (template) {
         log_silly("(template) parameter %zu use", i) continue;
       }
@@ -470,14 +482,20 @@ bool ty_compatible_fn(u64 ty_id, ast_t* arg_list, bool strict, bool template) {
       // NOTE CAST_EXPLICIT it a not compatible type
       // this is called by templates, if we cast down number
       // we broke the template purpose so it's invalid
-      if (cm == CAST_EXPLICIT || cm == CAST_INVALID) {
-        log_silly("(cast) parameter %zu cannot be casted", i);
+      if (cm == CAST_INVALID) {
+        log_silly("(cast) parameter %zu cast invalid", i);
+        return false;
+      }
+
+      if (cm == CAST_EXPLICIT && !ast_is_literal(arg)) {
+        log_silly("(cast) parameter %zu cast explicit and not literal", i);
         return false;
       }
     }
   }
   return true;
 }
+
 bool ty_compatible_struct(u64 a, u64 b) {
   ty_t at = ts_type_table[a];
   ty_t bt = ts_type_table[b];
@@ -518,7 +536,7 @@ u64 ty_create_fn(ast_t* decl) {
     if (decl->func.uid) {
       t = hash_get(rscope->block.uids, decl->func.uid->value);
       if (t != 0) {
-        ast_dump_s(t);
+        // ast_dump_s(t);
         ast_raise_error(
             decl,
             "Function #id collision found for '%s', previously used at %s",
@@ -598,7 +616,7 @@ u64 ty_create_fn(ast_t* decl) {
     array_push(lfunc, decl);
     hash_set(attach_to->block.functions, fn_uid, lfunc);
 
-    hash_set(attach_to->block.types, fn_id, decl);
+    hash_set(attach_to->block.types, fn_uid, decl);
 
     hash_set(rscope->block.uids, fn_uid, decl);
 
@@ -685,6 +703,7 @@ u64 ty_create_template(ast_t* decl) {
   ts_type_table[ty_id].of = TY_TEMPLATE;
   ts_type_table[ty_id].id = realname;
   ts_type_table[ty_id].tpl.decl = decl;
+  ts_type_table[ty_id].templated = true;
 
   array_new(&ts_type_table[ty_id].tpl.usedby);
 

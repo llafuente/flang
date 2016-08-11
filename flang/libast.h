@@ -762,3 +762,11 @@ libexport void ast_traverse_list(ast_t* node, ast_cb_t cb, ast_t* until,
                                  void* userdata_out);
 
 /* cldoc:end-category() */
+
+/* cldoc:begin-category(ast-scope.c) */
+
+libexport ast_t* ast_scope_var(ast_t* node, string* identifier);
+
+libexport array* ast_scope_fns(ast_t* node, string* id);
+
+/* cldoc:end-category() */

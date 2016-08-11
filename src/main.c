@@ -16,17 +16,33 @@
 
 int main(int argc, char** argv) {
   // TODO 0 means REPL
-  if (argc == 1 || argc > 3) {
-    fprintf(stderr, "Usage: flan file.fl [output.ir]\n");
+  if (argc == 1) {
+    fprintf(stderr, "Usage: flan file.fl [-v] [-nocore]\n");
     exit(2);
   }
 
-  // log_debug_level = 10;
+  bool core = true;
+
+  // append to the end atm. i'm lazy
+  for (int i = 0; i < argc; ++i) {
+    if (strcmp("-v", argv[i]) == 0) {
+      log_debug_level = 10;
+    }
+    if (strcmp("-nocore", argv[i]) == 0) {
+      log_debug_level = 10;
+      core = false;
+    }
+  }
+
   flang_init();
 
   // debug single file
-  // ast_t* root = psr_file_main(argv[1]);
-  ast_t* root = psr_file(argv[1]);
+  ast_t* root;
+  if (core) {
+    root = psr_file_main(argv[1]);
+  } else {
+    root = psr_file(argv[1]);
+  }
   if (ast_print_error(root)) {
     exit(3);
   }

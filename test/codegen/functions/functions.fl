@@ -1,22 +1,27 @@
 /* polymorphism */
-function p(ptr(i8) str) : i32 {
-  return printf("poly as string = %s\n", str);
+function tprint(ptr(i8) str) : i32 {
+  return printf("tprint(string) = '%s'\n", str);
 }
 
-function p(i32 num) : i32 {
-  return printf("poly as i32 %d\n", num);
+function tprint(i32 num) : i32 {
+  return printf("tprint(i32) = %d\n", num);
 }
 
 // %f require a double!
-function p(f64 f) : i32 {
-  return printf("poly as f64 %f\n", f);
+function tprint(f64 f) : i32 {
+  return printf("tprint(f64) = %f\n", f);
 }
 
 
-p(10);
-printf("direct as i32 %d\n", 10);
+tprint(10);
+printf("value as (i32) %d\n", 10);
 
-p(100.5001);
-printf("direct as f64 %f\n", cast(f64) 100.5001);
+// TODO REVIEW polymorphism
+// this cast show the real polymorphism problem.
+// if it was a f32 there were no problem
+// this need to be adressed with an error because there are two possible solutions
+// to a given problem.
+tprint(cast(f64) 100.5001);
+printf("value as (f64) %f\n", cast(f64) 100.5001);
 
-p("this is a string!");
+tprint("this is a string!");

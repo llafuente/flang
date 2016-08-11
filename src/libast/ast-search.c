@@ -55,7 +55,7 @@ ast_t* ast_search_id_decl(ast_t* node, string* identifier) {
 
 ast_t* ast_search_fn(ast_t* node, string* identifier, u64* args, u64 nargs,
                      u64 ret_ty, bool var_args) {
-  array* arr = ast_search_fns(node, identifier);
+  array* arr = ast_scope_fns(node, identifier);
 
   if (!arr) {
     return 0;
@@ -96,7 +96,7 @@ ast_t* ast_search_fn_op(ast_t* node, int operator, u64 ty_id) {
   char buffer[64];
   snprintf(buffer, 64, "operator_%d", operator);
   string* id = st_newc(buffer, st_enc_utf8);
-  array* arr = ast_search_fns(node, id);
+  array* arr = ast_scope_fns(node, id);
 
   if (!arr) {
     return 0;
@@ -125,35 +125,39 @@ cleanup:
 // TODO handle args
 ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
   // search function
-  array* arr = ast_search_fns(args_call->parent, id);
+  array* arr = ast_scope_fns(args_call->parent, id);
+  bool checked = false;
+  ast_t* ret_decl = 0;
+
   if (!arr) {
     // search a variable with function type
     log_verbose("undefined function: '%s' must be a variable", id->value);
-    ast_t* decl = ast_search_id_decl(args_call, id);
-    if (decl == 0) {
-      ast_raise_error(args_call->parent,
-                      "typesystem - cannot find function or variable: '%s'",
-                      id->value);
-      exit(5);
+    ast_t* var_decl = ast_scope_var(args_call, id);
+    if (var_decl == 0) {
+      // implicit declaration of function 'z' is invalid in C99
+      ast_raise_error(
+          args_call->parent,
+          "type error, cannot find function or variable with given name: '%s'",
+          id->value);
     }
 
-    ty_t fn_ty = ty(decl->ty_id);
+    ty_t fn_ty = ty(var_decl->ty_id);
     if (fn_ty.of != TY_FUNCTION) {
-      ast_raise_error(args_call->parent,
-                      "typesystem - invalid variable type, not a function");
-      exit(5);
+      ast_raise_error(args_call->parent, "type error, called object type (%s) "
+                                         "is not a function or function "
+                                         "pointer",
+                      ty_to_string(var_decl->ty_id)->value);
     }
 
-    return fn_ty.func.decl;
+    ret_decl = fn_ty.func.decl;
+    goto cleanup;
   }
 
   log_verbose("declarations with same name = %lu\n", arr->length);
 
-  ast_t* ret_decl = 0;
-
   if (arr->length == 1) {
     ret_decl = array_get(arr, 0);
-    goto fn_wargs_return;
+    goto cleanup;
   }
 
   ast_t* decl;
@@ -170,58 +174,49 @@ ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
   for (j = 0; j < jmax; ++j) {
     decl = array_get(arr, j);
     if (ty_compatible_fn(decl->ty_id, args_call, true, false)) {
+      checked = true;
       ret_decl = decl;
-      goto fn_wargs_return;
+      goto cleanup;
     }
   }
   // castable and no template
   for (j = 0; j < jmax; ++j) {
     decl = array_get(arr, j);
     if (ty_compatible_fn(decl->ty_id, args_call, false, false)) {
+      checked = true;
       ret_decl = decl;
-      goto fn_wargs_return;
+      goto cleanup;
     }
   }
   // castable & template
   for (j = 0; j < jmax; ++j) {
     decl = array_get(arr, j);
     if (ty_compatible_fn(decl->ty_id, args_call, false, true)) {
+      checked = true;
       ret_decl = decl;
-      goto fn_wargs_return;
+      goto cleanup;
     }
   }
 
-fn_wargs_return:
-  array_delete(arr);
-  pool_free(arr);
+cleanup:
+
+  if (!checked && ret_decl) {
+    // check compatibility!
+    if (!ty_compatible_fn(ret_decl->ty_id, args_call, false, true)) {
+      ast_raise_error(
+          args_call->parent,
+          "type error, invalid arguments. Expected: (%s)\nFound: (%s)",
+          ty_to_string(ret_decl->ty_id)->value,
+          ty_to_string_list(args_call)->value);
+    }
+  }
+
+  if (arr) {
+    array_delete(arr);
+    pool_free(arr);
+  }
 
   return ret_decl;
-}
-
-array* ast_search_fns(ast_t* node, string* id) {
-  array* arr = pool_new(sizeof(array));
-  array* arr2;
-  array_new(arr);
-
-  char* cstr = id->value;
-  ast_t* scope = node;
-  ast_t* fn;
-  do {
-    scope = ast_get_scope(scope);
-
-    fn = (ast_t*)hash_get(scope->block.types, cstr);
-    if (fn && fn->type == AST_DECL_FUNCTION) {
-      array_concat(arr, (array*)hash_get(scope->block.functions, cstr));
-    }
-  } while (scope->block.scope != AST_SCOPE_GLOBAL);
-
-  if (arr->length) {
-    return arr;
-  }
-
-  array_delete(arr);
-  pool_free(arr);
-  return 0;
 }
 
 ast_action_t __trav_get_list_node(ast_trav_mode_t mode, ast_t* node,

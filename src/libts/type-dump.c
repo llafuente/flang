@@ -111,6 +111,25 @@ void ty_to_printf(u64 ty_id, char* dest) {
   }
 }
 
+string* ty_to_string_list(ast_t* list) {
+  fl_assert(list->type == AST_LIST);
+
+  string* buffer = st_new(128, st_enc_utf8);
+
+  u64 max = list->list.length;
+  for (u64 i = 0; i < max; ++i) {
+    string* c = ty_to_string(((ast_t*)list->list.values[i])->ty_id);
+    c->encoding = st_enc_utf8;      // TODO REVIEW THIS IS AN ERROR IN string.c
+    buffer->encoding = st_enc_utf8; // TODO REVIEW THIS IS AN ERROR IN string.c
+    printf("%u - %u\n", c->encoding, buffer->encoding);
+    st_append(&buffer, c);
+    if (i + 1 != max) {
+      st_append_c(&buffer, ", ");
+    }
+  }
+
+  return buffer;
+}
 string* ty_to_string(u64 ty_id) {
   ty_t ty = ts_type_table[ty_id];
   // cached?

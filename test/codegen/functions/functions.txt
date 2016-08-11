@@ -1,5 +1,5 @@
-poly as f64 10.000000
-direct as i32 10
-poly as f64 100.500099
-direct as f64 100.500099
-poly as string = this is a string!
+tprint(i32) = 10
+value as (i32) 10
+tprint(f64) = 100.500099
+value as (f64) 100.500099
+tprint(string) = 'this is a string!'

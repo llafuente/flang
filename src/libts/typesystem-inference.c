@@ -93,12 +93,15 @@ ast_action_t __ts_inference_dtors(ast_trav_mode_t mode, ast_t* node,
         }
 
         // as argument
+        /* TODO do it! disabled test asociated @codegen-expressions-test.c
         if (parent->type == AST_LIST) {
+          // TODO
           ast_t* call = parent->parent;
 
           if (parent->parent->type == AST_EXPR_CALL) {
-            string* callee = call->call.callee->identifier.string;
-            ast_t* decl = ast_search_fn_wargs(callee, fnod);
+            ast_t* decl =
+        ast_search_fn_wargs(call->call.callee->identifier.string,
+              call->call.arguments);
             if (!decl) {
               continue;
             }
@@ -113,6 +116,7 @@ ast_action_t __ts_inference_dtors(ast_trav_mode_t mode, ast_t* node,
             break;
           }
         }
+        */
       }
     }
 

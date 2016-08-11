@@ -187,12 +187,51 @@ TASK_IMPL(parser_functions) {
   TEST_PARSER_ERROR(
       "function err args", "fn printf2(i8 a) {}\n"
                            "printf2(\"sss\");",
-      "type error, invalid cast: types are not castables (cstr) to (i8)", {});
-/*
+      "type error, invalid arguments. Expected: (fn printf2 (i8, ) : void)\n"
+      "Found: (cstr)",
+      {});
+
+  TEST_PARSER_ERROR(
+      "function err args", "fn printf2(i8 a) {}\n"
+                           "var p = printf2;"
+                           "x(1, 2, 3);",
+      "type error, cannot find function or variable with given name: 'x'", {});
+
+  TEST_PARSER_ERROR("function err args", "fn printf2(i8 a) {}\n"
+                                         "var i8 p;"
+                                         "p(1, 2, 3);",
+                    "type error, called object type (i8) is not a function or "
+                    "function pointer",
+                    {});
+
+  TEST_PARSER_ERROR(
+      "function err args", "fn printf2(i8 a) {}\n"
+                           "var p = printf2;"
+                           "p(1, 2, 3);",
+      "type error, invalid arguments. Expected: (fn printf2 (i8, ) : void)\n"
+      "Found: (i64, i64, i64)",
+      {});
+
+  // TODO this may be a warning?
+  TEST_PARSER_OK("function err args", "fn printf2(i8 a) {}\n"
+                                      "var p = printf2;"
+                                      "p(1.0);",
+                 {});
+
+  TEST_PARSER_ERROR(
+      "function err args", "fn printf2(i8 a) {}\n"
+                           "var p = printf2;"
+                           "p(\"ss\");",
+      "type error, invalid arguments. Expected: (fn printf2 (i8, ) : void)\n"
+      "Found: (cstr)",
+      {});
+
   TEST_PARSER_ERROR(
       "function err args", "fn printf2(i8 a) {}\n"
                            "printf2(1, 2, 3);",
-      "type error, invalid cast: types are not castables (cstr) to (i8)", {});
-*/
+      "type error, invalid arguments. Expected: (fn printf2 (i8, ) : void)\n"
+      "Found: (i64, i64, i64)",
+      {});
+
   return 0;
 }
