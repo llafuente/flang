@@ -37,7 +37,7 @@
 
 #define STRING_MATCH(a, b)                                                     \
   if (strcmp(a, b) != 0) {                                                     \
-    fprintf(stderr, "expected: %s\nfound: %s\n", b, a);                        \
+    fprintf(stderr, "expected: %s\n   found: %s\n", b, a);                     \
     ASSERT(false, "error message match");                                      \
   }
 
@@ -72,6 +72,7 @@
     flang_init();                                                              \
     ast_t* root = psr_str_utf8(code);                                          \
     CHK_BODY(root);                                                            \
+    root = psr_ast_check(root);                                                \
     root = typesystem(root);                                                   \
     if (ast_last_error_message) {                                              \
       fprintf(stderr, "unexpected typesystem error");                          \
@@ -95,12 +96,17 @@
     if (err->type == AST_ERROR) {                                              \
       STRING_MATCH(err->err.message->value, msg);                              \
     } else {                                                                   \
-      root = typesystem(root);                                                 \
-      if (!ast_last_error_message) {                                           \
-        ast_dump_s(root);                                                      \
-        ASSERT(false, "Error was expected but program parsed OK.");            \
+      root = psr_ast_check(root);                                              \
+      if (ast_last_error_message) {                                            \
+        STRING_MATCH(ast_last_error_message, msg);                             \
+      } else {                                                                 \
+        root = typesystem(root);                                               \
+        if (!ast_last_error_message) {                                         \
+          ast_dump_s(root);                                                    \
+          ASSERT(false, "Error was expected but program parsed OK.");          \
+        }                                                                      \
+        STRING_MATCH(ast_last_error_message, msg);                             \
       }                                                                        \
-      STRING_MATCH(ast_last_error_message, msg);                               \
     }                                                                          \
     code_block;                                                                \
     flang_exit(root);                                                          \

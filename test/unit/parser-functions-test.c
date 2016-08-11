@@ -179,5 +179,20 @@ TASK_IMPL(parser_functions) {
                     "used at memory:string:2:1",
                     {});
 
+  TEST_PARSER_ERROR("return missplaced", "return 0;",
+                    "syntax error, return found outside function scope",
+                    {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/
+                    });
+
+  TEST_PARSER_ERROR(
+      "function err args", "fn printf2(i8 a) {}\n"
+                           "printf2(\"sss\");",
+      "type error, invalid cast: types are not castables (cstr) to (i8)", {});
+/*
+  TEST_PARSER_ERROR(
+      "function err args", "fn printf2(i8 a) {}\n"
+                           "printf2(1, 2, 3);",
+      "type error, invalid cast: types are not castables (cstr) to (i8)", {});
+*/
   return 0;
 }

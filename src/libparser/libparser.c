@@ -28,6 +28,7 @@
 #include "flang/debug.h"
 #include "flang/libparser.h"
 #include <string.h>
+#include <setjmp.h>
 
 void __psr_attach_core(ast_t* root) {
   ast_t* block = root->program.body;
@@ -262,4 +263,31 @@ char* psr_operator_str(int operator) {
 
   fl_fatal_error("%s: %d", "unkown operator found", operator);
   return 0;
+}
+
+ast_action_t __trav_psr_ast_check(ast_trav_mode_t mode, ast_t* node,
+                                  ast_t* parent, u64 level, void* userdata_in,
+                                  void* userdata_out) {
+  if (mode == AST_TRAV_LEAVE) {
+    return 0;
+  }
+  switch (node->type) {
+  case AST_STMT_RETURN: {
+    ast_t* block = ast_get_function_scope(node);
+    if (!block) {
+      ast_raise_error(node,
+                      "syntax error, return found outside function scope");
+    }
+  } break;
+  }
+
+  return AST_SEARCH_CONTINUE;
+}
+
+ast_t* psr_ast_check(ast_t* root) {
+  if (!setjmp(fl_on_error_jmp)) {
+    ast_traverse(root, __trav_psr_ast_check, 0, 0, 0, 0);
+  }
+
+  return root;
 }

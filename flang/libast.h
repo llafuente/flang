@@ -699,6 +699,13 @@ libexport ast_t* ast_get_global_scope(ast_t* node);
  */
 libexport ast_t* ast_get_scope(ast_t* node);
 
+/* Reverse the tree searching nearest function scope
+ *
+ * @node
+ * @return neasert scope
+ */
+libexport ast_t* ast_get_function_scope(ast_t* node);
+
 /* Get location as string
  *
  * @node

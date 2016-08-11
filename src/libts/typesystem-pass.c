@@ -53,6 +53,7 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
 
   case AST_STMT_RETURN: {
     if (mode == AST_TRAV_ENTER) {
+      ts_pass(node->ret.argument);
       ts_cast_return(node);
     }
   } break;
@@ -98,22 +99,19 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
   } break;
   case AST_EXPR_MEMBER: {
     if (mode == AST_TRAV_LEAVE) {
+      ts_pass(node->member.left);
       ts_cast_expr_member(node);
     }
   } break;
   case AST_EXPR_LUNARY: {
     if (mode == AST_TRAV_LEAVE) {
+      ts_pass(node->lunary.element);
       ts_cast_lunary(node);
     }
   } break;
   case AST_EXPR_RUNARY: {
     if (mode == AST_TRAV_LEAVE) {
       ts_cast_runary(node);
-    }
-  } break;
-  case AST_EXPR_ASSIGNAMENT: {
-    if (mode == AST_TRAV_LEAVE) {
-      ts_cast_binop(node);
     }
   } break;
   case AST_EXPR_CALL: {
@@ -124,8 +122,12 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
   case AST_IMPLEMENT: {
     return AST_SEARCH_SKIP;
   }
+  case AST_EXPR_ASSIGNAMENT:
   case AST_EXPR_BINOP: {
     if (mode == AST_TRAV_LEAVE) {
+      ts_pass(node->binop.left);
+      ts_pass(node->binop.right);
+
       ts_cast_binop(node);
     }
   }
@@ -144,10 +146,11 @@ ast_action_t __ts_cast_operation_pass_cb(ast_trav_mode_t mode, ast_t* node,
   if (node->type == AST_CAST && !node->cast.unsafe) {
     // check if it's possible to cast those types
     if (!ts_castable(node->cast.element->ty_id, node->ty_id)) {
-      ast_raise_error(node,
-                      "Invalid cast: types are not castables '%s' to '%s'",
-                      ty_to_string(node->cast.element->ty_id)->value,
-                      ty_to_string(node->ty_id)->value);
+      ast_raise_error(
+          node,
+          "type error, invalid cast: types are not castables (%s) to (%s)",
+          ty_to_string(node->cast.element->ty_id)->value,
+          ty_to_string(node->ty_id)->value);
     }
     node->cast.operation = ts_cast_operation(node);
   }
@@ -169,7 +172,9 @@ ast_t* ts_pass(ast_t* node) {
   ast_traverse(node, __ts_cast_operation_pass_cb, 0, 0, 0, 0);
 
   // inference again now that we have more info
-  ts_inference(node);
+  if (ts_inference(node)) {
+    return ts_pass(node);
+  }
 
   log_debug("typesystem passed");
 

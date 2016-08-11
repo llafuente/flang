@@ -221,8 +221,8 @@ TASK_IMPL(parser_types) {
                                     "var a _a;\n"
                                     "var b _b;\n"
                                     "_b = _a;\n",
-                    "Invalid cast: types are not castables 'struct a { i8 b, "
-                    "}' to 'struct b { i8 c, }'",
+                    "type error, invalid cast: types are not castables (struct "
+                    "a { i8 b, }) to (struct b { i8 c, })",
                     {});
 
   TEST_PARSER_OK("a/b are the same type", "struct a { i8 b, };\n"
@@ -256,13 +256,13 @@ TASK_IMPL(parser_types) {
     ASSERT(a_ty_id != b_ty_id, "ref and pointers aren't the same type");
   });
 
-  TEST_PARSER_ERROR(
-      "a/b are the same type", "struct a { i32 b, };\n"
-                               "var a $a;\n"
-                               "var i8 $b = 100;\n"
-                               "$a = cast(a) $b;\n",
-      "Invalid cast: types are not castables 'i8' to 'struct a { i32 b, }'",
-      {});
+  TEST_PARSER_ERROR("a/b are the same type", "struct a { i32 b, };\n"
+                                             "var a $a;\n"
+                                             "var i8 $b = 100;\n"
+                                             "$a = cast(a) $b;\n",
+                    "type error, invalid cast: types are not castables (i8) to "
+                    "(struct a { i32 b, })",
+                    {});
 
   TEST_PARSER_OK("implement type when used",
                  "template $tpl;\n"
@@ -291,7 +291,8 @@ TASK_IMPL(parser_types) {
                                "var st sti;\n"
                                "sti.b;\n"
                                "sti.c;\n",
-      "invalid member access 'c' for struct: struct st { i32 b, }", {});
+      "type error, invalid member access 'c' for struct: struct st { i32 b, }",
+      {});
 
   TEST_PARSER_ERROR(
       "function property 01", "function property first(i8 arr) {\n"
@@ -332,5 +333,66 @@ TASK_IMPL(parser_types) {
                             "}",
                     "syntax error, operator overloading require 2 params", {});
 
+  TEST_PARSER_ERROR("pointer arithmetic", "var ptr(i8) a;"
+                                          "a = a + \"string!\";",
+                    "type error, invalid operands for pointer arithmetic\n"
+                    "left is (cstr) but right is not numeric is (cstr).",
+                    {});
+
+  TEST_PARSER_ERROR("pointer arithmetic", "var ptr(i16) a;"
+                                          "a = \"string!\" + a;",
+                    "type error, invalid operands for pointer arithmetic\n"
+                    "left is (cstr) but right is not numeric is (ptr(i16)).",
+                    {});
+
+  /* TODO this may raise an error in the future when string struct is ready
+  TEST_PARSER_ERROR("pointer arithmetic",
+                    "var ptr(i8) a;"
+                    "a = \"string!\" + a;",
+                    "type error, invalid operands for pointer arithmetic\n"
+  "left is (ptr(i8)) but right is not numeric is (ptr(i8)).", {});
+  */
+
+  TEST_PARSER_ERROR("dereference", "var i16 b;\n"
+                                   "*b;",
+                    "type error, cannot dereference type (i16), must be a "
+                    "pointer or a reference",
+                    {});
+
+  TEST_PARSER_ERROR("negation", "struct test {"
+                                "i8 t1"
+                                "}"
+                                "var test t;\n"
+                                "if (!t) {}",
+                    "type error, invalid argument type (struct test { i8 t1, "
+                    "}) for logical negation operator",
+                    {});
+
+  TEST_PARSER_ERROR("cast number-struct explicit", "struct test {"
+                                                   "i8 t1"
+                                                   "}"
+                                                   "var test t;\n"
+                                                   "var i8 a = 10;\n"
+                                                   "t = cast(test) a;",
+                    "type error, invalid cast: types are not castables (i8) to "
+                    "(struct test { i8 t1, })",
+                    {});
+
+  TEST_PARSER_ERROR("cast number-struct", "struct test {"
+                                          "i8 t1"
+                                          "}"
+                                          "var test t;\n"
+                                          "var i8 a = 10;\n"
+                                          "t = a;",
+                    "type error, invalid cast: types are not castables (i8) to "
+                    "(struct test { i8 t1, })",
+                    {});
+  TEST_PARSER_ERROR(
+      "cast number-struct", "struct test {"
+                            "i8 t1"
+                            "}"
+                            "var test t = 10;\n",
+      "type error, numeric type cannot be casted to (struct test { i8 t1, })",
+      {});
   return 0;
 }

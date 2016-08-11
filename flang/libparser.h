@@ -61,4 +61,9 @@ libexport ast_t* psr_ast_imports(ast_t* node);
  */
 libexport char* psr_operator_str(int operator);
 
+/* Traverse the tree reporting syntax errors that BISON can't catch.
+ * @node
+ */
+libexport ast_t* psr_ast_check(ast_t* node);
+
 /* cldoc:end-category() */

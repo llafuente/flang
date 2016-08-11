@@ -26,6 +26,7 @@
 #include "flang/flang.h"
 #include "flang/libts.h"
 #include "flang/libast.h"
+#include "flang/debug.h"
 
 struct __id_search {
   string* needle;
@@ -128,6 +129,8 @@ ast_action_t __ts_inference_fn_ret(ast_trav_mode_t mode, ast_t* node,
     return 0;
 
   if (node->type == AST_DECL_FUNCTION && node->func.ret_type->ty_id == 0) {
+    log_silly("inference: function return value");
+
     ast_t* ret = node->func.ret_type;
     ast_t* body = node->func.body;
     array* list = ast_search_node_type(node, AST_STMT_RETURN);
@@ -172,13 +175,14 @@ ast_action_t __ts_inference_fn_ret(ast_trav_mode_t mode, ast_t* node,
     // now update the type
 
     ts_type_table[node->ty_id].func.ret = node->func.ret_type->ty_id;
+    ((*(u64*)userdata_out))++;
   }
 
   return AST_SEARCH_CONTINUE;
 }
 
-// return error
-ast_t* ts_inference(ast_t* node) {
+// return if modified something
+bool ts_inference(ast_t* node) {
   // var x = 10; <- double
   // var x = ""; <- string*
   // var x = []; <- look usage
@@ -186,11 +190,15 @@ ast_t* ts_inference(ast_t* node) {
 
   // var i64 x = 10; <- cast 10 to i64
   u64 modified;
+  bool ret = false;
   do {
     modified = 0;
     ast_traverse(node, __ts_inference_dtors, 0, 0, 0, (void*)&modified);
     ast_traverse(node, __ts_inference_fn_ret, 0, 0, 0, (void*)&modified);
+    if (modified) {
+      ret = true;
+    }
   } while (modified);
 
-  return 0;
+  return ret;
 }

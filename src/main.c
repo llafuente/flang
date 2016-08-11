@@ -31,6 +31,11 @@ int main(int argc, char** argv) {
     exit(3);
   }
 
+  root = psr_ast_check(root);
+  if (ast_print_error(root)) {
+    exit(3);
+  }
+
   root = typesystem(root);
   if (ast_print_error(root)) {
     exit(4);

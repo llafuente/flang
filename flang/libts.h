@@ -456,7 +456,7 @@ libexport void ts_cast_expr_member(ast_t* node);
  * dependencies.
  * @node node
  */
-libexport ast_t* ts_inference(ast_t* node);
+libexport bool ts_inference(ast_t* node);
 
 /* cldoc:end-category() */
 

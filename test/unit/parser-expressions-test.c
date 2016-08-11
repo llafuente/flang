@@ -181,9 +181,33 @@ TASK_IMPL(parser_expressions) {
     ASSERT(body[0]->binop.right->binop.right->type == AST_LIT_INTEGER,
            "AST_LIT_INTEGER");
   });
+
   TEST_PARSER_OK("expr or", "1 | 2;", {
     ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
   });
+
+  TEST_PARSER_ERROR(
+      "expr or", "1 | \"WTF!\";", "type error, invalid operants for bitwise "
+                                  "operator. Both must be integers.\nleft is "
+                                  "(i64) right is (cstr).",
+      {// ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
+      });
+
+  TEST_PARSER_ERROR(
+      "expr or", "1 % 1.1;", "type error, invalid operants for modulus "
+                             "operator operator. Both must be integers.\nleft "
+                             "is "
+                             "(i64) right is (f32).",
+      {// ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
+      });
+
+  TEST_PARSER_ERROR(
+      "expr or", "struct v2{i8 a}; var v2 a; var v2 b; var v2 c = a + b;",
+      "type error, cannot find a proper operator overloading function for "
+      "operator '+'\n"
+      "left is (struct v2 { i8 a, }) right is (struct v2 { i8 a, }).",
+      {// ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
+      });
 
   TEST_PARSER_OK("equality", "5.0 == 5.0;", {
     ASSERT(body[0]->type == AST_EXPR_BINOP, "AST_EXPR_BINOP");
@@ -258,7 +282,26 @@ TASK_IMPL(parser_expressions) {
   TEST_PARSER_ERROR("type demotion", "var i32 a = 1;\n"
                                      "var i64 b = 1;\n"
                                      "a = b;",
-                    "Explicit cast required between 'i64' to 'i32'", {});
+                    "type error, explicit cast required between (i64) to (i32)",
+                    {});
+
+  TEST_PARSER_ERROR("type demotion", "var i32 a = 1;\n"
+                                     "a[0];",
+                    "type error, invalid member access for type (i32)", {});
+
+  TEST_PARSER_ERROR("operator[]", "struct v2{i8 a};"
+                                  "var v2 a;\n"
+                                  "a[0];",
+                    "type error, cannot find a proper operator overloading "
+                    "function [] for type (struct v2 { i8 a, })",
+                    {});
+
+  TEST_PARSER_ERROR(
+      "operator[]", "struct v2{i8 a};"
+                    "var v2 a;\n"
+                    "a.b;",
+      "type error, invalid member access 'b' for struct: struct v2 { i8 a, }",
+      {});
 
   return 0;
 }

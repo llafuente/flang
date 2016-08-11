@@ -29,7 +29,7 @@
 #include "flang/libast.h"
 
 ty_t ty(u64 ty_id) {
-  // check out-of-bounds
+  // TODO check out-of-bounds
   return ts_type_table[ty_id];
 }
 
@@ -742,11 +742,11 @@ ast_t* ty_get_virtual(u64 ty_id, string* id, bool look_up) {
   }
   // try to lookup -> implement here ?
   if (look_up && type.structure.from_tpl) {
-    log_silly("look_up: type.structure.from_tpl %lu", type.structure.from_tpl)
-        // REVIEW false has no meaning now, because tpl cannot inherit more than
-        // once...
-        // what happens in the future?
-        return ty_get_virtual(type.structure.from_tpl, id, false);
+    log_silly("look_up: type.structure.from_tpl %lu", type.structure.from_tpl);
+    // REVIEW false has no meaning now, because tpl cannot inherit more than
+    // once...
+    // what happens in the future?
+    return ty_get_virtual(type.structure.from_tpl, id, false);
   }
 
   return 0;

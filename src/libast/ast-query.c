@@ -154,6 +154,18 @@ ast_t* ast_get_scope(ast_t* node) {
   return 0;
 }
 
+ast_t* ast_get_function_scope(ast_t* node) {
+  ast_t* blk = node;
+  while (blk) {
+    if (blk->type == AST_BLOCK && blk->parent->type == AST_DECL_FUNCTION) {
+      return blk;
+    }
+    blk = blk->parent;
+  }
+
+  return 0;
+}
+
 ast_t* ast_get_global_scope(ast_t* node) {
   ast_t* blk = node;
   while (blk) {

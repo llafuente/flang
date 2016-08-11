@@ -193,33 +193,15 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
   }
 
   return AST_CAST_BITCAST;
-  /* TODO REVIEW !!!
-  if (!current || !expected) {
-    log_warning("inference is still needed!");
-    return 0;
-  }
-
-  ast_raise_error(node,
-                  "invalid casting: \x1B[36m%s\x1B[39m to \x1B[36m%s\x1B[39m",
-                  ty_to_string(current)->value, ty_to_string(expected)->value);
-  */
-}
-
-ast_t* __ts_autocast(ast_t* node, u64 input, u64 output) {
-  string* name = st_newc("autocast", st_enc_ascii);
-  u64 args_ty[1];
-  args_ty[0] = input;
-  ast_t* autocast = ast_search_fn(node, name, args_ty, 1, output, false);
-  st_delete(&name);
-
-  return autocast;
 }
 
 bool ts_cast_literal(ast_t* node, u64 type_id) {
+  log_silly("casting %lu to %lu", node->ty_id, type_id);
+
   if (node->type == AST_LIT_FLOAT || node->type == AST_LIT_INTEGER) {
     // destination value must also be a number!
     if (!ty_is_number(type_id)) {
-      ast_raise_error(node, "Number cannot be casted to: %s",
+      ast_raise_error(node, "type error, numeric type cannot be casted to (%s)",
                       ty_to_string(type_id)->value);
     }
     node->ty_id = type_id;
@@ -241,7 +223,6 @@ ast_t* __cast_node_to(ast_t* node, u64 type_id) {
 
   // case 1: if it's a literal, can be casted to a compatible type directly
   if (ts_cast_literal(node, type_id)) {
-    log_verbose("literal casted");
     return node;
   }
 
@@ -250,15 +231,14 @@ ast_t* __cast_node_to(ast_t* node, u64 type_id) {
     return node;
   }
 
-  // case 3: there is a autocast function, cast it!
+  // case 3: there is an autocast function, use it!
   string* name = st_newc("autocast", st_enc_ascii);
-  u64 args_ty[1];
-  args_ty[0] = node->ty_id;
+  u64 args_ty[1] = {node->ty_id};
   ast_t* autocast = ast_search_fn(node, name, args_ty, 1, type_id, false);
   st_delete(&name);
 
   if (autocast) {
-    log_verbose("cast to expr-call");
+    log_verbose("autocast found: create an expr-call to it");
 
     ast_t* arguments = ast_mk_list();
     ast_mk_list_push(arguments, node);
@@ -279,37 +259,22 @@ ast_t* __cast_node_to(ast_t* node, u64 type_id) {
     return ecall;
   }
 
-  // case 3: invalid cast, raise
+  // case 4: invalid cast, raise
   ts_cast_modes_t cm = ts_cast_mode(node->ty_id, type_id);
   if (cm == CAST_INVALID) {
-    ast_raise_error(node, "Invalid cast: types are not castables '%s' to '%s'",
-                    ty_to_string(node->ty_id)->value,
-                    ty_to_string(type_id)->value);
+    ast_raise_error(
+        node, "type error, invalid cast: types are not castables (%s) to (%s)",
+        ty_to_string(node->ty_id)->value, ty_to_string(type_id)->value);
   }
 
-  // case 4: explicit cast, raise
+  // case 5: explicit cast, raise
   if (cm == CAST_EXPLICIT) {
-    ast_raise_error(node, "Explicit cast required between '%s' to '%s'",
-                    ty_to_string(node->ty_id)->value,
-                    ty_to_string(type_id)->value);
+    ast_raise_error(
+        node, "type error, explicit cast required between (%s) to (%s)",
+        ty_to_string(node->ty_id)->value, ty_to_string(type_id)->value);
   }
-  /*
-  log_verbose("cast mode? %d", ts_cast_mode(node->ty_id, type_id));
-  log_verbose("autocast? %p", __ts_autocast(node, node->ty_id, type_id));
 
-  if (ts_cast_mode(node->ty_id, type_id) == CAST_INVALID &&
-      !__ts_autocast(node, node->ty_id, type_id)) {
-    // TODO this need to be a bit more specific about what is casting to return
-    // a readble error
-    ast_raise_error(node,
-                    "manual casting is required: '%s' is %s and must be %s",
-                    ast_get_code(node)->value, ty_to_string(node->ty_id)->value,
-                    ty_to_string(type_id)->value);
-    return node; // almost an error!?
-  }
-  */
-
-  // no error or ignore, so cast :)
+  // case 6: implicit cast
   ast_t* cast = ast_mk_cast(0, node, false);
   cast->parent = node->parent;
   node->parent = cast;
@@ -375,55 +340,87 @@ void __ts_create_binop_cast(ast_t* bo) {
 void ts_cast_return(ast_t* node) {
   fl_assert(node->type == AST_STMT_RETURN);
 
-  if (node->ty_id)
+  if (node->ty_id) {
     return;
-
-  ast_t* decl = node->parent;
-  while (decl->parent && decl->type != AST_DECL_FUNCTION) {
-    decl = decl->parent;
   }
 
-  if (!decl) {
-    ast_raise_error(node, "syntax error, return found outside function scope");
+  ast_t* block = ast_get_function_scope(node);
+  u64 ty_id = block->parent->func.ret_type->ty_id;
+  if (!ty_id) { // inference needed
+    return;
   }
 
-  ast_t* arg = node->ret.argument;
-  ts_pass(arg);
-
-  u64 t = decl->func.ret_type->ty_id;
-  if (t != node->ret.argument->ty_id) {
-    ast_t* cast = __cast_node_to(arg, t);
+  if (ty_id != node->ret.argument->ty_id) {
+    ast_t* cast = __cast_node_to(node->ret.argument, ty_id);
     node->ret.argument = cast;
+    log_silly("casting to: %lu - %lu", cast->ty_id, ty_id)
+        fl_assert(cast->ty_id == ty_id);
     node->ty_id = cast->ty_id;
   } else {
-    node->ty_id = t;
+    node->ty_id = ty_id;
   }
 }
 
 void ts_cast_lunary(ast_t* node) {
+  ast_t* el = node->lunary.element;
+  u64 ty_id = el->ty_id;
+
   switch (node->lunary.operator) {
   case '!':
+    if (ty_is_struct(ty_id)) {
+      // invalid argument type 'struct v2' to unary expression
+      ast_raise_error(el, "type error, invalid argument type (%s) for logical "
+                          "negation operator",
+                      ty_to_string(ty_id)->value);
+    }
+
     node->ty_id = 2; // bool
     break;
   case '*': { // dereference, pointer/reference
-    ast_t* el = node->lunary.element;
-    ts_pass(el);
 
-    if (!ty_is_pointer_like(el->ty_id)) {
-      ast_raise_error(el, "type cannot be dereferenced: %s",
-                      ty_to_string(el->ty_id)->value);
+    if (!ty_is_pointer_like(ty_id)) {
+      // indirection requires pointer operand ('int' invalid)
+      ast_raise_error(el, "type error, cannot dereference type (%s), must be a "
+                          "pointer or a reference",
+                      ty_to_string(ty_id)->value);
     }
 
-    node->ty_id = ty(el->ty_id).ptr.to;
+    node->ty_id = ty(ty_id).ptr.to;
   } break;
   case '&': {
-    ast_t* el = node->lunary.element;
-    ts_pass(el);
-    node->ty_id = ty_create_wrapped(TY_POINTER, el->ty_id);
+    // TODO handle &&
+    // TODO get the address of references is dangerous...
+    node->ty_id = ty_create_wrapped(TY_POINTER, ty_id);
+  } break;
+  case TK_PLUSPLUS: {
+    if (!ty_is_number(ty_id) && !ty_is_pointer(ty_id)) {
+      // invalid argument type 'struct v2' to unary expression
+      ast_raise_error(el, "type error, cannot increment value of type (%s)",
+                      ty_to_string(ty_id)->value);
+    }
+
+    node->ty_id = ty_id;
+  } break;
+  case TK_MINUSMINUS: {
+    if (!ty_is_number(ty_id) && !ty_is_pointer(ty_id)) {
+      // invalid argument type 'struct v2' to unary expression
+      ast_raise_error(el, "type error, cannot decrement value of type (%s)",
+                      ty_to_string(ty_id)->value);
+    }
+
+    node->ty_id = ty_id;
+  } break;
+  case '-': {
+    if (!ty_is_number(ty_id)) {
+      // invalid argument type 'struct v2' to unary expression
+      ast_raise_error(el, "type error, cannot negate value of type (%s)",
+                      ty_to_string(ty_id)->value);
+    }
+
+    node->ty_id = ty_id;
   } break;
   default:
-    ts_pass(node->lunary.element);
-    node->ty_id = node->lunary.element->ty_id;
+    fl_assert(false);
   }
 }
 
@@ -440,7 +437,7 @@ void ts_cast_call(ast_t* node) {
   }
 
   // TODO this fail when calling a member
-  log_debug("call '%s' ty_id[%zu]", node->call.callee->identifier.string->value,
+  log_debug("call '%s' ty_id[%zu]", ast_get_code(node->call.callee)->value,
             node->ty_id);
 
   u64 i;
@@ -464,13 +461,15 @@ void ts_cast_call(ast_t* node) {
     // this happend when calle it's not a literal
     // check if it's compatible
     if (!ty_compatible_fn(cty_id, args, false, false)) {
-      ast_raise_error(node, "Incompatible call arguments expected: %s",
+      ast_raise_error(node,
+                      "type error, incompatible call arguments expected (%s)",
                       ty_to_string(cty_id)->value);
       return;
     }
   } else {
     // callee it's an identifier, marked as resolved: false
     // due to polymorph we cannot use normal method: ast_search_id*
+
     ast_t* tmp =
         ast_search_fn_wargs(node->call.callee->identifier.string, args);
     if (!tmp) {
@@ -527,48 +526,43 @@ void ts_cast_call(ast_t* node) {
   }
 }
 
-ast_t* __ts_dereference(ast_t* node) {
+ast_t* __ts_dereference(ast_t* parent, ast_t* node) {
   log_silly("left: auto-dereference");
   ast_t* deref = ast_mk_lunary(node, '*');
   node->parent = deref;
+  deref->parent = node;
   ts_pass(deref);
-
   return deref;
 }
 
 void ts_cast_binop(ast_t* node) {
+  // NOTE assignament are considered binop to simplify
   fl_assert(node->type == AST_EXPR_BINOP || node->type == AST_EXPR_ASSIGNAMENT);
 
   log_debug("binop found %d", node->binop.operator);
-  // cast if necessary
+
   ast_t* l = node->binop.left;
   ast_t* r = node->binop.right;
-
-  // operation that need casting or fp/int
-  ts_pass(l);
-  ts_pass(r);
-
   u64 l_type = l->ty_id;
   u64 r_type = r->ty_id;
 
-  // left: auto-dereference if right is not a pointer or type compatible
   if (ty_is_reference(l_type) && ty_is_reference(r_type)) {
     // ast_dump_s(node);
     // fl_assert(false); // TODO REVIEW need study
   }
+
+  // left: auto-dereference if right is not a pointer or type compatible
   if (ty_is_reference(l_type)) {
     if (!ty_is_pointer_like(r_type) ||
         ts_cast_mode(ty(l_type).ref.to, r_type) != CAST_INVALID) {
-      ast_t* deref = __ts_dereference(l);
-      deref->parent = node;
+      ast_t* deref = __ts_dereference(node, l);
       node->binop.left = deref;
       l_type = deref->ty_id;
     }
   } else if (ty_is_reference(r_type)) {
     // right: auto-dereference when type compatible
     if (ts_cast_mode(ty(r_type).ref.to, l_type) != CAST_INVALID) {
-      ast_t* deref = __ts_dereference(r);
-      deref->parent = node;
+      ast_t* deref = __ts_dereference(node, r);
       node->binop.right = deref;
       r_type = deref->ty_id;
     }
@@ -607,25 +601,28 @@ void ts_cast_binop(ast_t* node) {
   case '+': {
     // pointer arithmetic
 
-    // left is a pointer, right must be a number
     if (ty_is_pointer(l_type)) {
+      // left is a pointer, right must be a number
+
       if (!ty_is_number(r_type)) {
         ast_raise_error(
-            node,
-            "Invalid operants: left is (%s) but right is not numeric (%s).",
+            node, "type error, invalid operands for pointer arithmetic\n"
+                  "left is (%s) but right is not numeric is (%s).",
             ty_to_string(l_type)->value, ty_to_string(r_type)->value);
       }
       node->ty_id = l_type;
       return;
     }
-    // left is a number and right is a pointer
-    // normalize: put the pointer on the left side
+
     if (ty_is_pointer(r_type)) {
+      // left is a number and right is a pointer
+      // normalize: put the pointer on the left side
+
       // lhs must be a numeric type
       if (!ty_is_number(l_type)) {
         ast_raise_error(
-            node,
-            "Invalid operants: right is (%s) but left is not numeric (%s).",
+            node, "type error, invalid operands for pointer arithmetic\n"
+                  "right is (%s) but left is not numeric is (%s).",
             ty_to_string(r_type)->value, ty_to_string(l_type)->value);
       }
       node->binop.right = l;
@@ -635,6 +632,7 @@ void ts_cast_binop(ast_t* node) {
     }
   }
   }
+
   // binop
   switch (node->binop.operator) {
   case TK_EQEQ:
@@ -650,17 +648,28 @@ void ts_cast_binop(ast_t* node) {
     node->ty_id = TS_BOOL; // ts_promote_typeid(l_type, r_type);
     __ts_create_binop_cast(node);
   } break;
-  case '%':
   case '&':
   case '|':
   case '^':
   case TK_SHL:
   case TK_SHR:
+    // NOTE this prevent operator overloading of these operators
     // left and right must be Integers!
-    if (l_fp || r_fp) {
-      ast_raise_error(node, "Invalid operants. Both must be integers.");
+    if (l_fp || r_fp || !ty_is_number(l_type) || !ty_is_number(r_type)) {
+      ast_raise_error(node, "type error, invalid operants for bitwise "
+                            "operator. Both must be integers.\n"
+                            "left is (%s) right is (%s).",
+                      ty_to_string(l_type)->value, ty_to_string(r_type)->value);
     }
   // fallthrough
+  case '%': {
+    if (l_fp || r_fp || !ty_is_number(l_type) || !ty_is_number(r_type)) {
+      ast_raise_error(node, "type error, invalid operants for modulus operator "
+                            "operator. Both must be integers.\n"
+                            "left is (%s) right is (%s).",
+                      ty_to_string(l_type)->value, ty_to_string(r_type)->value);
+    }
+  }
   default: {
     bool l_static = ast_is_static(l);
     bool r_static = ast_is_static(r);
@@ -668,14 +677,18 @@ void ts_cast_binop(ast_t* node) {
     log_verbose("static %d == %d", l_static, r_static);
 
     if (!ty_is_number(l_type) || !ty_is_number(r_type)) {
-      // one of each is not a number, so need to be operator overloaded
+      // someone is not a number, search for an operator overloaded function
+
       // get all operator overloading available for left type
       ast_t* fn = ast_search_fn_op(node, node->binop.operator, l_type);
 
       if (!fn) {
-        ast_raise_error(node,
-                        "cannot find a proper overloading function for %s",
-                        psr_operator_str(node->binop.operator));
+        ast_raise_error(node, "type error, cannot find a proper operator "
+                              "overloading function for operator '%s'\n"
+                              "left is (%s) right is (%s).",
+                        psr_operator_str(node->binop.operator),
+                        ty_to_string(l_type)->value,
+                        ty_to_string(r_type)->value);
       }
 
       // transform binop into function call
@@ -713,30 +726,28 @@ void ts_cast_binop(ast_t* node) {
 void ts_cast_expr_member(ast_t* node) {
   fl_assert(node->type == AST_EXPR_MEMBER);
 
-  if (node->ty_id)
+  if (node->ty_id) {
     return;
+  }
 
   ast_t* l = node->member.left;
+  u64 left_ty_id = l->ty_id;
   ast_t* p = node->member.property;
 
-  u64 l_typeid;
-  ts_pass(l);
-
-  log_debug("l->ty_id = %zu", l->ty_id);
+  log_debug("left ty_id ty(%zu)", left_ty_id);
 
   // now we should know left type
-  // get poperty index -> typeid
-  // TODO perf
-  ty_t type = ty(l->ty_id);
+  ty_t type = ty(left_ty_id);
   switch (type.of) {
   case TY_STRUCT: {
     if (node->member.brakets) {
       // operator overloading TK_ACCESS
-      ast_t* fn = ast_search_fn_op(node, TK_ACCESS, l->ty_id);
+      ast_t* fn = ast_search_fn_op(node, TK_ACCESS, left_ty_id);
 
       if (!fn) {
-        ast_raise_error(node,
-                        "cannot find a proper overloading function for []");
+        ast_raise_error(node, "type error, cannot find a proper operator "
+                              "overloading function [] for type (%s)",
+                        ty_to_string(left_ty_id)->value);
       }
 
       // transform binop into function call
@@ -758,18 +769,19 @@ void ts_cast_expr_member(ast_t* node) {
 
     } else {
       p->ty_id = node->ty_id =
-          ty_get_struct_prop_type(l->ty_id, p->identifier.string);
-      node->member.idx = ty_get_struct_prop_idx(l->ty_id, p->identifier.string);
+          ty_get_struct_prop_type(left_ty_id, p->identifier.string);
+      node->member.idx =
+          ty_get_struct_prop_idx(left_ty_id, p->identifier.string);
 
       if (node->member.idx == -1) {
         // lookup for a function property
 
         ast_t* fn_property =
-            ty_get_virtual(l->ty_id, p->identifier.string, false);
+            ty_get_virtual(left_ty_id, p->identifier.string, false);
 
         if (!fn_property) {
           // lookup and implement
-          ty_t type2 = ty(l->ty_id);
+          ty_t type2 = ty(left_ty_id);
           if (type2.structure.from_tpl) {
             fn_property = ty_get_virtual(type2.structure.from_tpl,
                                          p->identifier.string, false);
@@ -785,9 +797,10 @@ void ts_cast_expr_member(ast_t* node) {
 
           if (!fn_property) {
             // not found, error!
-            ast_raise_error(node, "invalid member access '%s' for struct: %s",
-                            ast_get_code(p)->value,
-                            ty_to_string(l->ty_id)->value);
+            ast_raise_error(
+                node, "type error, invalid member access '%s' for struct: %s",
+                ast_get_code(p)->value, ty_to_string(left_ty_id)->value);
+            // TODO suggestions?
           }
         }
 
@@ -813,6 +826,9 @@ void ts_cast_expr_member(ast_t* node) {
   case TY_VECTOR: {
     node->ty_id = type.vector.to;
   } break;
-  default: { ast_raise_error(node, "Invalid member access type"); }
+  default: {
+    ast_raise_error(node, "type error, invalid member access for type (%s)",
+                    ty_to_string(left_ty_id)->value);
+  }
   }
 }
