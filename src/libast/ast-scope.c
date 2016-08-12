@@ -72,3 +72,18 @@ array* ast_scope_fns(ast_t* node, string* id) {
   pool_free(arr);
   return 0;
 }
+
+ast_t* ast_scope_type(ast_t* node, string* id) {
+  ast_t* scope = node;
+  ast_t* el;
+
+  do {
+    scope = ast_get_scope(scope);
+    el = hash_get(scope->block.types, id->value);
+    if (el != 0) {
+      return el;
+    }
+  } while (scope->block.scope != AST_SCOPE_GLOBAL);
+
+  return 0;
+}

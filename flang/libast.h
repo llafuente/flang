@@ -733,7 +733,6 @@ libexport u64 ast_get_typeid(ast_t* node);
  */
 libexport u64 ast_get_struct_prop_idx(ast_t* decl, string* id);
 
-libexport ast_t* ast_get_type_from_scope(ast_t* node, string* id);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(ast-traverse.c) */
@@ -768,5 +767,7 @@ libexport void ast_traverse_list(ast_t* node, ast_cb_t cb, ast_t* until,
 libexport ast_t* ast_scope_var(ast_t* node, string* identifier);
 
 libexport array* ast_scope_fns(ast_t* node, string* id);
+
+libexport ast_t* ast_scope_type(ast_t* node, string* id);
 
 /* cldoc:end-category() */

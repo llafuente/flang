@@ -45,7 +45,7 @@ ast_action_t __trav_implement(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
 
     if (!arr) {
       // maybe a struct ?!
-      ast_t* decl = ast_get_type_from_scope(node, fn_id);
+      ast_t* decl = ast_scope_type(node, fn_id);
       if (decl && decl->type == AST_DECL_STRUCT) {
         // STRUCT
         ast_t* tmp = ast_implement_struct(node->impl.type_list, decl,
