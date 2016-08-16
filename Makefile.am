@@ -88,6 +88,7 @@ libfl_ts_a_SOURCES = src/libts/type-utils.c \
                         src/libts/typesystem-promotion.c \
                         src/libts/typesystem-pass.c \
                         src/libts/type-dump.c \
+                        src/libts/type-check.c \
                         src/libts/typesystem-alloc.c \
                         src/libts/typesystem-casting.c \
                         src/libts/typesystem.c \

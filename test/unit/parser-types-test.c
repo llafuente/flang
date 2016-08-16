@@ -321,17 +321,18 @@ TASK_IMPL(parser_types) {
 
 #define V2_DECL "struct v2 {\nf32 x,\nf32 y,\n};\n"
 
-  TEST_PARSER_ERROR("function property 03",
-                    V2_DECL "function operator +(v2 a) : v2 {"
-                            "  return a;"
-                            "}",
-                    "syntax error, operator overloading require 2 params", {});
+  TEST_PARSER_ERROR(
+      "function property 03", V2_DECL "function operator +(v2 a) : v2 {"
+                                      "  return a;"
+                                      "}",
+      "syntax error, operator overloading require 2 parameters", {});
 
   TEST_PARSER_ERROR("function property 03",
                     V2_DECL "function operator +(v2 a, i8 x, i8b) : v2 {"
                             "  return a;"
                             "}",
-                    "syntax error, operator overloading require 2 params", {});
+                    "syntax error, operator overloading require 2 parameters",
+                    {});
 
   TEST_PARSER_ERROR("pointer arithmetic", "var ptr(i8) a;"
                                           "a = a + \"string!\";",
@@ -394,5 +395,33 @@ TASK_IMPL(parser_types) {
                             "var test t = 10;\n",
       "type error, numeric type cannot be casted to (struct test { i8 t1, })",
       {});
+
+  TEST_PARSER_ERROR(
+      "cast number-struct", "struct v2x {f32 x, f32 y,};\n"
+                            "function operator [](v2x a) : f32 {\n"
+                            "  var ptr(f32) x = unsafe_cast(ptr(f32)) a;\n"
+                            "  return x[index];\n"
+                            "}\n",
+      "syntax error, operator overloading require 2 parameters", {});
+
+  TEST_PARSER_ERROR("cast number-struct",
+                    "struct v2x {f32 x, f32 y,};\n"
+                    "function operator [](v2x a, u64 index) : f32 {\n"
+                    "  var ptr(f32) x = unsafe_cast(ptr(f32)) a;\n"
+                    "  return x[index];\n"
+                    "}\n",
+                    "type error, operator[] requires first parameter to be a "
+                    "reference given (struct v2x { f32 x, f32 y, })",
+                    {});
+
+  TEST_PARSER_ERROR(
+      "cast number-struct", "struct v2x {f32 x, f32 y,};\n"
+                            "function operator []=(v2x* a, u64 index) : f32 {\n"
+                            "  var ptr(f32) x = unsafe_cast(ptr(f32)) a;\n"
+                            "  return x[index];\n"
+                            "}\n",
+      "type error, operator[]= requires to return a reference, returned (f32)",
+      {});
+
   return 0;
 }

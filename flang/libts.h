@@ -507,6 +507,12 @@ libexport ast_t* ts_implement(ast_t* node);
 
 /* cldoc:end-category() */
 
+/* cldoc:begin-category(type-check.c) */
+
+libexport void ts_check_operator_overloading(ast_t* node);
+
+/* cldoc:end-category() */
+
 /* cldoc:begin-category(typesystem.c) */
 
 /* Internal call to pass typesystem before current node
@@ -523,4 +529,5 @@ libexport void _typesystem(ast_t* root);
  * * Function operators (are like casting)
  */
 libexport ast_t* typesystem(ast_t* root);
+
 /* cldoc:end-category() */

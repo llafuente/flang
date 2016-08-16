@@ -257,7 +257,7 @@ char* psr_operator_str(int operator) {
     return "%=";
   case TK_ACCESS:
     return "[]";
-  case TK_PUSH:
+  case TK_ACCESS_MOD:
     return "[]=";
   }
 

@@ -45,7 +45,9 @@
 %token <token> TK_ANDAND TK_ANDEQ TK_OROR TK_OREQ TK_PLUSEQ
 %token <token> TK_STAREQ TK_SLASHEQ TK_CARETEQ TK_PERCENTEQ
 %token <token> TK_DOTDOTDOT TK_DOTDOT TK_PLUSPLUS TK_MINUSMINUS
-%token <token> TK_ACCESS TK_PUSH
+
+%token <token> TK_ACCESS "operator[]"
+%token <token> TK_ACCESS_MOD "operator[]="
 
 
 /* keywords */
@@ -455,7 +457,7 @@ fn_decl_without_return_type
 
     // TODO when add more params this may not be true anymore
     if ($4->list.length != 2) {
-      yyerror(root, "syntax error, operator overloading require 2 params"); YYERROR;
+      yyerror(root, "syntax error, operator overloading require 2 parameters"); YYERROR;
     }
 
     $$ = ast_mk_fn_decl(0, $4, 0, 0, 0, $3, AST_FUNC_OPERATOR);
@@ -561,7 +563,8 @@ fn_parameter
 function_operators
   : additive_operator
   | multiplicative_operator
-  | TK_ACCESS    { $$ = TK_ACCESS; }
+  | TK_ACCESS     { $$ = TK_ACCESS; }
+  | TK_ACCESS_MOD { $$ = TK_ACCESS_MOD; }
   ;
 
 assignament_operator

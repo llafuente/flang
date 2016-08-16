@@ -93,13 +93,25 @@ cleanup:
 }
 
 ast_t* ast_search_fn_op(ast_t* node, int operator, u64 ty_id) {
-  char buffer[64];
-  snprintf(buffer, 64, "operator_%d", operator);
+  char buffer[32];
+  snprintf(buffer, 32, "operator_%d", operator);
   string* id = st_newc(buffer, st_enc_utf8);
   array* arr = ast_scope_fns(node, id);
 
   if (!arr) {
     return 0;
+  }
+
+  // apply some rules here about how we search for operators.
+  // operator[] modify struct, so first param must be a reference.
+  switch (operator) {
+  case TK_ACCESS_MOD:
+  case TK_ACCESS: {
+    if (!ty_is_reference(ty_id)) {
+      ty_id = ty_create_wrapped(TY_REFERENCE, ty_id);
+    }
+  } break;
+  default: {} // remove warning
   }
 
   u64 i;

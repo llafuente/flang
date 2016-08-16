@@ -24,46 +24,37 @@
 */
 
 #include "flang/flang.h"
+#include "flang/libts.h"
 #include "flang/libast.h"
+#include "flang/debug.h"
 
-ast_action_t __trav_is_static(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
-                              u64 level, void* userdata_in,
-                              void* userdata_out) {
-  if (mode == AST_TRAV_LEAVE)
-    return 0;
-
-  switch (node->type) {
-  case AST_EXPR_BINOP: // 1 + 3 is static... continue
-  case AST_LIT_STRING:
-  case AST_LIT_FLOAT:
-  case AST_LIT_INTEGER:
-    return AST_SEARCH_CONTINUE;
-  default: {} // supress warning
-  }
-  bool* ret = (bool*)userdata_out;
-  *ret = false;
-  return AST_SEARCH_STOP;
-}
-
-bool ast_is_static(ast_t* node) {
-  bool b = true; // starts true, if find something not static -> false
-  ast_traverse(node, __trav_is_static, 0, 0, 0, (void*)&b);
-  return b;
-}
-
-// REVIEW this need extra work
-// http://en.cppreference.com/w/c/language/value_category#Lvalue_expressions
-bool ast_is_left_value(ast_t* node) {
-  ast_t* p = node->parent;
-  ast_t* pp = node;
-
-  do {
-    if (p->type == AST_EXPR_ASSIGNAMENT && pp == p->assignament.left) {
-      return true;
+void ts_check_operator_overloading(ast_t* node) {
+  // operator[] recieve always references
+  // fl_assert(false);
+  switch (node->func.operator) {
+  case TK_ACCESS_MOD:
+  case TK_ACCESS: {
+    if (node->func.params->list.length != 2) {
+      ast_raise_error(
+          node, "type error, operator[] requires two parameters given: %lu",
+          node->func.params->list.length);
     }
-    pp = p;
-    p = p->parent;
-  } while (p->parent != 0);
+    ast_t* p0 = node->func.params->list.values[0];
+    if (!ty_is_reference(p0->ty_id)) {
+      ast_raise_error(node, "type error, operator[] requires first parameter "
+                            "to be a reference given (%s)",
+                      ty_to_string(p0->ty_id)->value);
+    }
 
-  return false;
+    // must return a reference to something
+    if (node->func.operator== TK_ACCESS_MOD) {
+      if (!ty_is_reference(node->func.ret_type->ty_id)) {
+        ast_raise_error(node, "type error, operator[]= requires to return a "
+                              "reference, returned (%s)",
+                        ty_to_string(node->func.ret_type->ty_id)->value);
+      }
+    }
+  } break;
+  default: {} // remove warning
+  }
 }

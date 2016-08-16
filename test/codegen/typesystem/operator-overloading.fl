@@ -37,8 +37,8 @@ function operator /(v2 a, v2 b) : v2 {
   return ret;
 }
 
-function operator [](v2 a, u64 index) : f32 {
-  var ptr(f32) x = unsafe_cast(ptr(f32)) &a;
+function operator [](v2* a, u64 index) : f32 {
+  var ptr(f32) x = unsafe_cast(ptr(f32)) a;
 
   return x[index];
 }

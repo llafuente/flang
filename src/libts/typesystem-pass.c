@@ -48,6 +48,12 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       ts_pass(node->func.params);
       ty_struct_add_virtual(node);
     }
+
+    if (node->func.type == AST_FUNC_OPERATOR && node->ts_passes == 1 &&
+        !node->func.templated) {
+      ts_pass(node->func.params);
+      ts_check_operator_overloading(node);
+    }
     return node->func.templated ? AST_SEARCH_SKIP : AST_SEARCH_CONTINUE;
   }
 

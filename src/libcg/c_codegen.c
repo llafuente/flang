@@ -352,7 +352,14 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
         CG_OUTPUT(cg_fds->decls, "globvar %s %s;\n",
                   cg_type(node->ty_id)->value, id->value);
       } else {
-        stack_append("%s %s", cg_type(node->ty_id)->value, id->value);
+        // TODO REVIEW the initialization can be done in one step
+        if (ty_is_struct(node->ty_id)) {
+          stack_append("%s %s = {0}", cg_type(node->ty_id)->value, id->value);
+        } else if (ty_is_pointer_like(node->ty_id)) {
+          stack_append("%s %s = 0", cg_type(node->ty_id)->value, id->value);
+        } else {
+          stack_append("%s %s", cg_type(node->ty_id)->value, id->value);
+        }
       }
     }
     break;
@@ -450,6 +457,11 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
         CG_OUTPUT(cg_fds->types, "typedef %s (*%s__fnptr) (%s);\n",
                   cg_type(node->func.ret_type->ty_id)->value,
                   node->func.uid->value, parameters->value);
+
+        if (node->func.type == AST_FUNC_OPERATOR ||
+            node->func.type == AST_FUNC_PROPERTY) {
+          CG_OUTPUT(cg_fds->functions, "force_inline ");
+        }
 
         CG_OUTPUT(cg_fds->functions, "%s %s (%s) %s",
                   cg_type(node->func.ret_type->ty_id)->value,

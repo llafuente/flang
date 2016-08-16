@@ -164,7 +164,7 @@ as        { SET_LOCATION; return TK_AS; }
 \}     { SET_LOCATION; return '}'; }
 \[     { SET_LOCATION; return '['; }
 \]     { SET_LOCATION; return ']'; }
-\[\]=  { SET_LOCATION; return TK_PUSH; }
+\[\]=  { SET_LOCATION; return TK_ACCESS_MOD; }
 \[\]   { SET_LOCATION; return TK_ACCESS; }
 @      { SET_LOCATION; return '@'; }
 #      { SET_LOCATION; return '#'; } // TODO: handle shebang

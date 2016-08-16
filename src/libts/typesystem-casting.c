@@ -535,6 +535,15 @@ ast_t* __ts_dereference(ast_t* parent, ast_t* node) {
   return deref;
 }
 
+ast_t* __ts_reference(ast_t* parent, ast_t* node) {
+  log_silly("left: auto-dereference");
+  ast_t* deref = ast_mk_lunary(node, '&');
+  node->parent = deref;
+  deref->parent = node;
+  ts_pass(deref);
+  return deref;
+}
+
 void ts_cast_binop(ast_t* node) {
   // NOTE assignament are considered binop to simplify
   fl_assert(node->type == AST_EXPR_BINOP || node->type == AST_EXPR_ASSIGNAMENT);
@@ -742,7 +751,13 @@ void ts_cast_expr_member(ast_t* node) {
   case TY_STRUCT: {
     if (node->member.brakets) {
       // operator overloading TK_ACCESS
-      ast_t* fn = ast_search_fn_op(node, TK_ACCESS, left_ty_id);
+
+      ast_t* fn;
+      if (ast_is_left_value(node)) {
+        fn = ast_search_fn_op(node, TK_ACCESS_MOD, left_ty_id);
+      } else {
+        fn = ast_search_fn_op(node, TK_ACCESS, left_ty_id);
+      }
 
       if (!fn) {
         ast_raise_error(node, "type error, cannot find a proper operator "
@@ -752,7 +767,13 @@ void ts_cast_expr_member(ast_t* node) {
 
       // transform binop into function call
       ast_t* arguments = ast_mk_list();
-      ast_mk_list_push(arguments, l);
+      if (!ty_is_reference(left_ty_id)) {
+        l = __ts_reference(arguments, l);
+        l->ty_id = ty_create_wrapped(TY_REFERENCE, left_ty_id);
+        ast_mk_list_push(arguments, l);
+      } else {
+        ast_mk_list_push(arguments, l);
+      }
       ast_mk_list_push(arguments, p);
 
       // clear
@@ -760,6 +781,7 @@ void ts_cast_expr_member(ast_t* node) {
       node->call.callee = fn->func.id;
       node->call.arguments = arguments;
       node->call.decl = fn;
+      ast_parent(node);
 
       // NOTE this is needed to handle all types, and no create unnecesary
       // castings
