@@ -333,6 +333,9 @@ struct ast {
     struct ast_expr_call {
       ast_t* callee;
       ast_t* arguments;
+      // there are some sanity checks for user code that we don't for our
+      // generated code, this bypass those checks
+      bool safe_arguments;
 
       ast_t* decl; // set by typesystem
     } call;

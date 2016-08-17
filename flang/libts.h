@@ -25,6 +25,7 @@
 
 extern ty_t* ts_type_table;
 extern u64 ts_type_size_s;
+extern u64 ts_builtin_types;
 
 #define TS_VOID 1
 #define TS_BOOL 2
@@ -42,6 +43,7 @@ extern u64 ts_type_size_s;
 #define TS_PVOID 14
 #define TS_VECI8 15
 #define TS_STRING 13 // TODO this should be 16
+#define TS_PTRDIFF 16
 
 // DECL
 

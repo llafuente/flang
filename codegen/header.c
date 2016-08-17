@@ -1,4 +1,6 @@
 #include <inttypes.h>
+#include <stdint.h> // implicit included by inttypes.h
+#include <stddef.h>
 #include "stringc.h"
 #include <pthread.h>
 #include "uv.h"
@@ -37,6 +39,7 @@
 #define u64 uint64_t
 #define f32 float
 #define f64 double
+#define ptrdiff ptrdiff_t
 
 typedef struct {
   string* cwd;

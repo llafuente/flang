@@ -33,7 +33,7 @@
 #define STR(val) #val
 
 // last core typeid + 1
-#define TEST_TYPEID 16
+#define TEST_TYPEID 17
 
 #define STRING_MATCH(a, b)                                                     \
   if (strcmp(a, b) != 0) {                                                     \

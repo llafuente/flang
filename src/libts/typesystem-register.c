@@ -89,6 +89,9 @@ u64 __ts_string_to_tyid(ast_t* node) {
     // return node->ty.id->ty_id = node->ty_id = TS_STRING;
     return node->ty.id->ty_id = node->ty_id = 16;
   }
+  if (strcmp(tcstr, "ptrdiff") == 0) {
+    return node->ty.id->ty_id = node->ty_id = TS_PTRDIFF;
+  }
 
   if (strcmp(tcstr, "ptr") == 0) {
     fl_assert(node->ty.children != 0);

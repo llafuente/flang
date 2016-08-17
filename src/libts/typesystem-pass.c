@@ -134,7 +134,9 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     }
   } break;
   case AST_EXPR_CALL: {
-    ts_check_no_assignament(node->call.arguments);
+    if (!node->call.safe_arguments) {
+      ts_check_no_assignament(node->call.arguments);
+    }
 
     if (mode == AST_TRAV_LEAVE) {
       ts_cast_call(node);

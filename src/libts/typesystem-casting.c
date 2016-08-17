@@ -79,6 +79,12 @@ ts_cast_modes_t ts_cast_mode(u64 current, u64 expected) {
     }
   }
 
+  // pointer from a adress, valid -> implicit
+  // NOTE not valid from references
+  if (ex_type.of == TY_POINTER && current == TS_PTRDIFF) {
+    return CAST_IMPLICIT;
+  }
+
   // vector-ptr casting
   if (((ex_type.of == TY_POINTER && cur_type.of == TY_VECTOR) ||
        (cur_type.of == TY_POINTER && ex_type.of == TY_VECTOR)) &&
@@ -613,13 +619,13 @@ void ts_cast_binop(ast_t* node) {
     if (ty_is_pointer(l_type)) {
       // left is a pointer, right must be a number
 
-      if (!ty_is_number(r_type)) {
+      if (!ty_is_number(r_type) && !ty_is_pointer(r_type)) {
         ast_raise_error(
             node, "type error, invalid operands for pointer arithmetic\n"
-                  "left is (%s) but right is not numeric is (%s).",
+                  "left is (%s) but right is not numeric or pointer is (%s).",
             ty_to_string(l_type)->value, ty_to_string(r_type)->value);
       }
-      node->ty_id = l_type;
+      node->ty_id = TS_PTRDIFF;
       return;
     }
 
@@ -628,15 +634,15 @@ void ts_cast_binop(ast_t* node) {
       // normalize: put the pointer on the left side
 
       // lhs must be a numeric type
-      if (!ty_is_number(l_type)) {
+      if (!ty_is_number(l_type) && !ty_is_pointer(l_type)) {
         ast_raise_error(
             node, "type error, invalid operands for pointer arithmetic\n"
-                  "right is (%s) but left is not numeric is (%s).",
+                  "right is (%s) but left is not numeric or pointer is (%s).",
             ty_to_string(r_type)->value, ty_to_string(l_type)->value);
       }
       node->binop.right = l;
       node->binop.left = r;
-      node->ty_id = r_type;
+      node->ty_id = TS_PTRDIFF;
       return;
     }
   }

@@ -88,6 +88,7 @@ void __ast_reduce_log(ast_t* node) {
     ast_clear(node, AST_EXPR_CALL);
     node->call.callee = ast_mk_lit_id(st_newc("printf", st_enc_utf8), true);
     node->call.arguments = arguments;
+    node->call.safe_arguments = true;
   }
 
   // typesystem need to pass again...

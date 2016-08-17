@@ -21,4 +21,4 @@ var complex cx;
 cx.a = 100;
 cx.b = 101;
 
-printf("%d.%d\n", cx.a, cx.b);
+printf("%d.%ld\n", cx.a, cx.b);

@@ -29,6 +29,7 @@
 
 ty_t* ts_type_table = 0;
 u64 ts_type_size_s = 0;
+u64 ts_builtin_types = 0;
 
 // 0 infer
 // 1-12 built-in
@@ -121,6 +122,15 @@ void ts_init() {
     ts_type_table[id].cg = 0;
     ts_type_table[id].ptr.to = TS_I8;
 
+    // [16] TS_PTRDIFF
+    ts_type_table[++id].of = TY_NUMBER;
+    ts_type_table[id].id = st_newc("ptrdiff", st_enc_ascii);
+    ts_type_table[id].decl = ts_type_table[id].id;
+    ts_type_table[id].cg = ts_type_table[id].id;
+    ts_type_table[id].number.bits = 64;
+    ts_type_table[id].number.fp = false;
+    ts_type_table[id].number.sign = true;
+
     // transfer list ownership
     /*
     // add it!
@@ -139,6 +149,7 @@ void ts_init() {
 
     // [15+] core + user
     ts_type_size_s = ++id;
+    ts_builtin_types = id;
   }
 }
 
@@ -146,7 +157,7 @@ void ts_exit() {
   u64 i;
 
   for (i = 0; i < ts_type_size_s; ++i) {
-    if (i < 16) {
+    if (i < ts_builtin_types) {
       st_delete(&ts_type_table[i].id);
     }
     // struct and same length?

@@ -334,16 +334,20 @@ TASK_IMPL(parser_types) {
                     "syntax error, operator overloading require 2 parameters",
                     {});
 
-  TEST_PARSER_ERROR("pointer arithmetic", "var ptr(i8) a;"
-                                          "a = a + \"string!\";",
+  TEST_PARSER_ERROR("pointer arithmetic", "struct str {i8 xx}; var str _str;\n"
+                                          "var ptr(i16) a;\n"
+                                          "a = a + _str;",
                     "type error, invalid operands for pointer arithmetic\n"
-                    "left is (cstr) but right is not numeric is (cstr).",
+                    "left is (ptr(i16)) but right is not numeric or pointer is "
+                    "(struct str { i8 xx, }).",
                     {});
 
-  TEST_PARSER_ERROR("pointer arithmetic", "var ptr(i16) a;"
-                                          "a = \"string!\" + a;",
+  TEST_PARSER_ERROR("pointer arithmetic", "struct str {i8 xx}; var str _str;\n"
+                                          "var ptr(i16) a;\n"
+                                          "a = _str + a;",
                     "type error, invalid operands for pointer arithmetic\n"
-                    "left is (cstr) but right is not numeric is (ptr(i16)).",
+                    "right is (ptr(i16)) but left is not numeric or pointer is "
+                    "(struct str { i8 xx, }).",
                     {});
 
   /* TODO this may raise an error in the future when string struct is ready
@@ -351,7 +355,7 @@ TASK_IMPL(parser_types) {
                     "var ptr(i8) a;"
                     "a = \"string!\" + a;",
                     "type error, invalid operands for pointer arithmetic\n"
-  "left is (ptr(i8)) but right is not numeric is (ptr(i8)).", {});
+  "left is (ptr(i8)) but right is not numeric or pointer is (ptr(i8)).", {});
   */
 
   TEST_PARSER_ERROR("dereference", "var i16 b;\n"
@@ -422,6 +426,11 @@ TASK_IMPL(parser_types) {
                             "}\n",
       "type error, operator[]= requires to return a reference, returned (f32)",
       {});
+
+  TEST_PARSER_OK("ptrdiff", "var ptr(i16) a;\n"
+                            "var ptr(i16) b;\n"
+                            "var ptrdiff c = a - b;\n",
+                 {});
 
   return 0;
 }
