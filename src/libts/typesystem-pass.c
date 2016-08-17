@@ -40,6 +40,19 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
   case AST_DECL_STRUCT: {
     return AST_SEARCH_SKIP;
   }
+  // do not allow assignaments inside test-expressions
+  case AST_STMT_IF: {
+    ts_check_no_assignament(node->if_stmt.test);
+  } break;
+  case AST_STMT_LOOP: {
+    if (node->loop.pre_cond != 0) {
+      ts_check_no_assignament(node->loop.pre_cond);
+    }
+
+    if (node->loop.post_cond != 0) {
+      ts_check_no_assignament(node->loop.post_cond);
+    }
+  } break;
   // do not pass typesystem to templates
   // templates are incomplete an raise many errors
   case AST_DECL_FUNCTION: {
@@ -121,6 +134,8 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     }
   } break;
   case AST_EXPR_CALL: {
+    ts_check_no_assignament(node->call.arguments);
+
     if (mode == AST_TRAV_LEAVE) {
       ts_cast_call(node);
     }

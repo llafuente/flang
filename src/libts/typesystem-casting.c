@@ -231,8 +231,8 @@ ast_t* __cast_node_to(ast_t* node, u64 type_id) {
     return node;
   }
 
-  // case 3: there is an autocast function, use it!
-  string* name = st_newc("autocast", st_enc_ascii);
+  // case 3: there is an implicit cast function, use it!
+  string* name = st_newc("implicit_cast", st_enc_ascii);
   u64 args_ty[1] = {node->ty_id};
   ast_t* autocast = ast_search_fn(node, name, args_ty, 1, type_id, false);
   st_delete(&name);

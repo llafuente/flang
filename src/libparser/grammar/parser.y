@@ -66,6 +66,7 @@
 %token <token> TK_UNSAFE_CAST  "unsafe_cast"
 
 %token <token> TK_FN  "fn' or 'function"
+%token <token> TK_IMPLICIT  "implicit"
 %token <token> TK_OPERATOR  "operator"
 %token <token> TK_PROPERTY  "property"
 %token <token> TK_FFI  "ffi"
@@ -448,6 +449,15 @@ fn_decl_without_return_type
     }
 
     ast_position($$, @1, @3);
+  }
+  | TK_FN TK_IMPLICIT TK_CAST fn_parameters {
+    ast_t* id = ast_mk_lit_id(st_newc("implicit_cast", st_enc_utf8), false);
+    $$ = ast_mk_fn_decl(id, $4, 0, 0, 0, 0, AST_FUNC_CAST);
+    if ($4->parent == (ast_t*)1 || $4->list.length != 1) {
+      yyerror(root, "syntax error, implicit casting require one parameter only"); YYERROR;
+    }
+
+    ast_position($$, @1, @4);
   }
   | TK_FN TK_OPERATOR function_operators fn_parameters {
     // can't be varargs

@@ -58,3 +58,18 @@ void ts_check_operator_overloading(ast_t* node) {
   default: {} // remove warning
   }
 }
+
+ast_action_t ts_check_no_assignament_cb(ast_trav_mode_t mode, ast_t* node,
+                                        ast_t* parent, u64 level,
+                                        void* userdata_in, void* userdata_out) {
+  if (node->type == AST_EXPR_ASSIGNAMENT) {
+    ast_raise_error(node,
+                    "syntax error, assignament expression is fobidden here.");
+  }
+
+  return AST_SEARCH_CONTINUE;
+}
+
+void ts_check_no_assignament(ast_t* node) {
+  ast_traverse(node, ts_check_no_assignament_cb, 0, 0, 0, 0);
+}

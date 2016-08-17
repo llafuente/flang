@@ -13,12 +13,12 @@ printf("string as ptr = '%s'\n", s[0].value);
 // st_delete(&s);
 /*
 
-fn autocast(ptr(string) str) : ptr(i8) {
+fn implicit cast string_to_ptr_i8(ptr(string) str) : ptr(i8) {
   var ptr(i8) x = str[0].value;
   //return str.value;
   return x;
 }
 
-printf("string as autocast = '%s'\n", autocast(s));
+printf("string as string_to_ptr_i8 = '%s'\n", string_to_ptr_i8(s));
 printf("string as cast forced = '%s'\n", cast(ptr(i8)) s);
 */

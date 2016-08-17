@@ -42,9 +42,7 @@ TASK_IMPL(parser_if) {
                     "syntax error, unexpected end of file, expecting '}'", {});
 
   TEST_PARSER_ERROR("function 01", "if(true) {/}",
-                    "syntax error, unexpected '/', expecting '}'", {
-
-                                                                   });
+                    "syntax error, unexpected '/', expecting '}'", {});
 
   TEST_PARSER_OK("function 01", "var bool b; b = 1;\n"
                                 "if (b == true) { \"ok\"; }\n"
@@ -55,6 +53,11 @@ TASK_IMPL(parser_if) {
                                 "if (b == 2) { \"2\"; }\n"
                                 "else if (b == 1) { \"1\"; }",
                  {});
+
+  TEST_PARSER_ERROR("function 01", "var x = 0;\n"
+                                   "if(x = 1) {}",
+                    "syntax error, assignament expression is fobidden here.",
+                    {});
 
   return 0;
 }

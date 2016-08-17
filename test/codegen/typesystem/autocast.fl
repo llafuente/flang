@@ -1,21 +1,21 @@
 struct a_t {
   i8 value
 };
-fn autocast(a_t t) : i8 {
+fn implicit cast (a_t t) : i8 {
   return t.value;
 }
 
 struct b_t {
   i8 value
 };
-fn autocast(b_t t) : i8 {
+fn implicit cast (b_t t) : i8 {
   return t.value;
 }
 
 struct c_t {
   i32 value
 };
-fn autocast(c_t t) : i8 {
+fn implicit cast (c_t t) : i8 {
   return cast(i8) t.value;
 }
 

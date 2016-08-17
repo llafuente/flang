@@ -55,6 +55,16 @@ TASK_IMPL(parser_loops) {
                     //"expected initialization expression", {});
                     "syntax error, unexpected identifier, expecting ';'", {});
 
+  TEST_PARSER_ERROR(
+      "loop 01", "var i32 x; var z; for x = 1; x < (z = 10); ++x {"
+                 "}",
+      "syntax error, assignament expression is fobidden here.", {});
+
+  // TODO this should be valid!?
+  TEST_PARSER_ERROR("loop 01", "var i32 x = 1; for ; x < 10; ++x {"
+                               "}",
+                    "syntax error, unexpected ';'", {});
+
   // TODO this should be valid!?
   TEST_PARSER_ERROR("loop 01", "for var i32 x = 1; x < 10; ++x {"
                                "}",
@@ -79,6 +89,12 @@ TASK_IMPL(parser_loops) {
                             "++x;"
                             "} while x < 10;",
                  {});
+
+  TEST_PARSER_ERROR("loop 01", "var i32 x; var z; x = 1; do {"
+                               "++x;"
+                               "} while x < (z = 10);",
+                    "syntax error, assignament expression is fobidden here.",
+                    {});
 
   TEST_PARSER_ERROR("loop 01", "var i32 x; x = 1; do {"
                                "++x;"

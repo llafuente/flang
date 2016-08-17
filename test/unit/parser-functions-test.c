@@ -48,8 +48,8 @@ TASK_IMPL(parser_functions) {
     });
   */
   TEST_PARSER_ERROR("function err 01", "fn {} var x;",
-                    "syntax error, unexpected '{', expecting operator or "
-                    "property or identifier",
+                    "syntax error, unexpected '{', expecting implicit or "
+                    "operator or property or identifier",
                     {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/
                     });
 
@@ -63,15 +63,15 @@ TASK_IMPL(parser_functions) {
                     {/*CHK_ERROR_RANGE(err, 6, 1, 9, 1);*/
                     });
 
-  TEST_PARSER_ERROR("function err 04", "fn (){};", "syntax error, unexpected "
-                                                   "'(', expecting operator or "
-                                                   "property or identifier",
+  TEST_PARSER_ERROR("function err 04", "fn (){};",
+                    "syntax error, unexpected '(', expecting implicit or "
+                    "operator or property or identifier",
                     {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/
                     });
 
   TEST_PARSER_ERROR("function err 05", "fn x () { fn (){}; }",
-                    "syntax error, unexpected '(', expecting operator or "
-                    "property or identifier",
+                    "syntax error, unexpected '(', expecting implicit or "
+                    "operator or property or identifier",
                     {/*CHK_ERROR_RANGE(err, 14, 1, 15, 1);*/
                     });
 
@@ -232,6 +232,12 @@ TASK_IMPL(parser_functions) {
       "type error, invalid arguments. Expected: (fn printf2 (i8, ) : void)\n"
       "Found: (i64, i64, i64)",
       {});
+
+  TEST_PARSER_ERROR("function err args", "fn printf2(i8 a) {}\n"
+                                         "var i8 x;\n"
+                                         "printf2(x = 1);",
+                    "syntax error, assignament expression is fobidden here.",
+                    {});
 
   return 0;
 }

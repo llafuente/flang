@@ -31,9 +31,10 @@ enum ast_action { AST_SEARCH_STOP = 0, AST_SEARCH_CONTINUE, AST_SEARCH_SKIP };
 enum ast_trav_mode { AST_TRAV_ENTER = 0, AST_TRAV_LEAVE };
 
 enum ast_function_type {
-  AST_FUNC_FUNCTION,
+  AST_FUNC_FUNCTION = 1,
   AST_FUNC_OPERATOR,
   AST_FUNC_PROPERTY,
+  AST_FUNC_CAST,
   AST_FUNC_ALIAS, // TODO doit!
 };
 enum ast_cast_operations {

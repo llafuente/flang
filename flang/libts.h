@@ -400,7 +400,7 @@ libexport bool ts_implicit_cast(u64 current, u64 expected);
 /* Given a AST_CAST node, will determine the asm operation
  * needed to cast both types.
  * If no operation is found, it will try to search for an
- * appropiate `autocast` function or raise otherwise.
+ * appropiate `implicit cast` function or raise otherwise.
  *
  * @node AST_CAST node
  */
@@ -511,6 +511,8 @@ libexport ast_t* ts_implement(ast_t* node);
 
 libexport void ts_check_operator_overloading(ast_t* node);
 
+libexport void ts_check_no_assignament(ast_t* node);
+
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(typesystem.c) */
@@ -523,7 +525,7 @@ libexport void _typesystem(ast_t* root);
  * * Inference types
  * * Promote types
  * * Implicit casting
- * * Handle autocast functions
+ * * Handle implicit cast functions
  *
  * TODO
  * * Function operators (are like casting)

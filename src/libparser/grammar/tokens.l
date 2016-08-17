@@ -133,6 +133,7 @@ true     { SET_LOCATION; return TK_TRUE; }
 null     { SET_LOCATION; return TK_NULL; }
 nil      { SET_LOCATION; return TK_NULL; }
 
+implicit  { SET_LOCATION; return TK_IMPLICIT; }
 implement { SET_LOCATION; return TK_IMPLEMENT; }
 as        { SET_LOCATION; return TK_AS; }
 
