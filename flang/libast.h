@@ -439,6 +439,7 @@ libexport ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type,
                                 ast_t* body, ast_t* attibutes, int operator,
                                 ast_function_type_t type);
 libexport void ast_mk_fn_decl_body(ast_t* fn, ast_t* body);
+libexport void ast_mk_fn_decl_attributes(ast_t* fn, ast_t* attributes);
 libexport ast_t* ast_mk_fn_param(ast_t* id, ast_t* type, ast_t* def);
 libexport ast_t* ast_mk_binop(ast_t* left, int op, ast_t* right);
 libexport ast_t* ast_mk_assignament(ast_t* left, int op, ast_t* right);

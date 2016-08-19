@@ -337,27 +337,7 @@ ast_t* ast_mk_fn_decl(ast_t* id, ast_t* params, ast_t* ret_type, ast_t* body,
   }
 
   if (attributes) {
-    node->func.attributes = attributes;
-    ast_t* id = ast_get_attribute(attributes, st_newc("id", st_enc_utf8));
-    if (id) {
-      node->func.uid = id->attr.value->identifier.string;
-    }
-
-    // do not resolve!
-    ast_t* attr_id;
-    ast_t* attr_val;
-    u64 i;
-    for (i = 0; i < attributes->list.length; ++i) {
-      attr_id = attributes->list.values[i]->attr.id;
-      if (attr_id->type == AST_LIT_IDENTIFIER) {
-        attr_id->identifier.resolve = false;
-      }
-
-      attr_val = attributes->list.values[i]->attr.value;
-      if (attr_val && attr_val->type == AST_LIT_IDENTIFIER) {
-        attr_val->identifier.resolve = false;
-      }
-    }
+    ast_mk_fn_decl_attributes(node, attributes);
   } else {
     node->func.attributes = ast_mk_list();
   }
@@ -369,6 +349,31 @@ void ast_mk_fn_decl_body(ast_t* fn, ast_t* body) {
   // TODO maybe function scope
   body->block.scope = AST_SCOPE_BLOCK;
   fn->func.body = body;
+}
+
+void ast_mk_fn_decl_attributes(ast_t* fn, ast_t* attributes) {
+  fn->func.attributes = attributes;
+
+  ast_t* id = ast_get_attribute(attributes, st_newc("uid", st_enc_utf8));
+  if (id) {
+    fn->func.uid = id->attr.value->identifier.string;
+  }
+
+  // do not resolve!
+  ast_t* attr_id;
+  ast_t* attr_val;
+  u64 i;
+  for (i = 0; i < attributes->list.length; ++i) {
+    attr_id = attributes->list.values[i]->attr.id;
+    if (attr_id->type == AST_LIT_IDENTIFIER) {
+      attr_id->identifier.resolve = false;
+    }
+
+    attr_val = attributes->list.values[i]->attr.value;
+    if (attr_val && attr_val->type == AST_LIT_IDENTIFIER) {
+      attr_val->identifier.resolve = false;
+    }
+  }
 }
 
 ast_t* ast_mk_fn_param(ast_t* id, ast_t* type, ast_t* def) {

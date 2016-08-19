@@ -149,7 +149,8 @@
 /* loops */
 %type <node> expr_while expr_dowhile expr_for import_stmt
 %type <node> attributes attribute
-%type <node> fn_decl_with_return_type fn_decl_without_return_type fn_decl fn_parameters fn_parameter_list fn_parameter
+%type <node> fn_full_decl fn_decl
+%type <node> fn_decl_with_return_type fn_decl_without_return_type fn_parameters fn_parameter_list fn_parameter
 
 %type <token> assignament_operator equality_operator relational_operator additive_operator multiplicative_operator unary_operator function_operators
 
@@ -251,7 +252,7 @@ stmt
   }
   | var_decl ';'
   | struct_decl
-  | fn_decl
+  | fn_full_decl
   | '{' stmts '}' {
     $$ = ast_mk_block($2);
   }
@@ -417,26 +418,19 @@ attributes
     ast_mk_list_push($1, $2);
     $$ = $1;
   }
-  | %empty { $$ = 0; }
   ;
 
 attribute
-  : '#' ident '=' literal {
-    $$ = ast_mk_attribute($2, $4);
-    ast_position($$, @1, @4);
+  : '[' '@' ident '=' literal ']' {
+    $$ = ast_mk_attribute($3, $5);
+    ast_position($$, @1, @6);
 
     // TODO do not allow attributes to repeat
     // TODO id must have a lit_id literal
   }
-  | '#' ident {
-    $$ = ast_mk_attribute($2, 0);
-    ast_position($$, @1, @2);
-  }
-  | TK_FFI {
-    ast_t* id = ast_mk_lit_id(st_newc("ffi", st_enc_utf8), false);
-    $$ = ast_mk_attribute(id, 0);
-    ast_position(id, @1, @1);
-    ast_position($$, @1, @1);
+  | '[' '@' ident ']' {
+    $$ = ast_mk_attribute($3, 0);
+    ast_position($$, @1, @4);
   }
   ;
 
@@ -531,6 +525,23 @@ fn_decl
     ast_position($$, @1, @2);
   }
   ;
+
+fn_full_decl
+  : fn_decl {
+    $$ = $1;
+  }
+  | attributes fn_decl {
+    $$ = $2;
+    ast_mk_fn_decl_attributes($$, $1);
+    ast_position($$, @1, @2);
+  }
+  ;
+
+  fn_full_decl
+    : fn_decl {
+      $$ = $1;
+    }
+    ;
 
 fn_parameters
   : %empty                          { $$ = ast_mk_list(); ast_position($$, @0, @0); }

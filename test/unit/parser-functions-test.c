@@ -50,8 +50,7 @@ TASK_IMPL(parser_functions) {
   TEST_PARSER_ERROR("function err 01", "fn {} var x;",
                     "syntax error, unexpected '{', expecting implicit or "
                     "operator or property or identifier",
-                    {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/
-                    });
+                    {});
 
   TEST_PARSER_ERROR(
       "function err 02", "fn hell ({}",
@@ -60,20 +59,17 @@ TASK_IMPL(parser_functions) {
 
   TEST_PARSER_ERROR("function err 03", "fn x a",
                     "syntax error, unexpected identifier, expecting '{' or ':'",
-                    {/*CHK_ERROR_RANGE(err, 6, 1, 9, 1);*/
-                    });
+                    {});
 
   TEST_PARSER_ERROR("function err 04", "fn (){};",
                     "syntax error, unexpected '(', expecting implicit or "
                     "operator or property or identifier",
-                    {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/
-                    });
+                    {});
 
   TEST_PARSER_ERROR("function err 05", "fn x () { fn (){}; }",
                     "syntax error, unexpected '(', expecting implicit or "
                     "operator or property or identifier",
-                    {/*CHK_ERROR_RANGE(err, 14, 1, 15, 1);*/
-                    });
+                    {});
 
   TEST_PARSER_ERROR("function err 05-a", "ffi fn x () { var x; }",
                     "syntax error, ffi function require a return type", {});
@@ -108,12 +104,12 @@ TASK_IMPL(parser_functions) {
     ASSERT(body[0]->func.ffi == true, "function is ffi");
     ASSERT(body[0]->func.varargs == true, "function is varargs");
   });
-  /*
-  TEST_PARSER_OK("poly 01", "#id=sum_i32\n"
+
+  TEST_PARSER_OK("poly 01", "[@uid=sum_i32]\n"
                             "fn sum(i32 a, i32 b) : i32 {"
                             "  return a + b;"
                             "}"
-                            "#id=sum_i8\n"
+                            "[@uid=sum_i8]\n"
                             "fn sum(i8 a, i8 b) : i8 {"
                             "  return a + b;"
                             "}",
@@ -128,7 +124,6 @@ TASK_IMPL(parser_functions) {
     ASSERT(strcmp(body[1]->func.uid->value, "sum_i8") == 0,
            "function uid is what we manually set");
   });
-  */
 
   TEST_PARSER_ERROR("function err 05", "fn x (i8 a) : i32 { var x; }",
                     "Variable name 'x' in use by a type, previously defined at "
@@ -181,8 +176,7 @@ TASK_IMPL(parser_functions) {
 
   TEST_PARSER_ERROR("return missplaced", "return 0;",
                     "syntax error, return found outside function scope",
-                    {/*CHK_ERROR_RANGE(err, 4, 1, 5, 1);*/
-                    });
+                    {});
 
   TEST_PARSER_ERROR(
       "function err args", "fn printf2(i8 a) {}\n"

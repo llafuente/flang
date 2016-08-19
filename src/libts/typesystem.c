@@ -69,6 +69,8 @@ ast_action_t __trav_raise_no_type(ast_trav_mode_t mode, ast_t* node,
   case AST_STMT_IF:   // REVIEW this may be and expr in the future
   case AST_STMT_LOOP: // REVIEW this may be and expr in the future
     return AST_SEARCH_CONTINUE;
+  case AST_ATTRIBUTE:
+    return AST_SEARCH_SKIP;
   default: {} // remove warning
   }
 
