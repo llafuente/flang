@@ -1,0 +1,4 @@
+sizeof as template: 12
+sizeof as array: 12
+sizeof as template: 24
+sizeof as array: 24

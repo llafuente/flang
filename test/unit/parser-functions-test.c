@@ -175,8 +175,7 @@ TASK_IMPL(parser_functions) {
                     {});
 
   TEST_PARSER_ERROR("return missplaced", "return 0;",
-                    "syntax error, return found outside function scope",
-                    {});
+                    "syntax error, return found outside function scope", {});
 
   TEST_PARSER_ERROR(
       "function err args", "fn printf2(i8 a) {}\n"

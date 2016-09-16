@@ -83,5 +83,3 @@ printf("v2 b (%f , %f)\n", v2_b.x, v2_b.y);
 printf("v2 c (%f , %f)\n", v2_c.x, v2_c.y);
 
 printf("v2 c as member (%f , %f)\n", v2_c[0], v2_c[1]);
-
-// FIXME: v2_c[0] = 10;
