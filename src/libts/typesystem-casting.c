@@ -813,14 +813,15 @@ void ts_cast_expr_member(ast_t* node) {
           if (type2.structure.from_tpl) {
             fn_property = ty_get_virtual(type2.structure.from_tpl,
                                          p->identifier.string, false);
+            if (fn_property) {
+              ast_t* type_list = ast_mk_list();
+              ast_mk_list_push(type_list, l);
 
-            ast_t* type_list = ast_mk_list();
-            ast_mk_list_push(type_list, l);
+              fn_property = ast_implement_fn(type_list, fn_property, 0);
 
-            fn_property = ast_implement_fn(type_list, fn_property, 0);
-
-            // implement
-            log_silly("need to implement!")
+              // implement
+              log_silly("need to implement!")
+            }
           }
 
           if (!fn_property) {
@@ -850,6 +851,17 @@ void ts_cast_expr_member(ast_t* node) {
   case TY_POINTER: {
     node->ty_id = type.ptr.to;
     node->member.property = __cast_node_to(p, 9);
+  } break;
+  case TY_REFERENCE: {
+    // forbid operator[] access
+    ty_t ref_ty = ty(type.ref.to);
+    if (ref_ty.of != TY_STRUCT) {
+      ast_raise_error(node,
+                      "type error, references lack of pointer arithmetic");
+    }
+
+    node->member.left = __ts_dereference(node, node->member.left);
+    ts_pass(node);
   } break;
   case TY_VECTOR: {
     node->ty_id = type.vector.to;

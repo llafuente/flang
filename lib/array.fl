@@ -7,13 +7,14 @@ template $tpl;
 // arrays always live in the heap
 // foreach wrapper declare it's type
 // because $tpl is used, and give a unique name
-struct array_t($tpl) { // @heap
-  u64 length;
-  u64 capacity;
-  $tpl* values;
+struct array($tpl) { // @heap
+  u64 length,
+  u64 capacity,
+  $tpl* values,
 
-  alias len length; // internal alias
-  alias cap capacity;
+  alias len length, // internal alias
+  alias cap capacity,
+  alias data values,
 };
 
 // implement array(u8) as string;
@@ -49,58 +50,65 @@ function property is_empty(array arr) : bool {
 // replace each argument with the return value
 // replace #transclude with the block of code
 // usage: arr.each(var i, var t) {}
-macro each(array, u64 #index, $T #value) {
-  for (var #index == 0; #index < length; ++i) {
-    #value = values[i];
-    #transclude
-  }
-}
+
+//TODO macro each(array, u64 #index, $T #value) {
+//TODO   for (var #index == 0; #index < length; ++i) {
+//TODO     #value = values[i];
+//TODO     #transclude
+//TODO   }
+//TODO }
 
 // this function is not duplicated per type, because $tpl is not used
-function operator delete (ref array arr) {
-  free(*arr);
-  *arr = 0;
-}
+//TODO function operator delete (ref array arr) {
+//TODO   free(cast(void*) arr);
+//TODO }
 
 // this function is duplicated because it's use $tpl
-function operator new (ref array arr, u64 cap) {
-  *arr = malloc(sizeof(array_t), sizeof($tpl) * cap);
-  // initialize size and capacity
-  *arr.length = 0;
-  *arr.capacity = cap;
-  *arr.values = arr + sizeof(array_t);
-}
+//TODO function operator new (ref array arr, u64 cap) {
+//TODO   arr = malloc(sizeof(array), sizeof($tpl) * cap);
+//TODO   // initialize size and capacity
+//TODO   arr.length = 0;
+//TODO   arr.capacity = cap;
+//TODO   arr.values = arr + sizeof(array);
+//TODO }
 
 // push arr[]= 1;
-function operator []= (array arr, $tpl value) : void {
+function push (array arr, $tpl value) : array {
   // $tpl is backed in all operators
   // function is not duplicated
-  if (type($tpl).is_ptr) {
-    arr.data[arr.size++] = cast(void*) value;
-  } else {
-    arr.data[arr.size++] = value;
-  }
+
+  // TODO resize if needed?!
+
+  arr.data[arr.len++] = value;
+
+  return arr;
 }
 
-function alias array_push operator []=;
+function set(array* arr, int index, $tpl value) : array* {
+  // assert out-of-bounds
+
+  arr.data[index] = value;
+
+  return arr;
+}
+
+//TODO function alias array_push operator []=;
 
 // push arr[]= 1;
-function operator []= (array arr, u64 index, $tpl value) : void {
-  #assert(index > arr.length, 'out of bounds: use push instead or fill before');
+function operator []= (array* arr, u64 index) : $tpl* {
+  // assert(index > arr.length, 'out of bounds: use push instead or fill before');
 
-  if ($tpl.is_ptr) {
-    arr.data[index] = cast(void*) value;
-  } else {
-    arr.data[index] = value;
-  }
+  return &arr.data[index];
 }
 
-alias array_set operator []=;
+function operator [] (array* arr, u64 index) {
+  //#assert(index > arr.length, 'out of bounds');
 
-function operator [] (array arr, u64 index) {
-  #assert(index > arr.length, 'out of bounds');
-
-  return ($tpl) arr.data[index];
+  return cast($tpl) arr.data[index];
 }
 
-alias array_get operator [];
+//TODO alias array_get operator [];
+
+
+//var array(i8) first_array;
+//push(first_array, 10);

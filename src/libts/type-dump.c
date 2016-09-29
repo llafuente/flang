@@ -277,7 +277,7 @@ void __ty_dump_cell(u64 ty_id, int indent) {
     break;
   case TY_STRUCT: {
     log_debug(
-        "%*s[%zu] Struct [%s] tpl(%d) from_tpl(%lu) virtuals(%d)", indent, " ",
+        "%*s[%zu] Struct [%s] tpl(%d) from_tpl(%lu) virtuals(%lu)", indent, " ",
         ty_id, ty.structure.decl->structure.id->identifier.string->value,
         ty.templated, ty.structure.from_tpl, ty.structure.virtuals.length);
     u64 i;

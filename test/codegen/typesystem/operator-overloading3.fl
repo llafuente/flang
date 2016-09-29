@@ -1,0 +1,30 @@
+ffi fn printf(ptr(i8) format, ...) : i32;
+
+struct vec2 {
+  ptr(f32) data,
+};
+
+function operator [](vec2* a, u64 index) : f32 {
+  return a.data[index];
+}
+
+function operator []=(vec2* a, u64 index) : f32* {
+  return &a.data[index];
+}
+
+var vec2* t;
+var vec2* b;
+t = malloc(sizeof(vec2) * 1);
+b = malloc(sizeof(vec2) * 1);
+t.data = malloc(sizeof(f32) * 2);
+b.data = malloc(sizeof(f32) * 2);
+
+t[0] = 1; t[1] = 2;
+b[0] = 3; b[1] = 4;
+
+printf("vec2 t(%f , %f) b(%f , %f)\n", t[0], t[1], b[0], b[1]);
+
+t[0] = 101.75; t[1] = 102.69;
+b[0] = 103.25; b[1] = 104.99;
+
+printf("vec2 t(%f , %f) b(%f , %f)\n", t[0], t[1], b[0], b[1]);

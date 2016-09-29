@@ -29,6 +29,7 @@
 #include "flang/debug.h"
 
 u64 __ts_string_to_tyid(ast_t* node) {
+  fl_assert(node != 0);
   fl_assert(node->type == AST_TYPE);
 
   // empty var_decl for example
@@ -137,6 +138,19 @@ u64 __ts_string_to_tyid(ast_t* node) {
         if (node->ty.children) {
           // register children-types first
           ts_register_types(node->ty.children);
+
+          // check that there is no template children
+          bool templated = false;
+          for (int i = 0; i < node->ty.children->list.length; ++i) {
+            if (ty_is_templated(node->ty.children->list.values[i]->ty_id)) {
+              templated = true;
+            }
+          }
+
+          if (templated) {
+            ast_raise_error(node, "type error, try to implement a template "
+                                  "using another template");
+          }
           // implement
           el = ast_implement_struct(node->ty.children, el, 0);
           // enjoy :)

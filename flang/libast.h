@@ -590,6 +590,8 @@ libexport void ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent, u64 level,
  */
 libexport bool ast_is_static(ast_t* node);
 
+libexport bool ast_is_left_value(ast_t* node);
+
 /* cldoc:end-category() */
 /* cldoc:begin-category(ast-codegen.c) */
 

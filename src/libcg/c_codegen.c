@@ -369,7 +369,7 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
   */
   case AST_DECL_STRUCT:
     // if it's a template, cannot be in c
-    if (mode == AST_TRAV_ENTER && node->structure.tpls != 0) {
+    if (node->structure.tpls != 0) {
       return AST_SEARCH_SKIP;
     }
 

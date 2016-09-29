@@ -432,5 +432,11 @@ TASK_IMPL(parser_types) {
                             "var ptrdiff c = a - b;\n",
                  {});
 
+  TEST_PARSER_ERROR(
+      "cast number-struct", "template $tpl;\n"
+                            "struct array($tpl) { $tpl* values, };\n"
+                            "function x (array($tpl) arg1) {}\n",
+      "type error, try to implement a template using another template", {});
+
   return 0;
 }
