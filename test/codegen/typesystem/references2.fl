@@ -1,0 +1,16 @@
+ffi fn printf(ptr(i8) format, ...) : i32;
+
+struct vec2 {
+  ptr(f32) data,
+};
+
+var vec2* t;
+t = malloc(sizeof(f32) * 1);
+t.data = malloc(sizeof(f32) * 2);
+
+t.data[0] = 1;
+t.data[1] = 5.75;
+
+
+printf("t.data[0] %f\n", t.data[0]);
+printf("t.data[1] %f\n", t.data[1]);
