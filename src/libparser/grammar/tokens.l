@@ -116,7 +116,7 @@ return   { SET_LOCATION; return TK_RETURN; }
 static   { SET_LOCATION; return TK_STATIC; }
 struct   { SET_LOCATION; return TK_STRUCT; }
 alias    { SET_LOCATION; return TK_ALIAS; }
-type     { SET_LOCATION; return TK_TYPE; }
+ /* type     { SET_LOCATION; return TK_TYPE; } */
 typeof   { SET_LOCATION; return TK_TYPEOF; }
 use      { SET_LOCATION; return TK_USE; }
 var      { SET_LOCATION; return TK_VAR; }

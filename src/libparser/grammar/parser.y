@@ -124,6 +124,7 @@
 %type <node> maybe_type_list type_list ident_list
 %type <node> struct_decl struct_decl_fields struct_decl_fields_list struct_decl_field
 %type <node> block maybe_stmts log_expression
+%type <node> ignore_comments
 
 %type <node> expression maybe_expression
 %type <node> assignment_expression
@@ -379,17 +380,17 @@ struct_decl
   // TODO struct extend
   ;
 
-struct_decl_fields
-  : '{' struct_decl_fields_list '}'      { $$ = $2; ast_position($$, @1, @3); }
   // allow last comma
-  | '{' struct_decl_fields_list ',' '}'  { $$ = $2; ast_position($$, @1, @4); }
+struct_decl_fields
+  : '{' struct_decl_fields_list '}'             { $$ = $2; ast_position($$, @1, @3); }
+  | '{' struct_decl_fields_list ',' '}'         { $$ = $2; ast_position($$, @1, @4); }
   ;
 
 struct_decl_fields_list
-  : struct_decl_field {
+  : ignore_comments struct_decl_field ignore_comments {
     $$ = ast_mk_list();
-    ast_mk_list_push($$, $1);
-    ast_position($$, @1, @1);
+    ast_mk_list_push($$, $2);
+    ast_position($$, @2, @2);
   }
   | struct_decl_fields_list ',' struct_decl_field {
     ast_mk_list_push($1, $3);
@@ -400,12 +401,14 @@ struct_decl_fields_list
   ;
 
 struct_decl_field
-  : type ident { $$ = ast_mk_struct_decl_field($2, $1); ast_position($$, @1, @2); }
+  : ignore_comments type ident {
+    $$ = ast_mk_struct_decl_field($3, $2);
+    ast_position($$, @2, @3); }
   // REVIEW study if we want it back
   // | ident      { $$ = ast_mk_struct_decl_field($1, 0);  ast_position($$, @1, @1); }
-  | TK_ALIAS ident ident {
-    $$ = ast_mk_struct_decl_alias($2, $3);
-    ast_position($$, @1, @3);
+  | ignore_comments TK_ALIAS ident ident {
+    $$ = ast_mk_struct_decl_alias($3, $4);
+    ast_position($$, @2, @4);
   }
   ;
 
@@ -928,6 +931,10 @@ comment
     ast_position($$, @1, @1);
   }
   ;
+ignore_comments
+  : COMMENT { $$ = 0; }
+  | %empty  { $$ = 0; }
+  ;
 
 //
 // terminals
@@ -991,6 +998,13 @@ type
     ast_mk_list_push(list, $1);
 
     $$ = ast_mk_type(st_newc("ref", st_enc_utf8), list);
+    ast_position($$, @1, @2);
+  }
+  | %prec TYPE ty_primitive TK_ACCESS {
+    ast_t* list = ast_mk_list();
+    ast_mk_list_push(list, $1);
+
+    $$ = ast_mk_type(st_newc("array", st_enc_utf8), list);
     ast_position($$, @1, @2);
   }
   | %prec TYPE ty_primitive '(' type_list ')' {
