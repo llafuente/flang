@@ -155,6 +155,12 @@ struct ts_type_struct_alias {
  * @return type info
  */
 ty_t ty(u64 ty_id);
+/* Retrieve given type info or raise
+ *
+ * @ty_id type id
+ * @return type info
+ */
+ty_t* ty_ref(u64 ty_id);
 /* Get default colors for debugging
  *
  * @ty_id type id

@@ -138,7 +138,7 @@ ast_cast_operations_t ts_cast_operation(ast_t* node) {
 
   ty_t cu_type = ts_type_table[current];
   ty_t ex_type = ts_type_table[expected];
-  log_verbose("same type %d", ex_type.of == cu_type.of);
+  log_verbose("same type? %d", ex_type.of == cu_type.of);
 
   if (ex_type.of == cu_type.of) {
     switch (ex_type.of) {

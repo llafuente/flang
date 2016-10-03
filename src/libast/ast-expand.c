@@ -30,6 +30,36 @@
 #include "flang/debug.h"
 
 // return error
+
+void ast_implement_type_in_order(ast_t* fn, u64 from, u64 to) {
+  fl_assert(fn->type == AST_DECL_FUNCTION);
+
+  ty_t from_type = ty(from);
+  ty_t to_type = ty(to);
+
+  switch (from_type.of) {
+  case TY_STRUCT: {
+    u64 jmax = from_type.structure.members.length;
+    for (u64 j = 0; j < jmax; ++j) {
+      if (ty_is_template(from_type.structure.fields[j])) {
+        ast_replace_types(fn, from_type.structure.fields[j],
+                          to_type.structure.fields[j]);
+      } else if (ty_is_templated(from_type.structure.fields[j])) {
+        ast_implement_type_in_order(fn, from_type.structure.fields[j],
+                                    to_type.structure.fields[j]);
+      }
+    }
+  } break;
+  case TY_TEMPLATE:
+    ast_replace_types(fn, from, to);
+  case TY_POINTER:
+    ast_replace_types(fn, from_type.ptr.to, to_type.ptr.to);
+    break;
+  default:
+    ast_raise_error(fn, "TODO, not handled case atm 2 %s",
+                    ty_to_string(from)->value);
+  }
+}
 ast_t* ast_implement_fn(ast_t* type_list, ast_t* decl, string* uid) {
   fl_assert(type_list->type == AST_LIST);
   fl_assert(decl->type == AST_DECL_FUNCTION);
@@ -55,9 +85,14 @@ ast_t* ast_implement_fn(ast_t* type_list, ast_t* decl, string* uid) {
   u64 i;
   u64 param_ty_id;
 
+  // loop left to right implementing each type and template
   for (i = 0; i < count; ++i) {
     param_ty_id = params->list.values[i]->ty_id;
     if (ty_is_templated(param_ty_id)) {
+      ast_implement_type_in_order(fn, param_ty_id,
+                                  type_list->list.values[i]->ty_id);
+
+      // find each template
       log_silly("replace type %lu -> %lu", param_ty_id,
                 type_list->list.values[i]->ty_id);
       // search type and replace!
@@ -65,7 +100,6 @@ ast_t* ast_implement_fn(ast_t* type_list, ast_t* decl, string* uid) {
     }
   }
 
-  // ast_replace_types(fn, 21, 4);
   fn->ty_id = ty_create_fn(fn);
   _typesystem(fn);
   return fn;

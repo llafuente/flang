@@ -33,6 +33,11 @@ ty_t ty(u64 ty_id) {
   return ts_type_table[ty_id];
 }
 
+ty_t* ty_ref(u64 ty_id) {
+  // TODO check out-of-bounds
+  return &ts_type_table[ty_id];
+}
+
 bool ty_is_struct(u64 id) { return ty(id).of == TY_STRUCT; }
 
 bool ty_is_vector(u64 id) { return ty(id).of == TY_VECTOR; }
@@ -271,12 +276,11 @@ bool __struct_collision(ast_t* where, ast_t* scope, char* ty_name) {
 }
 
 void __ty_template_usedby(u64 id, ast_t* decl) {
-  ty_dump_table();
   log_silly("set: %lu %p", id, decl);
 
-  ty_t type = ty(id);
+  ty_t* type = ty_ref(id);
 
-  switch (type.of) {
+  switch (type->of) {
   case TY_VOID:
   case TY_NUMBER:
   case TY_INFER:
@@ -285,32 +289,32 @@ void __ty_template_usedby(u64 id, ast_t* decl) {
   case TY_REFERENCE:
   case TY_POINTER:
   case TY_VECTOR:
-    __ty_template_usedby(type.ptr.to, decl);
+    __ty_template_usedby(type->ptr.to, decl);
     break;
   case TY_STRUCT: {
     // for each type
-    u64 max = type.structure.members.length;
+    u64 max = type->structure.members.length;
 
     // check properties first
     u64 i;
     for (i = 0; i < max; ++i) {
-      __ty_template_usedby(type.structure.fields[i], decl);
+      __ty_template_usedby(type->structure.fields[i], decl);
     }
   } break;
   case TY_FUNCTION: {
     // for each type
-    u64 max = type.func.nparams;
+    u64 max = type->func.nparams;
 
     // check properties first
     u64 i;
     for (i = 0; i < max; ++i) {
-      __ty_template_usedby(type.func.params[i], decl);
+      __ty_template_usedby(type->func.params[i], decl);
     }
   } break;
   case TY_TEMPLATE:
     // add it!
-    array_push(&type.tpl.usedby, decl);
-    log_silly("push! %lu", type.tpl.usedby.length);
+    array_push(&type->tpl.usedby, decl);
+    log_silly("push to template %lu count %lu", id, type->tpl.usedby.length);
   }
 }
 
@@ -345,7 +349,7 @@ u64 ty_create_struct(ast_t* decl) {
   }
 
   if (templates) {
-    log_silly("has templates");
+    log_silly("(struct) has templates");
     decl->structure.templated = true;
   }
 
@@ -419,7 +423,7 @@ u64 ty_create_struct(ast_t* decl) {
     i = same_struct_found;
   }
 
-  log_debug("type register (struct) id='%s' ty=%zu", id->value, i);
+  log_debug("(struct) register id='%s' ty=%zu", id->value, i);
   // even with ty_id uniques, we need to declare the struct in the scope
   // search nearest scope and add it
   ast_t* x = ast_get_scope(decl);

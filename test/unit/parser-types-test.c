@@ -433,10 +433,60 @@ TASK_IMPL(parser_types) {
                  {});
 
   TEST_PARSER_ERROR(
-      "cast number-struct", "template $tpl;\n"
-                            "struct array($tpl) { $tpl* values, };\n"
-                            "function x (array($tpl) arg1) {}\n",
+      "template a template", "template $tpl;\n"
+                             "struct array($tpl) { $tpl* values, };\n"
+                             "function x (array($tpl) arg1) {}\n",
       "type error, try to implement a template using another template", {});
+
+  TEST_PARSER_OK("implement templates in order left to right",
+                 "template $tpl;\n"
+                 "struct array($tpl) { $tpl values, };\n"
+                 "function x (array a, $tpl b) {}\n"
+                 "var array(i8) ai8;\n"
+                 "x(ai8, 10);\n",
+                 {
+    // ast_dump(body[6]);
+    // ty_dump_table();
+
+    ast_t* call = body[6];
+    ASSERT(call->type == AST_EXPR_CALL, "7th is the call");
+    u64 ty_first = call->call.arguments->list.values[0]->ty_id;
+    ty_t type_first = ty(ty_first);
+    u64 ty_second = call->call.arguments->list.values[1]->ty_id;
+    ASSERT(type_first.of == TY_STRUCT, "first is a struct");
+    ASSERT(type_first.structure.members.length == 1, "one field");
+    ASSERT(type_first.structure.fields[0] == TS_I8, "first subtype is i8");
+    ASSERT(ty_second == TS_I8, "second type is i8");
+  });
+
+  TEST_PARSER_ERROR("check casting after implement a template",
+                    "var i64 num64 = 10;\n"
+                    "template $tpl;\n"
+                    "struct array($tpl) { $tpl values, };\n"
+                    "function x (array a, $tpl b) {}\n"
+                    "var array(i8) ai8;\n"
+                    "x(ai8, num64);\n",
+                    "type error, explicit cast required between (i64) to (i8)",
+                    {});
+
+  TEST_PARSER_OK("implement templates in order left to right",
+                 "var i64 num64 = 10;\n"
+                 "template $tpl;\n"
+                 "struct array($tpl) { $tpl values, };\n"
+                 "function x (array a, $tpl b) {}\n"
+                 "var array(i8) ai8;\n"
+                 "x(ai8, cast(i8) num64);\n",
+                 {
+    ast_t* call = body[7];
+    ASSERT(call->type == AST_EXPR_CALL, "8th is the call");
+    u64 ty_first = call->call.arguments->list.values[0]->ty_id;
+    ty_t type_first = ty(ty_first);
+    u64 ty_second = call->call.arguments->list.values[1]->ty_id;
+    ASSERT(type_first.of == TY_STRUCT, "first is a struct");
+    ASSERT(type_first.structure.members.length == 1, "one field");
+    ASSERT(type_first.structure.fields[0] == TS_I8, "first subtype is i8");
+    ASSERT(ty_second == TS_I8, "second type is i8");
+  });
 
   return 0;
 }

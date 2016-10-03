@@ -163,6 +163,8 @@ ast_action_t __ts_cast_operation_pass_cb(ast_trav_mode_t mode, ast_t* node,
                                          ast_t* parent, u64 level,
                                          void* userdata_in,
                                          void* userdata_out) {
+  fl_assert(node != 0);
+
   if (mode == AST_TRAV_LEAVE)
     return 0;
 
@@ -177,7 +179,6 @@ ast_action_t __ts_cast_operation_pass_cb(ast_trav_mode_t mode, ast_t* node,
     }
     node->cast.operation = ts_cast_operation(node);
   }
-
   return AST_SEARCH_CONTINUE;
 }
 
