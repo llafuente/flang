@@ -137,14 +137,12 @@ ast_action_t __trav_load_imports(ast_trav_mode_t mode, ast_t* node,
     char filepath[1024] = "";
 
     if (file[0] == '.' && file[1] == '/') {
-      char* file2 = strdup(file);
       ast_t* root = ast_get_root(node);
 
       strcat(filepath, dirname(root->program.file->value));
       strcat(filepath, "/");
       strcat(filepath, file + 2);
       strcat(filepath, ".fl");
-      free(file2);
     } else {
       strcat(filepath, "./");
       strcat(filepath, file);

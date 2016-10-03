@@ -498,5 +498,12 @@ TASK_IMPL(parser_types) {
   TEST_PARSER_OK("type inside a type by ref/ptr",
                  "struct st { i8 a, ptr(st) b };\n", {});
 
+  TEST_PARSER_ERROR(
+      "implement templates in order left to right",
+      "template $tpl;\n"
+      "struct array($tpl) { $tpl values, };\n"
+      "implement array($tpl) as array_i8;\n",
+      "type error, try to implement a template using another template", {});
+
   return 0;
 }

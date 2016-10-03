@@ -147,6 +147,11 @@ ast_t* ast_implement_struct(ast_t* type_list, ast_t* decl, string* uid) {
     param_ty_id = params->list.values[i]->ty_id;
     log_silly("param type %lu", param_ty_id);
     if (ty_is_template(param_ty_id)) {
+      if (ty_is_templated(type_list->list.values[i]->ty_id)) {
+        ast_raise_error(
+            type_list->list.values[i],
+            "type error, try to implement a template using another template");
+      }
       // search type and replace!
       log_silly("replace type %lu to %lu", param_ty_id,
                 type_list->list.values[i]->ty_id);
