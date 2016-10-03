@@ -322,10 +322,20 @@ void __ty_template_usedby(u64 id, ast_t* decl) {
 u64 ty_create_struct(ast_t* decl) {
   fl_assert(decl->structure.id != 0);
 
-  u64 i;
-  u64 j;
   ast_t* list = decl->structure.fields;
+  ast_t** elements = list->list.values;
+  u64 i;
   u64 length = list->list.length;
+  for (i = 0; i < length; ++i) {
+    if (elements[i]->type == AST_DECL_STRUCT_FIELD) {
+      if (!elements[i]->field.type->ty_id) {
+        ast_raise_error(elements[i], "type error, type cannot be determined "
+                                     "before declaring the struct");
+      }
+    }
+  }
+
+  u64 j;
   u64* fields = calloc(length, sizeof(u64));
   array properties;
   array alias;
@@ -335,7 +345,6 @@ u64 ty_create_struct(ast_t* decl) {
 
   int templates = 0;
 
-  ast_t** elements = list->list.values;
   // field pass
   for (i = 0; i < length; ++i) {
     if (elements[i]->type == AST_DECL_STRUCT_FIELD) {

@@ -488,5 +488,15 @@ TASK_IMPL(parser_types) {
     ASSERT(ty_second == TS_I8, "second type is i8");
   });
 
+  TEST_PARSER_ERROR(
+      "type inside type", "struct st { i8 a, st b };\n",
+      "type error, type cannot be determined before declaring the struct", {});
+
+  TEST_PARSER_OK("type inside a type by ref", "struct st { i8 a, st* b };\n",
+                 {});
+
+  TEST_PARSER_OK("type inside a type by ref/ptr",
+                 "struct st { i8 a, ptr(st) b };\n", {});
+
   return 0;
 }
