@@ -15,22 +15,7 @@ Under development, do not use it production.
 
 The syntax is rather stable.
 
-### Language features
-
-* Inference
-* Polymorphism
-* Function and struct templates
-
-### Language type features
-
-* Boolean
-* Numeric types
-* Strings with multiple enconding
-* Array (templated)
-* Structs
-* Objects
-* References (pointer that cannot move)
-* Raw pointers
+[Documentation](doc/readme.md)
 
 ---
 
@@ -38,7 +23,9 @@ The syntax is rather stable.
 
 Wants to help?! Awesome! First install Clang (Gcc also works)
 
-There are some shs that helps you in the development
+flang depends on [string.c](https://github.com/llafuente/string.c) and here [how to install string.c](https://github.com/llafuente/vagrant/blob/master/packages/stringc.sh)
+
+There are some `sh`(s) that helps you in the development
 
     sh run.sh
     # generate the grammar and build
@@ -57,11 +44,6 @@ There are some shs that helps you in the development
     # use clang-format to give all the project the same/consistent style
 
 MSVS users. Replicate the sh above with some bat/ps1 file (piece of cake!)
-
-
-### Develop in flang
-
-To develop in flang you need to compile it first.
 
 ### Usage
 
