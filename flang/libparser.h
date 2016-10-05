@@ -66,4 +66,9 @@ libexport char* psr_operator_str(int operator);
  */
 libexport ast_t* psr_ast_check(ast_t* node);
 
+/* Add core files to given AST
+ * @node
+ */
+libexport void psr_attach_core(ast_t* root);
+
 /* cldoc:end-category() */

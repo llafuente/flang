@@ -30,7 +30,7 @@
 #include <string.h>
 #include <setjmp.h>
 
-void __psr_attach_core(ast_t* root) {
+void psr_attach_core(ast_t* root) {
   ast_t* block = root->program.body;
 
   if (block->type != AST_ERROR) {
@@ -70,7 +70,7 @@ ast_t* psr_str_utf8(char* str) {
 
 ast_t* psr_str_utf8_main(char* str) {
   ast_t* root = psr_str_utf8(str);
-  __psr_attach_core(root);
+  psr_attach_core(root);
   ast_parent(root);
 
   return root;
@@ -117,7 +117,7 @@ ast_t* psr_file_main(const char* filename) {
   ast_t* root = __psr_parse(code, filename);
 
   fl_assert(root->type == AST_PROGRAM);
-  __psr_attach_core(root);
+  psr_attach_core(root);
   ast_parent(root);
 
   return root;
