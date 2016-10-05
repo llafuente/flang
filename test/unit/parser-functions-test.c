@@ -144,14 +144,11 @@ TASK_IMPL(parser_functions) {
                                 //"#id=sum_i32\n"
                                 "fn sum($t a, i8 b) : i8 {"
                                 "  return a + b;"
-                                "}"
-                                "var $t tpl;",
+                                "}",
                  {
     ASSERT(body[0]->tpl.id->ty_id ==
                body[1]->func.params->list.values[0]->ty_id,
            "tpl type param");
-
-    ASSERT(body[0]->tpl.id->ty_id == body[2]->ty_id, "tpl type var");
   });
 
   TEST_PARSER_ERROR("type demotion", "template $t;\n"

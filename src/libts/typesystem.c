@@ -78,7 +78,7 @@ ast_action_t __trav_raise_no_type(ast_trav_mode_t mode, ast_t* node,
     ast_dump_s(node->parent);
     ast_dump_s(node);
     // ast_dump_s(node->parent->structure.from_tpl);
-    ast_raise_error(node, "Cannot determine type");
+    ast_raise_error(node, "type error, cannot determine type");
     return AST_SEARCH_STOP;
   }
 

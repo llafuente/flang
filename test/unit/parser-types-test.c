@@ -499,11 +499,35 @@ TASK_IMPL(parser_types) {
                  "struct st { i8 a, ptr(st) b };\n", {});
 
   TEST_PARSER_ERROR(
-      "implement templates in order left to right",
+      "implement templates with another template",
       "template $tpl;\n"
       "struct array($tpl) { $tpl values, };\n"
       "implement array($tpl) as array_i8;\n",
       "type error, try to implement a template using another template", {});
+
+  TEST_PARSER_ERROR(
+      "var declaration with a template is forbidden", "template $tpl;\n"
+                                                      "var ptr($tpl) x;\n",
+      "type error, cannot declare a variable with a templated type", {});
+
+  TEST_PARSER_ERROR(
+      "var declaration with a template is forbidden", "template $tpl;\n"
+                                                      "fn fntpl($tpl x) {}\n"
+                                                      "var fntpl xy;\n",
+      "type error, cannot declare a variable with a templated type", {});
+
+  TEST_PARSER_ERROR("undefined type", "var fntpl xy;\n",
+                    "type error, cannot determine type", {});
+
+  TEST_PARSER_ERROR(
+      "undefined funtion", "fntpl();\n",
+      "type error, cannot find function or variable with given name: 'fntpl'",
+      {});
+
+  TEST_PARSER_ERROR("undefined variable", "var a = 1;\n"
+                                          "var b = 2;"
+                                          "b = a + c;",
+                    "type error, cannot find declaration for: 'c'", {});
 
   return 0;
 }

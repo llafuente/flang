@@ -89,7 +89,7 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
             ast_search_id_decl(node, node->identifier.string);
         if (!decl) {
           ast_mindump(ast_get_root(node));
-          ast_raise_error(node, "Cannot find declaration: '%s'",
+          ast_raise_error(node, "type error, cannot find declaration for: '%s'",
                           node->identifier.string->value);
           return AST_SEARCH_STOP;
         }
@@ -97,10 +97,7 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
         // it's a var, copy type
         if (decl->type == AST_DECL_FUNCTION) {
           if (decl->func.templated) {
-            ast_raise_error(node,
-                            "typesystem - Cannot has a reference to a template",
-                            node->identifier.string->value);
-            return AST_SEARCH_STOP;
+            fl_assert(false); // this should not happen!
           }
 
           node->ty_id = node->identifier.decl->ty_id;
@@ -113,6 +110,11 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     if (node->parent->type == AST_DTOR_VAR) {
       log_debug("parent is a dtor: fn=%d", ty_is_function(node->ty_id));
       node->parent->ty_id = node->ty_id;
+      if (ty_is_templated(node->ty_id)) {
+        ast_raise_error(
+            node, "type error, cannot declare a variable with a templated type",
+            node->identifier.string->value);
+      }
     }
 
   } break;
