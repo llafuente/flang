@@ -1,2 +1,2 @@
 sizeof as template: 24
-sizeof as array: 24
+sizeof as test_array: 24

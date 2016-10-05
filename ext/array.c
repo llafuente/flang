@@ -115,7 +115,7 @@ void array_insert(array* arr, u64 index, ARRAY_T value) {
   array_double_capacity_if_full(arr);
 
   memmove(arr->values + index + 1, arr->values + index,
-          sizeof(ast_t*) * arr->length - index);
+          sizeof(ARRAY_T) * (arr->length - index));
 
   arr->values[index] = value;
   ++arr->length;

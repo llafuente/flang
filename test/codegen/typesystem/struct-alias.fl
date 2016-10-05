@@ -3,7 +3,7 @@ template $tpl;
 /*
   TODO assert using template without the proper syntax
 */
-struct array($tpl) {
+struct test_array($tpl) {
   u64 length,
   u64 capacity,
   $tpl values,
@@ -13,15 +13,15 @@ struct array($tpl) {
 };
 
 
-implement array(i8) as array_i8;
+implement test_array(i8) as test_array_i8;
 
 
-var array_i8 xx;
+var test_array_i8 xx;
 
 xx.len = 100;
 xx.cap = 101;
 
-printf("array len: %lu\n", xx.len);
-printf("array cap: %lu\n", xx.cap);
-printf("array length: %lu\n", xx.length);
-printf("array capacity: %lu\n", xx.capacity);
+printf("test_array len: %lu\n", xx.len);
+printf("test_array cap: %lu\n", xx.cap);
+printf("test_array length: %lu\n", xx.length);
+printf("test_array capacity: %lu\n", xx.capacity);

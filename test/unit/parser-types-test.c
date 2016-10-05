@@ -445,9 +445,6 @@ TASK_IMPL(parser_types) {
                  "var array(i8) ai8;\n"
                  "x(ai8, 10);\n",
                  {
-    // ast_dump(body[6]);
-    // ty_dump_table();
-
     ast_t* call = body[6];
     ASSERT(call->type == AST_EXPR_CALL, "7th is the call");
     u64 ty_first = call->call.arguments->list.values[0]->ty_id;

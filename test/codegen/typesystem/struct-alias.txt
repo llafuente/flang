@@ -1,4 +1,4 @@
-array len: 100
-array cap: 101
-array length: 100
-array capacity: 101
+test_array len: 100
+test_array cap: 101
+test_array length: 100
+test_array capacity: 101

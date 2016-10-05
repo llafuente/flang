@@ -3,14 +3,14 @@ ffi fn malloc(i32 format) : ptr(void);
 
 // typing
 // * means pointer, cannot be moved, it's just s ref to one single
-// [] array
+// [] test_array
 
 template $tpl;
 
-// arrays always live in the heap
+// test_arrays always live in the heap
 // foreach wrapper declare it's type
 // because $tpl is used, and give a unique name
-struct array($tpl) {
+struct test_array($tpl) {
   u64 length,
   u64 capacity,
   ptr($tpl) values,
@@ -19,14 +19,14 @@ struct array($tpl) {
   alias cap capacity,
 };
 
-//implement array(void) as xx;
-//implement array(void) as yy;
+//implement test_array(void) as xx;
+//implement test_array(void) as yy;
 
-function property first(array arr) {
+function property first(test_array arr) {
   return arr.values[0];
 }
 
-function property last(array arr) {
+function property last(test_array arr) {
   return arr.values[arr.length - 1];
 }
 
@@ -34,7 +34,7 @@ function property last(array arr) {
 // $log 10;
 
 
-var array(u8) army;
+var test_array(u8) army;
 army.values = malloc(10);
 army.length = 2;
 army.values[0] = 1;

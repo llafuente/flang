@@ -5,26 +5,26 @@ template $tpl2;
 /*
   TODO assert using template without the proper syntax
 */
-struct array($tpl, $tpl2) {
+struct test_array($tpl, $tpl2) {
   $tpl2 length,
   $tpl2 capacity,
   $tpl values,
 };
 
 
-implement array(i8, u32) as array_i8_u32;
-implement array(i8, u64) as array_i8_u64;
+implement test_array(i8, u32) as test_array_i8_u32;
+implement test_array(i8, u64) as test_array_i8_u64;
 
 // this works
 function sizeof_arr($tpl arr) {
   printf("sizeof as template: %lu\n", sizeof($tpl));
 }
-function sizeof_arr2(array arr) {
-  printf("sizeof as array: %lu\n", sizeof(array));
+function sizeof_arr2(test_array arr) {
+  printf("sizeof as test_array: %lu\n", sizeof(test_array));
 }
 
-var array_i8_u32 a;
-var array_i8_u64 b;
+var test_array_i8_u32 a;
+var test_array_i8_u64 b;
 
 sizeof_arr(a);
 sizeof_arr2(a);

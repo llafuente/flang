@@ -10,6 +10,9 @@
 #define CG_OUTPUT fprintf
 #define cg_debug printf
 
+// 10kb
+#define BUFFER_SIZE 10240
+
 char* cg_text = 0;
 
 char* buffer = 0;
@@ -31,7 +34,7 @@ string* cg_node(ast_t* node);
 
 //
 #define scan_string(str_var, format, ...)                                      \
-  snprintf(buffer, 1024, format, ##__VA_ARGS__);                               \
+  snprintf(buffer, BUFFER_SIZE, format, ##__VA_ARGS__);                        \
   str_var = st_newc(buffer, st_enc_utf8);
 
 #define stack_append(format, ...)                                              \
@@ -48,31 +51,31 @@ string* cg_type(u64 ty_id) {
     return type.cg;
   }
 
-  string* buffer = st_new(64, st_enc_utf8);
+  string* sbuf = st_new(64, st_enc_utf8);
 
   switch (type.of) {
   case TY_POINTER:
   case TY_REFERENCE:
-    st_append(&buffer, cg_type(type.ptr.to));
-    st_append_c(&buffer, "*");
+    st_append(&sbuf, cg_type(type.ptr.to));
+    st_append_c(&sbuf, "*");
     break;
   case TY_VECTOR:
-    st_append(&buffer, cg_type(type.vector.to));
-    st_append_c(&buffer, "[]");
+    st_append(&sbuf, cg_type(type.vector.to));
+    st_append_c(&sbuf, "[]");
     break;
   case TY_STRUCT: {
-    st_append(&buffer, type.id);
+    st_append(&sbuf, type.id);
   } break;
   case TY_FUNCTION: {
     fl_assert(type.id != 0);
 
-    st_append_c(&buffer, type.id->value);
-    st_append_c(&buffer, "__fnptr");
+    st_append_c(&sbuf, type.id->value);
+    st_append_c(&sbuf, "__fnptr");
   } break;
   case TY_TEMPLATE: {
     // REVIEW assert... will see in the future if needed, i consider this
     // dangerous atm.
-    // st_append_c(&buffer, "0");
+    // st_append_c(&sbuf, "0");
     return type.id;
   } break;
   default: {
@@ -81,8 +84,8 @@ string* cg_type(u64 ty_id) {
   } // remove warning
   }
 
-  fl_assert(buffer->length != 0);
-  return type.cg = buffer;
+  fl_assert(sbuf->length != 0);
+  return type.cg = sbuf;
 }
 
 string* st_dquote(const string* str) {
@@ -214,14 +217,14 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       st_append_c(&block, "{\n");
 
       for (int i = node->stack; i < cg_stack->length; ++i) {
-        snprintf(buffer, 1024, "%*s%s;\n", cg_indent, " ",
+        snprintf(buffer, BUFFER_SIZE, "%*s%s;\n", cg_indent, " ",
                  ((string*)cg_stack->values[i])->value);
         st_append_c(&block, buffer);
       }
       cg_stack->length = node->stack;
 
       cg_indent -= 2;
-      snprintf(buffer, 1024, "%*s}\n", cg_indent, " ");
+      snprintf(buffer, BUFFER_SIZE, "%*s}\n", cg_indent, " ");
       st_append_c(&block, buffer);
       array_push(cg_stack, (void*)block);
     }
@@ -383,7 +386,8 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       for (int i = node->stack + 1; i < cg_stack->length; ++i) {
         string* arg = (string*)cg_stack->values[i];
 
-        buffer_idx += snprintf(buffer2 + buffer_idx, 1024, "%s;\n", arg->value);
+        buffer_idx +=
+            snprintf(buffer2 + buffer_idx, BUFFER_SIZE, "%s;\n", arg->value);
       }
       cg_stack->length = node->stack;
 
@@ -422,10 +426,10 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
 
           // stack_append("%s %s", cg_type(tmp->ty_id)->value, param->value);
           if (itr[i] == 0) {
-            buffer_idx += snprintf(buffer + buffer_idx, 1024, "%s %s",
+            buffer_idx += snprintf(buffer + buffer_idx, BUFFER_SIZE, "%s %s",
                                    cg_type(tmp->ty_id)->value, param->value);
           } else {
-            buffer_idx += snprintf(buffer + buffer_idx, 1024, "%s %s, ",
+            buffer_idx += snprintf(buffer + buffer_idx, BUFFER_SIZE, "%s %s, ",
                                    cg_type(tmp->ty_id)->value, param->value);
           }
         }
@@ -495,10 +499,11 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
         string* arg = (string*)cg_stack->values[i];
 
         if (i == cg_stack->length - 1) {
-          buffer_idx += snprintf(buffer2 + buffer_idx, 1024, "%s", arg->value);
+          buffer_idx +=
+              snprintf(buffer2 + buffer_idx, BUFFER_SIZE, "%s", arg->value);
         } else {
           buffer_idx +=
-              snprintf(buffer2 + buffer_idx, 1024, "%s, ", arg->value);
+              snprintf(buffer2 + buffer_idx, BUFFER_SIZE, "%s, ", arg->value);
         }
       }
       cg_stack->length = node->stack;
@@ -649,8 +654,8 @@ char* fl_codegen(ast_t* root) {
   // ast_dump(root);
 
   cg_stack = calloc(sizeof(array), 1);
-  buffer = calloc(sizeof(char), 1024);
-  buffer2 = calloc(sizeof(char), 1024);
+  buffer = calloc(sizeof(char), BUFFER_SIZE);
+  buffer2 = calloc(sizeof(char), BUFFER_SIZE);
   // array_newcap(cg_stack, 500);
   array_newcap(cg_stack, 5);
 
@@ -672,6 +677,8 @@ char* fl_codegen(ast_t* root) {
   fclose(cg_fds->types);
   fclose(cg_fds->functions);
   fclose(cg_fds->run);
+
+  array_delete(cg_stack);
 
   free(cg_fds);
   free(cg_stack);
