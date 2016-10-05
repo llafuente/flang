@@ -1,22 +1,124 @@
-struct array($T) {
-  i32 len,
-  u32 cap,
-  // i64 type = typeof $T,
-  vector($T) value
+// typing
+// * means pointer, cannot be moved, it's just s ref to one single
+// [] array
+
+template $array_tpl;
+
+// arrays always live in the heap
+// foreach wrapper declare it's type
+// because $array_tpl is used, and give a unique name
+struct array($array_tpl) { // @heap
+  u64 length,
+  u64 capacity,
+  ptr($array_tpl) values,
+
+  alias len length, // internal alias
+  alias cap capacity,
+  alias data values,
 };
 
-// push value
-fn push($T[] arr, $T value) : $T[] {
-  arr.value[arr.len] = value;
-  arr.cap = arr.cap + 1;
+// implement array(u8) as string;
+// also string should extend the type adding encoding
+/*
+function property first(array arr) : $array_tpl {
+  return arr.values[0];
+}
+
+function property last(array arr) : $array_tpl {
+  return arr.values[arr.length - 1];
+}
+*/
+function property is_full(array arr) : bool {
+  return arr.length == arr.capacity;
+}
+
+// virtual are transform to functions with force inline
+// bool is_empty(array* arr) { return arr->length == 0; }
+function property is_empty(array arr) : bool {
+  return length == 0;
+}
+
+// Rules to expand macros
+// Put the exact text in the arguments in order in the block
+// foreach argument extract the return value
+// example: var i64 i -> return i
+// example: just_a_variable -> return just_a_variable
+// error: each(func(), var t): first argument is a function call
+// example: each(var i = func(), var t), useless but possible
+// example: each(some_struct.i, var t)
+// type check
+// replace each argument with the return value
+// replace #transclude with the block of code
+// usage: arr.each(var i, var t) {}
+
+//TODO macro each(array, u64 #index, $T #value) {
+//TODO   for (var #index == 0; #index < length; ++i) {
+//TODO     #value = values[i];
+//TODO     #transclude
+//TODO   }
+//TODO }
+
+// this function is not duplicated per type, because $array_tpl is not used
+//TODO function operator delete (ref array arr) {
+//TODO   free(cast(void*) arr);
+//TODO }
+
+// this function is duplicated because it's use $array_tpl
+//TODO function operator new (ref array arr, u64 cap) {
+//TODO   arr = malloc(sizeof(array), sizeof($array_tpl) * cap);
+//TODO   // initialize size and capacity
+//TODO   arr.length = 0;
+//TODO   arr.capacity = cap;
+//TODO   arr.values = arr + sizeof(array);
+//TODO }
+
+// push arr[]= 1;
+function push (array arr, $array_tpl value) : array {
+  // $array_tpl is backed in all operators
+  // function is not duplicated
+
+  // TODO resize if needed?!
+
+  if (!arr.data) {
+    arr.data = malloc(sizeof($array_tpl) * 5);
+  }
+
+  arr.data[arr.len++] = value;
 
   return arr;
 }
 
-// push copy
-fn push(array($T) arr, ptr($T) value) array($T) {
-  arr.value[arr.len] = value[0];
-  arr.cap = arr.cap + 1;
+function set(array* arr, int index, $array_tpl value) : array* {
+  // assert out-of-bounds
+
+  arr.data[index] = value;
 
   return arr;
 }
+
+//TODO function alias array_push operator []=;
+
+// push arr[]= 1;
+function operator []= (array* arr, u64 index) : $array_tpl* {
+  // assert(index > arr.length, 'out of bounds: use push instead or fill before');
+
+  return &arr.data[index];
+}
+
+function operator [] (array* arr, u64 index) {
+  //#assert(index > arr.length, 'out of bounds');
+
+  return cast($array_tpl) arr.data[index];
+}
+
+//TODO alias array_get operator [];
+
+
+//var array(i8) first_array;
+//push(first_array, cast(i8) 10);
+
+implement array(i8) as array_i8;
+
+//var array(i8) first_array;
+var array_i8 first_array;
+push(first_array, 10);

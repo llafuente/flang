@@ -99,6 +99,7 @@ ast_t* ast_search_fn_op(ast_t* node, int operator, u64 ty_id) {
   array* arr = ast_scope_fns(node, id);
 
   if (!arr) {
+    log_silly("can't find any function in the scope!");
     return 0;
   }
 
@@ -108,6 +109,7 @@ ast_t* ast_search_fn_op(ast_t* node, int operator, u64 ty_id) {
   case TK_ACCESS_MOD:
   case TK_ACCESS: {
     if (!ty_is_reference(ty_id)) {
+      log_silly("search for a reference");
       ty_id = ty_create_wrapped(TY_REFERENCE, ty_id);
     }
   } break;
@@ -121,10 +123,13 @@ ast_t* ast_search_fn_op(ast_t* node, int operator, u64 ty_id) {
     fn = arr->values[i];
     ty_t t = ty(fn->ty_id);
     // binary atm!
-    if (fn->func.operator== operator&& t.func.nparams == 2 &&
-        t.func.params[0] == ty_id) {
-      ret = fn;
-      goto cleanup;
+    if (fn->func.operator== operator&& t.func.nparams == 2) {
+      log_silly("operator function found: %s", ty_to_string(fn->ty_id)->value);
+
+      if (t.func.params[0] == ty_id) {
+        ret = fn;
+        goto cleanup;
+      }
     }
   }
 

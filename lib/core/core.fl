@@ -1,4 +1,6 @@
 /* string must be first atm */
+import "lib/core/array"; // into global space
+
 forward import "lib/core/string"; // into global space
 forward import "lib/core/ffi-c"; // into global space
 

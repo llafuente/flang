@@ -28,6 +28,7 @@ void array_new(array* arr);
 void array_newcap(array* arr, size_t cap);
 
 void array_push(array* arr, ARRAY_T value);
+void array_push_unique(array* arr, ARRAY_T value);
 
 void array_concat(array* arr, array* arr2);
 

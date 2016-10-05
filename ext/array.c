@@ -70,6 +70,16 @@ void array_push(array* arr, ARRAY_T value) {
   arr->values[arr->length++] = value;
 }
 
+void array_push_unique(array* arr, ARRAY_T value) {
+  for (u64 i = 0; i < arr->length; ++i) {
+    if (arr->values[i] == value) {
+      return;
+    }
+  }
+
+  array_push(arr, value);
+}
+
 void array_concat(array* arr, array* arr2) {
   size_t i;
   for (i = 0; i < arr2->length; ++i) {

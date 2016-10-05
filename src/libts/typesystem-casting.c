@@ -749,26 +749,33 @@ void ts_cast_expr_member(ast_t* node) {
   u64 left_ty_id = l->ty_id;
   ast_t* p = node->member.property;
 
-  log_debug("left ty_id ty(%zu)", left_ty_id);
+  log_debug("left ty_id ty[%zu] %s", left_ty_id,
+            ty_to_string(left_ty_id)->value);
 
   // now we should know left type
   ty_t type = ty(left_ty_id);
-  switch (type.of) {
-  case TY_STRUCT: {
-    if (node->member.brakets) {
+
+  if (node->member.brakets) {
+    switch (type.of) {
+    case TY_REFERENCE:
+    case TY_STRUCT: {
       // operator overloading TK_ACCESS
 
       ast_t* fn;
       if (ast_is_left_value(node)) {
         fn = ast_search_fn_op(node, TK_ACCESS_MOD, left_ty_id);
+        if (!fn) {
+          ast_raise_error(node, "type error, cannot find a proper operator "
+                                "overloading function []= for type (%s)",
+                          ty_to_string(left_ty_id)->value);
+        }
       } else {
         fn = ast_search_fn_op(node, TK_ACCESS, left_ty_id);
-      }
-
-      if (!fn) {
-        ast_raise_error(node, "type error, cannot find a proper operator "
-                              "overloading function [] for type (%s)",
-                        ty_to_string(left_ty_id)->value);
+        if (!fn) {
+          ast_raise_error(node, "type error, cannot find a proper operator "
+                                "overloading function [] for type (%s)",
+                          ty_to_string(left_ty_id)->value);
+        }
       }
 
       // transform binop into function call
@@ -794,8 +801,20 @@ void ts_cast_expr_member(ast_t* node) {
       _typesystem(node);
 
       log_verbose("operator overloading: binop to expr call.");
-
-    } else {
+    } break;
+    case TY_POINTER: {
+      node->ty_id = type.ptr.to;
+      node->member.property = __cast_node_to(p, 9);
+    } break;
+    default: {
+      ast_raise_error(node,
+                      "type error, invalid member access '[]' for type (%s)",
+                      ty_to_string(left_ty_id)->value);
+    }
+    }
+  } else {
+    switch (type.of) {
+    case TY_STRUCT: {
       p->ty_id = node->ty_id =
           ty_get_struct_prop_type(left_ty_id, p->identifier.string);
       node->member.idx =
@@ -846,29 +865,31 @@ void ts_cast_expr_member(ast_t* node) {
         node->call.decl = fn_property;
         node->ty_id = fn_property->func.ret_type->ty_id;
       }
-    }
-  } break;
-  case TY_POINTER: {
-    node->ty_id = type.ptr.to;
-    node->member.property = __cast_node_to(p, 9);
-  } break;
-  case TY_REFERENCE: {
-    // forbid operator[] access
-    ty_t ref_ty = ty(type.ref.to);
-    if (ref_ty.of != TY_STRUCT) {
+    } break;
+    case TY_POINTER: {
       ast_raise_error(node,
-                      "type error, references lack of pointer arithmetic");
-    }
+                      "type error, invalid member access to a pointer type.");
+    } break;
+    case TY_REFERENCE: {
+      log_silly("auto-dereference %s", ast_get_code(node)->value);
+      // forbid operator[] access
+      ty_t ref_ty = ty(type.ref.to);
+      if (ref_ty.of != TY_STRUCT) {
+        ast_raise_error(node,
+                        "type error, references lack of pointer arithmetic");
+      }
 
-    node->member.left = __ts_dereference(node, node->member.left);
-    ts_pass(node);
-  } break;
-  case TY_VECTOR: {
-    node->ty_id = type.vector.to;
-  } break;
-  default: {
-    ast_raise_error(node, "type error, invalid member access for type (%s)",
-                    ty_to_string(left_ty_id)->value);
-  }
+      node->member.left = __ts_dereference(node, node->member.left);
+      ts_pass(node);
+    } break;
+    case TY_VECTOR: {
+      node->ty_id = type.vector.to;
+    } break;
+    default: {
+      ast_raise_error(node,
+                      "type error, invalid member access '.' for type (%s)",
+                      ty_to_string(left_ty_id)->value);
+    }
+    }
   }
 }

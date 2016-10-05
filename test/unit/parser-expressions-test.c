@@ -29,14 +29,6 @@
 TASK_IMPL(parser_expressions) {
   log_debug_level = 10;
 
-  /*
-  TEST_PARSER_OK("sizeof parse",
-      "var i32 a = 27; var i32 b = 3; var i32 c = 3;"
-            "a / b / c;", {
-    ast_dump(root);
-  });
-  */
-
   TEST_PARSER_OK("sizeof parse", "sizeof(i8);", {
     ASSERT(body[0]->type == AST_EXPR_SIZEOF, "is sizeof");
     ASSERT(body[0]->ty_id == TS_I64, "type is i64");
@@ -287,7 +279,8 @@ TASK_IMPL(parser_expressions) {
 
   TEST_PARSER_ERROR("type demotion", "var i32 a = 1;\n"
                                      "a[0];",
-                    "type error, invalid member access for type (i32)", {});
+                    "type error, invalid member access '[]' for type (i32)",
+                    {});
 
   TEST_PARSER_ERROR("operator[]", "struct v2{i8 a};"
                                   "var v2 a;\n"
