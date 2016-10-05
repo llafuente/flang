@@ -345,6 +345,28 @@ function operator + (?, ?) : ? {
 }
 ```
 
+## ffi
+
+Foreign function interface.
+
+To include a C library into flang you need to declare all functions you want
+to import.
+
+Example:
+
+```
+ffi fn printf(ptr(i8) format, ...) : i32;
+ffi fn malloc(u64 size) : ptr(void);
+ffi fn free(ptr(void) ptr) : void;
+```
+
+**REVIEW** compilation process is made outside flang atm. So coder include
+a functions list and also have to include the library in the compilation line.
+flang should be able to compile and have something to add a library to
+compilation.
+
+**TODO** there is no method in include variables.
+
 ## casting
 
 Number casting rules are easy.
@@ -429,22 +451,23 @@ $(struct vec2 { f32 x, f32 y, }) v = {x = 5.000000, y = 2.200000}
 
 ## templates
 
-Templates are in fact variables, and need to be declared first.
+Templates need to be declared unlike other languages.
 We recommended to prefix templates with '$'.
 
 Examples:
 
 ```
-templates $tpl;
+template $tpl;
 
 // now the template can be used in structs and functions
+// see below for examples
 ```
 
 ### Implement templates.
 
 Most languages delay implementation of a template until it's use.
 
-Flang allow you both behaviours.
+Flang allow both behaviours.
 
 Templates are implemented from left to right.
 Here is an example that illustrate that behaviour.
@@ -461,8 +484,8 @@ x(ai8, num64);
 //     ^-- type error, explicit cast required between (i64) to (i8)
 ```
 
-This error it's because after implement the function: $tpl will be implemented
-as i8, and num64 cannot be downcasted, so typesystem force you to cast down
+This error it's because after implement the function: $tpl will be i8,
+and num64 cannot be downcasted, so typesystem force you to cast down
 yourself.
 
 

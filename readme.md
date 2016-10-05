@@ -15,7 +15,7 @@ Under development, do not use it production.
 
 The syntax is rather stable.
 
-[Documentation](doc/readme.md)
+[Documentation](doc/)
 
 ---
 
