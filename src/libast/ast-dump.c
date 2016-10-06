@@ -58,9 +58,16 @@ void ast_dump_one(ast_t* node) {
     // traverse do not follow scope hashes
     // so we print it here
     printf("block [%d]", node->block.scope);
-    printf(" tys [%s]", __ast_block_hash_append(node->block.types));
+    printf(" types [%s]", __ast_block_hash_append(node->block.types));
     printf(" vars [%s]", __ast_block_hash_append(node->block.variables));
     printf(" fns [%s]", __ast_block_hash_append(node->block.functions));
+    if (node->block.modules.length) {
+      printf(" modules [%lu][", node->block.modules.length);
+      for (u64 i = 0; i < node->block.modules.length; ++i) {
+        printf("%s,", ((ast_t*)node->block.modules.values[i])->program.file->value);
+      }
+      printf("]");
+    }
     break;
   case AST_LIST:
     printf("list [count=%zu]", node->list.length);
@@ -100,11 +107,8 @@ void ast_dump_one(ast_t* node) {
     }
     break;
   case AST_EXPR_RUNARY:
-    if (node->runary.operator<127) {
-      printf("runary T(%zu) [operator=%d]", node->ty_id, node->runary.operator);
-    } else {
-      printf("runary T(%zu) [operator=%c]", node->ty_id, node->runary.operator);
-    }
+    printf("runary T(%zu) [operator=%s]", node->ty_id,
+           psr_operator_str(node->runary.operator));
     break;
   case AST_EXPR_CALL:
     printf("call T(%zu) [arguments=%zu]", node->ty_id,

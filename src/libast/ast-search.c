@@ -28,31 +28,6 @@
 #include "flang/libts.h"
 #include "flang/debug.h"
 
-ast_t* ast_search_id_decl(ast_t* node, string* identifier) {
-  ast_t* ret = 0;
-  array* arr = 0;
-
-  char* cstr = identifier->value;
-
-  do {
-    node = ast_get_scope(node);
-
-    // found a variable!
-    ret = (ast_t*)hash_get(node->block.variables, cstr);
-    if (ret) {
-      return ret;
-    }
-
-    // a function cannot collide with a struct
-    arr = hash_get(node->block.functions, cstr);
-    if (arr) {
-      return (ast_t*)array_get(arr, 0);
-    }
-
-  } while (node->block.scope != AST_SCOPE_GLOBAL);
-  return 0;
-}
-
 ast_t* ast_search_fn(ast_t* node, string* identifier, u64* args, u64 nargs,
                      u64 ret_ty, bool var_args) {
   array* arr = ast_scope_fns(node, identifier);

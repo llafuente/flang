@@ -26,7 +26,13 @@ cd ..
 
 #/usr/bin/time -v ./build/flang ./test/codegen/typesystem/references.fl
 #/usr/bin/time -v ./build/flang ./test/codegen/misc/log.fl
-/usr/bin/time -v ./build/flang ./test/codegen/typesystem/struct-properties.fl
+#/usr/bin/time -v ./build/flang ./test/codegen/typesystem/struct-properties.fl -v -vv
+#/usr/bin/time -v ./build/flang ./test/codegen/typesystem/struct-templates2.fl
+#/usr/bin/time -v ./build/flang ./test.fl
+/usr/bin/time -v ./build/flang ./lib/core/array.fl -v -nocore
+#/usr/bin/time -v ./build/flang ./test/codegen/typesystem/operator-overloading3.fl -v
+#/usr/bin/time -v ./build/flang ./test/codegen/typesystem/references2.fl -v
+#/usr/bin/time -v ./build/flang ./test/codegen/misc/globals.fl -v
 
 
 clang -std=c11 -Wno-parentheses-equality -lpthread -luv -lstringc -D_GNU_SOURCE codegen/run.c -o codegen/app

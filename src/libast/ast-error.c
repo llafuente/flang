@@ -63,7 +63,6 @@ bool ast_print_error(ast_t* node) {
     st_line_iterator(node->program.code, __ast_print_error_lines);
     fprintf(stderr, "\n");
 
-    // ast_dump(node);
     return true;
   }
 
@@ -75,7 +74,6 @@ void ast_print_error_at(ast_t* node, char* message) {
   log_debug_level = 99;
 
   ast_t* root = ast_get_root(node);
-  ast_dump(node); // even node parent or root?!
 
   // search a decent node to display 'error area'
   ast_last_error_node = node;

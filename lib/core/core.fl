@@ -1,9 +1,3 @@
-/* string must be first atm */
-import "lib/core/array"; // into global space
-
-forward import "lib/core/string"; // into global space
-forward import "lib/core/ffi-c"; // into global space
-
 /*
 #anon
 struct flang_version {
@@ -14,6 +8,8 @@ struct flang_version {
 global i32 version = {minor: 0, mayor: 0};
 global i32 version = {0,0};
 */
+
+import "lib/core/ffi-c";
 
 fn alloc(u64 amount_of_bytes) : ptr(void) {
   return malloc(amount_of_bytes);

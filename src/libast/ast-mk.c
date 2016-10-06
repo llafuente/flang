@@ -122,6 +122,8 @@ ast_t* ast_mk_block(ast_t* body) {
 
   node->block.body = body;
 
+  array_new(&node->block.modules);
+
   node->block.types = pool_new(sizeof(hash_t));
   hash_new(node->block.types, 10);
 

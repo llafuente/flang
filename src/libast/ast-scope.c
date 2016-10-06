@@ -28,6 +28,62 @@
 #include "flang/libts.h"
 #include "flang/debug.h"
 
+array* ast_get_scopes(ast_t* node) {
+  array* ret = pool_new(sizeof(array));
+  array_new(ret);
+
+  do {
+    node = ast_get_scope(node);
+
+    array_push(ret, node);
+    for (i64 i = 0; i < node->block.modules.length; ++i) {
+      ast_t* module = (ast_t*) node->block.modules.values[i];
+      fl_assert(module->program.body->type == AST_BLOCK);
+      array_push(ret, module->program.body);
+    }
+  } while (node->block.scope != AST_SCOPE_GLOBAL);
+
+  if (!ret->length) {
+    array_delete(ret);
+    pool_free(ret);
+    return 0;
+  }
+
+  return ret;
+}
+
+ast_t* ast_scope_decl(ast_t* node, string* identifier) {
+  ast_t* ret = 0;
+  array* arr = 0;
+
+  char* cstr = identifier->value;
+
+  array* scopes = ast_get_scopes(node);
+  if (!scopes) return 0;
+
+  log_silly("searching in %lu scopes", scopes->length);
+
+  ast_t* scope;
+  for (u64 i = 0; i < scopes->length; ++i) {
+    scope = (ast_t*) scopes->values[i];
+
+    ret = (ast_t*)hash_get(scope->block.variables, cstr);
+    if (ret) {
+      return ret;
+    }
+
+    // TODO REVIEW why the first one only ? can remember why?!!
+    arr = hash_get(scope->block.functions, cstr);
+    if (arr) {
+      return (ast_t*)array_get(arr, 0);
+    }
+  }
+
+  pool_free(scopes);
+
+  return 0;
+}
+
 ast_t* ast_scope_var(ast_t* node, string* identifier) {
   ast_t* ret = 0;
   array* arr = 0;
@@ -47,23 +103,35 @@ ast_t* ast_scope_var(ast_t* node, string* identifier) {
   return 0;
 }
 
+array* __target_arr = 0;
+string* __target_id = 0;
+void __foreach_function(char* key, void* ptr) {
+  fl_assert(ptr != 0);
+
+  array* list = (ast_t*)ptr;
+  for (u64 i = 0; i < list->length; ++i) {
+    ast_t* node = (ast_t*)list->values[0];
+    if (st_cmp(node->func.id->identifier.string, __target_id) == 0) {
+      log_silly("function found!") array_push_unique(__target_arr, node);
+    }
+  }
+}
+
 array* ast_scope_fns(ast_t* node, string* id) {
-  array* arr = pool_new(sizeof(array));
-  array* arr2;
+  array* arr = __target_arr = pool_new(sizeof(array));
+  __target_id = id;
   array_new(arr);
 
-  char* cstr = id->value;
-  ast_t* scope = node;
-  ast_t* fn;
-  do {
-    scope = ast_get_scope(scope);
+  array* scopes = ast_get_scopes(node);
+  if (!scopes) return 0;
 
-    fn = (ast_t*)hash_get(scope->block.types, cstr);
-    if (fn && fn->type == AST_DECL_FUNCTION) {
-      array_concat(arr, (array*)hash_get(scope->block.functions, cstr));
-    }
-  } while (scope->block.scope != AST_SCOPE_GLOBAL);
+  log_silly("searching in %lu scopes", scopes->length);
 
+  for (u64 i = 0; i < scopes->length; ++i) {
+    hash_each(((ast_t*) scopes->values[i])->block.functions, __foreach_function);
+  }
+
+  log_silly("found %lu", arr->length);
   if (arr->length) {
     return arr;
   }

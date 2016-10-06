@@ -92,7 +92,7 @@
     ASSERT(root != 0, "root is not null");                                     \
     ASSERT(root->type == AST_PROGRAM, "root is a program");                    \
     ast_t* err = root->program.body;                                           \
-    ast_mindump(root);                                                         \
+    if(false) {ast_mindump(root);}                                                         \
     if (err->type == AST_ERROR) {                                              \
       STRING_MATCH(err->err.message->value, msg);                              \
     } else {                                                                   \

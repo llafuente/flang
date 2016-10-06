@@ -225,7 +225,7 @@ u64 ast_get_typeid(ast_t* node) {
 
     log_verbose("identifier T(%s)", node->identifier.string->value);
     // search var-dtor and return it
-    ast_t* dtor = ast_search_id_decl(node, node->identifier.string);
+    ast_t* dtor = ast_scope_decl(node, node->identifier.string);
     if (dtor) {
       return ast_get_typeid(dtor);
     }

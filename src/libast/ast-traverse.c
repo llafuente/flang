@@ -85,6 +85,9 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, u64 level,
     break;
   case AST_BLOCK: {
     TRAVERSE(ast->block.body);
+    for (u64 i = 0; i < ast->block.modules.length; ++i) {
+      TRAVERSE(ast->block.modules.values[i]);
+    }
   } break;
   case AST_LIST: {
     TRAVERSE_LIST(ast);

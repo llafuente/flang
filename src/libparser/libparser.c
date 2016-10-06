@@ -34,9 +34,10 @@ void psr_attach_core(ast_t* root) {
   ast_t* block = root->program.body;
 
   if (block->type != AST_ERROR) {
-    ast_t* import =
-        ast_mk_import(ast_mk_lit_string("lib/core/core", false), true);
-    ast_mk_list_insert(block->block.body, import, 0);
+    ast_mk_list_insert(block->block.body, ast_mk_import(ast_mk_lit_string("lib/core/core", false), true), 0);
+    ast_mk_list_insert(block->block.body, ast_mk_import(ast_mk_lit_string("lib/core/ffi-c", false), true), 0);
+    ast_mk_list_insert(block->block.body, ast_mk_import(ast_mk_lit_string("lib/core/array", false), true), 0);
+    ast_mk_list_insert(block->block.body, ast_mk_import(ast_mk_lit_string("lib/core/string", false), true), 0);
   }
 }
 
@@ -133,6 +134,7 @@ ast_action_t __trav_load_imports(ast_trav_mode_t mode, ast_t* node,
     fl_assert(parent->type == AST_LIST);
 
     char* file = node->import.path->string.value->value;
+    log_verbose("loading module %s", file);
 
     char filepath[1024] = "";
 
@@ -154,33 +156,22 @@ ast_action_t __trav_load_imports(ast_trav_mode_t mode, ast_t* node,
     ast_t* module = psr_file(filepath);
 
     if (ast_print_error(module)) {
-      fl_fatal_error("Failed to load module: %s\n", filepath);
+      fl_fatal_error("parse error, failed to load module: '%s' at '%s'\n", file, filepath);
     }
 
     module->type = AST_MODULE;
 
-    ast_mk_insert_before(parent, node, module);
+    //ast_mk_insert_before(parent, node, module);
 
+    ast_t* block_scope = ast_get_scope(node);
+    array_push(&block_scope->block.modules, module);
+    module->parent = block_scope;
+
+    log_verbose("module loaded %s at %p [%lu]", file, module,block_scope->block.modules.length);
+    // no reimport
     node->import.imported = true;
 
-    module->parent = parent;
-
-    fl_assert(module->parent != 0);
-
     ((*(u64*)userdata_out))++;
-
-    if (node->import.forward) {
-      // check that i'm at program scope level.
-      ast_t* pr = parent->parent->parent; // list -> block -> program/module
-      if (pr->type != AST_MODULE && pr->type != AST_PROGRAM) {
-        ast_raise_error(node,
-                        "Cannot foward this import, must be at program level");
-      }
-
-      module->program.body->block.scope = AST_SCOPE_TRANSPARENT;
-    } else {
-      module->program.body->block.scope = AST_SCOPE_BLOCK;
-    }
   }
 
   return AST_SEARCH_CONTINUE;

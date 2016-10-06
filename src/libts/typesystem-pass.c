@@ -86,7 +86,7 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
 
       if (node->identifier.resolve) {
         ast_t* decl = node->identifier.decl =
-            ast_search_id_decl(node, node->identifier.string);
+            ast_scope_decl(node, node->identifier.string);
         if (!decl) {
           ast_mindump(ast_get_root(node));
           ast_raise_error(node, "type error, cannot find declaration for: '%s'",

@@ -1,3 +1,5 @@
+import "lib/core/ffi-c";
+
 // typing
 // * means pointer, cannot be moved, it's just s ref to one single
 // [] array

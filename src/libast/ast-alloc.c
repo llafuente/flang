@@ -81,6 +81,7 @@ void __ast_delete_props(ast_t* ast) {
     // hash_delete(ast->block.types);
     // hash_delete(ast->block.functions);
     // hash_delete(ast->block.variables);
+    array_delete(&ast->block.modules);
   } break;
   case AST_LIST: {
     SAFE_DEL_LIST(ast);

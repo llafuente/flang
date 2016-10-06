@@ -157,6 +157,7 @@ struct ast {
       ast_t* body;
 
       ast_t* parent_scope;
+      array modules; // list of modules
 
       ast_scope_t scope;
 
@@ -475,12 +476,6 @@ libexport ast_t* ast_implement_struct(ast_t* type_list, ast_t* decl,
 /*----------------------------------------------------------------------------*/
 /* cldoc:begin-category(ast-search.c) */
 
-/* From give node reverse the tree searching given identifier
- * @node
- * @identifier
- */
-libexport ast_t* ast_search_id_decl(ast_t* node, string* identifier);
-
 /* From give node reverse the tree search searching given function
  * prototype
  * @node
@@ -705,6 +700,12 @@ libexport ast_t* ast_get_global_scope(ast_t* node);
  * @return neasert scope
  */
 libexport ast_t* ast_get_scope(ast_t* node);
+/* Get all scopes, in order!
+ *
+ * @node
+ * @return 0 if no scope found, an array with the list of scopes.
+ */
+libexport array* ast_get_scopes(ast_t* node);
 
 /* Reverse the tree searching nearest function scope
  *
@@ -776,5 +777,11 @@ libexport ast_t* ast_scope_var(ast_t* node, string* identifier);
 libexport array* ast_scope_fns(ast_t* node, string* id);
 
 libexport ast_t* ast_scope_type(ast_t* node, string* id);
+
+/* Get declaration for given identifier (var/fn) reversing scopes.
+ * @node
+ * @identifier
+ */
+libexport ast_t* ast_scope_decl(ast_t* node, string* identifier);
 
 /* cldoc:end-category() */
