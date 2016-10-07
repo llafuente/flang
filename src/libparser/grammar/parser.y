@@ -48,6 +48,8 @@
 
 %token <token> TK_ACCESS "operator[]"
 %token <token> TK_ACCESS_MOD "operator[]="
+%token <token> TK_NEW "operator new"
+/*%token <token> TK_DELETE "operator free"*/
 
 
 /* keywords */
@@ -329,6 +331,35 @@ var_decl
     ast_mk_list_push($$, assignament);
     ast_position($$, @1, @5);
   }
+  // local variable declaration and allocation
+  | TK_VAR TK_NEW type ident {
+    $$ = ast_mk_list();
+    ast_t* decl = ast_mk_var_decl($3, $4, AST_SCOPE_BLOCK);
+    ast_position(decl, @1, @4);
+    ast_mk_list_push($$, decl);
+
+    // allocate space for current pointer/reference
+    // call malloc
+    ast_t* arguments = ast_mk_list();
+    ast_mk_list_push(arguments, ast_mk_sizeof(ast_clone($3)));
+    ast_t* callee = ast_mk_lit_id(st_newc("malloc", st_enc_ascii), false);
+    ast_t* expr_call = ast_mk_call_expr(callee, arguments);
+    // ident = malloc
+    ast_t* assignament = ast_mk_assignament(ast_clone($4), '=', expr_call);
+    ast_position(expr_call, @2, @2);
+    ast_position(assignament, @2, @2);
+    ast_mk_list_push($$, assignament);
+    //ast_mk_list_push($$, expr_call);
+
+    // TODO REVIEW this call should be optional / removable...
+    arguments = ast_mk_list();
+    ast_mk_list_push(arguments, ast_clone($4));
+    callee = ast_mk_lit_id(st_newc("operator_283", st_enc_ascii), false);
+    expr_call = ast_mk_call_expr(callee, arguments);
+
+    ast_position(expr_call, @2, @2);
+    ast_mk_list_push($$, expr_call);
+  }
   // inference local variable declaration and initialization
   | TK_VAR ident '=' expression {
     $$ = ast_mk_list();
@@ -462,9 +493,18 @@ fn_decl_without_return_type
       yyerror(root, "syntax error, operator overloading is incompatible with varargs"); YYERROR;
     }
 
-    // TODO when add more params this may not be true anymore
-    if ($4->list.length != 2) {
-      yyerror(root, "syntax error, operator overloading require 2 parameters"); YYERROR;
+    switch($3) {
+    case TK_NEW:
+    /*case TK_DELETE:*/ {
+      if ($4->list.length != 1) {
+        yyerror(root, "syntax error, operator require 1 parameter only"); YYERROR;
+      }
+    } break;
+    default: {
+      if ($4->list.length != 2) {
+        yyerror(root, "syntax error, operator require 2 parameters only"); YYERROR;
+      }
+    }
     }
 
     $$ = ast_mk_fn_decl(0, $4, 0, 0, 0, $3, AST_FUNC_OPERATOR);
@@ -589,6 +629,8 @@ function_operators
   | multiplicative_operator
   | TK_ACCESS     { $$ = TK_ACCESS; }
   | TK_ACCESS_MOD { $$ = TK_ACCESS_MOD; }
+  | TK_NEW { $$ = TK_NEW; }
+  /*| TK_DELETE { $$ = TK_DELETE; }*/
   ;
 
 assignament_operator

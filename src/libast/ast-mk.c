@@ -586,6 +586,8 @@ ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression,
 
 ast_t* ast_mk_sizeof(ast_t* type) {
   // printf("ast_mk_sizeof\n");
+  fl_assert(type->type == AST_TYPE);
+
   ast_t* node = ast_new();
   node->type = AST_EXPR_SIZEOF;
 

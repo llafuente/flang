@@ -215,6 +215,8 @@ var b = 0; // b it's a i64 atm
 var i16 c;
 // inference local variable declaration
 var d;
+// local variable declaration and allocation
+var new i8* a_ref_to_i8;
 // full global variable declaration
 global i32 g_man = 1337;
 
@@ -335,16 +337,6 @@ fn sum (u64* a != 0, u64* b != 0) : u64 {
 }
 ```
 
-### function  operator overloading
-
-List of valid operators: `+`, `-`, `*`, `/`, `[]`
-
-```
-function operator + (?, ?) : ? {
-  return ?;
-}
-```
-
 ## ffi
 
 Foreign function interface.
@@ -448,6 +440,33 @@ $(struct vec2 { f32 x, f32 y, }) v = {x = 1.100000, y = 2.200000}
 $(struct vec2 { f32 x, f32 y, }) v = {x = 5.000000, y = 2.200000}
 ```
 
+
+### Operator new (allocate a reference or pointer)
+
+Example:
+```
+struct test_struct {
+  ptr(i8) list,
+};
+
+fn operator new (test_struct* t) {
+  t.list = calloc(10 * sizeof(i8));
+}
+
+var new test_struct* tt;
+tt.list[0] = 72;
+```
+
+When using operator new there is an implicit allocation of the
+current pointer.
+
+See what the compiler does:
+```
+// var new test_struct* tt;
+var test_struct* tt;
+tt = malloc(sizeof(test_struct*))
+operator_new(tt);
+```
 
 ## templates
 

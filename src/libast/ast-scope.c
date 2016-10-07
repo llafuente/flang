@@ -37,7 +37,7 @@ array* ast_get_scopes(ast_t* node) {
 
     array_push(ret, node);
     for (i64 i = 0; i < node->block.modules.length; ++i) {
-      ast_t* module = (ast_t*) node->block.modules.values[i];
+      ast_t* module = (ast_t*)node->block.modules.values[i];
       fl_assert(module->program.body->type == AST_BLOCK);
       array_push(ret, module->program.body);
     }
@@ -59,13 +59,14 @@ ast_t* ast_scope_decl(ast_t* node, string* identifier) {
   char* cstr = identifier->value;
 
   array* scopes = ast_get_scopes(node);
-  if (!scopes) return 0;
+  if (!scopes)
+    return 0;
 
   log_silly("searching in %lu scopes", scopes->length);
 
   ast_t* scope;
   for (u64 i = 0; i < scopes->length; ++i) {
-    scope = (ast_t*) scopes->values[i];
+    scope = (ast_t*)scopes->values[i];
 
     ret = (ast_t*)hash_get(scope->block.variables, cstr);
     if (ret) {
@@ -123,12 +124,13 @@ array* ast_scope_fns(ast_t* node, string* id) {
   array_new(arr);
 
   array* scopes = ast_get_scopes(node);
-  if (!scopes) return 0;
+  if (!scopes)
+    return 0;
 
-  log_silly("searching in %lu scopes", scopes->length);
+  log_silly("searching for '%s' in %lu scopes", id->value, scopes->length);
 
   for (u64 i = 0; i < scopes->length; ++i) {
-    hash_each(((ast_t*) scopes->values[i])->block.functions, __foreach_function);
+    hash_each(((ast_t*)scopes->values[i])->block.functions, __foreach_function);
   }
 
   log_silly("found %lu", arr->length);

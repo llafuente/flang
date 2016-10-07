@@ -211,7 +211,8 @@ ast_t* __ast_clone(ast_t* node) {
     break;
   case AST_BLOCK: {
     CLONE(block.body);
-    // TODO to be able to
+    // TODO what about modules ?
+    // TODO clean scope ?!
     node->block.types = pool_new(sizeof(hash_t));
     hash_new(node->block.types, 10);
 

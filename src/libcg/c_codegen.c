@@ -671,6 +671,9 @@ char* fl_codegen(ast_t* root) {
                          "#include \"types.c\"\n"
                          "#include \"functions.c\"\n\n");
 
+  CG_OUTPUT(cg_fds->decls, "\n"
+                           "// struct and functions declarations\n\n");
+
   cg_type_table(root);
   ast_traverse(root, __codegen_cb, 0, 0, 0, 0);
   fclose(cg_fds->decls);

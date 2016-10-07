@@ -1,0 +1,19 @@
+struct test_struct {
+  f32 x,
+  f32 y,
+  ptr(i8) identifier,
+};
+
+fn operator new (test_struct* t) {
+  t.identifier = malloc(10 * sizeof(i8));
+}
+
+var new test_struct* tt;
+
+tt.identifier[0] = 72;
+tt.identifier[1] = 73;
+tt.identifier[2] = 74;
+tt.identifier[3] = 75;
+tt.identifier[4] = 0;
+
+printf("%s\n", tt.identifier);

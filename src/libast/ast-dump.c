@@ -64,7 +64,8 @@ void ast_dump_one(ast_t* node) {
     if (node->block.modules.length) {
       printf(" modules [%lu][", node->block.modules.length);
       for (u64 i = 0; i < node->block.modules.length; ++i) {
-        printf("%s,", ((ast_t*)node->block.modules.values[i])->program.file->value);
+        printf("%s,",
+               ((ast_t*)node->block.modules.values[i])->program.file->value);
       }
       printf("]");
     }

@@ -66,13 +66,13 @@ function property is_empty(array arr) : bool {
 //TODO }
 
 // this function is duplicated because it's use $array_tpl
-//TODO function operator new (ref array arr, u64 cap) {
-//TODO   arr = malloc(sizeof(array), sizeof($array_tpl) * cap);
-//TODO   // initialize size and capacity
-//TODO   arr.length = 0;
-//TODO   arr.capacity = cap;
-//TODO   arr.values = arr + sizeof(array);
-//TODO }
+function operator new (array* arr) {
+  // arr = malloc(sizeof(array), sizeof($array_tpl) * cap);
+  // initialize size and capacity
+  arr.length = 0;
+  arr.capacity = 8;
+  arr.values = malloc(sizeof($array_tpl) * 8);
+}
 
 // push arr[]= 1;
 function push (array arr, $array_tpl value) : array {
@@ -118,9 +118,3 @@ function operator [] (array* arr, u64 index) {
 
 //var array(i8) first_array;
 //push(first_array, cast(i8) 10);
-
-implement array(i8) as array_i8;
-
-//var array(i8) first_array;
-var array_i8 first_array;
-push(first_array, 10);

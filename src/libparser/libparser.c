@@ -34,10 +34,18 @@ void psr_attach_core(ast_t* root) {
   ast_t* block = root->program.body;
 
   if (block->type != AST_ERROR) {
-    ast_mk_list_insert(block->block.body, ast_mk_import(ast_mk_lit_string("lib/core/core", false), true), 0);
-    ast_mk_list_insert(block->block.body, ast_mk_import(ast_mk_lit_string("lib/core/ffi-c", false), true), 0);
-    ast_mk_list_insert(block->block.body, ast_mk_import(ast_mk_lit_string("lib/core/array", false), true), 0);
-    ast_mk_list_insert(block->block.body, ast_mk_import(ast_mk_lit_string("lib/core/string", false), true), 0);
+    ast_mk_list_insert(
+        block->block.body,
+        ast_mk_import(ast_mk_lit_string("lib/core/core", false), true), 0);
+    ast_mk_list_insert(
+        block->block.body,
+        ast_mk_import(ast_mk_lit_string("lib/core/ffi-c", false), true), 0);
+    ast_mk_list_insert(
+        block->block.body,
+        ast_mk_import(ast_mk_lit_string("lib/core/array", false), true), 0);
+    ast_mk_list_insert(
+        block->block.body,
+        ast_mk_import(ast_mk_lit_string("lib/core/string", false), true), 0);
   }
 }
 
@@ -156,18 +164,20 @@ ast_action_t __trav_load_imports(ast_trav_mode_t mode, ast_t* node,
     ast_t* module = psr_file(filepath);
 
     if (ast_print_error(module)) {
-      fl_fatal_error("parse error, failed to load module: '%s' at '%s'\n", file, filepath);
+      fl_fatal_error("parse error, failed to load module: '%s' at '%s'\n", file,
+                     filepath);
     }
 
     module->type = AST_MODULE;
 
-    //ast_mk_insert_before(parent, node, module);
+    // ast_mk_insert_before(parent, node, module);
 
     ast_t* block_scope = ast_get_scope(node);
     array_push(&block_scope->block.modules, module);
     module->parent = block_scope;
 
-    log_verbose("module loaded %s at %p [%lu]", file, module,block_scope->block.modules.length);
+    log_verbose("module loaded %s at %p [%lu]", file, module,
+                block_scope->block.modules.length);
     // no reimport
     node->import.imported = true;
 

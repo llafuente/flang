@@ -325,13 +325,13 @@ TASK_IMPL(parser_types) {
       "function property 03", V2_DECL "function operator +(v2 a) : v2 {"
                                       "  return a;"
                                       "}",
-      "syntax error, operator overloading require 2 parameters", {});
+      "syntax error, operator require 2 parameters only", {});
 
   TEST_PARSER_ERROR("function property 03",
                     V2_DECL "function operator +(v2 a, i8 x, i8b) : v2 {"
                             "  return a;"
                             "}",
-                    "syntax error, operator overloading require 2 parameters",
+                    "syntax error, operator require 2 parameters only",
                     {});
 
   TEST_PARSER_ERROR("pointer arithmetic", "struct str {i8 xx}; var str _str;\n"
@@ -406,7 +406,7 @@ TASK_IMPL(parser_types) {
                             "  var ptr(f32) x = unsafe_cast(ptr(f32)) a;\n"
                             "  return x[index];\n"
                             "}\n",
-      "syntax error, operator overloading require 2 parameters", {});
+      "syntax error, operator require 2 parameters only", {});
 
   TEST_PARSER_ERROR("cast number-struct",
                     "struct v2x {f32 x, f32 y,};\n"
