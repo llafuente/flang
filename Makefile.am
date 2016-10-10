@@ -17,18 +17,12 @@ include_HEADERS = flang/flang.h \
   flang/libcg.h \
   flang/libts.h
 
-LLVM_CC_FLAGS=`llvm-config --cflags`
-# core executionengine mcjit interpreter analysis native bitwriter
-LLVM_LINK_FLAGS=`llvm-config --cxxflags --ldflags --system-libs --libs`
-
-
-
 bin_PROGRAMS = flang
 flang_SOURCES = src/main.c
 flang_SOURCES += $(COMPILER_SOURCES)
 
-flang_CFLAGS = $(LLVM_CC_FLAGS)
-flang_LDFLAGS = $(LLVM_LINK_FLAGS) -lstdc++ -Wl -L/usr/local/lib '-lstringc'
+flang_CFLAGS = -std=gnu99 -O1
+flang_LDFLAGS = -L/usr/local/lib '-lstringc'
 flang_LDADD = libfl_codegen.a libfl_ts.a libfl_parser.a libfl_ast.a $(LIBS)
 flang_DEPENDENCIES = libfl_codegen.a libfl_ts.a libfl_parser.a libfl_ast.a
 
@@ -51,8 +45,8 @@ SOURCES_TEST = test/tasks.c \
 TESTS = tests
 check_PROGRAMS = tests
 
-tests_CFLAGS = $(LLVM_CC_FLAGS) -O1
-tests_LDFLAGS = $(LLVM_LINK_FLAGS) -O1 -lstdc++ -lrt -L/usr/local/lib '-lstringc'
+tests_CFLAGS = -std=gnu99 -O1
+tests_LDFLAGS = -lrt -L/usr/local/lib '-lstringc'
 tests_LDADD = libfl_codegen.a libfl_ts.a libfl_parser.a libfl_ast.a $(LIBS)
 tests_DEPENDENCIES = libfl_codegen.a libfl_ts.a libfl_parser.a libfl_ast.a
 

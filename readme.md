@@ -21,33 +21,50 @@ The syntax is rather stable.
 
 ### Develop flang
 
-Wants to help?! Awesome! First install Clang (Gcc also works)
+Wants to help?! Awesome! First install Clang/GCC
 
-flang depends on [string.c](https://github.com/llafuente/string.c) and here [how to install string.c](https://github.com/llafuente/vagrant/blob/master/packages/stringc.sh)
+* Clang is default because has better error messages and ASAN
+* clang-format is neede to PR, everything is formatted with it.
 
-There are some `sh`(s) that helps you in the development
+Notes about GCC
 
-    sh run.sh
-    # generate the grammar and build
-    # @build/flang is the executable
+* GCC only work with static linking... PR welcome!
+* To allow GCC i hace to disable c11 and move to gnu99. PR welcome!
 
-    sh test.sh
-    # run all test, everything must pass, no skip, no flaky
+flang depends on
 
-    sh rerun.sh
-    # just build and run something, this is mainly what you have to do
+* [string.c](https://github.com/llafuente/string.c) and here [how to install string.c from git](https://github.com/llafuente/vagrant/blob/master/packages/stringc.sh)
+* [libuv](https://github.com/libuv/libuv) and here [how to install libuv from git](https://github.com/llafuente/vagrant/blob/master/packages/libuv.sh)
+
+
+There are some `sh`(s) that helps you in the development.
+
+    sh run.sh [--gcc] [--clang]
+    # build grammar & execute rerun.sh
+
+    sh rerun.sh [--gcc] [--clang]
+    # build flang and run something, this is mainly what you have to do
     # to develop, after this write a test
     # if you modify the parser grammar (BISON) use run.sh next time
+
+    sh test.sh [--gcc] [--clang]
+    # build grammar & execute retest.sh
+
+    sh retest.sh [--gcc] [--clang]
+    # make check: run all test, everything must pass, no skip, no flaky
 
     sh format.sh
     # This is the only requisite to merge
     # use clang-format to give all the project the same/consistent style
 
+
 MSVS users. Replicate the sh above with some bat/ps1 file (piece of cake!)
+and don't forget to PR :)
 
-### Usage
 
-Pipeline usage: parser -> typesystem -> cprint -> clang compile
+### Pipeline
+
+parser -> typesystem -> codegen (print) -> compile c code
 
 ---
 
@@ -56,15 +73,17 @@ implementation if needed.
 
 ### libfl_ast
 
-Functions to create and manage AST
+Functions to create and manipulate AST
 
 ### libfl_parser
 
 Functions to parse files/string into AST with flang syntax.
 
+Use Bison/Flex.
+
 ### libfl_typesystem
 
-Functions to validate and augment AST. At the end, everything has a type and
+Functions to validate and transform AST. At the end, everything has a type and
 can be safely codegen.
 
 ### libfl_codegen_c

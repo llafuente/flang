@@ -46,10 +46,8 @@ string* execute(char* cmd) {
 
   char* pos = output->value;
 
-  while (!feof(pipe)) {
-    if (fgets(pos, 4096, pipe) != NULL) {
-      pos = pos + strlen(pos);
-    }
+  while (fgets(pos, 4096, pipe) != NULL) {
+    pos = pos + strlen(pos);
   }
   pclose(pipe);
 
@@ -106,9 +104,19 @@ void test_file_list(char** files, size_t nfiles, char* path) {
     flang_exit(root);
 
     // compile
+
+#if __clang__
+#define COMPILER "clang"
+#define ARGS "-lpthread -luv -lstringc"
+#else
+#define COMPILER "gcc"
+#define ARGS "-pthread /usr/local/lib/libuv.a /usr/local/lib/libstringc.a"
+#endif
+
     string* output = execute(
-        "clang -std=c11 -Wno-parentheses-equality -lpthread -luv -lstringc "
-        "-D_GNU_SOURCE ./codegen/run.c -o ./codegen/app");
+        COMPILER " -std=c11 -Wno-parentheses-equality -lrt -L/usr/local/lib/ "
+        "-D_GNU_SOURCE ./codegen/run.c -o ./codegen/app "
+      ARGS);
     st_delete(&output);
 
     // execute

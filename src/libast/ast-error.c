@@ -27,6 +27,7 @@
 #include "flang/libast.h"
 #include "flang/debug.h"
 #include <setjmp.h>
+#include <stdarg.h>
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 

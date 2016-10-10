@@ -109,7 +109,7 @@ string* __target_id = 0;
 void __foreach_function(char* key, void* ptr) {
   fl_assert(ptr != 0);
 
-  array* list = (ast_t*)ptr;
+  array* list = (array*)ptr;
   for (u64 i = 0; i < list->length; ++i) {
     ast_t* node = (ast_t*)list->values[0];
     if (st_cmp(node->func.id->identifier.string, __target_id) == 0) {

@@ -26,6 +26,7 @@
 #include "flang/flang.h"
 #include "flang/libast.h"
 #include "flang/debug.h"
+#include "flang/libparser.h"
 
 char __ast_cbuffer[1024];
 void __ast_block_hash_append_cb(char* key, void* decl) {
