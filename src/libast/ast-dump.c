@@ -181,6 +181,12 @@ void ast_dump_one(ast_t* node) {
   case AST_ATTRIBUTE:
     printf("attribute");
     break;
+  case AST_NEW:
+    printf("new");
+    break;
+  case AST_DELETE:
+    printf("delete");
+    break;
   default: {}
   }
 }

@@ -321,18 +321,17 @@ TASK_IMPL(parser_types) {
 
 #define V2_DECL "struct v2 {\nf32 x,\nf32 y,\n};\n"
 
-  TEST_PARSER_ERROR(
-      "function property 03", V2_DECL "function operator +(v2 a) : v2 {"
-                                      "  return a;"
-                                      "}",
-      "syntax error, operator require 2 parameters only", {});
+  TEST_PARSER_ERROR("function property 03",
+                    V2_DECL "function operator +(v2 a) : v2 {"
+                            "  return a;"
+                            "}",
+                    "syntax error, operator require 2 parameters only", {});
 
   TEST_PARSER_ERROR("function property 03",
                     V2_DECL "function operator +(v2 a, i8 x, i8b) : v2 {"
                             "  return a;"
                             "}",
-                    "syntax error, operator require 2 parameters only",
-                    {});
+                    "syntax error, operator require 2 parameters only", {});
 
   TEST_PARSER_ERROR("pointer arithmetic", "struct str {i8 xx}; var str _str;\n"
                                           "var ptr(i16) a;\n"
@@ -400,13 +399,13 @@ TASK_IMPL(parser_types) {
       "type error, numeric type cannot be casted to (struct test { i8 t1, })",
       {});
 
-  TEST_PARSER_ERROR(
-      "cast number-struct", "struct v2x {f32 x, f32 y,};\n"
-                            "function operator [](v2x a) : f32 {\n"
-                            "  var ptr(f32) x = unsafe_cast(ptr(f32)) a;\n"
-                            "  return x[index];\n"
-                            "}\n",
-      "syntax error, operator require 2 parameters only", {});
+  TEST_PARSER_ERROR("cast number-struct",
+                    "struct v2x {f32 x, f32 y,};\n"
+                    "function operator [](v2x a) : f32 {\n"
+                    "  var ptr(f32) x = unsafe_cast(ptr(f32)) a;\n"
+                    "  return x[index];\n"
+                    "}\n",
+                    "syntax error, operator require 2 parameters only", {});
 
   TEST_PARSER_ERROR("cast number-struct",
                     "struct v2x {f32 x, f32 y,};\n"

@@ -113,6 +113,9 @@ enum ast_types {
   AST_STMT_LOG = 101,
   AST_ATTRIBUTE = 102,
 
+  AST_NEW = 110,
+  AST_DELETE = 111,
+
   AST_ERROR = 255
 };
 
@@ -377,6 +380,14 @@ struct ast {
       ast_t* id;
       ast_t* value;
     } attr;
+
+    struct ast_new {
+      ast_t* expr;
+    } new;
+
+    struct ast_delete {
+      ast_t* expr;
+    } delete;
   };
 };
 
@@ -447,6 +458,8 @@ libexport ast_t* ast_mk_assignament(ast_t* left, int op, ast_t* right);
 libexport ast_t* ast_mk_call_expr(ast_t* callee, ast_t* arguments);
 libexport ast_t* ast_mk_template(ast_t* id, ast_t* block);
 libexport ast_t* ast_mk_implement(ast_t* type_id, ast_t* type_list, ast_t* uid);
+libexport ast_t* ast_mk_new(ast_t* expr);
+libexport ast_t* ast_mk_delete(ast_t* expr);
 libexport ast_t* ast_mk_type_auto();
 libexport ast_t* ast_mk_type_void();
 libexport ast_t* ast_mk_type(string* id, ast_t* child);

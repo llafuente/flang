@@ -103,7 +103,7 @@ void test_file_list(char** files, size_t nfiles, char* path) {
 
     flang_exit(root);
 
-    // compile
+// compile
 
 #if __clang__
 #define COMPILER "clang"
@@ -115,8 +115,7 @@ void test_file_list(char** files, size_t nfiles, char* path) {
 
     string* output = execute(
         COMPILER " -std=c11 -Wno-parentheses-equality -lrt -L/usr/local/lib/ "
-        "-D_GNU_SOURCE ./codegen/run.c -o ./codegen/app "
-      ARGS);
+                 "-D_GNU_SOURCE ./codegen/run.c -o ./codegen/app " ARGS);
     st_delete(&output);
 
     // execute

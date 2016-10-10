@@ -321,6 +321,12 @@ ast_t* __ast_clone(ast_t* node) {
     CLONE(impl.type_id);
     CLONE(impl.type_list);
   } break;
+  case AST_DELETE: {
+    CLONE(delete.expr);
+  }
+  case AST_NEW: {
+    CLONE(delete.expr);
+  }
   default: {}
   }
   return t;

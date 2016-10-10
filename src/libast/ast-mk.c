@@ -659,3 +659,19 @@ ast_t* ast_mk_implement(ast_t* type_id, ast_t* type_list, ast_t* uid) {
 
   return node;
 }
+
+ast_t* ast_mk_new(ast_t* expr) {
+  ast_t* node = ast_new();
+  node->type = AST_NEW;
+  node->new.expr = expr;
+
+  return node;
+}
+
+ast_t* ast_mk_delete(ast_t* expr) {
+  ast_t* node = ast_new();
+  node->type = AST_DELETE;
+  node->delete.expr = expr;
+
+  return node;
+}

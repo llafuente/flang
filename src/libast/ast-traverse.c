@@ -28,11 +28,12 @@
 #include "flang/libts.h"
 #include "flang/debug.h"
 
-ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, u64 level,
+ast_action_t __ast_traverse(ast_t* node, ast_cb_t cb, ast_t* parent, u64 level,
                             void* userdata_in, void* userdata_out) {
-#define TRAVERSE(node)                                                         \
-  if (node) {                                                                  \
-    switch (__ast_traverse(node, cb, ast, level, userdata_in, userdata_out)) { \
+#define TRAVERSE(target)                                                       \
+  if (node->target) {                                                          \
+    switch (__ast_traverse(node->target, cb, node, level, userdata_in,         \
+                           userdata_out)) {                                    \
     case AST_SEARCH_STOP:                                                      \
       return AST_SEARCH_STOP;                                                  \
     case AST_SEARCH_SKIP:                                                      \
@@ -51,7 +52,7 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, u64 level,
       for (u64 i = 0; i < (node)->list.length; ++i) {                          \
         tmp = (ast_t*)(node->list.values)[i];                                  \
         switch (                                                               \
-            __ast_traverse(tmp, cb, ast, level, userdata_in, userdata_out)) {  \
+            __ast_traverse(tmp, cb, node, level, userdata_in, userdata_out)) { \
         case AST_SEARCH_SKIP:                                                  \
         case AST_SEARCH_CONTINUE:                                              \
           continue;                                                            \
@@ -62,14 +63,14 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, u64 level,
     }                                                                          \
   }
 
-  if (!ast) {
+  if (!node) {
     log_warning("ast_traverse: (nil)");
     return true; // is null but continue... its not an error
   }
 
   ++level;
   // stop if callback is false
-  switch (cb(AST_TRAV_ENTER, ast, parent, level, userdata_in, userdata_out)) {
+  switch (cb(AST_TRAV_ENTER, node, parent, level, userdata_in, userdata_out)) {
   case AST_SEARCH_STOP:
     return AST_SEARCH_STOP;
   case AST_SEARCH_SKIP:
@@ -78,115 +79,121 @@ ast_action_t __ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, u64 level,
   }
   }
 
-  switch (ast->type) {
+  switch (node->type) {
   case AST_MODULE:
   case AST_PROGRAM:
-    TRAVERSE(ast->program.body);
+    TRAVERSE(program.body);
     break;
   case AST_BLOCK: {
-    TRAVERSE(ast->block.body);
-    for (u64 i = 0; i < ast->block.modules.length; ++i) {
-      TRAVERSE(ast->block.modules.values[i]);
+    TRAVERSE(block.body);
+    for (u64 i = 0; i < node->block.modules.length; ++i) {
+      TRAVERSE(block.modules.values[i]);
     }
   } break;
   case AST_LIST: {
-    TRAVERSE_LIST(ast);
+    TRAVERSE_LIST(node);
   } break;
   case AST_EXPR_ASSIGNAMENT:
-    TRAVERSE(ast->assignament.left);
-    TRAVERSE(ast->assignament.right);
+    TRAVERSE(assignament.left);
+    TRAVERSE(assignament.right);
     break;
   case AST_EXPR_BINOP:
-    TRAVERSE(ast->binop.left);
-    TRAVERSE(ast->binop.right);
+    TRAVERSE(binop.left);
+    TRAVERSE(binop.right);
     break;
   case AST_EXPR_LUNARY:
-    TRAVERSE(ast->lunary.element);
+    TRAVERSE(lunary.element);
     break;
   case AST_EXPR_RUNARY:
-    TRAVERSE(ast->runary.element);
+    TRAVERSE(runary.element);
     break;
   case AST_EXPR_CALL: {
-    TRAVERSE(ast->call.callee);
-    TRAVERSE(ast->call.arguments);
+    TRAVERSE(call.callee);
+    TRAVERSE(call.arguments);
   } break;
   case AST_EXPR_MEMBER: {
-    TRAVERSE(ast->member.left);
-    TRAVERSE(ast->member.property);
+    TRAVERSE(member.left);
+    TRAVERSE(member.property);
   } break;
   case AST_DTOR_VAR: {
-    TRAVERSE(ast->var.id);
-    TRAVERSE(ast->var.type);
+    TRAVERSE(var.id);
+    TRAVERSE(var.type);
   } break;
   case AST_DECL_FUNCTION: {
-    TRAVERSE(ast->func.attributes);
-    TRAVERSE(ast->func.id);
-    TRAVERSE(ast->func.ret_type);
-    TRAVERSE(ast->func.params);
-    TRAVERSE(ast->func.body);
+    TRAVERSE(func.attributes);
+    TRAVERSE(func.id);
+    TRAVERSE(func.ret_type);
+    TRAVERSE(func.params);
+    TRAVERSE(func.body);
   } break;
   case AST_PARAMETER: {
-    TRAVERSE(ast->param.id);
-    TRAVERSE(ast->param.type);
+    TRAVERSE(param.id);
+    TRAVERSE(param.type);
   } break;
   case AST_STMT_RETURN: {
-    TRAVERSE(ast->ret.argument);
+    TRAVERSE(ret.argument);
   } break;
   case AST_STMT_IF: {
-    TRAVERSE(ast->if_stmt.test);
-    TRAVERSE(ast->if_stmt.block);
-    TRAVERSE(ast->if_stmt.alternate);
+    TRAVERSE(if_stmt.test);
+    TRAVERSE(if_stmt.block);
+    TRAVERSE(if_stmt.alternate);
   } break;
   case AST_STMT_LOOP: {
-    TRAVERSE(ast->loop.init);
-    TRAVERSE(ast->loop.pre_cond);
-    TRAVERSE(ast->loop.update);
-    TRAVERSE(ast->loop.block);
-    TRAVERSE(ast->loop.post_cond);
+    TRAVERSE(loop.init);
+    TRAVERSE(loop.pre_cond);
+    TRAVERSE(loop.update);
+    TRAVERSE(loop.block);
+    TRAVERSE(loop.post_cond);
   } break;
   case AST_CAST: {
-    TRAVERSE(ast->cast.type);
-    TRAVERSE(ast->cast.element);
+    TRAVERSE(cast.type);
+    TRAVERSE(cast.element);
   } break;
   case AST_DECL_STRUCT: {
-    TRAVERSE(ast->structure.id);
-    TRAVERSE(ast->structure.fields);
-    TRAVERSE(ast->structure.tpls);
+    TRAVERSE(structure.id);
+    TRAVERSE(structure.fields);
+    TRAVERSE(structure.tpls);
   } break;
   case AST_DECL_STRUCT_FIELD: {
-    TRAVERSE(ast->field.id);
-    TRAVERSE(ast->field.type);
+    TRAVERSE(field.id);
+    TRAVERSE(field.type);
   } break;
   case AST_DECL_STRUCT_ALIAS: {
-    TRAVERSE(ast->alias.name);
-    TRAVERSE(ast->alias.id);
+    TRAVERSE(alias.name);
+    TRAVERSE(alias.id);
   }
   case AST_DECL_TEMPLATE: {
-    TRAVERSE(ast->tpl.id);
+    TRAVERSE(tpl.id);
   } break;
   case AST_EXPR_SIZEOF: {
-    TRAVERSE(ast->sof.type);
+    TRAVERSE(sof.type);
   } break;
   case AST_TYPE: {
-    TRAVERSE(ast->ty.id);
-    TRAVERSE(ast->ty.children);
+    TRAVERSE(ty.id);
+    TRAVERSE(ty.children);
   } break;
   case AST_STMT_LOG: {
-    TRAVERSE(ast->log.list);
+    TRAVERSE(log.list);
   } break;
   case AST_ATTRIBUTE: {
-    TRAVERSE(ast->attr.id);
-    TRAVERSE(ast->attr.value);
+    TRAVERSE(attr.id);
+    TRAVERSE(attr.value);
   } break;
   case AST_IMPLEMENT: {
-    TRAVERSE(ast->impl.uid);
-    TRAVERSE(ast->impl.type_id);
-    TRAVERSE(ast->impl.type_list);
-  }
+    TRAVERSE(impl.uid);
+    TRAVERSE(impl.type_id);
+    TRAVERSE(impl.type_list);
+  } break;
+  case AST_NEW: {
+    TRAVERSE(delete.expr);
+  } break;
+  case AST_DELETE: {
+    TRAVERSE(delete.expr);
+  } break;
   default: {}
   }
 
-  cb(AST_TRAV_LEAVE, ast, parent, level, userdata_in, userdata_out);
+  cb(AST_TRAV_LEAVE, node, parent, level, userdata_in, userdata_out);
 
   return AST_SEARCH_CONTINUE;
 }
