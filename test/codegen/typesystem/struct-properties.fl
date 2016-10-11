@@ -45,3 +45,5 @@ printf("army.values[0] = %d\n", army.values[0]);
 printf("first(army) = %d\n", first(army));
 printf("army.first = %d\n", army.first);
 printf("army.last = %d\n", army.last);
+
+free(unsafe_cast(ptr(void)) army.values);

@@ -5,7 +5,7 @@ struct vec2 {
 };
 
 var vec2* t;
-t = malloc(sizeof(f32) * 1);
+t = malloc(sizeof(vec2) * 1);
 t.data = malloc(sizeof(f32) * 2);
 
 t.data[0] = 1;
@@ -14,3 +14,6 @@ t.data[1] = 5.75;
 
 printf("t.data[0] %f\n", t.data[0]);
 printf("t.data[1] %f\n", t.data[1]);
+
+free(unsafe_cast(ptr(void)) t.data);
+free(unsafe_cast(ptr(void)) t);

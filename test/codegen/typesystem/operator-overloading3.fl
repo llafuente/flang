@@ -28,3 +28,8 @@ t[0] = 101.75; t[1] = 102.69;
 b[0] = 103.25; b[1] = 104.99;
 
 printf("vec2 t(%f , %f) b(%f , %f)\n", t[0], t[1], b[0], b[1]);
+
+free(unsafe_cast(ptr(void)) t.data);
+free(unsafe_cast(ptr(void)) b.data);
+free(unsafe_cast(ptr(void)) t);
+free(unsafe_cast(ptr(void)) b);

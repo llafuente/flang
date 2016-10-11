@@ -29,3 +29,5 @@ v2.y = 200;
 v2.stop = 0;
 
 $log v2;
+
+free(unsafe_cast(ptr(void)) b);

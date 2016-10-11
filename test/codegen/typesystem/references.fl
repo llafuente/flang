@@ -14,9 +14,13 @@ _ref = 10; // auto-dereference
 printf("value of ptr = %lu\n", *_ref);
 printf("value of ref = %lu\n", *_ptr);
 
+free(unsafe_cast(ptr(void)) _ref);
 _ref = _ptr; // no auto-dereference
 
 printf("same addr = %d\n", _ref == *_ptr);
 
 printf("(u64) x + _ref = %lu\n", x + _ref);
 printf("(u64) _ref + x = %lu\n", _ref + x);
+
+
+free(unsafe_cast(ptr(void)) _ref);

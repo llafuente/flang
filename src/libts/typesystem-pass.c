@@ -163,6 +163,13 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     if (mode == AST_TRAV_LEAVE) {
       ts_pass(node->new.expr);
       if (node->new.expr->ty_id) {
+        // type must be a pointerlike!
+        if (!ty_is_pointer_like(node->new.expr->ty_id)) {
+          ast_raise_error(node, "type error, new requires a pointer-like type");
+        }
+
+        u64 alloc_ty_id = ty(node->new.expr->ty_id).ref.to;
+
         ast_t* expr = node->new.expr;
 
         // transform ast_new into expr-call(s)
@@ -171,7 +178,7 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
 
         ast_t* arguments = ast_mk_list();
         ast_t* type = ast_mk_type(0, 0);
-        type->ty_id = expr->ty_id;
+        type->ty_id = alloc_ty_id;
         ast_mk_list_push(arguments, ast_mk_sizeof(type));
         ast_t* callee = ast_mk_lit_id(st_newc("malloc", st_enc_ascii), false);
         ast_t* expr_call = ast_mk_call_expr(callee, arguments);
