@@ -118,6 +118,7 @@ hash_entry_t* hash_new_entry(hash_t* ht, char* key, void* value) {
   new_entry->value = value;
 
   new_entry->next = 0;
+  new_entry->bycopy = false;
 
   return new_entry;
 }
@@ -130,9 +131,13 @@ hash_entry_t* hash_new_entry_cp(hash_t* ht, char* key, void* value, int size) {
     return 0;
   }
 
-  if ((new_entry->key = strdup(key)) == 0) {
+
+
+  if ((new_entry->key = __hash_malloc(key)) == 0) {
     return 0;
   }
+  size_t i = strlen(key) + 1;
+  memcpy(new_entry->key, key, i);
 
   if ((new_entry->value = __hash_malloc(size)) == 0) {
     return 0;
