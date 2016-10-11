@@ -155,6 +155,44 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
 
       ts_cast_binop(node);
     }
+  } break;
+  case AST_EXPR_SIZEOF: {
+    node->ty_id = TS_I64;
+  } break;
+  case AST_NEW: {
+    if (mode == AST_TRAV_LEAVE) {
+      ts_pass(node->new.expr);
+      if (node->new.expr->ty_id) {
+        ast_t* expr = node->new.expr;
+
+        // transform ast_new into expr-call(s)
+        ast_clear(node, AST_LIST);
+        array_newcap((array*)&node->list, 2);
+
+        ast_t* arguments = ast_mk_list();
+        ast_t* type = ast_mk_type(0, 0);
+        type->ty_id = expr->ty_id;
+        ast_mk_list_push(arguments, ast_mk_sizeof(type));
+        ast_t* callee = ast_mk_lit_id(st_newc("malloc", st_enc_ascii), false);
+        ast_t* expr_call = ast_mk_call_expr(callee, arguments);
+        // ident = malloc
+        ast_t* assignament = ast_mk_assignament(expr, '=', expr_call);
+        ast_mk_list_push(node, assignament);
+
+        // TODO REVIEW this call should be optional / removable...
+        arguments = ast_mk_list();
+        ast_mk_list_push(arguments, expr);
+        char* buffer = malloc(32);
+        sprintf(buffer, "operator_%d", TK_NEW);
+        callee = ast_mk_lit_id(st_newc(buffer, st_enc_ascii), false);
+        free(buffer);
+        expr_call = ast_mk_call_expr(callee, arguments);
+        ast_mk_list_push(node, expr_call);
+
+        ast_parent(node);
+        ts_pass(node);
+      }
+    }
   }
   default: {} // supress warning
   }

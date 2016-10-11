@@ -49,7 +49,7 @@
 %token <token> TK_ACCESS "operator[]"
 %token <token> TK_ACCESS_MOD "operator[]="
 %token <token> TK_NEW "operator new"
-/*%token <token> TK_DELETE "operator free"*/
+%token <token> TK_DELETE "operator delete"
 
 
 /* keywords */
@@ -302,6 +302,15 @@ stmt
     $$ = ast_mk_implement($2, $4, $7);
     ast_position($$, @1, @8);
   }
+  // delete/new are statements in flang, not an expressions...
+  | TK_NEW expression ';' {
+    $$ = ast_mk_new($2);
+    ast_position($$, @1, @3);
+  }
+  | TK_DELETE expression ';' {
+    $$ = ast_mk_delete($2);
+    ast_position($$, @1, @3);
+  }
   ;
 
 import_stmt
@@ -338,27 +347,9 @@ var_decl
     ast_position(decl, @1, @4);
     ast_mk_list_push($$, decl);
 
-    // allocate space for current pointer/reference
-    // call malloc
-    ast_t* arguments = ast_mk_list();
-    ast_mk_list_push(arguments, ast_mk_sizeof(ast_clone($3)));
-    ast_t* callee = ast_mk_lit_id(st_newc("malloc", st_enc_ascii), false);
-    ast_t* expr_call = ast_mk_call_expr(callee, arguments);
-    // ident = malloc
-    ast_t* assignament = ast_mk_assignament(ast_clone($4), '=', expr_call);
-    ast_position(expr_call, @2, @2);
-    ast_position(assignament, @2, @2);
-    ast_mk_list_push($$, assignament);
-    //ast_mk_list_push($$, expr_call);
-
-    // TODO REVIEW this call should be optional / removable...
-    arguments = ast_mk_list();
-    ast_mk_list_push(arguments, ast_clone($4));
-    callee = ast_mk_lit_id(st_newc("operator_283", st_enc_ascii), false);
-    expr_call = ast_mk_call_expr(callee, arguments);
-
-    ast_position(expr_call, @2, @2);
-    ast_mk_list_push($$, expr_call);
+    ast_t* n = ast_mk_new(ast_clone($4));
+    ast_position(n, @1, @3);
+    ast_mk_list_push($$, n);
   }
   // inference local variable declaration and initialization
   | TK_VAR ident '=' expression {
@@ -495,7 +486,7 @@ fn_decl_without_return_type
 
     switch($3) {
     case TK_NEW:
-    /*case TK_DELETE:*/ {
+    case TK_DELETE: {
       if ($4->list.length != 1) {
         yyerror(root, "syntax error, operator require 1 parameter only"); YYERROR;
       }
@@ -630,7 +621,7 @@ function_operators
   | TK_ACCESS     { $$ = TK_ACCESS; }
   | TK_ACCESS_MOD { $$ = TK_ACCESS_MOD; }
   | TK_NEW { $$ = TK_NEW; }
-  /*| TK_DELETE { $$ = TK_DELETE; }*/
+  | TK_DELETE { $$ = TK_DELETE; }
   ;
 
 assignament_operator

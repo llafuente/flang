@@ -235,6 +235,10 @@ ast_action_t __trav_register_types(ast_trav_mode_t mode, ast_t* node,
       break;
     case AST_LIST: // TODO this need review
       break;
+    case AST_DELETE:
+    case AST_NEW: {
+      p->ty_id = node->ty_id;
+    } break;
     default: { fl_assert(false); }
     }
   }

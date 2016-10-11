@@ -1,12 +1,17 @@
 struct test_struct {
   f32 x,
   f32 y,
-  ptr(i8) identifier,
+  ptr(u8) identifier,
 };
 
 fn operator new (test_struct* t) {
   t.identifier = malloc(10 * sizeof(i8));
 }
+
+fn operator delete (test_struct* t) {
+  free(unsafe_cast(ptr(void)) t.identifier);
+}
+
 
 var new test_struct* tt;
 
@@ -17,3 +22,6 @@ tt.identifier[3] = 75;
 tt.identifier[4] = 0;
 
 printf("%s\n", tt.identifier);
+
+
+//delete tt;

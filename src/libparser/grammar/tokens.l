@@ -128,7 +128,7 @@ sizeof   { SET_LOCATION; return TK_SIZEOF; }
 \$log    { SET_LOCATION; return TK_LOG; }
 template { SET_LOCATION; return TK_TEMPLATE; }
 new { SET_LOCATION; return TK_NEW; }
-  /*delete { SET_LOCATION; return TK_DELETE; }*/
+delete { SET_LOCATION; return TK_DELETE; }
 
 false    { SET_LOCATION; return TK_FALSE; }
 true     { SET_LOCATION; return TK_TRUE; }
