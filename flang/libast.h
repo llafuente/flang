@@ -462,6 +462,7 @@ libexport ast_t* ast_mk_new(ast_t* expr);
 libexport ast_t* ast_mk_delete(ast_t* expr);
 libexport ast_t* ast_mk_type_auto();
 libexport ast_t* ast_mk_type_void();
+libexport ast_t* ast_mk_type_pvoid();
 libexport ast_t* ast_mk_type(string* id, ast_t* child);
 libexport ast_t* ast_mk_type2(ast_t* id, ast_t* child);
 libexport ast_t* ast_mk_comment(string* text);

@@ -281,10 +281,10 @@ ast_t* __cast_node_to(ast_t* node, u64 type_id) {
   }
 
   // case 6: implicit cast
-  ast_t* cast = ast_mk_cast(0, node, false);
+  ast_t* cast = ast_mk_cast(ast_mk_type(0, 0), node, false);
   cast->parent = node->parent;
   node->parent = cast;
-  cast->ty_id = type_id;
+  cast->cast.type->ty_id = cast->ty_id = type_id;
 
   return cast;
 }

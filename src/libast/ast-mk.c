@@ -440,6 +440,12 @@ ast_t* ast_mk_type_void() {
   return ast_mk_type(st_newc("void", st_enc_utf8), 0);
 }
 
+ast_t* ast_mk_type_pvoid() {
+  ast_t* type = ast_mk_type(0, 0);
+  type->ty_id = TS_PVOID;
+  return type;
+}
+
 ast_t* ast_mk_type(string* id, ast_t* children) {
   fl_assert(children == 0 || children->type == AST_LIST);
 
@@ -597,6 +603,8 @@ ast_t* ast_mk_sizeof(ast_t* type) {
 }
 
 ast_t* ast_mk_cast(ast_t* type, ast_t* element, bool unsafe) {
+  fl_assert(type != 0);
+  fl_assert(element != 0);
   // printf("ast_mk_cast\n");
   ast_t* node = ast_new();
   node->type = AST_CAST;
@@ -604,6 +612,10 @@ ast_t* ast_mk_cast(ast_t* type, ast_t* element, bool unsafe) {
   node->cast.type = type;
   node->cast.element = element;
   node->cast.unsafe = unsafe;
+
+  if (type && type->ty_id) {
+    node->ty_id = type->ty_id;
+  }
 
   return node;
 }

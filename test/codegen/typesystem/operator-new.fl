@@ -24,4 +24,4 @@ tt.identifier[4] = 0;
 printf("%s\n", tt.identifier);
 
 
-//delete tt;
+delete tt;
