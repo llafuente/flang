@@ -29,7 +29,7 @@ cd build
 ASAN_SYMBOLIZER_PATH=$(which llvm-symbolizer)
 ASAN_OPTIONS=symbolize=1
 
-if [ "$COMPILER" == "clang" ]; then
+if [ "$COMPILER" = "clang" ]; then
   make "CC='clang'" "CFLAGS=-g -O0 -fsanitize=integer -fsanitize=undefined -fsanitize=address -fno-omit-frame-pointer -DASAN=0"
 else
   make "CC='gcc'" "CFLAGS=-g -O0 -fsanitize=address -fno-omit-frame-pointer -DASAN=0 -static-libasan -static-libubsan -lubsan"
@@ -57,7 +57,7 @@ cd ..
 /usr/bin/time -v ./build/flang ./test/codegen/typesystem/operator-new.fl -v
 
 # compile c code
-if [ "$COMPILER" == "clang" ]; then
+if [ "$COMPILER" = "clang" ]; then
   clang -std=c11 -Wno-parentheses-equality -lpthread -luv -lstringc -D_GNU_SOURCE codegen/run.c -o codegen/app
 else
   gcc -std=c11 -Wno-parentheses-equality -D_GNU_SOURCE codegen/run.c -o codegen/app -pthread /usr/local/lib/libuv.a /usr/local/lib/libstringc.a
