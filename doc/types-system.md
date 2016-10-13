@@ -508,6 +508,43 @@ and num64 cannot be downcasted, so typesystem force you to cast down
 yourself.
 
 
+Flang has some type restrictions when you try to implement a templates.
+
+A template can be of any type.
+```
+template $tpl;
+function print_type($tpl a) { printf("%lu", typeof($tpl)); }
+
+print_type(10);
+struct v2 { f32 x, f32 y}
+print_type(v2);
+
+```
+
+But a templated struct can only be implemented by another struct
+```
+template $tpl;
+struct v2 { $tpl x, $tpl y}
+function print_type(v2 a) { printf("%lu", typeof(v2)); }
+
+var v2(f32) v2f;
+print_type(v2f);
+
+print_type(10);
+// ^-- type error, cannot implement type (struct v2 {  x,  y, }) into (i64). A struct is required.
+```
+
+The same occurs with pointers and references.
+```
+template $tpl;
+struct v2 { $tpl x, $tpl y}
+function print_type(v2* a) { printf("%lu", typeof(v2)); }
+
+var v2(f32) v2f;
+print_type(v2f);
+// ^-- type error, cannot implement type (ref(struct v2 {  x,  y, })) into (struct v2_f32 { f32 x, f32 y, }). A reference is required.
+```
+
 **TODO** implement template with a type, and everywhere it's used get
 implemented.
 
