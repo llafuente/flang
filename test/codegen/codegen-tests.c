@@ -107,7 +107,9 @@ void test_file_list(char** files, size_t nfiles, char* path) {
 
 #if __clang__
 #define COMPILER "clang"
-#define ARGS "-lpthread -luv -lstringc -fsanitize=integer -fsanitize=undefined -fsanitize=address -fno-omit-frame-pointer -g -O0"
+#define ARGS                                                                   \
+  "-lpthread -luv -lstringc -fsanitize=integer -fsanitize=undefined "          \
+  "-fsanitize=address -fno-omit-frame-pointer -g -O0"
 #else
 #define COMPILER "gcc"
 #define ARGS "-pthread /usr/local/lib/libuv.a /usr/local/lib/libstringc.a"

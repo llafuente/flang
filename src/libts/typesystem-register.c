@@ -126,8 +126,15 @@ u64 __ts_string_to_tyid(ast_t* node) {
   ast_t* scope = node;
   ast_t* el = node;
 
-  do {
-    scope = ast_get_scope(scope);
+  array* scopes = ast_get_scopes(node);
+  if (!scopes) {
+    log_warning("delayed type '%s'", tcstr);
+    return 0;
+  }
+
+  for (u64 i = 0; i < scopes->length; ++i) {
+    scope = ((ast_t*)scopes->values[i]);
+
     el = hash_get(scope->block.types, tcstr);
     if (el != 0) {
       // check if it's a struct with templates, in wich case, we need to
@@ -161,7 +168,7 @@ u64 __ts_string_to_tyid(ast_t* node) {
       }
       return node->ty.id->ty_id = node->ty_id = el->ty_id;
     }
-  } while (scope->block.scope != AST_SCOPE_GLOBAL);
+  }
 
   log_warning("delayed type '%s'", tcstr);
   return 0;

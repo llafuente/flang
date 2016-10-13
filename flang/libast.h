@@ -120,6 +120,8 @@ enum ast_types {
 };
 
 struct ast {
+  u64 id;
+
   u32 first_line;
   u32 first_column;
   u32 last_line;
@@ -482,10 +484,6 @@ libexport ast_t* ast_mk_import(ast_t* string_lit, bool foward);
 libexport ast_t* ast_mk_log(ast_t* list);
 libexport ast_t* ast_mk_attribute(ast_t* id, ast_t* value);
 
-libexport ast_t* ast_implement_fn(ast_t* type_list, ast_t* decl, string* uid);
-libexport ast_t* ast_implement_struct(ast_t* type_list, ast_t* decl,
-                                      string* uid);
-
 /* cldoc:end-category() */
 /*----------------------------------------------------------------------------*/
 /* cldoc:begin-category(ast-search.c) */
@@ -542,7 +540,7 @@ libexport ast_t* ast_reduce(ast_t* node);
 
 /* cldoc:end-category() */
 
-/* cldoc:begin-category(ast-expand.c) */
+/* cldoc:begin-category(ast-implement.c) */
 
 /* Implement a function template for a given call
  *
@@ -550,6 +548,16 @@ libexport ast_t* ast_reduce(ast_t* node);
  * @return node o error
  */
 libexport ast_t* ast_implement_fn(ast_t* call, ast_t* decl, string* uid);
+
+/* Implement a function template for a given call
+ *
+ * @type_list types
+ * @decl templated struct declaration
+ * @uid unique id (0 auto-generated)
+ * @return node
+ */
+libexport ast_t* ast_implement_struct(ast_t* type_list, ast_t* decl,
+                                      string* uid);
 
 /* cldoc:end-category() */
 

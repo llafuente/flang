@@ -84,7 +84,7 @@ ast_t* ast_scope_decl(ast_t* node, string* identifier) {
 
   return 0;
 }
-
+// TODO REVIEW this is used?! this is wrong!
 ast_t* ast_scope_var(ast_t* node, string* identifier) {
   ast_t* ret = 0;
   array* arr = 0;
@@ -144,16 +144,17 @@ array* ast_scope_fns(ast_t* node, string* id) {
 }
 
 ast_t* ast_scope_type(ast_t* node, string* id) {
-  ast_t* scope = node;
-  ast_t* el;
+  ast_t* ret_node;
+  array* scopes = ast_get_scopes(node);
+  if (!scopes)
+    return 0;
 
-  do {
-    scope = ast_get_scope(scope);
-    el = hash_get(scope->block.types, id->value);
-    if (el != 0) {
-      return el;
+  for (u64 i = 0; i < scopes->length; ++i) {
+    ret_node = hash_get(((ast_t*)scopes->values[i])->block.types, id->value);
+    if (ret_node != 0) {
+      return ret_node;
     }
-  } while (scope->block.scope != AST_SCOPE_GLOBAL);
+  }
 
   return 0;
 }

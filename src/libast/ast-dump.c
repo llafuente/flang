@@ -42,6 +42,8 @@ char* __ast_block_hash_append(hash_t* ht) {
 void ast_dump_one(ast_t* node) {
   fl_assert(node != 0);
 
+  printf("(%lu) ", node->id);
+
   switch (node->type) {
   case AST_PROGRAM:
     printf("program [path='%s']", node->program.file->value);

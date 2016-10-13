@@ -525,5 +525,33 @@ TASK_IMPL(parser_types) {
                                           "b = a + c;",
                     "type error, cannot find declaration for: 'c'", {});
 
+  TEST_PARSER_ERROR("implement a reference, requires a reference",
+                    "template $tpl;\n"
+                    "fn fntpl($tpl* x) {}\n"
+                    "var i8 xy;\n"
+                    "fntpl(xy);\n",
+                    "type error, cannot implement type (ref()) into (i8). A "
+                    "reference is required.",
+                    {});
+
+  TEST_PARSER_ERROR("implement a pointer, requires a pointer",
+                    "template $tpl;\n"
+                    "fn fntpl(ptr($tpl) x) {}\n"
+                    "var i8* xy;\n"
+                    "fntpl(xy);\n",
+                    "type error, cannot implement type (ptr()) into (ref(i8)). "
+                    "A pointer is required.",
+                    {});
+
+  TEST_PARSER_ERROR("implement a struct, requires a struct",
+                    "template $tpl;\n"
+                    "struct array($tpl) { $tpl values, };\n"
+                    "fn fntpl(array x) {}\n"
+                    "var u64 xy;\n"
+                    "fntpl(xy);\n",
+                    "type error, cannot implement type (struct array {  "
+                    "values, }) into (u64). A struct is required.",
+                    {});
+
   return 0;
 }

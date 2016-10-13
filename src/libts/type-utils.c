@@ -432,10 +432,13 @@ u64 ty_create_struct(ast_t* decl) {
     i = same_struct_found;
   }
 
-  log_debug("(struct) register id='%s' ty=%zu", id->value, i);
   // even with ty_id uniques, we need to declare the struct in the scope
   // search nearest scope and add it
   ast_t* x = ast_get_scope(decl);
+
+  log_debug("(struct) register id='%s' ty[%zu] at scope(%lu)", id->value, i,
+            x->id);
+
   if (!__struct_collision(decl, x, id->value)) {
     // TODO review casting, it works, but it's ok ?
     hash_set(x->block.types, id->value, decl);

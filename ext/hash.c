@@ -131,8 +131,6 @@ hash_entry_t* hash_new_entry_cp(hash_t* ht, char* key, void* value, int size) {
     return 0;
   }
 
-
-
   if ((new_entry->key = __hash_malloc(key)) == 0) {
     return 0;
   }

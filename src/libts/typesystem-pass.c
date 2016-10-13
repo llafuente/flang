@@ -216,16 +216,17 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
         ast_t* arguments = ast_mk_list();
         ast_mk_list_push(arguments, expr);
 
-        char * buffer = malloc(32);
+        char* buffer = malloc(32);
         sprintf(buffer, "operator_%d", TK_DELETE);
         ast_t* callee = ast_mk_lit_id(st_newc(buffer, st_enc_ascii), false);
         free(buffer);
-        ast_t * expr_call = ast_mk_call_expr(callee, arguments);
+        ast_t* expr_call = ast_mk_call_expr(callee, arguments);
         ast_mk_list_push(node, expr_call);
 
         // call free
         arguments = ast_mk_list();
-        ast_mk_list_push(arguments, ast_mk_cast(ast_mk_type_pvoid(), ast_clone(expr), true));
+        ast_mk_list_push(
+            arguments, ast_mk_cast(ast_mk_type_pvoid(), ast_clone(expr), true));
         callee = ast_mk_lit_id(st_newc("free", st_enc_ascii), false);
         expr_call = ast_mk_call_expr(callee, arguments);
         ast_mk_list_push(node, expr_call);

@@ -28,8 +28,12 @@
 
 // NOTE this file contains all allocation-ast related functions
 
+u64 __ast_count = 0;
+
 ast_t* ast_new() {
-  return (ast_t*)pool_new(sizeof(ast_t));
+  ast_t* ret = pool_new(sizeof(ast_t));
+  ret->id = ++__ast_count;
+  return ret;
   // return (ast_t*)calloc(1, sizeof(ast_t));
 }
 

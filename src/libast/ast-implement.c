@@ -31,11 +31,42 @@
 
 // return error
 
+void __ast_implement_type_check(ast_t* node, u64 from, u64 to) {
+  ty_t from_type = ty(from);
+  ty_t to_type = ty(to);
+
+  log_silly("to_type.of[%lu] from_type.of[%lu]", to_type.of, from_type.of);
+  if (from_type.of == TY_REFERENCE && to_type.of != TY_REFERENCE) {
+    ast_raise_error(node, "type error, cannot implement type (%s) into (%s). A "
+                          "reference is required.",
+                    ty_to_string(from)->value, ty_to_string(to)->value);
+  }
+
+  if (from_type.of == TY_STRUCT && to_type.of != TY_STRUCT) {
+    ast_raise_error(node, "type error, cannot implement type (%s) into (%s). A "
+                          "struct is required.",
+                    ty_to_string(from)->value, ty_to_string(to)->value);
+  }
+
+  // TODO REVIEW here we can check the from_type is the father of to_type
+
+  if (from_type.of == TY_POINTER && to_type.of != TY_POINTER) {
+    ast_raise_error(node, "type error, cannot implement type (%s) into (%s). A "
+                          "pointer is required.",
+                    ty_to_string(from)->value, ty_to_string(to)->value);
+  }
+
+  // TODO REVIEW what about functions ?!
+}
 void ast_implement_type_in_order(ast_t* fn, u64 from, u64 to) {
   fl_assert(fn->type == AST_DECL_FUNCTION);
 
   ty_t from_type = ty(from);
   ty_t to_type = ty(to);
+
+  log_silly("from %lu to %lu", from, to);
+  // check compatible/enforced types first.
+  __ast_implement_type_check(fn, from, to);
 
   switch (from_type.of) {
   case TY_STRUCT: {
@@ -53,6 +84,9 @@ void ast_implement_type_in_order(ast_t* fn, u64 from, u64 to) {
   case TY_TEMPLATE:
     ast_replace_types(fn, from, to);
   case TY_POINTER:
+    ast_replace_types(fn, from_type.ptr.to, to_type.ptr.to);
+    break;
+  case TY_REFERENCE:
     ast_replace_types(fn, from_type.ptr.to, to_type.ptr.to);
     break;
   default:

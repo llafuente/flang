@@ -21,7 +21,7 @@ The syntax is rather stable.
 
 ### Develop flang
 
-Wants to help?! Awesome! First install Clang/GCC
+Wants to help?! Awesome! First install Clang(3.6+)/GCC (5.4+)
 
 * Clang is default because has better error messages and ASAN
 * clang-format is neede to PR, everything is formatted with it.
