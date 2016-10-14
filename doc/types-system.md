@@ -47,7 +47,7 @@ With this behaviour, overflow is prevented.
 **TODO** Before dereference the pointer is checked against invalid values.
 
 ```
-var i8* ref_to_char = malloc(sizeof(i8)); // **TODO** shorthand var new i8* ref_to_char;
+var new i8* ref_to_char;
 var bool* ref_to_bool;
 
 ref_to_char = 100;
@@ -220,7 +220,7 @@ var new i8* a_ref_to_i8;
 // full global variable declaration
 global i32 g_man = 1337;
 
-function x () {
+function who_is_g_man () {
   // coder hint for where the var cames.
   global g_man;
 
@@ -242,6 +242,17 @@ fn say_hello() {
 // fn and function are synomins
 function say_hello2() {
   printf("Hello2!");
+}
+
+// function with arguments and return value
+function sum (i8 a, i8 b) : i8 {
+  return a + b;
+}
+
+// function with templated arguments
+template $tpl;
+fn print_my_type($tpl a) {
+  printf("%lu", typeof(a));
 }
 ```
 

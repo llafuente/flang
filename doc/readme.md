@@ -66,4 +66,5 @@ in other chapters.
 Take some air and dive deep into flang!
 
 * [type system](types-system.md)
+* [operators](operators.md)
 * [debugging](debugging.md)
