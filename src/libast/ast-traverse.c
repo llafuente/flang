@@ -168,6 +168,9 @@ ast_action_t __ast_traverse(ast_t* node, ast_cb_t cb, ast_t* parent, u64 level,
   case AST_EXPR_SIZEOF: {
     TRAVERSE(sof.type);
   } break;
+  case AST_EXPR_TYPEOF: {
+    TRAVERSE(tof.expr);
+  } break;
   case AST_TYPE: {
     TRAVERSE(ty.id);
     TRAVERSE(ty.children);

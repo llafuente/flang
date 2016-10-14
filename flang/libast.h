@@ -84,8 +84,9 @@ enum ast_types {
   AST_EXPR_CALL = 26,
   AST_EXPR_MEMBER = 27,
   AST_EXPR_SIZEOF = 28,
+  AST_EXPR_TYPEOF = 29,
 
-  AST_CAST = 29,
+  AST_CAST = 30,
 
   // TODO AST_DECL_VAR = 30
   AST_DTOR_VAR = 31,
@@ -361,6 +362,10 @@ struct ast {
       ast_t* type;
     } sof;
 
+    struct ast_expr_typeof {
+      ast_t* expr;
+    } tof;
+
     struct ast_stmt_comment {
       string* text;
     } comment;
@@ -479,6 +484,7 @@ libexport ast_t* ast_mk_struct_decl_alias(ast_t* name, ast_t* id);
 libexport ast_t* ast_mk_member(ast_t* left, ast_t* property, bool expression,
                                bool brakets);
 libexport ast_t* ast_mk_sizeof(ast_t* type);
+libexport ast_t* ast_mk_typeof(ast_t* expr);
 libexport ast_t* ast_mk_cast(ast_t* type, ast_t* element, bool unsafe);
 libexport ast_t* ast_mk_import(ast_t* string_lit, bool foward);
 libexport ast_t* ast_mk_log(ast_t* list);

@@ -171,6 +171,9 @@ void ast_dump_one(ast_t* node) {
   case AST_EXPR_SIZEOF:
     printf("sizeof T(%zu)", node->ty_id);
     break;
+  case AST_EXPR_TYPEOF:
+    printf("typeof T(%zu)", node->ty_id);
+    break;
   case AST_STMT_LOG:
     printf("log");
     break;

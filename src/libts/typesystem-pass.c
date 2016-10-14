@@ -156,6 +156,12 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       ts_cast_binop(node);
     }
   } break;
+  case AST_EXPR_TYPEOF: {
+    if (mode == AST_TRAV_LEAVE) {
+      ts_pass(node->tof.expr);
+      node->ty_id = node->tof.expr->ty_id;
+    }
+  } break;
   case AST_EXPR_SIZEOF: {
     node->ty_id = TS_I64;
   } break;

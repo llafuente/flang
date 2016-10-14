@@ -153,6 +153,7 @@ TASK_IMPL(flang_files) {
   // find ./codegen/ | grep 'fl' | sed 's/\.fl//' | awk '{print "\"" $0 "\","}'
 
   char* test_files[] = {
+      // typesystem
       "typesystem/autocast",                "typesystem/type-promotion-mix",
       "typesystem/type-promotion-unsigned", "typesystem/types",
       "typesystem/casting",                 "typesystem/expressions",
@@ -161,17 +162,21 @@ TASK_IMPL(flang_files) {
       "typesystem/operator-overloading",    "typesystem/operator-overloading2",
       "typesystem/operator-overloading3",   "typesystem/operator-new",
       "typesystem/references",              "typesystem/references2",
-      "typesystem/struct-properties",       "statements/loops",
-      "statements/if",                      "statements/loops2",
+      "typesystem/struct-properties",       "typesystem/typeof",
+      // statements
+      "statements/loops",                   "statements/if",
+      "statements/loops2",
+      // math
       "math/arithmetic",                    "math/increment",
+      // memory
       "memory/pointers2",                   "memory/pointer-math",
       "memory/memory3",                     "memory/pointers",
-      "memory/memory",                      "misc/globals",
-      "misc/log",
-      // "misc/globals2",
+      "memory/memory",
+      // misc
+      // "misc/globals2", "misc/string", "misc/hello-world",
+      "misc/globals",                       "misc/log",
       "misc/fibonacci",
-      //"misc/string",
-      //"misc/hello-world",
+      // functions
       "functions/templates",                "functions/templates2",
       "functions/functions",                "functions/function-pointer",
   };

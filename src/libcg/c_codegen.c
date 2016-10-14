@@ -578,6 +578,11 @@ ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     stack_append("sizeof(%s)", cg_type(node->sof.type->ty_id)->value);
     return AST_SEARCH_SKIP; // manual traverse
     break;
+  case AST_EXPR_TYPEOF:
+    // do a manual casting to avoid format warnings, this should be %lu
+    stack_append("((u64)%lu)", node->ty_id);
+    return AST_SEARCH_SKIP; // manual traverse
+    break;
   /*
 case AST_STMT_LOG:
   break;

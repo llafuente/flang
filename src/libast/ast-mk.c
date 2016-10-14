@@ -602,6 +602,19 @@ ast_t* ast_mk_sizeof(ast_t* type) {
   return node;
 }
 
+ast_t* ast_mk_typeof(ast_t* expr) {
+  ast_t* node = ast_new();
+  node->type = AST_EXPR_TYPEOF;
+
+  node->tof.expr = expr;
+
+  if (expr->type == AST_LIT_IDENTIFIER) {
+    expr->identifier.resolve = true;
+  }
+
+  return node;
+}
+
 ast_t* ast_mk_cast(ast_t* type, ast_t* element, bool unsafe) {
   fl_assert(type != 0);
   fl_assert(element != 0);

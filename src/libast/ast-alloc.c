@@ -309,6 +309,9 @@ ast_t* __ast_clone(ast_t* node) {
   case AST_EXPR_SIZEOF: {
     CLONE(sof.type);
   } break;
+  case AST_EXPR_TYPEOF: {
+    CLONE(tof.expr);
+  } break;
   case AST_TYPE: {
     CLONE(ty.id);
     CLONE(ty.children);

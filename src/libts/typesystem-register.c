@@ -236,8 +236,8 @@ ast_action_t __trav_register_types(ast_trav_mode_t mode, ast_t* node,
     case AST_CAST:
       p->ty_id = node->ty_id;
       break;
+    case AST_EXPR_TYPEOF:
     case AST_EXPR_SIZEOF:
-      // LLVMSizeOf
       p->ty_id = TS_I64;
       break;
     case AST_LIST: // TODO this need review

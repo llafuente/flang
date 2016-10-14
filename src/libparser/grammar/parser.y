@@ -735,6 +735,10 @@ unary_expression
     $$ = ast_mk_sizeof($3);
     ast_position($$, @1, @4);
   }
+  | TK_TYPEOF '(' expression ')' {
+    $$ = ast_mk_typeof($3);
+    ast_position($$, @1, @4);
+  }
   ;
 
 cast_expression

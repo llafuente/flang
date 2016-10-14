@@ -1,0 +1,39 @@
+var i8 _i8;
+var i16 _i16;
+var i32 _i32;
+var i64 _i64;
+
+var u8 _u8;
+var u16 _u16;
+var u32 _u32;
+var u64 _u64;
+
+var f32 _f32;
+var f64 _f64;
+
+
+// NOTE do not add any non-builtin type
+// because it will modify the output when core grow
+printf("_i8 = %ld\n", typeof(_i8));
+printf("_i16 = %ld\n", typeof(_i16));
+printf("_i32 = %ld\n", typeof(_i32));
+printf("_i64 = %ld\n", typeof(_i64));
+printf("_u8 = %ld\n", typeof(_u8));
+printf("_u16 = %ld\n", typeof(_u16));
+printf("_u32 = %ld\n", typeof(_u32));
+printf("_u64 = %ld\n", typeof(_u64));
+printf("_f32 = %ld\n", typeof(_f32));
+printf("_f64 = %ld\n", typeof(_f64));
+
+/* REVIEW this could be useful
+printf("i8 = %ld\n", typeof(i8));
+printf("i16 = %ld\n", typeof(i16));
+printf("i32 = %ld\n", typeof(i32));
+printf("i64 = %ld\n", typeof(i64));
+printf("u8 = %ld\n", typeof(u8));
+printf("u16 = %ld\n", typeof(u16));
+printf("u32 = %ld\n", typeof(u32));
+printf("u64 = %ld\n", typeof(u64));
+printf("f32 = %ld\n", typeof(f32));
+printf("f64 = %ld\n", typeof(f64));
+*/
