@@ -699,6 +699,12 @@ libexport bool ast_is_literal(ast_t* node);
  */
 libexport bool ast_is_pointer(ast_t* node);
 
+/* Return if given node has at least one parent with the given type
+ * @node
+ * @type
+ */
+libexport bool ast_has_parent(ast_t* node, ast_types_t type);
+
 /* Get the string piece of code given a node
  * NOTE Does not always work, because some nodes are auto-generated
  *

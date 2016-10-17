@@ -35,7 +35,7 @@ void __ast_implement_type_check(ast_t* node, u64 from, u64 to) {
   ty_t from_type = ty(from);
   ty_t to_type = ty(to);
 
-  log_silly("to_type.of[%lu] from_type.of[%lu]", to_type.of, from_type.of);
+  log_silly("to_type.of[%u] from_type.of[%u]", to_type.of, from_type.of);
   if (from_type.of == TY_REFERENCE && to_type.of != TY_REFERENCE) {
     ast_raise_error(node, "type error, cannot implement type (%s) into (%s). A "
                           "reference is required.",
@@ -58,13 +58,17 @@ void __ast_implement_type_check(ast_t* node, u64 from, u64 to) {
 
   // TODO REVIEW what about functions ?!
 }
+
+// from: decl
+// to: implementation
 void ast_implement_type_in_order(ast_t* fn, u64 from, u64 to) {
   fl_assert(fn->type == AST_DECL_FUNCTION);
 
   ty_t from_type = ty(from);
   ty_t to_type = ty(to);
 
-  log_silly("from %lu to %lu", from, to);
+  log_silly("from %lu[%s] to %lu[%s]", from, ty_to_string(from)->value, to,
+            ty_to_string(to)->value);
   // check compatible/enforced types first.
   __ast_implement_type_check(fn, from, to);
 
@@ -73,9 +77,11 @@ void ast_implement_type_in_order(ast_t* fn, u64 from, u64 to) {
     u64 jmax = from_type.structure.members.length;
     for (u64 j = 0; j < jmax; ++j) {
       if (ty_is_template(from_type.structure.fields[j])) {
+        log_silly("replace template type %d\n", j);
         ast_replace_types(fn, from_type.structure.fields[j],
                           to_type.structure.fields[j]);
       } else if (ty_is_templated(from_type.structure.fields[j])) {
+        log_silly("implement templated type %d\n", j);
         ast_implement_type_in_order(fn, from_type.structure.fields[j],
                                     to_type.structure.fields[j]);
       }
@@ -83,11 +89,14 @@ void ast_implement_type_in_order(ast_t* fn, u64 from, u64 to) {
   } break;
   case TY_TEMPLATE:
     ast_replace_types(fn, from, to);
-  case TY_POINTER:
-    ast_replace_types(fn, from_type.ptr.to, to_type.ptr.to);
     break;
   case TY_REFERENCE:
+    ast_replace_types(fn, from_type.ref.to, to_type.ref.to);
+    ast_implement_type_in_order(fn, from_type.ref.to, to_type.ref.to);
+    break;
+  case TY_POINTER:
     ast_replace_types(fn, from_type.ptr.to, to_type.ptr.to);
+    ast_implement_type_in_order(fn, from_type.ptr.to, to_type.ptr.to);
     break;
   default:
     ast_raise_error(fn, "TODO, not handled case atm 2 %s",
@@ -107,30 +116,30 @@ ast_t* ast_implement_fn(ast_t* type_list, ast_t* decl, string* uid) {
   fn->func.uid = uid; // if 0 -> auto
   ast_parent(fn);
 
+  log_silly("implement function %s", fn->func.id->identifier.string->value);
   ast_mk_insert_before(decl->parent, decl, fn);
 
   // todo replace types!
   u64 old;
   u64 new;
 
-  ast_t* params = fn->func.params;
-  u64 count = params->list.length;
+  ast_t* decl_params = fn->func.params;
+  u64 count = decl_params->list.length;
 
   u64 i;
-  u64 param_ty_id;
+  u64 decl_param_ty_id;
 
   // loop left to right implementing each type and template
   for (i = 0; i < count; ++i) {
-    param_ty_id = params->list.values[i]->ty_id;
-    if (ty_is_templated(param_ty_id)) {
-      ast_implement_type_in_order(fn, param_ty_id,
-                                  type_list->list.values[i]->ty_id);
+    decl_param_ty_id = decl_params->list.values[i]->ty_id;
 
-      // find each template
-      log_silly("replace type %lu -> %lu", param_ty_id,
-                type_list->list.values[i]->ty_id);
+    log_silly("type %d - %s", i, ty_to_string(decl_param_ty_id)->value);
+
+    if (ty_is_templated(decl_param_ty_id)) {
+      ast_implement_type_in_order(fn, decl_param_ty_id,
+                                  type_list->list.values[i]->ty_id);
       // search type and replace!
-      ast_replace_types(fn, param_ty_id, type_list->list.values[i]->ty_id);
+      ast_replace_types(fn, decl_param_ty_id, type_list->list.values[i]->ty_id);
     }
   }
 

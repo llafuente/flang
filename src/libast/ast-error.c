@@ -33,7 +33,10 @@
 
 void __ast_print_error_lines(const string* line, st_len_t pos,
                              const string* code) {
-  if (pos >= MAX(0, ast_last_error_node->first_line - 3) &&
+
+  if (pos >= (ast_last_error_node->first_line > 3
+                  ? ast_last_error_node->first_line - 3
+                  : 0) &&
       pos <= ast_last_error_node->last_line + 2) {
     fprintf(stderr, "%6d | %s\n", pos + 1, line->value);
     if (pos == ast_last_error_node->first_line - 1) {

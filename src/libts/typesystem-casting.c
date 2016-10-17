@@ -871,8 +871,13 @@ void ts_cast_expr_member(ast_t* node) {
                       "type error, invalid member access to a pointer type.");
     } break;
     case TY_REFERENCE: {
-      log_silly("auto-dereference %s", ast_get_code(node)->value);
+      log_silly("auto-dereference (%s)%s", ty_to_string(left_ty_id)->value,
+                ast_get_code(node)->value);
       // forbid operator[] access
+      if (!type.ref.to) {
+        fl_assert(false);
+      }
+
       ty_t ref_ty = ty(type.ref.to);
       if (ref_ty.of != TY_STRUCT) {
         ast_raise_error(node,

@@ -94,12 +94,18 @@ u64 __ts_string_to_tyid(ast_t* node) {
     return node->ty.id->ty_id = node->ty_id = TS_PTRDIFF;
   }
 
+  // type below are wrappers, this means they can appear inside a struct
+  // pointing to themself, so if our parent is a struct, we should use auto
+  // an in the second pass auto will be replaced with the struct type
+
   if (strcmp(tcstr, "ptr") == 0) {
     fl_assert(node->ty.children != 0);
     fl_assert(node->ty.children->list.length == 1); // TODO raise
     ts_register_types(node->ty.children);
 
     u64 t = __ts_string_to_tyid(node->ty.children->list.values[0]);
+    if (!t && !ast_has_parent(node, AST_DECL_STRUCT))
+      return 0;
     return node->ty.id->ty_id = node->ty_id = ty_create_wrapped(TY_POINTER, t);
   }
 
@@ -109,6 +115,8 @@ u64 __ts_string_to_tyid(ast_t* node) {
     ts_register_types(node->ty.children);
 
     u64 t = __ts_string_to_tyid(node->ty.children->list.values[0]);
+    if (!t && !ast_has_parent(node, AST_DECL_STRUCT))
+      return 0;
     return node->ty.id->ty_id = node->ty_id = ty_create_wrapped(TY_VECTOR, t);
   }
 
@@ -118,11 +126,13 @@ u64 __ts_string_to_tyid(ast_t* node) {
     ts_register_types(node->ty.children);
 
     u64 t = __ts_string_to_tyid(node->ty.children->list.values[0]);
+    if (!t && !ast_has_parent(node, AST_DECL_STRUCT))
+      return 0;
     return node->ty.id->ty_id = node->ty_id =
                ty_create_wrapped(TY_REFERENCE, t);
   }
 
-  char* id = node->identifier.string->value;
+  log_silly("search type for '%s'", tcstr);
   ast_t* scope = node;
   ast_t* el = node;
 

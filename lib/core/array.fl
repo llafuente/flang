@@ -21,7 +21,7 @@ struct array($array_tpl) { // @heap
 
 // implement array(u8) as string;
 // also string should extend the type adding encoding
-/*
+
 function property first(array arr) : $array_tpl {
   return arr.values[0];
 }
@@ -29,7 +29,7 @@ function property first(array arr) : $array_tpl {
 function property last(array arr) : $array_tpl {
   return arr.values[arr.length - 1];
 }
-*/
+
 function property is_full(array arr) : bool {
   return arr.length == arr.capacity;
 }
@@ -61,9 +61,9 @@ function property is_empty(array arr) : bool {
 //TODO }
 
 // this function is not duplicated per type, because $array_tpl is not used
-//TODO function operator delete (ref array arr) {
-//TODO   free(cast(void*) arr);
-//TODO }
+function operator delete (array* arr) {
+  free(unsafe_cast(ptr(void)) arr.values);
+}
 
 // this function is duplicated because it's use $array_tpl
 function operator new (array* arr) {
@@ -75,14 +75,16 @@ function operator new (array* arr) {
 }
 
 // push arr[]= 1;
-function push (array arr, $array_tpl value) : array {
+function push (array* arr, $array_tpl value) : array* {
   // $array_tpl is backed in all operators
   // function is not duplicated
 
   // TODO resize if needed?!
 
   if (!arr.data) {
-    arr.data = malloc(sizeof($array_tpl) * 5);
+    arr.length = 0;
+    arr.capacity = 8;
+    arr.values = malloc(sizeof($array_tpl) * 8);
   }
 
   arr.data[arr.len++] = value;
@@ -98,9 +100,6 @@ function set(array* arr, int index, $array_tpl value) : array* {
   return arr;
 }
 
-//TODO function alias array_push operator []=;
-
-// push arr[]= 1;
 function operator []= (array* arr, u64 index) : $array_tpl* {
   // assert(index > arr.length, 'out of bounds: use push instead or fill before');
 
@@ -114,7 +113,3 @@ function operator [] (array* arr, u64 index) {
 }
 
 //TODO alias array_get operator [];
-
-
-//var array(i8) first_array;
-//push(first_array, cast(i8) 10);

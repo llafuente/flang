@@ -49,10 +49,11 @@ ast_action_t __trav_implement(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       // maybe a struct ?!
       ast_t* decl = ast_scope_type(node, fn_id);
       if (decl && decl->type == AST_DECL_STRUCT) {
+        log_silly("implement struct '%s'", fn_id->value);
         // STRUCT
         ast_t* tmp = ast_implement_struct(node->impl.type_list, decl,
                                           node->impl.uid->identifier.string);
-        log_silly("fn expanded: %zu", tmp->ty_id);
+        log_silly("struct new type[%zu]", tmp->ty_id);
         return AST_SEARCH_SKIP;
       }
 
@@ -60,6 +61,7 @@ ast_action_t __trav_implement(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
                       "typesystem - Cannot find function or struct named: '%s'",
                       fn_id->value);
     } else {
+      log_silly("implement function '%s'", fn_id->value);
       ast_t* fn = 0;
       ast_t* tmp = 0;
       for (int i = 0; i < arr->length; ++i) {
@@ -84,7 +86,7 @@ ast_action_t __trav_implement(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       } else {
         ast_t* tmp = ast_implement_fn(node->impl.type_list, arr->values[0],
                                       node->impl.uid->identifier.string);
-        log_silly("fn expanded: %zu", tmp->ty_id);
+        log_silly("fn new type[%zu]", tmp->ty_id);
       }
     }
     array_delete(arr);

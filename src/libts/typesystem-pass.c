@@ -169,6 +169,9 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     if (mode == AST_TRAV_LEAVE) {
       ts_pass(node->new.expr);
       if (node->new.expr->ty_id) {
+        log_silly("new expr has type %s",
+                  ty_to_string(node->new.expr->ty_id)->value);
+
         // type must be a pointerlike!
         if (!ty_is_pointer_like(node->new.expr->ty_id)) {
           ast_raise_error(node, "type error, new requires a pointer-like type");

@@ -35,8 +35,11 @@ ast_action_t __trav_replace_types(ast_trav_mode_t mode, ast_t* node,
     return 0;
 
   if (node->ty_id == (*(u64*)userdata_in)) {
+    log_silly("type changed to %lu => %lu", node->ty_id, *((u64*)userdata_out));
     node->ty_id = *((u64*)userdata_out);
-    log_silly("type changed to %lu", node->ty_id);
+    if (!node->ty_id) {
+      ast_raise_error(node, "type error, cannot implement a type with auto");
+    }
 
     if (node->type == AST_TYPE) {
       node->ty.id->ty_id = node->ty_id;
@@ -61,6 +64,7 @@ ast_action_t __trav_replace_types(ast_trav_mode_t mode, ast_t* node,
 }
 
 void ast_replace_types(ast_t* node, u64 old, u64 new) {
+  log_silly("replace type %lu => %lu", old, new);
   ast_traverse(node, __trav_replace_types, 0, 0, (void*)&old, (void*)&new);
 }
 

@@ -553,5 +553,14 @@ TASK_IMPL(parser_types) {
                     "values, }) into (u64). A struct is required.",
                     {});
 
+  TEST_PARSER_OK("type inside a type by ref/ptr",
+                 "template $tpl;\n"
+                 "struct array($tpl) { $tpl values, };\n"
+                 "implement array(i8) as array_i8;\n",
+                 {
+    // TODO this test depends on core :S
+    ASSERTE(body[1]->ty_id, TEST_TYPEID + 2, "%d != %d", "type implemented");
+  });
+
   return 0;
 }

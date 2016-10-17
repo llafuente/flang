@@ -71,6 +71,15 @@ bool ast_is_pointer(ast_t* node) {
   return ty(id).of == TY_POINTER;
 }
 
+bool ast_has_parent(ast_t* node, ast_types_t type) {
+  while ((node = node->parent) != null) {
+    if (node->type == type) {
+      return true;
+    }
+  }
+  return false;
+}
+
 //
 // get
 //
