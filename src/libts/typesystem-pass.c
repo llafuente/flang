@@ -56,12 +56,6 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
   // do not pass typesystem to templates
   // templates are incomplete an raise many errors
   case AST_DECL_FUNCTION: {
-    // add the virtual to the list in the type, only once
-    if (node->func.type == AST_FUNC_PROPERTY && node->ts_passes == 1) {
-      ts_pass(node->func.params);
-      ty_struct_add_virtual(node);
-    }
-
     if (node->func.type == AST_FUNC_OPERATOR && node->ts_passes == 1 &&
         !node->func.templated) {
       ts_pass(node->func.params);

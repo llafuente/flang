@@ -298,7 +298,7 @@ TASK_IMPL(parser_types) {
       "function property 01", "function property first(i8 arr) {\n"
                               "  return 0;\n"
                               "}\n",
-      "function property first argument must be a struct given: i8", {});
+      "type error, function property require a cannonical type of struct, given: i8", {});
 
   TEST_PARSER_ERROR("function property 02",
                     "struct arr {i8 a};\n"
@@ -308,8 +308,7 @@ TASK_IMPL(parser_types) {
                     "function property first(arr ari) {\n"
                     "  return 0;\n"
                     "}\n",
-                    "function property redefinition (same name), previously "
-                    "defined at memory:string:2:1",
+                    "type error, function property redefinition, previously defined at memory:string:2:1",
                     {});
 
   TEST_PARSER_ERROR(

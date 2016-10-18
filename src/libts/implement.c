@@ -81,7 +81,7 @@ ast_action_t __trav_implement(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
                         fn_id->value);
       }
 
-      ast_t* tmp = ast_implement_fn(node->impl.type_list, arr->values[0],
+      tmp = ast_implement_fn(node->impl.type_list, arr->values[0],
                                     node->impl.uid->identifier.string);
       log_silly("fn new type[%zu]", tmp->ty_id);
     }

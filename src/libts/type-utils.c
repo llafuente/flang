@@ -38,6 +38,21 @@ ty_t* ty_ref(u64 ty_id) {
   return &ts_type_table[ty_id];
 }
 
+u64 ty_get_cannonical(u64 ty_id) {
+  ty_t type = ty(ty_id);
+
+  switch(type.of) {
+  case TY_POINTER:
+  case TY_REFERENCE:
+    return ty_get_cannonical(type.ptr.to);
+  default: {}
+  }
+
+  // TODO REVIEW what about array?!
+
+  return ty_id;
+}
+
 bool ty_is_struct(u64 id) { return ty(id).of == TY_STRUCT; }
 
 bool ty_is_vector(u64 id) { return ty(id).of == TY_VECTOR; }
@@ -734,14 +749,14 @@ void ty_struct_add_virtual(ast_t* decl) {
   string* id = decl->func.id->identifier.string;
   ast_t* params = decl->func.params;
 
-  fl_assert(params->list.length == 1);
-  u64 ty_id = params->list.values[0]->ty_id;
+  fl_assert(params->list.length == 1); // NOTE checked at parser.y assert here
+  u64 ty_id = ty_get_cannonical(params->list.values[0]->ty_id);
   ty_t* type = &ts_type_table[ty_id];
 
   if (type->of != TY_STRUCT) {
     ast_raise_error(
-        decl, "function property first argument must be a struct given: %s",
-        ty_to_string(ty_id)->value);
+        decl, "type error, function property require a cannonical type of struct, given: %s",
+        ty_to_string(params->list.values[0]->ty_id)->value);
   }
 
   u64 max = type->structure.virtuals.length;
@@ -749,11 +764,13 @@ void ty_struct_add_virtual(ast_t* decl) {
     ast_t* ast = (ast_t*)type->structure.virtuals.values[i];
     fl_assert(ast != decl);
     if (st_cmp(ast->func.id->identifier.string, id) == 0) {
-      ast_raise_error(decl, "function property redefinition (same name), "
+      ast_raise_error(decl, "type error, function property redefinition, "
                             "previously defined at %s",
                       ast_get_location(ast)->value);
     }
   }
+
+  log_silly("add virtual %s to %s", id->value, ty_to_string(ty_id)->value);
 
   array_push(&type->structure.virtuals, decl);
 }
