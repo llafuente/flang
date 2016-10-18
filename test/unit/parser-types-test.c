@@ -562,5 +562,25 @@ TASK_IMPL(parser_types) {
     ASSERTE(body[1]->ty_id, TEST_TYPEID + 2, "%d != %d", "type implemented");
   });
 
+  TEST_PARSER_ERROR(
+      "cannot find function or struct named",
+      "template $tpl;\n"
+      "fn fntpl($tpl x) {}\n"
+      "implement fntpl2(u64) as fntpl_u64;\n",
+      "type error, cannot find function or struct named: 'fntpl2'", {});
+
+  TEST_PARSER_ERROR("cannot implement polymorphic functions",
+                    "template $tpl;\n"
+                    "template $tpl2;\n"
+                    "fn fntpl($tpl x) {}\n"
+                    "fn fntpl($tpl2 x) {}\n"
+                    "implement fntpl(u64) as fntpl_u64;\n",
+                    "type error, cannot implement polymorphic functions", {});
+
+  TEST_PARSER_ERROR("function x has no templates",
+                    "fn fntpl(i32 x) {}\n"
+                    "implement fntpl(u64) as fntpl_u64;\n",
+                    "type error, function 'fntpl' has no templates", {});
+
   return 0;
 }

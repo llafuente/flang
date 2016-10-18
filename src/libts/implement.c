@@ -43,14 +43,13 @@ ast_action_t __trav_implement(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     node->ts_passes = 1;
 
     string* fn_id = node->impl.type_id->identifier.string;
+    log_silly("implement '%s'", fn_id->value);
     array* arr = ast_scope_fns(node, fn_id);
 
     if (!arr) {
       // maybe a struct ?!
       ast_t* decl = ast_scope_type(node, fn_id);
       if (decl && decl->type == AST_DECL_STRUCT) {
-        log_silly("implement struct '%s'", fn_id->value);
-        // STRUCT
         ast_t* tmp = ast_implement_struct(node->impl.type_list, decl,
                                           node->impl.uid->identifier.string);
         log_silly("struct new type[%zu]", tmp->ty_id);
@@ -58,10 +57,9 @@ ast_action_t __trav_implement(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       }
 
       ast_raise_error(node,
-                      "typesystem - Cannot find function or struct named: '%s'",
+                      "type error, cannot find function or struct named: '%s'",
                       fn_id->value);
     } else {
-      log_silly("implement function '%s'", fn_id->value);
       ast_t* fn = 0;
       ast_t* tmp = 0;
       for (int i = 0; i < arr->length; ++i) {
@@ -72,22 +70,20 @@ ast_action_t __trav_implement(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
             ast_dump_s(fn);
             ast_dump_s(tmp);
             ast_raise_error(
-                node,
-                "typesystem - Cannot implement multiple functions (atm?)");
+                node, "type error, cannot implement polymorphic functions");
           }
           fn = tmp;
         }
       }
 
       if (!fn) {
-        ast_raise_error(node,
-                        "typesystem - Cannot find function '%s' with templates",
+        ast_raise_error(node, "type error, function '%s' has no templates",
                         fn_id->value);
-      } else {
-        ast_t* tmp = ast_implement_fn(node->impl.type_list, arr->values[0],
-                                      node->impl.uid->identifier.string);
-        log_silly("fn new type[%zu]", tmp->ty_id);
       }
+
+      ast_t* tmp = ast_implement_fn(node->impl.type_list, arr->values[0],
+                                    node->impl.uid->identifier.string);
+      log_silly("fn new type[%zu]", tmp->ty_id);
     }
     array_delete(arr);
     pool_free(arr);
