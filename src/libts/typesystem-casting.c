@@ -211,7 +211,7 @@ bool ts_cast_literal(ast_t* node, u64 type_id) {
                       ty_to_string(type_id)->value);
     }
     node->ty_id = type_id;
-    return node;
+    return true;
   }
   if (node->type == AST_EXPR_LUNARY && node->lunary.operator== '-') {
     return ts_cast_literal(node->lunary.element, type_id);
@@ -467,9 +467,12 @@ void ts_cast_call(ast_t* node) {
     // this happend when calle it's not a literal
     // check if it's compatible
     if (!ty_compatible_fn(cty_id, args, false, false)) {
-      ast_raise_error(node,
-                      "type error, incompatible call arguments expected (%s)",
-                      ty_to_string(cty_id)->value);
+      ty_t fn_type = ty(cty_id);
+      ast_raise_error(
+          node,
+          "type error, incompatible call arguments\nexpected: %s\nfound: %s",
+          ty_to_string_list(fn_type.func.decl->func.params)->value,
+          ty_to_string_list(args)->value);
       return;
     }
   } else {
@@ -761,17 +764,31 @@ void ts_cast_expr_member(ast_t* node) {
     case TY_STRUCT: {
       // operator overloading TK_ACCESS
 
-      ast_t* fn;
-      if (ast_is_left_value(node)) {
-        fn = ast_search_fn_op(node, TK_ACCESS_MOD, left_ty_id);
-        if (!fn) {
+      int operator= ast_is_left_value(node) ? TK_ACCESS_MOD : TK_ACCESS;
+      ast_t* fn = ast_search_fn_op(node, operator, left_ty_id);
+
+      ty_t type = ty(ty_get_cannonical(left_ty_id));
+
+      if (!fn && type.structure.from_tpl) {
+        log_silly("maybe there is an operator in my father?");
+        fn = ty_get_operator(type.structure.from_tpl, 0, operator, false);
+
+        if (fn) { // implement!
+          ast_t* type_list = ast_mk_list();
+          ast_mk_list_push(type_list, l);
+          ast_mk_list_push(type_list, p);
+
+          fn = ast_implement_fn(type_list, fn, 0);
+        }
+      }
+
+      if (!fn) {
+        switch (operator) {
+        case TK_ACCESS_MOD:
           ast_raise_error(node, "type error, cannot find a proper operator "
                                 "overloading function []= for type (%s)",
                           ty_to_string(left_ty_id)->value);
-        }
-      } else {
-        fn = ast_search_fn_op(node, TK_ACCESS, left_ty_id);
-        if (!fn) {
+        case TK_ACCESS:
           ast_raise_error(node, "type error, cannot find a proper operator "
                                 "overloading function [] for type (%s)",
                           ty_to_string(left_ty_id)->value);
@@ -791,6 +808,7 @@ void ts_cast_expr_member(ast_t* node) {
 
       // clear
       ast_clear(node, AST_EXPR_CALL);
+      node->ty_id = fn->func.ret_type->ty_id;
       node->call.callee = fn->func.id;
       node->call.arguments = arguments;
       node->call.decl = fn;

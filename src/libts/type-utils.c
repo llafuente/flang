@@ -484,8 +484,6 @@ bool ty_compatible_fn(u64 ty_id, ast_t* arg_list, bool strict, bool template) {
   }
 
   for (i = 0; i < args_sent; ++i) {
-    log_silly("parameter %zu of %zu/%zu", i, arg_list->list.length,
-              at.func.nparams);
 
     // end reached it's compatible, the rest is varargs
     if (at.func.varargs && i == at.func.nparams)
@@ -493,6 +491,9 @@ bool ty_compatible_fn(u64 ty_id, ast_t* arg_list, bool strict, bool template) {
     arg = arg_list->list.values[i];
     current = arg->ty_id;
     expected = at.func.params[i];
+
+    log_silly("parameter %zu of %zu/%zu [%zu ==? %zu]", i, arg_list->list.length,
+    at.func.nparams, current, expected);
 
     // strict - same type
     if (strict && current != expected) {

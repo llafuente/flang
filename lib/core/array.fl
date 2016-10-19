@@ -38,7 +38,7 @@ function property is_full(array arr) : bool {
 // virtual are transform to functions with force inline
 // bool is_empty(array* arr) { return arr->length == 0; }
 function property is_empty(array arr) : bool {
-  return length == 0;
+  return arr.length == 0;
 }
 
 // Rules to expand macros
@@ -93,7 +93,7 @@ function push (array* arr, $array_tpl value) : array* {
   return arr;
 }
 
-function set(array* arr, int index, $array_tpl value) : array* {
+function set(array* arr, u64 index, $array_tpl value) : array* {
   // assert out-of-bounds
 
   arr.data[index] = value;
