@@ -41,7 +41,7 @@ ty_t* ty_ref(u64 ty_id) {
 u64 ty_get_cannonical(u64 ty_id) {
   ty_t type = ty(ty_id);
 
-  switch(type.of) {
+  switch (type.of) {
   case TY_POINTER:
   case TY_REFERENCE:
     return ty_get_cannonical(type.ptr.to);
@@ -754,9 +754,9 @@ void ty_struct_add_virtual(ast_t* decl) {
   ty_t* type = &ts_type_table[ty_id];
 
   if (type->of != TY_STRUCT) {
-    ast_raise_error(
-        decl, "type error, function property require a cannonical type of struct, given: %s",
-        ty_to_string(params->list.values[0]->ty_id)->value);
+    ast_raise_error(decl, "type error, function property require a cannonical "
+                          "type of struct, given: %s",
+                    ty_to_string(params->list.values[0]->ty_id)->value);
   }
 
   u64 max = type->structure.virtuals.length;

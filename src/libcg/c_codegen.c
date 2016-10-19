@@ -178,8 +178,7 @@ void cg_dbg(ast_t* node, u64 level) {
 #endif
 }
 
-ast_action_t __codegen_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
-                          u64 level, void* userdata_in, void* userdata_out) {
+ast_action_t __codegen_cb(AST_CB_T_HEADER) {
 
   fl_assert(node != 0);
   cg_dbg(node, level);
@@ -656,7 +655,6 @@ void cg_type_table(ast_t* root) {
 char* fl_codegen(ast_t* root) {
   // log_debug_level = 10;
   // ty_dump_table();
-  // ast_dump(root);
 
   cg_stack = calloc(sizeof(array), 1);
   buffer = calloc(sizeof(char), BUFFER_SIZE);

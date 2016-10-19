@@ -27,9 +27,7 @@
 #include "flang/debug.h"
 #include "flang/libast.h"
 
-ast_action_t __trav_implement(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
-                              u64 level, void* userdata_in,
-                              void* userdata_out) {
+ast_action_t __trav_implement(AST_CB_T_HEADER) {
   fl_assert(node != 0);
 
   if (mode == AST_TRAV_LEAVE)
@@ -82,7 +80,7 @@ ast_action_t __trav_implement(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
       }
 
       tmp = ast_implement_fn(node->impl.type_list, arr->values[0],
-                                    node->impl.uid->identifier.string);
+                             node->impl.uid->identifier.string);
       log_silly("fn new type[%zu]", tmp->ty_id);
     }
     array_delete(arr);

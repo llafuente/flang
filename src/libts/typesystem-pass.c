@@ -28,8 +28,7 @@
 #include "flang/libast.h"
 #include "flang/debug.h"
 
-ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
-                            u64 level, void* userdata_in, void* userdata_out) {
+ast_action_t __trav_casting(AST_CB_T_HEADER) {
   ++node->ts_passes;
 
   switch (node->type) {
@@ -244,10 +243,7 @@ ast_action_t __trav_casting(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
   return AST_SEARCH_CONTINUE;
 }
 
-ast_action_t __ts_cast_operation_pass_cb(ast_trav_mode_t mode, ast_t* node,
-                                         ast_t* parent, u64 level,
-                                         void* userdata_in,
-                                         void* userdata_out) {
+ast_action_t __ts_cast_operation_pass_cb(AST_CB_T_HEADER) {
   fl_assert(node != 0);
 
   if (mode == AST_TRAV_LEAVE)

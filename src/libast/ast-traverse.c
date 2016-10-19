@@ -29,11 +29,12 @@
 #include "flang/debug.h"
 
 ast_action_t __ast_traverse(ast_t* node, ast_cb_t cb, ast_t* parent, u64 level,
-                            void* userdata_in, void* userdata_out) {
-#define TRAVERSE(target)                                                       \
+                            void* userdata_in, void* userdata_out,
+                            char* property) {
+#define TRAVERSE(target, name)                                                 \
   if (node->target) {                                                          \
     switch (__ast_traverse(node->target, cb, node, level, userdata_in,         \
-                           userdata_out)) {                                    \
+                           userdata_out, name)) {                              \
     case AST_SEARCH_STOP:                                                      \
       return AST_SEARCH_STOP;                                                  \
     case AST_SEARCH_SKIP:                                                      \
@@ -47,12 +48,14 @@ ast_action_t __ast_traverse(ast_t* node, ast_cb_t cb, ast_t* parent, u64 level,
   {                                                                            \
     u64 i = 0;                                                                 \
     ast_t* tmp;                                                                \
+    char buffer[33];                                                           \
                                                                                \
     if (node) {                                                                \
       for (u64 i = 0; i < (node)->list.length; ++i) {                          \
+        sprintf(buffer, "%lu", i);                                             \
         tmp = (ast_t*)(node->list.values)[i];                                  \
-        switch (                                                               \
-            __ast_traverse(tmp, cb, node, level, userdata_in, userdata_out)) { \
+        switch (__ast_traverse(tmp, cb, node, level, userdata_in,              \
+                               userdata_out, buffer)) {                        \
         case AST_SEARCH_SKIP:                                                  \
         case AST_SEARCH_CONTINUE:                                              \
           continue;                                                            \
@@ -70,7 +73,8 @@ ast_action_t __ast_traverse(ast_t* node, ast_cb_t cb, ast_t* parent, u64 level,
 
   ++level;
   // stop if callback is false
-  switch (cb(AST_TRAV_ENTER, node, parent, level, userdata_in, userdata_out)) {
+  switch (cb(AST_TRAV_ENTER, node, parent, level, userdata_in, userdata_out,
+             property)) {
   case AST_SEARCH_STOP:
     return AST_SEARCH_STOP;
   case AST_SEARCH_SKIP:
@@ -82,133 +86,134 @@ ast_action_t __ast_traverse(ast_t* node, ast_cb_t cb, ast_t* parent, u64 level,
   switch (node->type) {
   case AST_MODULE:
   case AST_PROGRAM:
-    TRAVERSE(program.body);
+    TRAVERSE(program.body, "body");
     break;
   case AST_BLOCK: {
-    TRAVERSE(block.body);
+    TRAVERSE(block.body, "body");
     for (u64 i = 0; i < node->block.modules.length; ++i) {
-      TRAVERSE(block.modules.values[i]);
+      TRAVERSE(block.modules.values[i], "module");
     }
   } break;
   case AST_LIST: {
     TRAVERSE_LIST(node);
   } break;
   case AST_EXPR_ASSIGNAMENT:
-    TRAVERSE(assignament.left);
-    TRAVERSE(assignament.right);
+    TRAVERSE(assignament.left, "left");
+    TRAVERSE(assignament.right, "right");
     break;
   case AST_EXPR_BINOP:
-    TRAVERSE(binop.left);
-    TRAVERSE(binop.right);
+    TRAVERSE(binop.left, "left");
+    TRAVERSE(binop.right, "right");
     break;
   case AST_EXPR_LUNARY:
-    TRAVERSE(lunary.element);
+    TRAVERSE(lunary.element, "element");
     break;
   case AST_EXPR_RUNARY:
-    TRAVERSE(runary.element);
+    TRAVERSE(runary.element, "element");
     break;
   case AST_EXPR_CALL: {
-    TRAVERSE(call.callee);
-    TRAVERSE(call.arguments);
+    TRAVERSE(call.callee, "callee");
+    TRAVERSE(call.arguments, "arguments");
   } break;
   case AST_EXPR_MEMBER: {
-    TRAVERSE(member.left);
-    TRAVERSE(member.property);
+    TRAVERSE(member.left, "left");
+    TRAVERSE(member.property, "property");
   } break;
   case AST_DTOR_VAR: {
-    TRAVERSE(var.id);
-    TRAVERSE(var.type);
+    TRAVERSE(var.id, "id");
+    TRAVERSE(var.type, "type");
   } break;
   case AST_DECL_FUNCTION: {
-    TRAVERSE(func.attributes);
-    TRAVERSE(func.id);
-    TRAVERSE(func.ret_type);
-    TRAVERSE(func.params);
-    TRAVERSE(func.body);
+    TRAVERSE(func.attributes, "attributes");
+    TRAVERSE(func.id, "id");
+    TRAVERSE(func.ret_type, "ret_type");
+    TRAVERSE(func.params, "params");
+    TRAVERSE(func.body, "body");
   } break;
   case AST_PARAMETER: {
-    TRAVERSE(param.id);
-    TRAVERSE(param.type);
+    TRAVERSE(param.id, "id");
+    TRAVERSE(param.type, "type");
   } break;
   case AST_STMT_RETURN: {
-    TRAVERSE(ret.argument);
+    TRAVERSE(ret.argument, "argument");
   } break;
   case AST_STMT_IF: {
-    TRAVERSE(if_stmt.test);
-    TRAVERSE(if_stmt.block);
-    TRAVERSE(if_stmt.alternate);
+    TRAVERSE(if_stmt.test, "test");
+    TRAVERSE(if_stmt.block, "block");
+    TRAVERSE(if_stmt.alternate, "alternate");
   } break;
   case AST_STMT_LOOP: {
-    TRAVERSE(loop.init);
-    TRAVERSE(loop.pre_cond);
-    TRAVERSE(loop.update);
-    TRAVERSE(loop.block);
-    TRAVERSE(loop.post_cond);
+    TRAVERSE(loop.init, "init");
+    TRAVERSE(loop.pre_cond, "pre_cond");
+    TRAVERSE(loop.update, "update");
+    TRAVERSE(loop.block, "block");
+    TRAVERSE(loop.post_cond, "post_cond");
   } break;
   case AST_CAST: {
-    TRAVERSE(cast.type);
-    TRAVERSE(cast.element);
+    TRAVERSE(cast.type, "type");
+    TRAVERSE(cast.element, "element");
   } break;
   case AST_DECL_STRUCT: {
-    TRAVERSE(structure.id);
-    TRAVERSE(structure.fields);
-    TRAVERSE(structure.tpls);
+    TRAVERSE(structure.id, "id");
+    TRAVERSE(structure.fields, "fields");
+    TRAVERSE(structure.tpls, "tpls");
   } break;
   case AST_DECL_STRUCT_FIELD: {
-    TRAVERSE(field.id);
-    TRAVERSE(field.type);
+    TRAVERSE(field.id, "id");
+    TRAVERSE(field.type, "type");
   } break;
   case AST_DECL_STRUCT_ALIAS: {
-    TRAVERSE(alias.name);
-    TRAVERSE(alias.id);
+    TRAVERSE(alias.name, "name");
+    TRAVERSE(alias.id, "id");
   }
   case AST_DECL_TEMPLATE: {
-    TRAVERSE(tpl.id);
+    TRAVERSE(tpl.id, "id");
   } break;
   case AST_EXPR_SIZEOF: {
-    TRAVERSE(sof.type);
+    TRAVERSE(sof.type, "type");
   } break;
   case AST_EXPR_TYPEOF: {
-    TRAVERSE(tof.expr);
+    TRAVERSE(tof.expr, "expr");
   } break;
   case AST_TYPE: {
-    TRAVERSE(ty.id);
-    TRAVERSE(ty.children);
+    TRAVERSE(ty.id, "id");
+    TRAVERSE(ty.children, "children");
   } break;
   case AST_STMT_LOG: {
-    TRAVERSE(log.list);
+    TRAVERSE(log.list, "list");
   } break;
   case AST_ATTRIBUTE: {
-    TRAVERSE(attr.id);
-    TRAVERSE(attr.value);
+    TRAVERSE(attr.id, "id");
+    TRAVERSE(attr.value, "value");
   } break;
   case AST_IMPLEMENT: {
-    TRAVERSE(impl.uid);
-    TRAVERSE(impl.type_id);
-    TRAVERSE(impl.type_list);
+    TRAVERSE(impl.uid, "uid");
+    TRAVERSE(impl.type_id, "type_id");
+    TRAVERSE(impl.type_list, "type_list");
   } break;
   case AST_NEW: {
-    TRAVERSE(delete.expr);
+    TRAVERSE(delete.expr, "expr");
   } break;
   case AST_DELETE: {
-    TRAVERSE(delete.expr);
+    TRAVERSE(delete.expr, "expr");
   } break;
   default: {}
   }
 
-  cb(AST_TRAV_LEAVE, node, parent, level, userdata_in, userdata_out);
+  cb(AST_TRAV_LEAVE, node, parent, level, userdata_in, userdata_out, property);
 
   return AST_SEARCH_CONTINUE;
 }
 
 void ast_traverse(ast_t* ast, ast_cb_t cb, ast_t* parent, u64 level,
                   void* userdata_in, void* userdata_out) {
-  __ast_traverse(ast, cb, parent, level, userdata_in, userdata_out);
+  __ast_traverse(ast, cb, parent, level, userdata_in, userdata_out, 0);
 }
 
 void ast_traverse_list(ast_t* node, ast_cb_t cb, ast_t* until, u64 level,
                        void* userdata_in, void* userdata_out) {
   fl_assert(node->type == AST_LIST);
+  char buffer[33];
 
   u64 i;
   for (i = 0; i < node->list.length; ++i) {
@@ -217,8 +222,10 @@ void ast_traverse_list(ast_t* node, ast_cb_t cb, ast_t* until, u64 level,
       return;
     }
 
+    sprintf(buffer, "%lu", i);
+
     switch (__ast_traverse(node->list.values[i], cb, node, level + 1,
-                           userdata_in, userdata_out)) {
+                           userdata_in, userdata_out, buffer)) {
     case AST_SEARCH_SKIP:
     case AST_SEARCH_CONTINUE:
       continue;

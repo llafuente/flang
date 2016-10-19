@@ -294,11 +294,13 @@ TASK_IMPL(parser_types) {
       "type error, invalid member access 'c' for struct: struct st { i32 b, }",
       {});
 
-  TEST_PARSER_ERROR(
-      "function property 01", "function property first(i8 arr) {\n"
-                              "  return 0;\n"
-                              "}\n",
-      "type error, function property require a cannonical type of struct, given: i8", {});
+  TEST_PARSER_ERROR("function property 01",
+                    "function property first(i8 arr) {\n"
+                    "  return 0;\n"
+                    "}\n",
+                    "type error, function property require a cannonical type "
+                    "of struct, given: i8",
+                    {});
 
   TEST_PARSER_ERROR("function property 02",
                     "struct arr {i8 a};\n"
@@ -308,7 +310,8 @@ TASK_IMPL(parser_types) {
                     "function property first(arr ari) {\n"
                     "  return 0;\n"
                     "}\n",
-                    "type error, function property redefinition, previously defined at memory:string:2:1",
+                    "type error, function property redefinition, previously "
+                    "defined at memory:string:2:1",
                     {});
 
   TEST_PARSER_ERROR(

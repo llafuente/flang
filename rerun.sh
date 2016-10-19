@@ -54,7 +54,8 @@ cd ..
 #/usr/bin/time -v ./build/flang ./test/codegen/typesystem/operator-overloading3.fl -v
 #/usr/bin/time -v ./build/flang ./test/codegen/typesystem/references2.fl -v
 #/usr/bin/time -v ./build/flang ./test/codegen/misc/globals.fl -v
-/usr/bin/time -v ./build/flang ./test/codegen/typesystem/operator-new.fl -v
+#/usr/bin/time -v ./build/flang ./test/codegen/array/array.fl -v
+#/usr/bin/time -v ./build/flang ./lib/core/array.fl -v -nocore
 
 # compile c code
 if [ "$COMPILER" = "clang" ]; then

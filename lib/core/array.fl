@@ -6,6 +6,7 @@ import "lib/core/ffi-c";
 
 template $array_tpl;
 
+
 // arrays always live in the heap
 // foreach wrapper declare it's type
 // because $array_tpl is used, and give a unique name
@@ -97,6 +98,13 @@ function set(array* arr, int index, $array_tpl value) : array* {
 
   arr.data[index] = value;
 
+  // adjust length after the set
+  /*
+  ++index;
+  if (arr.length < index) {
+    arr.length = index;
+  }
+  */
   return arr;
 }
 

@@ -50,6 +50,7 @@
 %token <token> TK_ACCESS_MOD "operator[]="
 %token <token> TK_NEW "operator new"
 %token <token> TK_DELETE "operator delete"
+%token <token> TK_COMPILER_ERROR "user compiler #error"
 
 
 /* keywords */
@@ -310,6 +311,10 @@ stmt
   | TK_DELETE expression ';' {
     $$ = ast_mk_delete($2);
     ast_position($$, @1, @3);
+  }
+  | TK_COMPILER_ERROR ';' {
+    $$ = ast_mk_compiler_error();
+    ast_position($$, @1, @1);
   }
   ;
 

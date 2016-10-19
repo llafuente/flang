@@ -31,13 +31,15 @@
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
+u64 ast_error_context = 4;
+
 void __ast_print_error_lines(const string* line, st_len_t pos,
                              const string* code) {
 
-  if (pos >= (ast_last_error_node->first_line > 3
-                  ? ast_last_error_node->first_line - 3
+  if (pos >= (ast_last_error_node->first_line > ast_error_context
+                  ? ast_last_error_node->first_line - ast_error_context
                   : 0) &&
-      pos <= ast_last_error_node->last_line + 2) {
+      pos <= ast_last_error_node->last_line + ast_error_context - 1) {
     fprintf(stderr, "%6d | %s\n", pos + 1, line->value);
     if (pos == ast_last_error_node->first_line - 1) {
       fprintf(stderr, "%*s\x1B[32m^-- %s\x1B[39m\n",

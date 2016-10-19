@@ -211,9 +211,7 @@ cleanup:
   return ret_decl;
 }
 
-ast_action_t __trav_get_list_node(ast_trav_mode_t mode, ast_t* node,
-                                  ast_t* parent, u64 level, void* userdata_in,
-                                  void* userdata_out) {
+ast_action_t __trav_get_list_node(AST_CB_T_HEADER) {
   if (mode == AST_TRAV_LEAVE)
     return 0;
 

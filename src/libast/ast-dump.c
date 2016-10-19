@@ -39,165 +39,175 @@ char* __ast_block_hash_append(hash_t* ht) {
   return __ast_cbuffer;
 }
 
-void ast_dump_one(ast_t* node) {
+void ast_dump_one(ast_t* node, FILE* where) {
   fl_assert(node != 0);
-
-  printf("(%lu) ", node->id);
 
   switch (node->type) {
   case AST_PROGRAM:
-    printf("program [path='%s']", node->program.file->value);
+    fprintf(where, "program [path='%s']", node->program.file->value);
     // too much??
     // printf("\n%s\n", node->program.code->value);
     break;
   case AST_IMPORT:
-    printf("import [path='%s' forward=%d]",
-           node->import.path->string.value->value, node->import.forward);
+    fprintf(where, "import [path='%s' forward=%d]",
+            node->import.path->string.value->value, node->import.forward);
     break;
   case AST_MODULE:
-    printf("module [path='%s']", node->program.file->value);
+    fprintf(where, "module [path='%s']", node->program.file->value);
     break;
   case AST_BLOCK:
     // traverse do not follow scope hashes
     // so we print it here
-    printf("block [%d]", node->block.scope);
-    printf(" types [%s]", __ast_block_hash_append(node->block.types));
-    printf(" vars [%s]", __ast_block_hash_append(node->block.variables));
-    printf(" fns [%s]", __ast_block_hash_append(node->block.functions));
+    fprintf(where, "block [%d]", node->block.scope);
+    fprintf(where, " types [%s]", __ast_block_hash_append(node->block.types));
+    fprintf(where, " vars [%s]",
+            __ast_block_hash_append(node->block.variables));
+    fprintf(where, " fns [%s]", __ast_block_hash_append(node->block.functions));
     if (node->block.modules.length) {
-      printf(" modules [%lu][", node->block.modules.length);
+      fprintf(where, " modules [%lu][", node->block.modules.length);
       for (u64 i = 0; i < node->block.modules.length; ++i) {
-        printf("%s,",
-               ((ast_t*)node->block.modules.values[i])->program.file->value);
+        fprintf(where, "%s,",
+                ((ast_t*)node->block.modules.values[i])->program.file->value);
       }
-      printf("]");
+      fprintf(where, "]");
     }
     break;
   case AST_LIST:
-    printf("list [count=%zu]", node->list.length);
+    fprintf(where, "list [count=%zu]", node->list.length);
     break;
   case AST_EXPR_ASSIGNAMENT:
-    printf("assignament T(%zu)", node->ty_id);
+    fprintf(where, "assignament T(%zu)", node->ty_id);
     break;
   case AST_EXPR_BINOP:
     if (node->binop.operator<127) {
-      printf("binop T(%zu) [operator=%c]", node->ty_id, node->binop.operator);
+      fprintf(where, "binop T(%zu) [operator=%c]", node->ty_id,
+              node->binop.operator);
     } else {
-      printf("binop T(%zu) [operator=%d]", node->ty_id, node->binop.operator);
+      fprintf(where, "binop T(%zu) [operator=%d]", node->ty_id,
+              node->binop.operator);
     }
     break;
   case AST_LIT_INTEGER:
-    printf("integer T(%zu) [u=%ld] [zu=%zu]", node->ty_id,
-           node->integer.signed_value, node->integer.unsigned_value);
+    fprintf(where, "integer T(%zu) [u=%ld] [zu=%zu]", node->ty_id,
+            node->integer.signed_value, node->integer.unsigned_value);
     break;
   case AST_LIT_FLOAT:
-    printf("float T(%zu) [f=%f]", node->ty_id, node->decimal.value);
+    fprintf(where, "float T(%zu) [f=%f]", node->ty_id, node->decimal.value);
     break;
   case AST_LIT_IDENTIFIER:
-    printf("identifier T(%zu) [resolve=%d string=%s]", node->ty_id,
-           node->identifier.resolve, node->identifier.string->value);
+    fprintf(where, "identifier T(%zu) [resolve=%d string=%s]", node->ty_id,
+            node->identifier.resolve, node->identifier.string->value);
     break;
   case AST_LIT_STRING:
-    printf("string T(%zu) [string=%s]", node->ty_id, node->string.value->value);
+    fprintf(where, "string T(%zu) [string=%s]", node->ty_id,
+            node->string.value->value);
     break;
   case AST_LIT_BOOLEAN:
-    printf("boolean T(%zu) [value=%d]", node->ty_id, node->boolean.value);
+    fprintf(where, "boolean T(%zu) [value=%d]", node->ty_id,
+            node->boolean.value);
     break;
   case AST_EXPR_LUNARY:
     if (node->lunary.operator<127) {
-      printf("lunary T(%zu) [operator=%c]", node->ty_id, node->lunary.operator);
+      fprintf(where, "lunary T(%zu) [operator=%c]", node->ty_id,
+              node->lunary.operator);
     } else {
-      printf("lunary T(%zu) [operator=%d]", node->ty_id, node->lunary.operator);
+      fprintf(where, "lunary T(%zu) [operator=%d]", node->ty_id,
+              node->lunary.operator);
     }
     break;
   case AST_EXPR_RUNARY:
-    printf("runary T(%zu) [operator=%s]", node->ty_id,
-           psr_operator_str(node->runary.operator));
+    fprintf(where, "runary T(%zu) [operator=%s]", node->ty_id,
+            psr_operator_str(node->runary.operator));
     break;
   case AST_EXPR_CALL:
-    printf("call T(%zu) [arguments=%zu]", node->ty_id,
-           node->call.arguments->list.length);
+    fprintf(where, "call T(%zu) [arguments=%zu]", node->ty_id,
+            node->call.arguments->list.length);
     break;
   case AST_EXPR_MEMBER:
-    printf("member T(%zu) idx(%zu) expression(%d)", node->ty_id,
-           node->member.idx, node->member.expression);
+    fprintf(where, "member T(%zu) idx(%zu) expression(%d)", node->ty_id,
+            node->member.idx, node->member.expression);
     break;
   case AST_DTOR_VAR:
-    printf("variable T(%zu) scope(%s)", node->ty_id,
-           node->var.scope == AST_SCOPE_BLOCK ? "block" : "global");
+    fprintf(where, "variable T(%zu) scope(%s)", node->ty_id,
+            node->var.scope == AST_SCOPE_BLOCK ? "block" : "global");
     break;
   case AST_TYPE:
-    printf("type T(%zu)", node->ty_id);
+    fprintf(where, "type T(%zu)", node->ty_id);
     break;
   case AST_DECL_STRUCT:
-    printf("struct T(%zu) tpl(%d)", node->ty_id, node->structure.templated);
+    fprintf(where, "struct T(%zu) tpl(%d)", node->ty_id,
+            node->structure.templated);
     break;
   case AST_DECL_STRUCT_FIELD:
-    printf("field T(%zu)", node->ty_id);
+    fprintf(where, "field T(%zu)", node->ty_id);
     break;
   case AST_DECL_STRUCT_ALIAS:
-    printf("alias T(%zu)", node->ty_id);
+    fprintf(where, "alias T(%zu)", node->ty_id);
     break;
   case AST_DECL_FUNCTION:
-    printf("function T(%zu) id(%s) uid(%s) ffi(%d) varargs(%d) tpl(%d) "
-           "[params=%zu]",
-           node->ty_id, node->func.id->identifier.string->value,
-           node->func.uid ? node->func.uid->value : "(nil)", node->func.ffi,
-           node->func.varargs, node->func.templated,
-           node->func.params->list.length);
+    fprintf(where, "function T(%zu) id(%s) uid(%s) ffi(%d) varargs(%d) tpl(%d) "
+                   "[params=%zu]",
+            node->ty_id, node->func.id->identifier.string->value,
+            node->func.uid ? node->func.uid->value : "(nil)", node->func.ffi,
+            node->func.varargs, node->func.templated,
+            node->func.params->list.length);
     break;
   case AST_DECL_TEMPLATE:
-    printf("template");
+    fprintf(where, "template");
     break;
   case AST_PARAMETER:
-    printf("parameter");
+    fprintf(where, "parameter");
     break;
   case AST_STMT_RETURN:
-    printf("return T(%zu)", node->ty_id);
+    fprintf(where, "return T(%zu)", node->ty_id);
     break;
   case AST_ERROR:
-    printf("ERROR [%s: %s]", node->err.type->value, node->err.message->value);
+    fprintf(where, "ERROR [%s: %s]", node->err.type->value,
+            node->err.message->value);
     break;
-  case AST_STMT_COMMENT:
-    printf("comment\n**\n%s\n**\n", node->comment.text->value);
-    // printf("comment");
-    break;
+  case AST_STMT_COMMENT: {
+    string* quoted = st_escape(node->comment.text);
+    fprintf(where, "comment: %s", quoted->value);
+    // fprintf(where, "comment");
+  } break;
   case AST_STMT_IF:
-    printf("if");
+    fprintf(where, "if");
     break;
   case AST_STMT_LOOP:
-    printf("loop");
+    fprintf(where, "loop");
     break;
   case AST_EXPR_SIZEOF:
-    printf("sizeof T(%zu)", node->ty_id);
+    fprintf(where, "sizeof T(%zu)", node->ty_id);
     break;
   case AST_EXPR_TYPEOF:
-    printf("typeof T(%zu)", node->ty_id);
+    fprintf(where, "typeof T(%zu)", node->ty_id);
     break;
   case AST_STMT_LOG:
-    printf("log");
+    fprintf(where, "log");
     break;
   case AST_CAST:
-    printf("cast T(%zu) O(%u)", node->ty_id, node->cast.operation);
+    fprintf(where, "cast T(%zu) O(%u)", node->ty_id, node->cast.operation);
     break;
   case AST_IMPLEMENT:
-    printf("implement");
+    fprintf(where, "implement");
     break;
   case AST_ATTRIBUTE:
-    printf("attribute");
+    fprintf(where, "attribute");
     break;
   case AST_NEW:
-    printf("new");
+    fprintf(where, "new");
     break;
   case AST_DELETE:
-    printf("delete");
+    fprintf(where, "delete");
+    break;
+  case AST_COMPILER_ERROR:
+    fprintf(where, "compiler-error");
     break;
   default: {}
   }
 }
 
-ast_action_t __ast_dump_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
-                           u64 level, void* userdata_in, void* userdata_out) {
+ast_action_t __ast_dump_cb(AST_CB_T_HEADER) {
   if (mode == AST_TRAV_LEAVE)
     return 0;
 
@@ -208,9 +218,11 @@ ast_action_t __ast_dump_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
   level = level * 2;
 
   // indent
-  printf("%*s• \x1B[32m", (int)level, " ");
+  printf("%*s• \x1B[32m %s: ", (int)level, " ", property);
 
-  ast_dump_one(node);
+  ast_dump_one(node, stdout);
+
+  fprintf(stdout, " !%lu", node->id);
 
   if (node->first_line) {
     printf("\x1B[39m@[%d:%d - %d:%d]", node->first_line, node->first_column,
@@ -221,9 +233,7 @@ ast_action_t __ast_dump_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
   return AST_SEARCH_CONTINUE;
 }
 
-ast_action_t __ast_mindump_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
-                              u64 level, void* userdata_in,
-                              void* userdata_out) {
+ast_action_t __ast_mindump_cb(AST_CB_T_HEADER) {
   if (mode == AST_TRAV_LEAVE)
     return 0;
 
@@ -236,7 +246,7 @@ ast_action_t __ast_mindump_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
     return AST_SEARCH_SKIP;
   }
 
-  return __ast_dump_cb(mode, node, parent, level, userdata_in, userdata_out);
+  return __ast_dump_cb(mode, node, parent, level, userdata_in, userdata_out, 0);
 }
 
 void ast_mindump(ast_t* node) {
@@ -245,9 +255,7 @@ void ast_mindump(ast_t* node) {
   }
 }
 
-ast_action_t __ast_fulldump_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
-                               u64 level, void* userdata_in,
-                               void* userdata_out) {
+ast_action_t __ast_fulldump_cb(AST_CB_T_HEADER) {
   if (mode == AST_TRAV_LEAVE)
     return 0;
 
@@ -261,7 +269,7 @@ ast_action_t __ast_fulldump_cb(ast_trav_mode_t mode, ast_t* node, ast_t* parent,
   }
 
   ast_action_t t =
-      __ast_dump_cb(mode, node, parent, level, userdata_in, userdata_out);
+      __ast_dump_cb(mode, node, parent, level, userdata_in, userdata_out, 0);
 
   printf("\n\x1B[33m%s\x1B[39m\n", ast_get_code(node)->value);
   return t;

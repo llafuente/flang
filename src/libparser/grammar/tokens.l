@@ -156,6 +156,9 @@ as        { SET_LOCATION; return TK_AS; }
 [0-9][0-9_]*\.[0-9_]*([eE][-\+]?[0-9_]+)? { BEGIN(suffix); SET_LOCATION; return LIT_FLOAT; }
 [0-9][0-9_]*(\.[0-9_]*)?[eE][-\+]?[0-9_]+ { BEGIN(suffix); SET_LOCATION; return LIT_FLOAT; }
 
+  /* debuggin */
+#error      { SET_LOCATION; return TK_COMPILER_ERROR; }
+
 ;      { SET_LOCATION; return ';'; }
 ,      { SET_LOCATION; return ','; }
 \.\.\. { SET_LOCATION; return TK_DOTDOTDOT; }

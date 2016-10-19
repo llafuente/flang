@@ -91,10 +91,13 @@ typedef struct ast ast_t;
 struct ast;
 typedef enum ast_trav_mode ast_trav_mode_t;
 
-// callback type for [ast_traverse](#ast_traverse) & [ast_reverse](#ast_reverse)
+// callback type for [ast_traverse](#ast_traverse)
 typedef ast_action_t (*ast_cb_t)(ast_trav_mode_t mode, ast_t* node,
                                  ast_t* parent, u64 level, void* userdata_in,
-                                 void* userdata_out);
+                                 void* userdata_out, char* property);
+#define AST_CB_T_HEADER                                                        \
+  ast_trav_mode_t mode, ast_t* node, ast_t* parent, u64 level,                 \
+      void* userdata_in, void* userdata_out, char* property
 
 extern jmp_buf fl_on_error_jmp;
 extern ast_t* ast_last_error_node;

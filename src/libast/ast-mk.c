@@ -700,3 +700,10 @@ ast_t* ast_mk_delete(ast_t* expr) {
 
   return node;
 }
+
+ast_t* ast_mk_compiler_error() {
+  ast_t* node = ast_new();
+  node->type = AST_COMPILER_ERROR;
+
+  return node;
+}

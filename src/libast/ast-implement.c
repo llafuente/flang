@@ -77,11 +77,11 @@ void ast_implement_type_in_order(ast_t* fn, u64 from, u64 to) {
     u64 jmax = from_type.structure.members.length;
     for (u64 j = 0; j < jmax; ++j) {
       if (ty_is_template(from_type.structure.fields[j])) {
-        log_silly("replace template type %d\n", j);
+        log_silly("replace template idx %lu\n", j);
         ast_replace_types(fn, from_type.structure.fields[j],
                           to_type.structure.fields[j]);
       } else if (ty_is_templated(from_type.structure.fields[j])) {
-        log_silly("implement templated type %d\n", j);
+        log_silly("implement templated idx %lu\n", j);
         ast_implement_type_in_order(fn, from_type.structure.fields[j],
                                     to_type.structure.fields[j]);
       }
@@ -133,7 +133,7 @@ ast_t* ast_implement_fn(ast_t* type_list, ast_t* decl, string* uid) {
   for (i = 0; i < count; ++i) {
     decl_param_ty_id = decl_params->list.values[i]->ty_id;
 
-    log_silly("type %d - %s", i, ty_to_string(decl_param_ty_id)->value);
+    log_silly("type %lu - %s", i, ty_to_string(decl_param_ty_id)->value);
 
     if (ty_is_templated(decl_param_ty_id)) {
       ast_implement_type_in_order(fn, decl_param_ty_id,

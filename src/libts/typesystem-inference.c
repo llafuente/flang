@@ -36,9 +36,7 @@ struct __id_search {
 
 typedef struct __id_search __id_search_t;
 
-ast_action_t __ast_find_identifier(ast_trav_mode_t mode, ast_t* node,
-                                   ast_t* parent, u64 level, void* userdata_in,
-                                   void* userdata_out) {
+ast_action_t __ast_find_identifier(AST_CB_T_HEADER) {
   if (mode == AST_TRAV_LEAVE)
     return 0;
 
@@ -52,9 +50,7 @@ ast_action_t __ast_find_identifier(ast_trav_mode_t mode, ast_t* node,
   return AST_SEARCH_CONTINUE;
 }
 
-ast_action_t __ts_inference_dtors(ast_trav_mode_t mode, ast_t* node,
-                                  ast_t* parent, u64 level, void* userdata_in,
-                                  void* userdata_out) {
+ast_action_t __ts_inference_dtors(AST_CB_T_HEADER) {
   if (mode == AST_TRAV_LEAVE)
     return 0;
 
@@ -126,9 +122,7 @@ ast_action_t __ts_inference_dtors(ast_trav_mode_t mode, ast_t* node,
   return AST_SEARCH_CONTINUE;
 }
 
-ast_action_t __ts_inference_fn_ret(ast_trav_mode_t mode, ast_t* node,
-                                   ast_t* parent, u64 level, void* userdata_in,
-                                   void* userdata_out) {
+ast_action_t __ts_inference_fn_ret(AST_CB_T_HEADER) {
   if (mode == AST_TRAV_LEAVE)
     return 0;
 

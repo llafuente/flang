@@ -132,9 +132,7 @@ ast_t* psr_file_main(const char* filename) {
   return root;
 }
 
-ast_action_t __trav_load_imports(ast_trav_mode_t mode, ast_t* node,
-                                 ast_t* parent, u64 level, void* userdata_in,
-                                 void* userdata_out) {
+ast_action_t __trav_load_imports(AST_CB_T_HEADER) {
   if (mode == AST_TRAV_LEAVE)
     return 0;
 
@@ -264,13 +262,13 @@ char* psr_operator_str(int operator) {
   return 0;
 }
 
-ast_action_t __trav_psr_ast_check(ast_trav_mode_t mode, ast_t* node,
-                                  ast_t* parent, u64 level, void* userdata_in,
-                                  void* userdata_out) {
+ast_action_t __trav_psr_ast_check(AST_CB_T_HEADER) {
   if (mode == AST_TRAV_LEAVE) {
     return 0;
   }
   switch (node->type) {
+  case AST_COMPILER_ERROR:
+    ast_raise_error(node, "compiler error found");
   case AST_STMT_RETURN: {
     ast_t* block = ast_get_function_scope(node);
     if (!block) {
@@ -278,6 +276,7 @@ ast_action_t __trav_psr_ast_check(ast_trav_mode_t mode, ast_t* node,
                       "syntax error, return found outside function scope");
     }
   } break;
+  default: {} // remove warning
   }
 
   return AST_SEARCH_CONTINUE;

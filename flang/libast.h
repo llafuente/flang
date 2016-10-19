@@ -117,6 +117,7 @@ enum ast_types {
   AST_NEW = 110,
   AST_DELETE = 111,
 
+  AST_COMPILER_ERROR = 250,
   AST_ERROR = 255
 };
 
@@ -489,7 +490,7 @@ libexport ast_t* ast_mk_cast(ast_t* type, ast_t* element, bool unsafe);
 libexport ast_t* ast_mk_import(ast_t* string_lit, bool foward);
 libexport ast_t* ast_mk_log(ast_t* list);
 libexport ast_t* ast_mk_attribute(ast_t* id, ast_t* value);
-
+libexport ast_t* ast_mk_compiler_error();
 /* cldoc:end-category() */
 /*----------------------------------------------------------------------------*/
 /* cldoc:begin-category(ast-search.c) */
@@ -587,23 +588,6 @@ libexport void ast_replace_types(ast_t* node, u64 old, u64 new);
 
 /* cldoc:end-category() */
 
-/* cldoc:begin-category(ast-reverse.c) */
-
-/* Reverse the tree calling cb on each node.
- * [typesystem](#typesystem) set parent, so this cannot be called before
- *
- * @node
- * @cb
- * @parent
- * @level
- * @userdata_in
- * @userdata_out
- */
-libexport void ast_reverse(ast_t* node, ast_cb_t cb, ast_t* parent, u64 level,
-                           void* userdata_in, void* userdata_out);
-
-/* cldoc:end-category() */
-
 /* cldoc:begin-category(ast-static.c) */
 
 /* Return if the node is really a literal only
@@ -631,8 +615,9 @@ libexport bool ast_require_load(ast_t* node);
 /* Debug: Print to stderr a node as text
  *
  * @node
+ * @where stdout / stderr / file
  */
-libexport void ast_dump_one(ast_t* node);
+libexport void ast_dump_one(ast_t* node, FILE* where);
 
 /* Debug: Recursive print to stderr a node as text
  *
