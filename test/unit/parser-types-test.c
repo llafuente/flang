@@ -561,7 +561,7 @@ TASK_IMPL(parser_types) {
                  "implement array(i8) as array_i8;\n",
                  {
     // TODO this test depends on core :S
-    ASSERTE(body[1]->ty_id, TEST_TYPEID + 2, "%d != %d", "type implemented");
+    ASSERTE(body[1]->ty_id, TEST_TYPEID + 2, "%lu != %d", "type implemented");
   });
 
   TEST_PARSER_ERROR(

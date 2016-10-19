@@ -215,6 +215,12 @@ ast_action_t __trav_register_types(AST_CB_T_HEADER) {
       node->ts_passes = 1;
       ty_struct_add_virtual(node);
     }
+
+    // add the operator to the list in the type, only once
+    if (node->func.type == AST_FUNC_OPERATOR && node->ts_passes == 0) {
+      node->ts_passes = 1;
+      ty_struct_add_operator(node);
+    }
     break;
   case AST_TYPE: {
     // check wrappers

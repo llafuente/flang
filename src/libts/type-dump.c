@@ -276,10 +276,13 @@ void __ty_dump_cell(u64 ty_id, int indent) {
     __ty_dump_cell(ty.vector.to, indent + 2);
     break;
   case TY_STRUCT: {
-    log_debug(
-        "%*s[%zu] Struct [%s] tpl(%d) from_tpl(%lu) virtuals(%lu)", indent, " ",
-        ty_id, ty.structure.decl->structure.id->identifier.string->value,
-        ty.templated, ty.structure.from_tpl, ty.structure.virtuals.length);
+    log_debug("%*s[%zu] Struct [%s] tpl(%d) from_tpl(%lu) virtuals(%lu) "
+              "operators(%lu)",
+              indent, " ", ty_id,
+              ty.structure.decl->structure.id->identifier.string->value,
+              ty.templated, ty.structure.from_tpl, ty.structure.virtuals.length,
+              ty.structure.operators.length);
+
     u64 i;
     for (i = 0; i < ty.structure.members.length; ++i) {
       __ty_dump_cell(ty.structure.fields[i], indent + 2);

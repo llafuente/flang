@@ -131,10 +131,10 @@ hash_entry_t* hash_new_entry_cp(hash_t* ht, char* key, void* value, int size) {
     return 0;
   }
 
-  if ((new_entry->key = __hash_malloc(key)) == 0) {
+  size_t i = strlen(key) + 1;
+  if ((new_entry->key = __hash_malloc(i)) == 0) {
     return 0;
   }
-  size_t i = strlen(key) + 1;
   memcpy(new_entry->key, key, i);
 
   if ((new_entry->value = __hash_malloc(size)) == 0) {

@@ -42,7 +42,7 @@ u64 ty_get_cannonical(u64 ty_id) {
   ty_t type = ty(ty_id);
 
   switch (type.of) {
-  case TY_POINTER:
+  // case TY_POINTER: do not add pointer because cannot be auto-derefence
   case TY_REFERENCE:
     return ty_get_cannonical(type.ptr.to);
   default: {}
@@ -775,6 +775,37 @@ void ty_struct_add_virtual(ast_t* decl) {
   array_push(&type->structure.virtuals, decl);
 }
 
+void ty_struct_add_operator(ast_t* decl) {
+  fl_assert(decl->type == AST_DECL_FUNCTION);
+
+  string* id = decl->func.id->identifier.string;
+  ast_t* params = decl->func.params;
+
+  u64 ty_id = ty_get_cannonical(params->list.values[0]->ty_id);
+  ty_t* type = &ts_type_table[ty_id];
+
+  if (type->of != TY_STRUCT) {
+    ast_raise_error(decl, "type error, function operator require a cannonical "
+                          "type of struct, given: %s",
+                    ty_to_string(params->list.values[0]->ty_id)->value);
+  }
+
+  u64 max = type->structure.operators.length;
+  for (u64 i = 0; i < max; ++i) {
+    ast_t* ast = (ast_t*)type->structure.operators.values[i];
+    fl_assert(ast != decl);
+    if (st_cmp(ast->func.id->identifier.string, id) == 0) {
+      ast_raise_error(decl, "type error, function operators redefinition, "
+                            "previously defined at %s",
+                      ast_get_location(ast)->value);
+    }
+  }
+
+  log_silly("add operators %s to %s", id->value, ty_to_string(ty_id)->value);
+
+  array_push(&type->structure.operators, decl);
+}
+
 ast_t* ty_get_virtual(u64 ty_id, string* id, bool look_up) {
   ty_t type = ty(ty_id);
   fl_assert(type.of == TY_STRUCT);
@@ -797,6 +828,35 @@ ast_t* ty_get_virtual(u64 ty_id, string* id, bool look_up) {
     // once...
     // what happens in the future?
     return ty_get_virtual(type.structure.from_tpl, id, false);
+  }
+
+  return 0;
+}
+
+ast_t* ty_get_operator(u64 left_ty_id, u64 right_ty_id, int operator,
+                       bool look_up) {
+  ty_t type = ty(left_ty_id);
+  fl_assert(type.of == TY_STRUCT);
+  u64 max = type.structure.operators.length;
+
+  log_silly("search @ %lu", max);
+
+  for (u64 i = 0; i < max; ++i) {
+    ast_t* fn = (ast_t*)type.structure.operators.values[i];
+    log_silly("search: '%s'", fn->func.id->identifier.string->value);
+
+    if (fn->func.operator== operator) {
+      return fn;
+    }
+  }
+  // try to lookup -> implement here ?
+  if (look_up && type.structure.from_tpl) {
+    log_silly("look_up: type.structure.from_tpl %lu", type.structure.from_tpl);
+    // REVIEW false has no meaning now, because tpl cannot inherit more than
+    // once...
+    // what happens in the future?
+    return ty_get_operator(type.structure.from_tpl, right_ty_id, operator,
+                           false);
   }
 
   return 0;

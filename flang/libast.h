@@ -760,6 +760,7 @@ libexport u64 ast_get_typeid(ast_t* node);
  */
 libexport u64 ast_get_struct_prop_idx(ast_t* decl, string* id);
 
+libexport array* ast_list_get_types(ast_t* list);
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(ast-traverse.c) */

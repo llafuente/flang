@@ -118,9 +118,10 @@ struct ts_type {
       ast_t* decl;
 
       u64* fields;
-      array members;  // array of strings*
-      array alias;    // array of ts_type_struct_alias_t
-      array virtuals; // array of ast* (AST_DECL_FUNCTION) function property x
+      array members;   // array of strings*
+      array alias;     // array of ts_type_struct_alias_t
+      array virtuals;  // array of ast* (AST_DECL_FUNCTION) function property x
+      array operators; // array of ast* (AST_DECL_FUNCTION) function operator x
 
       u64 from_tpl;
 
@@ -161,6 +162,9 @@ ty_t ty(u64 ty_id);
  * @return type info
  */
 ty_t* ty_ref(u64 ty_id);
+
+u64 ty_get_cannonical(u64 ty_id);
+
 /* Get default colors for debugging
  *
  * @ty_id type id
@@ -330,8 +334,8 @@ libexport bool ty_compatible_struct(u64 a, u64 b);
  *
  * *Note* remember that templates cannot be casted!
  *
- * @a
- * @arg_list
+ * @fn_ty_id
+ * @arg_ty_list array of u64
  * @strict (true) types must be the same (false) type can be casted
  * @template if a type is a template skip
  * @return compatible
@@ -356,9 +360,14 @@ libexport void ty_create_var(ast_t* decl);
 
 libexport ast_t* ty_get_virtual(u64 ty_id, string* id, bool look_up);
 
+libexport ast_t* ty_get_operator(u64 left_ty_id, u64 right_ty_id, int operator,
+                                 bool look_up);
+
 libexport u64 ty_create_template(ast_t* decl);
 
 libexport void ty_struct_add_virtual(ast_t* decl);
+
+libexport void ty_struct_add_operator(ast_t* decl);
 
 /* cldoc:end-category() */
 
