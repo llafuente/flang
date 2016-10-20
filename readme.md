@@ -35,6 +35,8 @@ flang depends on
 
 * [string.c](https://github.com/llafuente/string.c) and here [how to install string.c from git](https://github.com/llafuente/vagrant/blob/master/packages/stringc.sh)
 * [libuv](https://github.com/libuv/libuv) and here [how to install libuv from git](https://github.com/llafuente/vagrant/blob/master/packages/libuv.sh)
+* [bison] I use 3.0.4 older may work. [how to install bison from sources](https://github.com/llafuente/vagrant/blob/master/packages/bison.sh)
+* [flex] I use 3.0.4 older may work. [how to install flex from sources](https://github.com/llafuente/vagrant/blob/master/packages/flex.sh)
 
 
 There are some `sh`(s) that helps you in the development.
