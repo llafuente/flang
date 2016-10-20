@@ -492,8 +492,8 @@ bool ty_compatible_fn(u64 ty_id, ast_t* arg_list, bool strict, bool template) {
     current = arg->ty_id;
     expected = at.func.params[i];
 
-    log_silly("parameter %zu of %zu/%zu [%zu ==? %zu]", i, arg_list->list.length,
-    at.func.nparams, current, expected);
+    log_silly("parameter %zu of %zu/%zu [%zu ==? %zu]", i,
+              arg_list->list.length, at.func.nparams, current, expected);
 
     // strict - same type
     if (strict && current != expected) {

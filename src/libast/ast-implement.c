@@ -105,6 +105,13 @@ void ast_implement_type_in_order(ast_t* fn, u64 from, u64 to) {
 }
 ast_t* ast_implement_fn(ast_t* type_list, ast_t* decl, string* uid) {
   fl_assert(type_list->type == AST_LIST);
+  return ast_implement_fn2(
+    ast_list_get_types(type_list),
+    decl,
+    uid);
+}
+
+ast_t* ast_implement_fn2(array* type_list, ast_t* decl, string* uid) {
   fl_assert(decl->type == AST_DECL_FUNCTION);
   fl_assert(decl->func.templated);
 
@@ -132,14 +139,18 @@ ast_t* ast_implement_fn(ast_t* type_list, ast_t* decl, string* uid) {
   // loop left to right implementing each type and template
   for (i = 0; i < count; ++i) {
     decl_param_ty_id = decl_params->list.values[i]->ty_id;
+    u64* impl_ty_id = (u64*) type_list->values[i];
 
-    log_silly("type %lu - %s", i, ty_to_string(decl_param_ty_id)->value);
+    log_silly("type idx[%lu] impl[%s] decl[%s]",
+    i,
+    ty_to_string(impl_ty_id)->value,
+    ty_to_string(decl_param_ty_id)->value);
 
     if (ty_is_templated(decl_param_ty_id)) {
       ast_implement_type_in_order(fn, decl_param_ty_id,
-                                  type_list->list.values[i]->ty_id);
+                                  impl_ty_id);
       // search type and replace!
-      ast_replace_types(fn, decl_param_ty_id, type_list->list.values[i]->ty_id);
+      ast_replace_types(fn, decl_param_ty_id, impl_ty_id);
     }
   }
 

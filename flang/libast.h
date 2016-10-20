@@ -169,7 +169,7 @@ struct ast {
       ast_scope_t scope;
 
       hash_t* types;     // u64 with the type id
-      hash_t* functions; // TODO array of decl?
+      hash_t* functions; // array*(ast_t*) array of function declarations
       hash_t* variables; // ast_t* to declaration
 
       hash_t* uids; // bool, allocated by parser.y
@@ -556,6 +556,8 @@ libexport ast_t* ast_reduce(ast_t* node);
  */
 libexport ast_t* ast_implement_fn(ast_t* call, ast_t* decl, string* uid);
 
+libexport ast_t* ast_implement_fn2(array* type_list, ast_t* decl, string* uid);
+
 /* Implement a function template for a given call
  *
  * @type_list types
@@ -803,5 +805,8 @@ libexport ast_t* ast_scope_type(ast_t* node, string* id);
  * @identifier
  */
 libexport ast_t* ast_scope_decl(ast_t* node, string* identifier);
+
+libexport ast_t* ast_scope_binop_operator(ast_t* node, int operator, u64 lty_id,
+                                u64 rty_id);
 
 /* cldoc:end-category() */

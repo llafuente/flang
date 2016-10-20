@@ -158,3 +158,70 @@ ast_t* ast_scope_type(ast_t* node, string* id) {
 
   return 0;
 }
+
+ast_t* ast_scope_binop_operator(ast_t* node, int operator, u64 lty_id,
+                                u64 rty_id) {
+  u64 can_left_ty_id = ty_get_cannonical(lty_id);
+
+  // first search
+  array* scopes = ast_get_scopes(node);
+  if (!scopes)
+    return 0;
+
+  log_silly("searching for '%d' in %lu scopes", operator, scopes->length);
+
+  for (u64 i = 0; i < scopes->length; ++i) {
+    hash_t* hash = ((ast_t*)scopes->values[i])->block.functions;
+    HASH_EACH(hash, entry, {
+      if (entry->value) {
+        array* functions = (array*)entry->value;
+        for (u64 j = 0; j < functions->length; ++j) {
+          ast_t* fn = functions->values[j];
+          if (fn->func.type == AST_FUNC_OPERATOR &&
+              fn->func.operator== operator) {
+                printf("operator found! check params!");
+            // now check both types
+            ast_t* params = fn->func.params;
+            fl_assert(params->list.length == 2); // jsut to be sure ^^
+
+            // TODO REVIEW right now we only check the first parameter
+            // expecting the second to be castable, working but had
+            // edge cases
+            // params->list.values[1]->ty_id == rty_id
+            if (params->list.values[0]->ty_id == lty_id ||
+             params->list.values[0]->ty_id == can_left_ty_id) {
+              log_silly("function found[id=%lu]", fn->id);
+              return fn;
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // if not found, maybe need to implement a template
+  // search in the operator list in the struct
+
+  ast_t* fn = 0;
+  lty_id = ty_get_cannonical(lty_id);
+  ty_t type = ty(lty_id);
+
+  log_silly("cannonical left is: %s", ty_to_string(lty_id)->value);
+  log_silly("%d, %d", type.of == TY_STRUCT, type.structure.from_tpl);
+
+  // first argument is a implemented struct
+  if (type.of == TY_STRUCT && type.structure.from_tpl) {
+    log_silly("maybe there is an operator in my father?");
+    fn = ty_get_operator(type.structure.from_tpl, 0, operator, false);
+
+    if (fn) { // implement!
+      array* type_list = pool_new(sizeof(array));
+      array_push(type_list, lty_id);
+      array_push(type_list, rty_id);
+
+      fn = ast_implement_fn2(type_list, fn, 0);
+    }
+  }
+
+  return fn;
+}

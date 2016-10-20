@@ -56,3 +56,18 @@ void hash_each(hash_t* ht, hash_each_func each);
 void hash_delete(hash_t* ht);
 
 void hash_clear(hash_t* ht);
+
+#define HASH_EACH(hash, var_name, code_block)                                  \
+  do {                                                                         \
+    hash_entry_t* var_name;                                                    \
+                                                                               \
+    for (u64 i = 0; i < hash->size; i++) {                                         \
+      var_name = hash->table[i];                                               \
+      if (var_name != 0) {                                                     \
+        do {                                                                   \
+          code_block; \
+          var_name = var_name->next;                                \
+        } while (var_name != 0);                                               \
+      }                                                                        \
+    }                                                                          \
+  } while (false)

@@ -82,4 +82,7 @@ printf("v2 a (%f , %f)\n", v2_a.x, v2_a.y);
 printf("v2 b (%f , %f)\n", v2_b.x, v2_b.y);
 printf("v2 c (%f , %f)\n", v2_c.x, v2_c.y);
 
-printf("v2 c as member (%f , %f)\n", v2_c[0], v2_c[1]);
+// TODO REVIEW this is annoying!
+printf("v2 c as member (%f , %f)\n",
+  (unsafe_cast(ref(v2)) (&v2_c))[0],
+  (unsafe_cast(ref(v2)) (&v2_c))[1]);

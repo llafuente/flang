@@ -765,22 +765,8 @@ void ts_cast_expr_member(ast_t* node) {
       // operator overloading TK_ACCESS
 
       int operator= ast_is_left_value(node) ? TK_ACCESS_MOD : TK_ACCESS;
-      ast_t* fn = ast_search_fn_op(node, operator, left_ty_id);
-
-      ty_t type = ty(ty_get_cannonical(left_ty_id));
-
-      if (!fn && type.structure.from_tpl) {
-        log_silly("maybe there is an operator in my father?");
-        fn = ty_get_operator(type.structure.from_tpl, 0, operator, false);
-
-        if (fn) { // implement!
-          ast_t* type_list = ast_mk_list();
-          ast_mk_list_push(type_list, l);
-          ast_mk_list_push(type_list, p);
-
-          fn = ast_implement_fn(type_list, fn, 0);
-        }
-      }
+      ast_t* fn =
+          ast_scope_binop_operator(node, operator, left_ty_id, p->ty_id);
 
       if (!fn) {
         switch (operator) {

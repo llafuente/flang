@@ -5,11 +5,11 @@ array* pool_pages = 0;
 size_t pool_page_size = 0;
 
 void pool_init(size_t bytes) {
-  pool_pages = malloc(sizeof(array));
+  pool_pages = calloc(sizeof(array), 1);
   // array_new(pool_pages);
   pool_pages->length = 0;
   pool_pages->capacity = 100;
-  pool_pages->values = malloc(sizeof(ARRAY_T) * 100);
+  pool_pages->values = calloc(sizeof(ARRAY_T), 100);
 
   pool_new_page(bytes);
   pool_page_size = bytes;

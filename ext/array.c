@@ -142,7 +142,10 @@ void array_set(array* arr, int index, ARRAY_T value) {
 }
 
 void array_double_capacity_if_full(array* arr) {
-  if (arr->length >= arr->capacity) {
+  if (!arr->capacity) {
+    arr->capacity = 8;
+    arr->values = __array_malloc(sizeof(ARRAY_T) * arr->capacity);
+  } else if (arr->length >= arr->capacity) {
     arr->capacity = arr->length + 50;
     ARRAY_T p = __array_realloc(arr->values, sizeof(ARRAY_T) * arr->capacity);
     // TODO this shouldn't be necessary, pool_realloc is buggy!

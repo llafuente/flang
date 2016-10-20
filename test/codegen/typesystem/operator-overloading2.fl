@@ -1,15 +1,15 @@
 ffi fn printf(ptr(i8) format, ...) : i32;
+ffi fn malloc(u64 i) : ptr(void);
+ffi fn free(ptr(void) to ) : void;
 
 struct vec2 {
   f32 x,
   f32 y,
 };
 
-struct rect {
-  vec2 top_left,
-  vec2 bottom_right,
-};
-
+// TODO REVIEW, necessary?
+function operator new(vec2* a) {}
+function operator delete(vec2* a) {}
 
 function operator [](vec2* a, u64 index) : f32 {
   var ptr(f32) x = unsafe_cast(ptr(f32)) a;
@@ -24,8 +24,9 @@ function operator []=(vec2* a, u64 index) : f32* {
 }
 
 
-var vec2 t;
-var vec2 b;
+var new vec2* t;
+var new vec2* b;
+
 t.x = 1; t.y = 2;
 b.x = 3; b.y = 4;
 
@@ -37,3 +38,6 @@ b[0] = 103; b[1] = 104;
 
 printf("vec2 t(%f , %f) b(%f , %f)\n", t.x, t.y, b.x, b.y);
 printf("vec2 t(%f , %f) b(%f , %f)\n", t[0], t[1], b[0], b[1]);
+
+delete t;
+delete b;

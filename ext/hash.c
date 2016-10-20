@@ -7,7 +7,7 @@ hash_realloc_func __hash_replaced_realloc = 0;
 void* __hash_malloc(size_t size) {
   if (__hash_replaced_malloc)
     return (*__hash_replaced_malloc)(size);
-  return malloc(size);
+  return calloc(size, 1);
 }
 
 void __hash_free(void* ptr) {
