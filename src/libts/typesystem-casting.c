@@ -698,7 +698,7 @@ void ts_cast_binop(ast_t* node) {
       // someone is not a number, search for an operator overloaded function
 
       // get all operator overloading available for left type
-      ast_t* fn = ast_search_fn_op(node, node->binop.operator, l_type);
+      ast_t* fn = ast_scope_binop_operator(node, node->binop.operator, l_type, r_type);
 
       if (!fn) {
         ast_raise_error(node, "type error, cannot find a proper operator "

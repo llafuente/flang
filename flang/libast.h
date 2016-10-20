@@ -507,14 +507,6 @@ libexport ast_t* ast_mk_compiler_error();
 libexport ast_t* ast_search_fn(ast_t* node, string* identifier, u64* args,
                                u64 nargs, u64 ret_ty, bool var_args);
 
-/* Search a matching function prototype for given operator and first argument
- * type ty_id
- * @node
- * @operator
- * @ty_id
- */
-libexport ast_t* ast_search_fn_op(ast_t* node, int operator, u64 ty_id);
-
 /* Search a matching function prototype given "expression call"
  * @id
  * @args_call

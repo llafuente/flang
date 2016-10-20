@@ -159,6 +159,26 @@ ast_t* ast_scope_type(ast_t* node, string* id) {
   return 0;
 }
 
+/*
+// NOTE as exposed @test-operator-overloading.fl
+// maybe operator should be implemented for implicit reference
+
+// this was in the old 'search for operators'
+// apply some rules here about how we search for operators.
+// operator[] modify struct, so first param must be a reference.
+switch (operator) {
+case TK_ACCESS_MOD:
+case TK_ACCESS: {
+  if (!ty_is_reference(ty_id)) {
+    log_silly("search for a reference");
+    ty_id = ty_create_wrapped(TY_REFERENCE, ty_id);
+  }
+} break;
+default: {} // remove warning
+}
+*/
+// TODO this should recieve left/right node because right node may need to be
+// check for casting
 ast_t* ast_scope_binop_operator(ast_t* node, int operator, u64 lty_id,
                                 u64 rty_id) {
   u64 can_left_ty_id = ty_get_cannonical(lty_id);

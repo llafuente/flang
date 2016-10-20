@@ -67,53 +67,6 @@ cleanup:
   return ret;
 }
 
-ast_t* ast_search_fn_op(ast_t* node, int operator, u64 ty_id) {
-  char buffer[32];
-  snprintf(buffer, 32, "operator_%d", operator);
-  string* id = st_newc(buffer, st_enc_utf8);
-  array* arr = ast_scope_fns(node, id);
-
-  if (!arr) {
-    log_silly("can't find any function in the scope!");
-    return 0;
-  }
-
-  // apply some rules here about how we search for operators.
-  // operator[] modify struct, so first param must be a reference.
-  switch (operator) {
-  case TK_ACCESS_MOD:
-  case TK_ACCESS: {
-    if (!ty_is_reference(ty_id)) {
-      log_silly("search for a reference");
-      ty_id = ty_create_wrapped(TY_REFERENCE, ty_id);
-    }
-  } break;
-  default: {} // remove warning
-  }
-
-  u64 i;
-  ast_t* ret = 0;
-  ast_t* fn;
-  for (i = 0; i < arr->length; ++i) {
-    fn = arr->values[i];
-    ty_t t = ty(fn->ty_id);
-    // binary atm!
-    if (fn->func.operator== operator&& t.func.nparams == 2) {
-      log_silly("operator function found: %s", ty_to_string(fn->ty_id)->value);
-
-      if (t.func.params[0] == ty_id) {
-        ret = fn;
-        goto cleanup;
-      }
-    }
-  }
-
-cleanup:
-  array_delete(arr);
-  pool_free(arr);
-  return ret;
-}
-
 // TODO handle args
 ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
   // search function
