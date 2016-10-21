@@ -279,8 +279,6 @@ array* ast_list_get_types(ast_t* list) {
   fl_assert(list != 0);
   fl_assert(list->type == AST_LIST);
 
-  ast_dump_s(list);
-
   array* arr = pool_new(sizeof(array));
   array_newcap(arr, list->list.length);
   for (u64 i = 0; i < list->list.length; ++i) {

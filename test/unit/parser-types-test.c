@@ -444,7 +444,7 @@ TASK_IMPL(parser_types) {
                  "struct array($tpl) { $tpl values, };\n"
                  "function x (array a, $tpl b) {}\n"
                  "var array(i8) ai8;\n"
-                 "x(ai8, 10);\n",
+                 "x(ai8, cast(i8) 10);\n",
                  {
     ast_t* call = body[6];
     ASSERT(call->type == AST_EXPR_CALL, "7th is the call");
@@ -464,7 +464,8 @@ TASK_IMPL(parser_types) {
                     "function x (array a, $tpl b) {}\n"
                     "var array(i8) ai8;\n"
                     "x(ai8, num64);\n",
-                    "type error, explicit cast required between (i64) to (i8)",
+                    "type error, try to implement '$tpl' with two different "
+                    "types 'i64' and 'i8'",
                     {});
 
   TEST_PARSER_OK("implement templates in order left to right",
@@ -532,8 +533,8 @@ TASK_IMPL(parser_types) {
                     "fn fntpl($tpl* x) {}\n"
                     "var i8 xy;\n"
                     "fntpl(xy);\n",
-                    "type error, cannot implement type (ref()) into (i8). A "
-                    "reference is required.",
+                    "type error, cannot implement type (ref($tpl)) into (i8). "
+                    "A reference is required.",
                     {});
 
   TEST_PARSER_ERROR("implement a pointer, requires a pointer",
@@ -541,8 +542,8 @@ TASK_IMPL(parser_types) {
                     "fn fntpl(ptr($tpl) x) {}\n"
                     "var i8* xy;\n"
                     "fntpl(xy);\n",
-                    "type error, cannot implement type (ptr()) into (ref(i8)). "
-                    "A pointer is required.",
+                    "type error, cannot implement type (ptr($tpl)) into "
+                    "(ref(i8)). A pointer is required.",
                     {});
 
   TEST_PARSER_ERROR("implement a struct, requires a struct",
@@ -551,7 +552,7 @@ TASK_IMPL(parser_types) {
                     "fn fntpl(array x) {}\n"
                     "var u64 xy;\n"
                     "fntpl(xy);\n",
-                    "type error, cannot implement type (struct array {  "
+                    "type error, cannot implement type (struct array { $tpl "
                     "values, }) into (u64). A struct is required.",
                     {});
 

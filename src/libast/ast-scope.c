@@ -113,7 +113,8 @@ void __foreach_function(char* key, void* ptr) {
   for (u64 i = 0; i < list->length; ++i) {
     ast_t* node = (ast_t*)list->values[0];
     if (st_cmp(node->func.id->identifier.string, __target_id) == 0) {
-      log_silly("function found!") array_push_unique(__target_arr, node);
+      log_silly("function found!");
+      array_push_unique(__target_arr, node);
     }
   }
 }
@@ -199,7 +200,7 @@ ast_t* ast_scope_binop_operator(ast_t* node, int operator, u64 lty_id,
           ast_t* fn = functions->values[j];
           if (fn->func.type == AST_FUNC_OPERATOR &&
               fn->func.operator== operator) {
-                printf("operator found! check params!");
+            log_silly("operator found! check params!");
             // now check both types
             ast_t* params = fn->func.params;
             fl_assert(params->list.length == 2); // jsut to be sure ^^
@@ -209,7 +210,7 @@ ast_t* ast_scope_binop_operator(ast_t* node, int operator, u64 lty_id,
             // edge cases
             // params->list.values[1]->ty_id == rty_id
             if (params->list.values[0]->ty_id == lty_id ||
-             params->list.values[0]->ty_id == can_left_ty_id) {
+                params->list.values[0]->ty_id == can_left_ty_id) {
               log_silly("function found[id=%lu]", fn->id);
               return fn;
             }

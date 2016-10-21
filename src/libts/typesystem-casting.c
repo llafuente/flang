@@ -359,8 +359,8 @@ void ts_cast_return(ast_t* node) {
   if (ty_id != node->ret.argument->ty_id) {
     ast_t* cast = __cast_node_to(node->ret.argument, ty_id);
     node->ret.argument = cast;
-    log_silly("casting to: %lu - %lu", cast->ty_id, ty_id)
-        fl_assert(cast->ty_id == ty_id);
+    log_silly("casting to: %lu - %lu", cast->ty_id, ty_id);
+    fl_assert(cast->ty_id == ty_id);
     node->ty_id = cast->ty_id;
   } else {
     node->ty_id = ty_id;
@@ -698,7 +698,8 @@ void ts_cast_binop(ast_t* node) {
       // someone is not a number, search for an operator overloaded function
 
       // get all operator overloading available for left type
-      ast_t* fn = ast_scope_binop_operator(node, node->binop.operator, l_type, r_type);
+      ast_t* fn =
+          ast_scope_binop_operator(node, node->binop.operator, l_type, r_type);
 
       if (!fn) {
         ast_raise_error(node, "type error, cannot find a proper operator "
@@ -843,7 +844,7 @@ void ts_cast_expr_member(ast_t* node) {
               fn_property = ast_implement_fn(type_list, fn_property, 0);
 
               // implement
-              log_silly("need to implement!")
+              log_silly("need to implement!");
             }
           }
 

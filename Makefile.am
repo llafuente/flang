@@ -38,6 +38,7 @@ SOURCES_TEST = test/tasks.c \
                test/unit/parser-if-test.c \
                test/unit/parser-loop-test.c \
                test/unit/parser-scopes-test.c \
+               test/unit/templates-test.c \
                test/unit/codegen-expressions-test.c \
                test/unit/codegen-functions-test.c \
                test/codegen/codegen-tests.c

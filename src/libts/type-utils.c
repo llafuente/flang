@@ -29,11 +29,13 @@
 #include "flang/libast.h"
 
 ty_t ty(u64 ty_id) {
+  fl_assert(ty_id < ts_type_size_s);
   // TODO check out-of-bounds
   return ts_type_table[ty_id];
 }
 
 ty_t* ty_ref(u64 ty_id) {
+  fl_assert(ty_id < ts_type_size_s);
   // TODO check out-of-bounds
   return &ts_type_table[ty_id];
 }
@@ -505,9 +507,11 @@ bool ty_compatible_fn(u64 ty_id, ast_t* arg_list, bool strict, bool template) {
     ty_t at2 = ty(expected);
     if (at2.templated) {
       if (template) {
-        log_silly("(template) parameter %zu use", i) continue;
+        log_silly("(template) parameter %zu use", i);
+        continue;
       }
-      log_silly("(template) parameter %zu reject", i) return false;
+      log_silly("(template) parameter %zu reject", i);
+      return false;
     } else {
       ts_cast_modes_t cm = ts_cast_mode(current, expected);
       // NOTE CAST_EXPLICIT it a not compatible type
@@ -606,7 +610,7 @@ u64 ty_create_fn(ast_t* decl) {
       __ty_template_usedby(tparams[i], decl);
     }
 
-    log_silly("param %s %lu is ty_id = %lu", fn_uid, i, tparams[i])
+    log_silly("param %s %lu is ty_id = %lu", fn_uid, i, tparams[i]);
   }
 
   if (templates) {
@@ -858,6 +862,37 @@ ast_t* ty_get_operator(u64 left_ty_id, u64 right_ty_id, int operator,
     // what happens in the future?
     return ty_get_operator(type.structure.from_tpl, right_ty_id, operator,
                            false);
+  }
+
+  return 0;
+}
+
+array* ty_get_templates(u64 ty_id) {
+  ty_t type = ty(ty_id);
+  switch (type.of) {
+  case TY_FUNCTION:
+    fl_assert(false); // TODO
+  case TY_STRUCT: {
+    array* ret = pool_new(sizeof(array));
+
+    for (i64 i = 0; i < type.structure.members.length; ++i) {
+      array* x = ty_get_templates(type.structure.fields[i]);
+      if (x) {
+        array_concat(ret, x);
+      }
+    }
+
+    return ret;
+  }
+  case TY_TEMPLATE: {
+    array* ret = pool_new(sizeof(array));
+    array_push(ret, ty_id);
+    return ret;
+  }
+  case TY_POINTER:
+    return ty_get_templates(type.ptr.to);
+  case TY_REFERENCE:
+    return ty_get_templates(type.ref.to);
   }
 
   return 0;

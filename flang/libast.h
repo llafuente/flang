@@ -580,6 +580,12 @@ libexport void ast_clear(ast_t* node, ast_types_t type);
  */
 libexport void ast_replace_types(ast_t* node, u64 old, u64 new);
 
+/* traverse given node removing all types (ty_id)
+ *
+ * @node
+ */
+libexport void ast_reset_types(ast_t* node);
+
 /* cldoc:end-category() */
 
 /* cldoc:begin-category(ast-static.c) */
@@ -799,6 +805,6 @@ libexport ast_t* ast_scope_type(ast_t* node, string* id);
 libexport ast_t* ast_scope_decl(ast_t* node, string* identifier);
 
 libexport ast_t* ast_scope_binop_operator(ast_t* node, int operator, u64 lty_id,
-                                u64 rty_id);
+                                          u64 rty_id);
 
 /* cldoc:end-category() */

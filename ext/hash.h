@@ -61,12 +61,12 @@ void hash_clear(hash_t* ht);
   do {                                                                         \
     hash_entry_t* var_name;                                                    \
                                                                                \
-    for (u64 i = 0; i < hash->size; i++) {                                         \
+    for (u64 i = 0; i < hash->size; i++) {                                     \
       var_name = hash->table[i];                                               \
       if (var_name != 0) {                                                     \
         do {                                                                   \
-          code_block; \
-          var_name = var_name->next;                                \
+          code_block;                                                          \
+          var_name = var_name->next;                                           \
         } while (var_name != 0);                                               \
       }                                                                        \
     }                                                                          \

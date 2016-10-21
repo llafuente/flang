@@ -57,32 +57,32 @@ ast_action_t __trav_implement(AST_CB_T_HEADER) {
       ast_raise_error(node,
                       "type error, cannot find function or struct named: '%s'",
                       fn_id->value);
-    } else {
-      ast_t* fn = 0;
-      ast_t* tmp = 0;
-      for (int i = 0; i < arr->length; ++i) {
-        tmp = (ast_t*)arr->values[i];
-        if (tmp->func.templated) {
-          if (fn) {
-            // raise! double template!
-            ast_dump_s(fn);
-            ast_dump_s(tmp);
-            ast_raise_error(
-                node, "type error, cannot implement polymorphic functions");
-          }
-          fn = tmp;
-        }
-      }
-
-      if (!fn) {
-        ast_raise_error(node, "type error, function '%s' has no templates",
-                        fn_id->value);
-      }
-
-      tmp = ast_implement_fn(node->impl.type_list, arr->values[0],
-                             node->impl.uid->identifier.string);
-      log_silly("fn new type[%zu]", tmp->ty_id);
     }
+    ast_t* fn = 0;
+    ast_t* tmp = 0;
+    for (int i = 0; i < arr->length; ++i) {
+      tmp = (ast_t*)arr->values[i];
+      if (tmp->func.templated) {
+        if (fn) {
+          // raise! double template!
+          ast_dump_s(fn);
+          ast_dump_s(tmp);
+          ast_raise_error(node,
+                          "type error, cannot implement polymorphic functions");
+        }
+        fn = tmp;
+      }
+    }
+
+    if (!fn) {
+      ast_raise_error(node, "type error, function '%s' has no templates",
+                      fn_id->value);
+    }
+
+    tmp = ast_implement_fn(node->impl.type_list, arr->values[0],
+                           node->impl.uid->identifier.string);
+    log_silly("fn new type[%zu]", tmp->ty_id);
+
     array_delete(arr);
     pool_free(arr);
   } break;

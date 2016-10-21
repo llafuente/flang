@@ -130,6 +130,25 @@ string* ty_to_string_list(ast_t* list) {
 
   return buffer;
 }
+
+string* ty_to_string_array(array* arr) {
+  string* buffer = st_new(128, st_enc_utf8);
+
+  u64 max = arr->length;
+  for (u64 i = 0; i < max; ++i) {
+    string* c = ty_to_string((u64)arr->values[i]);
+    c->encoding = st_enc_utf8;      // TODO REVIEW THIS IS AN ERROR IN string.c
+    buffer->encoding = st_enc_utf8; // TODO REVIEW THIS IS AN ERROR IN string.c
+    printf("%u - %u\n", c->encoding, buffer->encoding);
+    st_append(&buffer, c);
+    if (i + 1 != max) {
+      st_append_c(&buffer, ", ");
+    }
+  }
+
+  return buffer;
+}
+
 string* ty_to_string(u64 ty_id) {
   ty_t ty = ts_type_table[ty_id];
   // cached?
@@ -140,6 +159,9 @@ string* ty_to_string(u64 ty_id) {
   string* buffer = st_new(64, st_enc_utf8);
 
   switch (ty.of) {
+  case TY_TEMPLATE:
+    return ty.id;
+    break;
   case TY_POINTER:
     st_append_c(&buffer, "ptr(");
     st_append(&buffer, ty_to_string(ty.ptr.to));

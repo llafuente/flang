@@ -31,6 +31,11 @@
 
 // return error
 
+typedef struct {
+  u64 impl;
+  u64 decl;
+} impl_replace_t;
+
 void __ast_implement_type_check(ast_t* node, u64 from, u64 to) {
   ty_t from_type = ty(from);
   ty_t to_type = ty(to);
@@ -59,104 +64,119 @@ void __ast_implement_type_check(ast_t* node, u64 from, u64 to) {
   // TODO REVIEW what about functions ?!
 }
 
-// from: decl
-// to: implementation
-void ast_implement_type_in_order(ast_t* fn, u64 from, u64 to) {
-  fl_assert(fn->type == AST_DECL_FUNCTION);
+// array of impl_replace_t
+void __get_types_to_replace_in_order(ast_t* decl_param, u64 decl_ty_id,
+                                     u64 impl_ty_id, array* arr) {
+  ty_t from_type = ty(decl_ty_id);
+  ty_t to_type = ty(impl_ty_id);
 
-  ty_t from_type = ty(from);
-  ty_t to_type = ty(to);
+  __ast_implement_type_check(decl_param, decl_ty_id, impl_ty_id);
 
-  log_silly("from %lu[%s] to %lu[%s]", from, ty_to_string(from)->value, to,
-            ty_to_string(to)->value);
-  // check compatible/enforced types first.
-  __ast_implement_type_check(fn, from, to);
+  impl_replace_t* repl = pool_new(sizeof(impl_replace_t));
+  repl->impl = impl_ty_id;
+  repl->decl = decl_ty_id;
+
+  array_push(arr, (void*)repl);
+
+  log_silly("push replace type: %lu[%s] => %lu[%s]", decl_ty_id,
+            ty_to_string(decl_ty_id)->value, impl_ty_id,
+            ty_to_string(impl_ty_id)->value);
 
   switch (from_type.of) {
   case TY_STRUCT: {
     u64 jmax = from_type.structure.members.length;
     for (u64 j = 0; j < jmax; ++j) {
-      if (ty_is_template(from_type.structure.fields[j])) {
-        log_silly("replace template idx %lu\n", j);
-        ast_replace_types(fn, from_type.structure.fields[j],
-                          to_type.structure.fields[j]);
-      } else if (ty_is_templated(from_type.structure.fields[j])) {
-        log_silly("implement templated idx %lu\n", j);
-        ast_implement_type_in_order(fn, from_type.structure.fields[j],
-                                    to_type.structure.fields[j]);
-      }
+      __get_types_to_replace_in_order(decl_param, from_type.structure.fields[j],
+                                      to_type.structure.fields[j], arr);
     }
   } break;
-  case TY_TEMPLATE:
-    ast_replace_types(fn, from, to);
-    break;
   case TY_REFERENCE:
-    ast_replace_types(fn, from_type.ref.to, to_type.ref.to);
-    ast_implement_type_in_order(fn, from_type.ref.to, to_type.ref.to);
+    __get_types_to_replace_in_order(decl_param, from_type.ref.to,
+                                    to_type.ref.to, arr);
     break;
   case TY_POINTER:
-    ast_replace_types(fn, from_type.ptr.to, to_type.ptr.to);
-    ast_implement_type_in_order(fn, from_type.ptr.to, to_type.ptr.to);
+    __get_types_to_replace_in_order(decl_param, from_type.ptr.to,
+                                    to_type.ptr.to, arr);
     break;
-  default:
-    ast_raise_error(fn, "TODO, not handled case atm 2 %s",
-                    ty_to_string(from)->value);
+  default: {}
   }
 }
+
 ast_t* ast_implement_fn(ast_t* type_list, ast_t* decl, string* uid) {
   fl_assert(type_list->type == AST_LIST);
-  return ast_implement_fn2(
-    ast_list_get_types(type_list),
-    decl,
-    uid);
+  return ast_implement_fn2(ast_list_get_types(type_list), decl, uid);
 }
 
 ast_t* ast_implement_fn2(array* type_list, ast_t* decl, string* uid) {
   fl_assert(decl->type == AST_DECL_FUNCTION);
   fl_assert(decl->func.templated);
 
-  ast_t* fn = ast_clone(decl);
+  ast_t* impl = ast_clone(decl);
 
-  fn->func.from_tpl = fn; // comes from this template
-  fn->func.templated = false;
+  impl->func.from_tpl = decl; // comes from this template
+  impl->func.templated = false;
 
-  fn->func.uid = uid; // if 0 -> auto
-  ast_parent(fn);
+  impl->func.uid = uid; // if 0 -> auto
 
-  log_silly("implement function %s", fn->func.id->identifier.string->value);
-  ast_mk_insert_before(decl->parent, decl, fn);
+  log_silly("implement function %s as %s",
+            decl->func.id->identifier.string->value,
+            uid ? uid->value : "auto-name");
+  ast_mk_insert_before(decl->parent, decl, impl);
 
   // todo replace types!
-  u64 old;
-  u64 new;
 
-  ast_t* decl_params = fn->func.params;
+  ast_t* decl_params = impl->func.params;
   u64 count = decl_params->list.length;
 
+  if (type_list->length != count) {
+    // TODO where!
+    ast_raise_error(decl, "syntax error, try to implement a function with %lu "
+                          "parameters, expected %lu",
+                    type_list->length, count);
+  }
+
   u64 i;
+  u64 j;
+  ast_t* decl_param;
   u64 decl_param_ty_id;
+  u64 impl_ty_id;
 
-  // loop left to right implementing each type and template
+  array* types_to_replace = pool_new(sizeof(array));
   for (i = 0; i < count; ++i) {
-    decl_param_ty_id = decl_params->list.values[i]->ty_id;
-    u64* impl_ty_id = (u64*) type_list->values[i];
+    decl_param = decl_params->list.values[i];
+    decl_param_ty_id = decl_param->ty_id;
+    impl_ty_id = (u64)type_list->values[i];
 
-    log_silly("type idx[%lu] impl[%s] decl[%s]",
-    i,
-    ty_to_string(impl_ty_id)->value,
-    ty_to_string(decl_param_ty_id)->value);
+    __get_types_to_replace_in_order(decl_param, decl_param_ty_id, impl_ty_id,
+                                    types_to_replace);
+  }
 
-    if (ty_is_templated(decl_param_ty_id)) {
-      ast_implement_type_in_order(fn, decl_param_ty_id,
-                                  impl_ty_id);
-      // search type and replace!
-      ast_replace_types(fn, decl_param_ty_id, impl_ty_id);
+  // check a type won't be replaced twice with different types
+  for (i = 0; i < types_to_replace->length; ++i) {
+    impl_replace_t* repl = types_to_replace->values[i];
+    log_silly("replace %lu [%lu] to [%lu]", i, repl->decl, repl->impl);
+    for (j = i + 1; j < types_to_replace->length; ++j) {
+      impl_replace_t* repl2 = types_to_replace->values[j];
+
+      if (repl2->decl == repl->decl && repl2->impl != repl->impl) {
+        ast_raise_error(decl, "type error, try to implement '%s' with two "
+                              "different types '%s' and '%s'",
+                        ty_to_string(repl2->decl)->value,
+                        ty_to_string(repl2->impl)->value,
+                        ty_to_string(repl->impl)->value);
+      }
+    }
+    // this must prevail!
+    if (repl->decl != repl->impl) {
+      ast_replace_types(impl, repl->decl, repl->impl);
     }
   }
 
-  fn->ty_id = ty_create_fn(fn);
-  _typesystem(fn);
-  return fn;
+  impl->ty_id = ty_create_fn(impl);
+  ast_dump(impl);
+  _typesystem(impl);
+
+  return impl;
 }
 
 // return error

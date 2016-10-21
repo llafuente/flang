@@ -83,3 +83,12 @@ void ast_clear(ast_t* node, ast_types_t type) {
 
   node->type = type;
 }
+
+ast_action_t __ast_reset_type_cb(AST_CB_T_HEADER) {
+  node->ty_id = 0;
+  return AST_SEARCH_CONTINUE;
+}
+
+void ast_reset_types(ast_t* node) {
+  ast_traverse(node, __ast_reset_type_cb, 0, 0, 0, 0);
+}

@@ -54,20 +54,24 @@ extern int log_debug_level;
 // 4 - verbose
 // 5 - silly
 #define dbg(trace, level, ...)                                                 \
-  if (log_debug_level >= level) {                                              \
-    char buf[] = __FILE__;                                                     \
-    if (trace) {                                                               \
-      fprintf(stderr, "%20s:%3d[%s] ", basename(buf), __LINE__, __FUNCTION__); \
+  do {                                                                         \
+    if (log_debug_level >= level) {                                            \
+      char buf[] = __FILE__;                                                   \
+      if (trace) {                                                             \
+        fprintf(stderr, "%20s:%3d[%s] ", basename(buf), __LINE__,              \
+                __FUNCTION__);                                                 \
+      }                                                                        \
+      fprintf(stderr, __VA_ARGS__);                                            \
+      if (trace) {                                                             \
+        fprintf(stderr, "\n");                                                 \
+      }                                                                        \
+      if (level == 0) {                                                        \
+        __sanitizer_print_stack_trace();                                       \
+        exit(6);                                                               \
+      }                                                                        \
     }                                                                          \
-    fprintf(stderr, __VA_ARGS__);                                              \
-    if (trace) {                                                               \
-      fprintf(stderr, "\n");                                                   \
-    }                                                                          \
-    if (level == 0) {                                                          \
-      __sanitizer_print_stack_trace();                                         \
-      exit(6);                                                                 \
-    }                                                                          \
-  }
+  } while (false)
+
 /*
   void* array[10];                                                         \
   size_t size;                                                             \

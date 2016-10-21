@@ -188,6 +188,7 @@ libexport void ty_to_printf(u64 ty_id, char* buffer);
 libexport string* ty_to_string(u64 ty_id);
 
 libexport string* ty_to_string_list(ast_t* list);
+libexport string* ty_to_string_array(array* arr);
 
 /* Print string representation to stderr
  *
@@ -368,6 +369,8 @@ libexport u64 ty_create_template(ast_t* decl);
 libexport void ty_struct_add_virtual(ast_t* decl);
 
 libexport void ty_struct_add_operator(ast_t* decl);
+
+libexport array* ty_get_templates(u64 ty_id);
 
 /* cldoc:end-category() */
 

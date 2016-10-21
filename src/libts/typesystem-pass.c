@@ -55,11 +55,16 @@ ast_action_t __trav_casting(AST_CB_T_HEADER) {
   // do not pass typesystem to templates
   // templates are incomplete an raise many errors
   case AST_DECL_FUNCTION: {
-    if (node->func.type == AST_FUNC_OPERATOR && !node->func.templated) {
+    if (node->func.templated) {
+      return AST_SEARCH_SKIP;
+    }
+
+    if (node->func.type == AST_FUNC_OPERATOR) {
       ts_pass(node->func.params);
       ts_check_operator_overloading(node);
     }
-    return node->func.templated ? AST_SEARCH_SKIP : AST_SEARCH_CONTINUE;
+
+    return AST_SEARCH_CONTINUE;
   }
 
   case AST_STMT_RETURN: {

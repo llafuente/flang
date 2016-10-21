@@ -55,7 +55,9 @@ cd ..
 #/usr/bin/time -v ./build/flang ./test/codegen/typesystem/references2.fl -v
 #/usr/bin/time -v ./build/flang ./test/codegen/misc/globals.fl -v
 #/usr/bin/time -v ./build/flang ./test/codegen/array/array.fl -v
-#/usr/bin/time -v ./build/flang ./lib/core/array.fl -v -nocore
+#/usr/bin/time -v ./build/flang ./test/codegen/typesystem/sizeof.implement.fl -v -nocore
+#/usr/bin/time -v ./build/flang ./test/codegen/typesystem/templatesv2.fl -v -nocore
+/usr/bin/time -v ./build/flang ./test/codegen/typesystem/struct-templates.fl -v
 
 # compile c code
 if [ "$COMPILER" = "clang" ]; then

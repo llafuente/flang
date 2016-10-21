@@ -25,6 +25,7 @@
 
 #include "flang/flang.h"
 #include "flang/libast.h"
+#include "flang/libts.h"
 #include "flang/debug.h"
 #include "flang/libparser.h"
 
@@ -132,7 +133,8 @@ void ast_dump_one(ast_t* node, FILE* where) {
             node->var.scope == AST_SCOPE_BLOCK ? "block" : "global");
     break;
   case AST_TYPE:
-    fprintf(where, "type T(%zu)", node->ty_id);
+    fprintf(where, "type T(%zu) %s", node->ty_id,
+            ty_to_string(node->ty_id)->value);
     break;
   case AST_DECL_STRUCT:
     fprintf(where, "struct T(%zu) tpl(%d)", node->ty_id,
@@ -218,11 +220,9 @@ ast_action_t __ast_dump_cb(AST_CB_T_HEADER) {
   level = level * 2;
 
   // indent
-  printf("%*s• \x1B[32m %s: ", (int)level, " ", property);
+  printf("%*s\x1B[32m @%s id[%lu] ", (int)level, " ", property, node->id);
 
   ast_dump_one(node, stdout);
-
-  fprintf(stdout, " !%lu", node->id);
 
   if (node->first_line) {
     printf("\x1B[39m@[%d:%d - %d:%d]", node->first_line, node->first_column,
