@@ -129,7 +129,6 @@ ast_action_t __ts_inference_fn_ret(AST_CB_T_HEADER) {
   if (node->type == AST_DECL_FUNCTION && node->func.ret_type->ty_id == 0) {
     log_silly("inference: function return value");
 
-    ast_t* ret = node->func.ret_type;
     ast_t* body = node->func.body;
     array* list = ast_search_node_type(node, AST_STMT_RETURN);
 

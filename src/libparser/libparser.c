@@ -65,7 +65,6 @@ ast_t* __psr_parse(string* code, const char* file) {
 
 ast_t* psr_str_utf8(char* str) {
   st_size_t cap;
-  size_t len = st_utf8_length(str, &cap);
 
   string* code = st_new(cap + 2, st_enc_utf8);
   st_copyc(&code, str, st_enc_utf8);

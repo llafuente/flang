@@ -46,7 +46,6 @@ ast_action_t __ast_traverse(ast_t* node, ast_cb_t cb, ast_t* parent, u64 level,
 
 #define TRAVERSE_LIST(node)                                                    \
   {                                                                            \
-    u64 i = 0;                                                                 \
     ast_t* tmp;                                                                \
     char buffer[33];                                                           \
                                                                                \

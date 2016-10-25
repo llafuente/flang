@@ -126,6 +126,7 @@ u64 ty_create_wrapped(ts_types_t wrapper, u64 child) {
   }
   // add it!
   i = ts_type_size_s++;
+  ts_type_table[i].id = 0;
   switch (wrapper) {
   case TY_POINTER:
     ts_type_table[i].of = wrapper;
@@ -352,7 +353,6 @@ u64 ty_create_struct(ast_t* decl) {
     }
   }
 
-  u64 j;
   u64* fields = calloc(length, sizeof(u64));
   array properties;
   array alias;
@@ -629,7 +629,6 @@ u64 ty_create_fn(ast_t* decl) {
   ts_type_table[ty_id].func.varargs = decl->func.varargs;
 
   ast_t* attach_to;
-  ast_t* from;
   attach_to = ast_get_scope(decl);
 
   if (!__fn_collision(decl, attach_to, fn_id, fn_uid)) {
@@ -886,13 +885,14 @@ array* ty_get_templates(u64 ty_id) {
   }
   case TY_TEMPLATE: {
     array* ret = pool_new(sizeof(array));
-    array_push(ret, ty_id);
+    array_push(ret, (void*)ty_id);
     return ret;
   }
   case TY_POINTER:
     return ty_get_templates(type.ptr.to);
   case TY_REFERENCE:
     return ty_get_templates(type.ref.to);
+  default: {} // remove warning
   }
 
   return 0;

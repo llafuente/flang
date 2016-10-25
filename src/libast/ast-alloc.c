@@ -38,9 +38,6 @@ ast_t* ast_new() {
 }
 
 void __ast_delete_list(ast_t* list) {
-
-  ast_t* tmp;
-
   if (list) {
     for (u64 i = 0; i < list->list.length; ++i) {
       ast_delete(list->list.values[i]);
@@ -229,7 +226,6 @@ ast_t* __ast_clone(ast_t* node) {
   case AST_LIST: {
     u64 i = 0;
     u64 max = node->list.length;
-    ast_t* tmp;
 
     // +1 null at end
     t->list.values = pool_new(max * sizeof(ast_t*) + 1);

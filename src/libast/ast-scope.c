@@ -87,7 +87,6 @@ ast_t* ast_scope_decl(ast_t* node, string* identifier) {
 // TODO REVIEW this is used?! this is wrong!
 ast_t* ast_scope_var(ast_t* node, string* identifier) {
   ast_t* ret = 0;
-  array* arr = 0;
 
   char* cstr = identifier->value;
 
@@ -228,7 +227,7 @@ ast_t* ast_scope_binop_operator(ast_t* node, int operator, u64 lty_id,
   ty_t type = ty(lty_id);
 
   log_silly("cannonical left is: %s", ty_to_string(lty_id)->value);
-  log_silly("%d, %d", type.of == TY_STRUCT, type.structure.from_tpl);
+  log_silly("%d, %lu", type.of == TY_STRUCT, type.structure.from_tpl);
 
   // first argument is a implemented struct
   if (type.of == TY_STRUCT && type.structure.from_tpl) {
@@ -237,8 +236,8 @@ ast_t* ast_scope_binop_operator(ast_t* node, int operator, u64 lty_id,
 
     if (fn) { // implement!
       array* type_list = pool_new(sizeof(array));
-      array_push(type_list, lty_id);
-      array_push(type_list, rty_id);
+      array_push(type_list, (void*)lty_id);
+      array_push(type_list, (void*)rty_id);
 
       fn = ast_implement_fn2(type_list, fn, 0);
     }

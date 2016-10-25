@@ -106,13 +106,8 @@ ast_t* ast_search_fn_wargs(string* id, ast_t* args_call) {
   }
 
   ast_t* decl;
-  ast_t* params;
-  ast_t* param;
 
-  ast_t* arg_call;
-
-  u64 i, j;
-  u64 imax = args_call->list.length;
+  u64 j;
   u64 jmax = arr->length;
 
   // strict and no template

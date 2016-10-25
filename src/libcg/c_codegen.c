@@ -410,7 +410,6 @@ ast_action_t __codegen_cb(AST_CB_T_HEADER) {
     }
 
     if (mode == AST_TRAV_ENTER) {
-      u64 current = cg_stack->length;
       int buffer_idx = 0;
       buffer[0] = 0;
 

@@ -4,9 +4,6 @@
 
 #define TOKEN(t)    (yylval.token = t)
 
-static int num_hashes;
-static int end_hashes;
-static int saw_non_hash;
 extern array* identifiers;
 
 int yycolumn = 1;
