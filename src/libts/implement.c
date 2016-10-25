@@ -50,7 +50,7 @@ ast_action_t __trav_implement(AST_CB_T_HEADER) {
       if (decl && decl->type == AST_DECL_STRUCT) {
         ast_t* tmp = ast_implement_struct(node->impl.type_list, decl,
                                           node->impl.uid->identifier.string);
-        log_silly("struct new type[%zu]", tmp->ty_id);
+        log_silly("implemented struct ty_id[%zu]", tmp->ty_id);
         return AST_SEARCH_SKIP;
       }
 
@@ -81,7 +81,7 @@ ast_action_t __trav_implement(AST_CB_T_HEADER) {
 
     tmp = ast_implement_fn(node->impl.type_list, arr->values[0],
                            node->impl.uid->identifier.string);
-    log_silly("fn new type[%zu]", tmp->ty_id);
+    log_silly("implemented fn ty_id[%zu]", tmp->ty_id);
 
     array_delete(arr);
     pool_free(arr);

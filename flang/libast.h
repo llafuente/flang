@@ -580,6 +580,7 @@ libexport void ast_clear(ast_t* node, ast_types_t type);
  */
 libexport void ast_replace_types(ast_t* node, u64 old, u64 new);
 
+libexport void ast_replace_identifiers(ast_t* node, string* old, string* new);
 /* traverse given node removing all types (ty_id)
  *
  * @node

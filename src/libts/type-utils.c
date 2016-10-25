@@ -202,7 +202,7 @@ u64 ty_get_struct_prop_type(u64 id, string* property) {
 }
 
 bool __fn_collision(ast_t* where, ast_t* scope, char* ty_name, char* uid_name) {
-  log_debug("check collisions id='%s' uid='%s'", ty_name, uid_name);
+  log_debug("fn '%s' check collisions uid[%s]", ty_name, uid_name);
   ast_t* redef;
 
   bool same_name = strcmp(ty_name, uid_name) == 0;
@@ -332,7 +332,7 @@ void __ty_template_usedby(u64 id, ast_t* decl) {
   case TY_TEMPLATE:
     // add it!
     array_push(&type->tpl.usedby, decl);
-    log_silly("push to template %lu count %lu", id, type->tpl.usedby.length);
+    log_silly("push to template[%lu] count=%lu", id, type->tpl.usedby.length);
   }
 }
 
@@ -610,7 +610,9 @@ u64 ty_create_fn(ast_t* decl) {
       __ty_template_usedby(tparams[i], decl);
     }
 
-    log_silly("param %s %lu is ty_id = %lu", fn_uid, i, tparams[i]);
+    log_silly("fn '%s' param[%lu] '%s' ty_id[%lu]", fn_uid, i,
+              params->list.values[i]->param.id->identifier.string->value,
+              tparams[i]);
   }
 
   if (templates) {

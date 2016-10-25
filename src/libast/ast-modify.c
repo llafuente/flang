@@ -66,6 +66,35 @@ void ast_replace_types(ast_t* node, u64 old, u64 new) {
   ast_traverse(node, __trav_replace_types, 0, 0, (void*)&old, (void*)&new);
 }
 
+ast_action_t __trav_replace_identifiers(AST_CB_T_HEADER) {
+  if (mode == AST_TRAV_LEAVE)
+    return 0;
+
+  string* old = (string*)userdata_in;
+  string* new = (string*)userdata_out;
+
+  if (node->type == AST_LIT_IDENTIFIER) {
+    if (st_cmp(node->identifier.string, old) == 0) {
+      log_silly("identifier replaced!");
+      node->identifier.string = new;
+
+      // remove all types until AST_LIST
+      ast_t* p = node->parent;
+      while (p->type != AST_LIST) {
+        p->ty_id = 0;
+        p = p->parent;
+      }
+    }
+  }
+
+  return AST_SEARCH_CONTINUE;
+}
+
+void ast_replace_identifiers(ast_t* node, string* old, string* new) {
+  log_silly("replace identifier %s => %s", old->value, new->value);
+  ast_traverse(node, __trav_replace_identifiers, 0, 0, (void*)old, (void*)new);
+}
+
 void ast_clear(ast_t* node, ast_types_t type) {
   ast_t* p = node->parent;
   u32 first_line = node->first_line;

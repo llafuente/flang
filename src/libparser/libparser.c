@@ -173,7 +173,7 @@ ast_action_t __trav_load_imports(AST_CB_T_HEADER) {
     array_push(&block_scope->block.modules, module);
     module->parent = block_scope;
 
-    log_verbose("module loaded %s at %p [%lu]", file, module,
+    log_verbose("module loaded %s at %p count=%lu", file, module,
                 block_scope->block.modules.length);
     // no reimport
     node->import.imported = true;
