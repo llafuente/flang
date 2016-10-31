@@ -70,12 +70,14 @@ ast_t* ast_scope_decl(ast_t* node, string* identifier) {
 
     ret = (ast_t*)hash_get(scope->block.variables, cstr);
     if (ret) {
+      pool_free(scopes);
       return ret;
     }
 
     // TODO REVIEW why the first one only ? can remember why?!!
     arr = hash_get(scope->block.functions, cstr);
     if (arr) {
+      pool_free(scopes);
       return (ast_t*)array_get(arr, 0);
     }
   }
