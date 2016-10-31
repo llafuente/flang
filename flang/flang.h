@@ -102,6 +102,7 @@ typedef ast_action_t (*ast_cb_t)(ast_trav_mode_t mode, ast_t* node,
 extern jmp_buf fl_on_error_jmp;
 extern ast_t* ast_last_error_node;
 extern char* ast_last_error_message;
+extern FILE* ast_dump_file;
 
 libexport void flang_init();
 libexport void flang_exit(ast_t* root);

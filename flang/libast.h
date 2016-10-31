@@ -618,7 +618,7 @@ libexport bool ast_require_load(ast_t* node);
  * @node
  * @where stdout / stderr / file
  */
-libexport void ast_dump_one(ast_t* node, FILE* where);
+libexport void ast_dump_one(ast_t* node);
 
 /* Debug: Recursive print to stderr a node as text
  *

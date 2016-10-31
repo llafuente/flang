@@ -35,6 +35,7 @@ array* identifiers;
 extern int yycolumn;
 extern int yylineno;
 jmp_buf fl_on_error_jmp;
+FILE* ast_dump_file = 0;
 
 void* pool_realloc_fix_string(void* ptr, size_t bytes) {
   string* str = (string*)ptr;
@@ -64,6 +65,8 @@ void flang_init() {
 
   identifiers = malloc(sizeof(array));
   array_new(identifiers);
+
+  ast_dump_file = stdout;
 
   ts_init();
 }
