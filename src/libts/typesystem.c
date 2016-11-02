@@ -31,18 +31,18 @@
 
 static int ts_pending = 0;
 
-void _typesystem(ast_t* root) {
+void ts_typesystem_pass(ast_t* root) {
   psr_ast_imports(root);
 
-  ts_register_types(root);
-  ts_implement(root);
-  ts_register_types(root); // it's not redundant
+  ts_register_types_pass(root);
+  ts_implement_pass(root);
+  ts_register_types_pass(root); // it's not redundant
 
   // do inference
-  root = ts_pass(root);
+  root = ts_casting_pass(root);
 
   // reduce ast to it's minimal form
-  root = ast_reduce(root);
+  root = ast_simplify(root);
 }
 
 ast_action_t __trav_raise_no_type(AST_CB_T_HEADER) {
@@ -85,7 +85,7 @@ ast_t* typesystem(ast_t* root) {
 
   while (ts_pending && !ast_last_error_message) {
     if (!setjmp(fl_on_error_jmp)) {
-      _typesystem(root);
+      ts_typesystem_pass(root);
     }
     ts_pending = 0; // just exit atm.
   }

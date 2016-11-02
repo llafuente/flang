@@ -93,7 +93,7 @@ ast_action_t __trav_implement(AST_CB_T_HEADER) {
 }
 
 // return error
-ast_t* ts_implement(ast_t* node) {
+ast_t* ts_implement_pass(ast_t* node) {
   ast_traverse(node, __trav_implement, 0, 0, 0, 0);
 
   return 0;

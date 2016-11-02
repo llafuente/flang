@@ -74,7 +74,7 @@ ast_action_t __ts_inference_dtors(AST_CB_T_HEADER) {
         if (parent->type == AST_EXPR_ASSIGNAMENT &&
             parent->assignament.left == fnod) {
           ast_t* rhs = parent->assignament.right;
-          ts_pass(rhs);
+          ts_casting_pass(rhs);
 
           u64 t = rhs->ty_id;
           if (t) {
@@ -179,7 +179,7 @@ ast_action_t __ts_inference_fn_ret(AST_CB_T_HEADER) {
 }
 
 // return if modified something
-bool ts_inference(ast_t* node) {
+bool ts_inference_pass(ast_t* node) {
   // var x = 10; <- double
   // var x = ""; <- string*
   // var x = []; <- look usage

@@ -138,8 +138,8 @@
     flang_init();                                                              \
     ast_t* root = psr_str_utf8_main(code);                                     \
     CHK_BODY(root);                                                            \
-    ts_register_types(root);                                                   \
-    root = ts_pass(root);                                                      \
+    ts_register_types_pass(root);                                              \
+    root = ts_casting_pass(root);                                              \
     ast_mindump(root);                                                         \
     ast_t** body = root->program.body->block.body->list.values;                \
     fl_codegen(root);                                                          \

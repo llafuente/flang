@@ -180,8 +180,7 @@ ast_t* ast_implement_fn2(array* type_list, ast_t* decl, string* uid) {
 
   impl->ty_id = 0;
   ast_reset_types(impl->func.body);
-
-  _typesystem(impl);
+  ts_typesystem_pass(impl);
   //ast_dump(impl);
   //exit(1001);
 
@@ -245,7 +244,7 @@ ast_t* ast_implement_struct(ast_t* type_list, ast_t* decl, string* uid) {
   clone->structure.templated = false;
   clone->ty_id = ty_create_struct(clone);
   clone->structure.id->ty_id = clone->ty_id;
-  _typesystem(clone);
+  ts_typesystem_pass(clone);
 
   ts_type_table[clone->ty_id].structure.from_tpl = decl->ty_id;
 

@@ -47,7 +47,7 @@ ast_action_t __trav_replace_types(AST_CB_T_HEADER) {
         if (p->type == AST_TYPE) {
           log_silly("parent is type: before %lu", p->ty_id);
           p->ty_id = 0;
-          ts_register_types(p);
+          ts_register_types_pass(p);
           log_silly("parent is type: after %lu", p->ty_id);
         }
 
@@ -114,10 +114,11 @@ void ast_clear(ast_t* node, ast_types_t type) {
 }
 
 ast_action_t __ast_reset_type_cb(AST_CB_T_HEADER) {
-  switch(node->type) {
+  switch (node->type) {
   case AST_STMT_RETURN:
     // do not modify return-void statement created by ts_inference
-    if (node->ty_id == TS_VOID) return AST_SEARCH_CONTINUE;
+    if (node->ty_id == TS_VOID)
+      return AST_SEARCH_CONTINUE;
   case AST_LIT_FLOAT:
   case AST_LIT_INTEGER:
     return AST_SEARCH_CONTINUE;

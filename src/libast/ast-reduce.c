@@ -110,13 +110,13 @@ ast_action_t __trav_reduced(AST_CB_T_HEADER) {
 }
 
 // return error
-ast_t* ast_reduce(ast_t* node) {
+ast_t* ast_simplify(ast_t* node) {
   u64 reduced;
   do {
     reduced = 0;
     ast_traverse(node, __trav_reduced, 0, 0, 0, (void*)&reduced);
     if (reduced) {
-      _typesystem(node);
+      ts_typesystem_pass(node);
     }
   } while (reduced);
 

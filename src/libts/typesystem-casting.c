@@ -431,7 +431,7 @@ void ts_cast_lunary(ast_t* node) {
 }
 
 void ts_cast_runary(ast_t* node) {
-  ts_pass(node->runary.element);
+  ts_casting_pass(node->runary.element);
   node->ty_id = node->runary.element->ty_id;
 }
 
@@ -453,9 +453,9 @@ void ts_cast_call(ast_t* node) {
 
   // get types from arguments first
   log_debug("callee and arguments must pass first!");
-  ts_pass(node->call.callee);
+  ts_casting_pass(node->call.callee);
   for (i = 0; i < count; ++i) {
-    ts_pass(args->list.values[i]);
+    ts_casting_pass(args->list.values[i]);
   }
 
   // NOTE: polymorph - callee must be an identifier
@@ -540,7 +540,7 @@ ast_t* __ts_dereference(ast_t* parent, ast_t* node) {
   ast_t* deref = ast_mk_lunary(node, '*');
   node->parent = deref;
   deref->parent = node;
-  ts_pass(deref);
+  ts_casting_pass(deref);
   return deref;
 }
 
@@ -549,7 +549,7 @@ ast_t* __ts_reference(ast_t* parent, ast_t* node) {
   ast_t* deref = ast_mk_lunary(node, '&');
   node->parent = deref;
   deref->parent = node;
-  ts_pass(deref);
+  ts_casting_pass(deref);
   return deref;
 }
 
@@ -723,7 +723,7 @@ void ts_cast_binop(ast_t* node) {
 
       // NOTE this is needed to handle all types, and no create unnecesary
       // castings
-      _typesystem(node);
+      ts_typesystem_pass(node);
 
       log_verbose("operator overloading: binop to expr call.");
     } else if ((l_static && r_static) || (!l_static && !r_static)) {
@@ -803,7 +803,7 @@ void ts_cast_expr_member(ast_t* node) {
 
       // NOTE this is needed to handle all types, and no create unnecesary
       // castings
-      _typesystem(node);
+      ts_typesystem_pass(node);
 
       log_verbose("operator overloading: binop to expr call.");
     } break;
@@ -890,7 +890,7 @@ void ts_cast_expr_member(ast_t* node) {
       }
 
       node->member.left = __ts_dereference(node, node->member.left);
-      ts_pass(node);
+      ts_casting_pass(node);
     } break;
     case TY_VECTOR: {
       node->ty_id = type.vector.to;

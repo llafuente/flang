@@ -101,7 +101,7 @@ u64 __ts_string_to_tyid(ast_t* node) {
   if (strcmp(tcstr, "ptr") == 0) {
     fl_assert(node->ty.children != 0);
     fl_assert(node->ty.children->list.length == 1); // TODO raise
-    ts_register_types(node->ty.children);
+    ts_register_types_pass(node->ty.children);
 
     u64 t = __ts_string_to_tyid(node->ty.children->list.values[0]);
     if (!t && !ast_has_parent(node, AST_DECL_STRUCT))
@@ -112,7 +112,7 @@ u64 __ts_string_to_tyid(ast_t* node) {
   if (strcmp(tcstr, "vector") == 0) {
     fl_assert(node->ty.children != 0);
     fl_assert(node->ty.children->list.length == 1); // TODO raise
-    ts_register_types(node->ty.children);
+    ts_register_types_pass(node->ty.children);
 
     u64 t = __ts_string_to_tyid(node->ty.children->list.values[0]);
     if (!t && !ast_has_parent(node, AST_DECL_STRUCT))
@@ -123,7 +123,7 @@ u64 __ts_string_to_tyid(ast_t* node) {
   if (strcmp(tcstr, "ref") == 0) {
     fl_assert(node->ty.children != 0);
     fl_assert(node->ty.children->list.length == 1); // TODO raise
-    ts_register_types(node->ty.children);
+    ts_register_types_pass(node->ty.children);
 
     u64 t = __ts_string_to_tyid(node->ty.children->list.values[0]);
     if (!t && !ast_has_parent(node, AST_DECL_STRUCT))
@@ -154,7 +154,7 @@ u64 __ts_string_to_tyid(ast_t* node) {
         // TODO check there is no template type in the list
         if (node->ty.children) {
           // register children-types first
-          ts_register_types(node->ty.children);
+          ts_register_types_pass(node->ty.children);
 
           // check that there is no template children
           bool templated = false;
@@ -200,14 +200,14 @@ ast_action_t __trav_register_types(AST_CB_T_HEADER) {
     // TODO this need review, we don't want a gap in the type table...
     // if has templates need to be implemented before has a ty_id
     // if (node->structure.tpls == 0) {
-    ts_register_types(node->structure.fields);
+    ts_register_types_pass(node->structure.fields);
     node->ty.id->ty_id = node->ty_id = ty_create_struct(node);
     //}
     break;
   case AST_DECL_FUNCTION:
     // declare the function
-    ts_register_types(node->func.params);
-    ts_register_types(node->func.ret_type);
+    ts_register_types_pass(node->func.params);
+    ts_register_types_pass(node->func.ret_type);
     node->ty.id->ty_id = node->ty_id = ty_create_fn(node);
 
     // add the virtual to the list in the type, only once
@@ -277,7 +277,7 @@ ast_action_t __trav_register_types(AST_CB_T_HEADER) {
 
 // TODO performance, this should be deep-verse instead of traverse
 // return error
-ast_t* ts_register_types(ast_t* node) {
+ast_t* ts_register_types_pass(ast_t* node) {
   ast_traverse(node, __trav_register_types, 0, 0, 0, 0);
   return node;
 }

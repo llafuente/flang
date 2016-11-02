@@ -478,7 +478,7 @@ libexport void ts_cast_expr_member(ast_t* node);
  * dependencies.
  * @node node
  */
-libexport bool ts_inference(ast_t* node);
+libexport bool ts_inference_pass(ast_t* node);
 
 /* cldoc:end-category() */
 
@@ -488,7 +488,7 @@ libexport bool ts_inference(ast_t* node);
  * has types and can be codegen.
  * @node node
  */
-libexport ast_t* ts_pass(ast_t* node);
+libexport ast_t* ts_casting_pass(ast_t* node);
 
 /* cldoc:end-category() */
 
@@ -515,7 +515,7 @@ libexport u64 ts_promote_typeid(u64 a, u64 b);
  * @a destination type id
  * @return type id, 0 if not found
  */
-libexport ast_t* ts_register_types(ast_t* node);
+libexport ast_t* ts_register_types_pass(ast_t* node);
 
 /* cldoc:end-category() */
 
@@ -523,7 +523,7 @@ libexport ast_t* ts_register_types(ast_t* node);
 
 /* Traverse the tree implementing all types
  */
-libexport ast_t* ts_implement(ast_t* node);
+libexport ast_t* ts_implement_pass(ast_t* node);
 
 /* cldoc:end-category() */
 
@@ -539,7 +539,7 @@ libexport void ts_check_no_assignament(ast_t* node);
 
 /* Internal call to pass typesystem before current node
 */
-libexport void _typesystem(ast_t* root);
+libexport void ts_typesystem_pass(ast_t* root);
 /* This will transform the raw tree parsed by
  * flex/bison to a good codegen friendly tree.
  * * Inference types

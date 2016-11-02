@@ -60,7 +60,7 @@ ast_action_t __trav_casting(AST_CB_T_HEADER) {
     }
 
     if (node->func.type == AST_FUNC_OPERATOR) {
-      ts_pass(node->func.params);
+      ts_casting_pass(node->func.params);
       ts_check_operator_overloading(node);
     }
 
@@ -69,7 +69,7 @@ ast_action_t __trav_casting(AST_CB_T_HEADER) {
 
   case AST_STMT_RETURN: {
     if (mode == AST_TRAV_ENTER) {
-      ts_pass(node->ret.argument);
+      ts_casting_pass(node->ret.argument);
       ts_cast_return(node);
     }
   } break;
@@ -117,13 +117,13 @@ ast_action_t __trav_casting(AST_CB_T_HEADER) {
   } break;
   case AST_EXPR_MEMBER: {
     if (mode == AST_TRAV_LEAVE) {
-      ts_pass(node->member.left);
+      ts_casting_pass(node->member.left);
       ts_cast_expr_member(node);
     }
   } break;
   case AST_EXPR_LUNARY: {
     if (mode == AST_TRAV_LEAVE) {
-      ts_pass(node->lunary.element);
+      ts_casting_pass(node->lunary.element);
       ts_cast_lunary(node);
     }
   } break;
@@ -147,15 +147,15 @@ ast_action_t __trav_casting(AST_CB_T_HEADER) {
   case AST_EXPR_ASSIGNAMENT:
   case AST_EXPR_BINOP: {
     if (mode == AST_TRAV_LEAVE) {
-      ts_pass(node->binop.left);
-      ts_pass(node->binop.right);
+      ts_casting_pass(node->binop.left);
+      ts_casting_pass(node->binop.right);
 
       ts_cast_binop(node);
     }
   } break;
   case AST_EXPR_TYPEOF: {
     if (mode == AST_TRAV_LEAVE) {
-      ts_pass(node->tof.expr);
+      ts_casting_pass(node->tof.expr);
       node->ty_id = node->tof.expr->ty_id;
     }
   } break;
@@ -164,7 +164,7 @@ ast_action_t __trav_casting(AST_CB_T_HEADER) {
   } break;
   case AST_NEW: {
     if (mode == AST_TRAV_LEAVE) {
-      ts_pass(node->new.expr);
+      ts_casting_pass(node->new.expr);
       if (node->new.expr->ty_id) {
         log_silly("new expr has type %s",
                   ty_to_string(node->new.expr->ty_id)->value);
@@ -203,13 +203,13 @@ ast_action_t __trav_casting(AST_CB_T_HEADER) {
         ast_mk_list_push(node, expr_call);
 
         ast_parent(node);
-        ts_pass(node);
+        ts_casting_pass(node);
       }
     }
   } break;
   case AST_DELETE: {
     if (mode == AST_TRAV_LEAVE) {
-      ts_pass(node->new.expr);
+      ts_casting_pass(node->new.expr);
       if (node->new.expr->ty_id) {
         ast_t* expr = node->new.expr;
 
@@ -238,7 +238,7 @@ ast_action_t __trav_casting(AST_CB_T_HEADER) {
         ast_mk_list_push(node, expr_call);
 
         ast_parent(node);
-        ts_pass(node);
+        ts_casting_pass(node);
       }
     }
   } break;
@@ -267,11 +267,11 @@ ast_action_t __ts_cast_operation_pass_cb(AST_CB_T_HEADER) {
   return AST_SEARCH_CONTINUE;
 }
 
-ast_t* ts_pass(ast_t* node) {
+ast_t* ts_casting_pass(ast_t* node) {
   // TODO REVIEW this should be enabled...
   // if (node->ty_id) return node;
 
-  ts_inference(node);
+  ts_inference_pass(node);
 
   log_debug("typesystem pass start");
   // first create casting
@@ -281,8 +281,8 @@ ast_t* ts_pass(ast_t* node) {
   ast_traverse(node, __ts_cast_operation_pass_cb, 0, 0, 0, 0);
 
   // inference again now that we have more info
-  if (ts_inference(node)) {
-    return ts_pass(node);
+  if (ts_inference_pass(node)) {
+    return ts_casting_pass(node);
   }
 
   log_debug("typesystem passed");

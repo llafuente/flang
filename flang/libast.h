@@ -530,12 +530,13 @@ libexport array* ast_search_node_type(ast_t* node, ast_types_t t);
 /*----------------------------------------------------------------------------*/
 /* cldoc:begin-category(ast-reduce.c) */
 
-/* Reduce some tree nodes, so the codegen isn't redundant
+/* Simplify complex nodes into more simple ones
+ * * like $log into printf call
  *
  * @node should be root
  * @return node o error
  */
-libexport ast_t* ast_reduce(ast_t* node);
+libexport ast_t* ast_simplify(ast_t* node);
 
 /* cldoc:end-category() */
 

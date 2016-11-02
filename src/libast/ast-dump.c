@@ -32,7 +32,8 @@
 char __ast_cbuffer[1024];
 char __ast_cbuffer_len = 0;
 void __ast_block_hash_append_cb(char* key, void* decl) {
-  __ast_cbuffer_len = sprintf(__ast_cbuffer + __ast_cbuffer_len, "%s(%lu),", key, ((ast_t*)decl)->ty_id);
+  __ast_cbuffer_len = sprintf(__ast_cbuffer + __ast_cbuffer_len, "%s(%lu),",
+                              key, ((ast_t*)decl)->ty_id);
 }
 char* __ast_block_hash_append(hash_t* ht) {
   __ast_cbuffer[0] = 0;
@@ -61,10 +62,12 @@ void ast_dump_one(ast_t* node) {
     // traverse do not follow scope hashes
     // so we print it here
     fprintf(ast_dump_file, "block [%d]", node->block.scope);
-    fprintf(ast_dump_file, " types [%s]", __ast_block_hash_append(node->block.types));
+    fprintf(ast_dump_file, " types [%s]",
+            __ast_block_hash_append(node->block.types));
     fprintf(ast_dump_file, " vars [%s]",
             __ast_block_hash_append(node->block.variables));
-    fprintf(ast_dump_file, " fns [%s]", __ast_block_hash_append(node->block.functions));
+    fprintf(ast_dump_file, " fns [%s]",
+            __ast_block_hash_append(node->block.functions));
     if (node->block.modules.length) {
       fprintf(ast_dump_file, " modules [%lu][", node->block.modules.length);
       for (u64 i = 0; i < node->block.modules.length; ++i) {
@@ -94,11 +97,13 @@ void ast_dump_one(ast_t* node) {
             node->integer.signed_value, node->integer.unsigned_value);
     break;
   case AST_LIT_FLOAT:
-    fprintf(ast_dump_file, "float T(%zu) [f=%f]", node->ty_id, node->decimal.value);
+    fprintf(ast_dump_file, "float T(%zu) [f=%f]", node->ty_id,
+            node->decimal.value);
     break;
   case AST_LIT_IDENTIFIER:
-    fprintf(ast_dump_file, "identifier T(%zu) [resolve=%d string=%s]", node->ty_id,
-            node->identifier.resolve, node->identifier.string->value);
+    fprintf(ast_dump_file, "identifier T(%zu) [resolve=%d string=%s]",
+            node->ty_id, node->identifier.resolve,
+            node->identifier.string->value);
     break;
   case AST_LIT_STRING:
     fprintf(ast_dump_file, "string T(%zu) [string=%s]", node->ty_id,
@@ -148,8 +153,9 @@ void ast_dump_one(ast_t* node) {
     fprintf(ast_dump_file, "alias T(%zu)", node->ty_id);
     break;
   case AST_DECL_FUNCTION:
-    fprintf(ast_dump_file, "function T(%zu) id(%s) uid(%s) ffi(%d) varargs(%d) tpl(%d) "
-                   "[params=%zu]",
+    fprintf(ast_dump_file,
+            "function T(%zu) id(%s) uid(%s) ffi(%d) varargs(%d) tpl(%d) "
+            "[params=%zu]",
             node->ty_id, node->func.id->identifier.string->value,
             node->func.uid ? node->func.uid->value : "(nil)", node->func.ffi,
             node->func.varargs, node->func.templated,
@@ -189,8 +195,8 @@ void ast_dump_one(ast_t* node) {
     fprintf(ast_dump_file, "log");
     break;
   case AST_CAST:
-    fprintf(ast_dump_file, "cast T(%zu) O(%u) %s", node->ty_id, node->cast.operation,
-            ty_to_string(node->ty_id)->value);
+    fprintf(ast_dump_file, "cast T(%zu) O(%u) %s", node->ty_id,
+            node->cast.operation, ty_to_string(node->ty_id)->value);
     break;
   case AST_IMPLEMENT:
     fprintf(ast_dump_file, "implement");
@@ -222,13 +228,14 @@ ast_action_t __ast_dump_cb(AST_CB_T_HEADER) {
   level = level * 2;
 
   // indent
-  fprintf(ast_dump_file, "%*s\x1B[32m @%s id[%lu] ", (int)level, " ", property, node->id);
+  fprintf(ast_dump_file, "%*s\x1B[32m @%s id[%lu] ", (int)level, " ", property,
+          node->id);
 
   ast_dump_one(node);
 
   if (node->first_line) {
-    fprintf(ast_dump_file, "\x1B[39m@[%d:%d - %d:%d]", node->first_line, node->first_column,
-           node->last_line, node->last_column);
+    fprintf(ast_dump_file, "\x1B[39m@[%d:%d - %d:%d]", node->first_line,
+            node->first_column, node->last_line, node->last_column);
   }
 
   fprintf(ast_dump_file, "\x1B[39m\n");
