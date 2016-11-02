@@ -152,9 +152,10 @@ ast_t* ast_implement_fn2(array* type_list, ast_t* decl, string* uid) {
   }
 
   // check a type won't be replaced twice with different types
+  log_silly("replace TYPE/IDS\n\n\n\n\n");
   for (i = 0; i < types_to_replace->length; ++i) {
     impl_replace_t* repl = types_to_replace->values[i];
-    log_silly("replace %lu [%lu] to [%lu]", i, repl->decl, repl->impl);
+    log_silly("replace index[%lu] [%lu] to [%lu]", i, repl->decl, repl->impl);
     for (j = i + 1; j < types_to_replace->length; ++j) {
       impl_replace_t* repl2 = types_to_replace->values[j];
 
@@ -168,13 +169,21 @@ ast_t* ast_implement_fn2(array* type_list, ast_t* decl, string* uid) {
     }
     // this must prevail!
     if (repl->decl != repl->impl) {
+      string* decl_id = ty(repl->decl).id;
+      string* impl_id = ty(repl->impl).id;
+      if (decl_id != 0 && impl_id != 0) {
+        ast_replace_identifiers(impl, decl_id, impl_id);
+      }
       ast_replace_types(impl, repl->decl, repl->impl);
     }
   }
 
-  impl->ty_id = ty_create_fn(impl);
-  ast_dump(impl);
+  impl->ty_id = 0;
+  ast_reset_types(impl->func.body);
+
   _typesystem(impl);
+  //ast_dump(impl);
+  //exit(1001);
 
   return impl;
 }

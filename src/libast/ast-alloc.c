@@ -214,14 +214,14 @@ ast_t* __ast_clone(ast_t* node) {
     CLONE(block.body);
     // TODO what about modules ?
     // TODO clean scope ?!
-    node->block.types = pool_new(sizeof(hash_t));
-    hash_new(node->block.types, 10);
+    t->block.types = pool_new(sizeof(hash_t));
+    hash_new(t->block.types, 10);
 
-    node->block.functions = pool_new(sizeof(hash_t));
-    hash_new(node->block.functions, 10);
+    t->block.functions = pool_new(sizeof(hash_t));
+    hash_new(t->block.functions, 10);
 
-    node->block.variables = pool_new(sizeof(hash_t));
-    hash_new(node->block.variables, 10);
+    t->block.variables = pool_new(sizeof(hash_t));
+    hash_new(t->block.variables, 10);
   } break;
   case AST_LIST: {
     u64 i = 0;

@@ -30,12 +30,13 @@
 #include "flang/libparser.h"
 
 char __ast_cbuffer[1024];
+char __ast_cbuffer_len = 0;
 void __ast_block_hash_append_cb(char* key, void* decl) {
-  strcat(__ast_cbuffer, key);
-  strcat(__ast_cbuffer, ",");
+  __ast_cbuffer_len = sprintf(__ast_cbuffer + __ast_cbuffer_len, "%s(%lu),", key, ((ast_t*)decl)->ty_id);
 }
 char* __ast_block_hash_append(hash_t* ht) {
   __ast_cbuffer[0] = 0;
+  __ast_cbuffer_len = 0;
   hash_each(ht, __ast_block_hash_append_cb);
   return __ast_cbuffer;
 }

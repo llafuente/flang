@@ -114,6 +114,15 @@ void ast_clear(ast_t* node, ast_types_t type) {
 }
 
 ast_action_t __ast_reset_type_cb(AST_CB_T_HEADER) {
+  switch(node->type) {
+  case AST_STMT_RETURN:
+    // do not modify return-void statement created by ts_inference
+    if (node->ty_id == TS_VOID) return AST_SEARCH_CONTINUE;
+  case AST_LIT_FLOAT:
+  case AST_LIT_INTEGER:
+    return AST_SEARCH_CONTINUE;
+  }
+
   node->ty_id = 0;
   return AST_SEARCH_CONTINUE;
 }
