@@ -49,6 +49,9 @@ void psr_attach_core(ast_t* root) {
   }
 }
 
+extern int yycolumn;
+extern int yylineno;
+
 ast_t* __psr_parse(string* code, const char* file) {
   // create program node, so error reporting could be nice!
   ast_t* root = ast_mk_program(0);
@@ -56,6 +59,9 @@ ast_t* __psr_parse(string* code, const char* file) {
   root->program.file =
       file ? st_newc(file, st_enc_utf8) : st_newc("memory:string", st_enc_utf8);
 
+  // reset flex/bison
+  yycolumn = 1;
+  yylineno = 1;
   YY_BUFFER_STATE buf = yy_scan_string(code->value);
   yyparse(&root);
   yy_delete_buffer(buf);

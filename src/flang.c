@@ -32,8 +32,6 @@
 #include <setjmp.h>
 
 array* identifiers;
-extern int yycolumn;
-extern int yylineno;
 jmp_buf fl_on_error_jmp;
 FILE* ast_dump_file = 0;
 
@@ -48,10 +46,6 @@ void* pool_realloc_fix_string(void* ptr, size_t bytes) {
 
 void flang_init() {
   memset(fl_on_error_jmp, 0, sizeof(jmp_buf));
-
-  // reset flex/bison
-  yycolumn = 1;
-  yylineno = 1;
 
   // reset error state
   ast_last_error_message = 0;
