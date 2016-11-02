@@ -42,6 +42,9 @@ char* __ast_block_hash_append(hash_t* ht) {
   return __ast_cbuffer;
 }
 
+void __ast_dump_type(ast_t* node) {
+  fprintf(ast_dump_file, " \x1B[34mT(%lu)\x1B[39m", node->ty_id);
+}
 void ast_dump_one(ast_t* node) {
   fl_assert(node != 0);
 
@@ -61,7 +64,8 @@ void ast_dump_one(ast_t* node) {
   case AST_BLOCK:
     // traverse do not follow scope hashes
     // so we print it here
-    fprintf(ast_dump_file, "block [%d]", node->block.scope);
+
+    fprintf(ast_dump_file, "\x1B[101mblock\x1B[49m [%d]", node->block.scope);
     fprintf(ast_dump_file, " types [%s]",
             __ast_block_hash_append(node->block.types));
     fprintf(ast_dump_file, " vars [%s]",
@@ -78,88 +82,99 @@ void ast_dump_one(ast_t* node) {
     }
     break;
   case AST_LIST:
-    fprintf(ast_dump_file, "list [count=%zu]", node->list.length);
+    fprintf(ast_dump_file, "list [length=%zu]", node->list.length);
     break;
   case AST_EXPR_ASSIGNAMENT:
-    fprintf(ast_dump_file, "assignament T(%zu)", node->ty_id);
+    fprintf(ast_dump_file, "assignament");
+    __ast_dump_type(node);
     break;
   case AST_EXPR_BINOP:
-    if (node->binop.operator<127) {
-      fprintf(ast_dump_file, "binop T(%zu) [operator=%c]", node->ty_id,
-              node->binop.operator);
-    } else {
-      fprintf(ast_dump_file, "binop T(%zu) [operator=%d]", node->ty_id,
-              node->binop.operator);
-    }
+    fprintf(ast_dump_file, "binop [operator=%s]",
+            psr_operator_str(node->binop.operator));
+    __ast_dump_type(node);
     break;
   case AST_LIT_INTEGER:
-    fprintf(ast_dump_file, "integer T(%zu) [u=%ld] [zu=%zu]", node->ty_id,
+    fprintf(ast_dump_file, "integer [signed=%ld] [unsigned=%zu]",
             node->integer.signed_value, node->integer.unsigned_value);
+    __ast_dump_type(node);
     break;
   case AST_LIT_FLOAT:
-    fprintf(ast_dump_file, "float T(%zu) [f=%f]", node->ty_id,
-            node->decimal.value);
+    fprintf(ast_dump_file, "float [value=%f]", node->decimal.value);
+    __ast_dump_type(node);
     break;
   case AST_LIT_IDENTIFIER:
-    fprintf(ast_dump_file, "identifier T(%zu) [resolve=%d string=%s]",
-            node->ty_id, node->identifier.resolve,
+    fprintf(ast_dump_file, "\x1B[104midentifier\x1B[49m [resolve? %s, string=`%s`]",
+            node->identifier.resolve ? "yes" : "no",
             node->identifier.string->value);
+    __ast_dump_type(node);
     break;
   case AST_LIT_STRING:
-    fprintf(ast_dump_file, "string T(%zu) [string=%s]", node->ty_id,
-            node->string.value->value);
+    fprintf(ast_dump_file, "string [string=`%s`]", node->string.value->value);
+    __ast_dump_type(node);
     break;
   case AST_LIT_BOOLEAN:
-    fprintf(ast_dump_file, "boolean T(%zu) [value=%d]", node->ty_id,
-            node->boolean.value);
+    fprintf(ast_dump_file, "boolean [value=%s]",
+            node->boolean.value ? "true" : "false");
+    __ast_dump_type(node);
     break;
   case AST_EXPR_LUNARY:
-    if (node->lunary.operator<127) {
-      fprintf(ast_dump_file, "lunary T(%zu) [operator=%c]", node->ty_id,
-              node->lunary.operator);
-    } else {
-      fprintf(ast_dump_file, "lunary T(%zu) [operator=%d]", node->ty_id,
-              node->lunary.operator);
-    }
+    fprintf(ast_dump_file, "lunary [operator=%s]",
+            psr_operator_str(node->lunary.operator));
+    __ast_dump_type(node);
     break;
   case AST_EXPR_RUNARY:
-    fprintf(ast_dump_file, "runary T(%zu) [operator=%s]", node->ty_id,
+    fprintf(ast_dump_file, "runary [operator=%s]",
             psr_operator_str(node->runary.operator));
+    __ast_dump_type(node);
     break;
   case AST_EXPR_CALL:
-    fprintf(ast_dump_file, "call T(%zu) [arguments=%zu]", node->ty_id,
+    fprintf(ast_dump_file, "call [arguments=%zu]",
             node->call.arguments->list.length);
+    if (node->call.decl) {
+      fprintf(ast_dump_file, "[function=%s]",
+              node->call.decl->func.id->identifier.string->value);
+    }
+    __ast_dump_type(node);
     break;
   case AST_EXPR_MEMBER:
-    fprintf(ast_dump_file, "member T(%zu) idx(%zu) expression(%d)", node->ty_id,
-            node->member.idx, node->member.expression);
+    fprintf(ast_dump_file, "member [index=%zu expression? %s brakets? %s]",
+            node->member.idx, (node->member.expression ? "yes" : "no"),
+            (node->member.brakets ? "yes" : "no"));
+    __ast_dump_type(node);
     break;
   case AST_DTOR_VAR:
-    fprintf(ast_dump_file, "variable T(%zu) scope(%s)", node->ty_id,
-            node->var.scope == AST_SCOPE_BLOCK ? "block" : "global");
+    fprintf(ast_dump_file, "variable [scope=%s, scoped? %s]",
+            node->var.scope == AST_SCOPE_BLOCK ? "block" : "global",
+            node->var.scoped ? "yes" : "no");
+    __ast_dump_type(node);
     break;
   case AST_TYPE:
-    fprintf(ast_dump_file, "type T(%zu) %s", node->ty_id,
-            ty_to_string(node->ty_id)->value);
+    fprintf(ast_dump_file, "type [%s]", ty_to_string(node->ty_id)->value);
+    __ast_dump_type(node);
     break;
   case AST_DECL_STRUCT:
-    fprintf(ast_dump_file, "struct T(%zu) tpl(%d)", node->ty_id,
-            node->structure.templated);
+    // REVIEW add more data ?
+    fprintf(ast_dump_file, "struct [templated? %s]",
+            node->structure.templated ? "yes" : "no");
+    __ast_dump_type(node);
     break;
   case AST_DECL_STRUCT_FIELD:
-    fprintf(ast_dump_file, "field T(%zu)", node->ty_id);
+    fprintf(ast_dump_file, "field");
+    __ast_dump_type(node);
     break;
   case AST_DECL_STRUCT_ALIAS:
-    fprintf(ast_dump_file, "alias T(%zu)", node->ty_id);
+    fprintf(ast_dump_file, "alias");
+    __ast_dump_type(node);
     break;
   case AST_DECL_FUNCTION:
-    fprintf(ast_dump_file,
-            "function T(%zu) id(%s) uid(%s) ffi(%d) varargs(%d) tpl(%d) "
-            "[params=%zu]",
-            node->ty_id, node->func.id->identifier.string->value,
-            node->func.uid ? node->func.uid->value : "(nil)", node->func.ffi,
-            node->func.varargs, node->func.templated,
-            node->func.params->list.length);
+    fprintf(ast_dump_file, "\x1B[102mfunction\x1B[49m [id=`%s`, uid=`%s`, nparams=%zu, ffi? %s, "
+                           "vararg? %s, templated? %s]",
+            node->func.id->identifier.string->value,
+            node->func.uid ? node->func.uid->value : "(nil)",
+            node->func.params->list.length, node->func.ffi ? "yes" : "no",
+            node->func.varargs ? "yes" : "no",
+            node->func.templated ? "yes" : "no");
+    __ast_dump_type(node);
     break;
   case AST_DECL_TEMPLATE:
     fprintf(ast_dump_file, "template");
@@ -168,7 +183,8 @@ void ast_dump_one(ast_t* node) {
     fprintf(ast_dump_file, "parameter");
     break;
   case AST_STMT_RETURN:
-    fprintf(ast_dump_file, "return T(%zu)", node->ty_id);
+    fprintf(ast_dump_file, "return");
+    __ast_dump_type(node);
     break;
   case AST_ERROR:
     fprintf(ast_dump_file, "ERROR [%s: %s]", node->err.type->value,
@@ -186,17 +202,20 @@ void ast_dump_one(ast_t* node) {
     fprintf(ast_dump_file, "loop");
     break;
   case AST_EXPR_SIZEOF:
-    fprintf(ast_dump_file, "sizeof T(%zu)", node->ty_id);
+    fprintf(ast_dump_file, "sizeof");
+    __ast_dump_type(node);
     break;
   case AST_EXPR_TYPEOF:
-    fprintf(ast_dump_file, "typeof T(%zu)", node->ty_id);
+    fprintf(ast_dump_file, "typeof");
+    __ast_dump_type(node);
     break;
   case AST_STMT_LOG:
     fprintf(ast_dump_file, "log");
     break;
   case AST_CAST:
-    fprintf(ast_dump_file, "cast T(%zu) O(%u) %s", node->ty_id,
-            node->cast.operation, ty_to_string(node->ty_id)->value);
+    fprintf(ast_dump_file, "cast [operation=%u] to %s", node->cast.operation,
+            ty_to_string(node->ty_id)->value);
+    __ast_dump_type(node);
     break;
   case AST_IMPLEMENT:
     fprintf(ast_dump_file, "implement");
@@ -228,17 +247,20 @@ ast_action_t __ast_dump_cb(AST_CB_T_HEADER) {
   level = level * 2;
 
   // indent
-  fprintf(ast_dump_file, "%*s\x1B[32m @%s id[%lu] ", (int)level, " ", property,
-          node->id);
+  // fprintf(ast_dump_file, "\x1B[32m");
+  fprintf(ast_dump_file, "%*s @%s ", (int)level, " ", property);
+  // fprintf("id[%lu]", node->id);
 
   ast_dump_one(node);
-
+  // fprintf(ast_dump_file, "\x1B[39m");
+  /*
   if (node->first_line) {
-    fprintf(ast_dump_file, "\x1B[39m@[%d:%d - %d:%d]", node->first_line,
+    fprintf(ast_dump_file, "@[%d:%d - %d:%d]", node->first_line,
             node->first_column, node->last_line, node->last_column);
   }
+  */
 
-  fprintf(ast_dump_file, "\x1B[39m\n");
+  fprintf(ast_dump_file, "\n");
   return AST_SEARCH_CONTINUE;
 }
 

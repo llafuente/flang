@@ -181,8 +181,6 @@ ast_t* ast_implement_fn2(array* type_list, ast_t* decl, string* uid) {
   impl->ty_id = 0;
   ast_reset_types(impl->func.body);
   ts_typesystem_pass(impl);
-  //ast_dump(impl);
-  //exit(1001);
 
   return impl;
 }

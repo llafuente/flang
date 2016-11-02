@@ -3,8 +3,8 @@ import "lib/core/ffi-c";
 template $test_array_tpl;
 
 struct test_array($test_array_tpl) { // @heap
-  u64 length,
-  u64 capacity,
+  i64 length,
+  i64 capacity,
   ptr($test_array_tpl) values,
 
   alias len length, // internal alias
@@ -12,16 +12,18 @@ struct test_array($test_array_tpl) { // @heap
   alias data values,
 };
 
-function resize(test_array* arr, u64 newcap) : test_array* {
+function resize(test_array* arr, i64 newcap) : test_array* {
   var ptr($test_array_tpl) tmp = malloc(sizeof($test_array_tpl) * newcap);
 
+  // copy, free the old one, and assign
   memcpy(
     unsafe_cast(ptr(void)) tmp,
     unsafe_cast(ptr(void)) arr.values,
     sizeof($test_array_tpl) * arr.length
   );
 
-  //arr.values = tmp;
+  free(unsafe_cast(ptr(void)) arr.values);
+  arr.values = tmp;
   arr.capacity = newcap;
 
   return arr;
@@ -37,34 +39,14 @@ function operator delete (test_array* arr) {
   free(unsafe_cast(ptr(void)) arr.values);
 }
 
-function push (test_array* arr, $test_array_tpl value) : test_array* {
-  if (!arr.data) {
-    arr.length = 0;
-    arr.capacity = 8;
-    arr.values = malloc(sizeof($test_array_tpl) * 8);
-  } else if (arr.length == arr.capacity) {
-    resize(arr, arr.capacity * 2);
-  }
 
-  arr.data[arr.len++] = value;
+implement test_array(i64) as test_array_i64;
+var new test_array_i64* first_test_array;
 
-  return arr;
-}
+resize(first_test_array, 50);
 
-implement test_array(u64) as test_array_u64;
-var new test_array_u64* first_test_array;
-
-push(first_test_array, 1);
-push(first_test_array, 2);
-push(first_test_array, 3);
-push(first_test_array, 4);
-push(first_test_array, 5);
-push(first_test_array, 6);
-push(first_test_array, 7);
-push(first_test_array, 8);
-push(first_test_array, 9);
-
-delete first_test_array;
 
 printf("length = %lu\n", first_test_array.length);
 printf("capacity = %lu\n", first_test_array.capacity);
+
+delete first_test_array;

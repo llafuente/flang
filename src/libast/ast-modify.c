@@ -114,7 +114,12 @@ void ast_clear(ast_t* node, ast_types_t type) {
 }
 
 ast_action_t __ast_reset_type_cb(AST_CB_T_HEADER) {
+  // REVIEW reset scopes? this is not necessary now, because this is only
+  // call by implement that clone before, clone clear scopes...
   switch (node->type) {
+  case AST_DTOR_VAR:
+    node->var.scoped = false;
+    break;
   case AST_STMT_RETURN:
     // do not modify return-void statement created by ts_inference
     if (node->ty_id == TS_VOID)

@@ -1,1 +1,2 @@
-parse ok
+length = 0
+capacity = 50
