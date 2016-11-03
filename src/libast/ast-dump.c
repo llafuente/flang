@@ -85,11 +85,12 @@ void ast_dump_one(ast_t* node) {
     fprintf(ast_dump_file, "list [length=%zu]", node->list.length);
     break;
   case AST_EXPR_ASSIGNAMENT:
-    fprintf(ast_dump_file, "assignament");
+    fprintf(ast_dump_file, "assignament [operator %s]",
+            psr_operator_str(node->assignament.operator));
     __ast_dump_type(node);
     break;
   case AST_EXPR_BINOP:
-    fprintf(ast_dump_file, "binop [operator=%s]",
+    fprintf(ast_dump_file, "binop [operator %s]",
             psr_operator_str(node->binop.operator));
     __ast_dump_type(node);
     break;
@@ -103,7 +104,8 @@ void ast_dump_one(ast_t* node) {
     __ast_dump_type(node);
     break;
   case AST_LIT_IDENTIFIER:
-    fprintf(ast_dump_file, "\x1B[104midentifier\x1B[49m [resolve? %s, string=`%s`]",
+    fprintf(ast_dump_file,
+            "\x1B[104midentifier\x1B[49m [resolve? %s, string=`%s`]",
             node->identifier.resolve ? "yes" : "no",
             node->identifier.string->value);
     __ast_dump_type(node);
@@ -118,12 +120,12 @@ void ast_dump_one(ast_t* node) {
     __ast_dump_type(node);
     break;
   case AST_EXPR_LUNARY:
-    fprintf(ast_dump_file, "lunary [operator=%s]",
+    fprintf(ast_dump_file, "lunary [operator %s]",
             psr_operator_str(node->lunary.operator));
     __ast_dump_type(node);
     break;
   case AST_EXPR_RUNARY:
-    fprintf(ast_dump_file, "runary [operator=%s]",
+    fprintf(ast_dump_file, "runary [operator %s]",
             psr_operator_str(node->runary.operator));
     __ast_dump_type(node);
     break;
@@ -167,13 +169,14 @@ void ast_dump_one(ast_t* node) {
     __ast_dump_type(node);
     break;
   case AST_DECL_FUNCTION:
-    fprintf(ast_dump_file, "\x1B[102mfunction\x1B[49m [id=`%s`, uid=`%s`, nparams=%zu, ffi? %s, "
-                           "vararg? %s, templated? %s]",
-            node->func.id->identifier.string->value,
-            node->func.uid ? node->func.uid->value : "(nil)",
-            node->func.params->list.length, node->func.ffi ? "yes" : "no",
-            node->func.varargs ? "yes" : "no",
-            node->func.templated ? "yes" : "no");
+    fprintf(
+        ast_dump_file,
+        "\x1B[102mfunction\x1B[49m [id=`%s`, uid=`%s`, nparams=%zu, ffi? %s, "
+        "vararg? %s, templated? %s]",
+        node->func.id->identifier.string->value,
+        node->func.uid ? node->func.uid->value : "(nil)",
+        node->func.params->list.length, node->func.ffi ? "yes" : "no",
+        node->func.varargs ? "yes" : "no", node->func.templated ? "yes" : "no");
     __ast_dump_type(node);
     break;
   case AST_DECL_TEMPLATE:

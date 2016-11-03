@@ -236,7 +236,8 @@ ast_action_t __codegen_cb(AST_CB_T_HEADER) {
       fl_assert(left != 0);
       fl_assert(right != 0);
 
-      stack_append("(%s = %s)", left->value, right->value);
+      stack_append("(%s %s %s)", left->value,
+                   psr_operator_str(node->assignament.operator), right->value);
     }
     break;
 
