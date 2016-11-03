@@ -1,0 +1,24 @@
+f32
+v(101.500000, 103.750000)
+template type type 11
+v(102.599998, 105.949997)
+f64
+v(101.500000, 103.750000)
+template type type 12
+v(102.600000, 105.950000)
+i64
+v(-1, 2)
+template type type 10
+v(0, 4)
+u64
+v(18446744073709551615, 2)
+template type type 9
+v(0, 4)
+i32
+v(-1, 2)
+template type type 8
+v(0, 4)
+u32
+v(4294967295, 2)
+template type type 7
+v(0, 4)

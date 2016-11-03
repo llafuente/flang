@@ -163,7 +163,7 @@ TASK_IMPL(flang_files) {
       "typesystem/operator-overloading3",   "typesystem/operator-new",
       "typesystem/references",              "typesystem/references2",
       "typesystem/struct-properties",       "typesystem/typeof",
-      "typesystem/sizeof.implement",
+      "typesystem/sizeof.implement",        "typesystem/template-numeric",
       // statements
       "statements/loops",                   "statements/if",
       "statements/loops2",

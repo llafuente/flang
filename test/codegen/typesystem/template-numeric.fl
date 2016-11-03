@@ -1,0 +1,107 @@
+import "lib/core/ffi-c";
+
+template $test_array_tpl;
+
+struct test_vector2($test_array_tpl) {
+  $test_array_tpl x,
+  $test_array_tpl y,
+};
+
+// declare new/delete because typesystem require them atm
+function operator new (test_vector2* arr) : void {}
+function operator delete (test_vector2* arr) {}
+
+function sum(test_vector2* v, f64 x, f64 y) {
+  printf("template type type %lu\n", typeof(v.x));
+
+  // TODO REVIEW the error message about this casting is not good enough
+
+  v.x += cast($test_array_tpl) x;
+  v.y += cast($test_array_tpl) y;
+}
+
+// f32
+printf("f32\n");
+implement test_vector2(f32) as test_vector2_f32;
+var new test_vector2_f32* vec_f32;
+vec_f32.x = 101.5;
+vec_f32.y = 103.75;
+printf("v(%f, %f)\n", vec_f32.x, vec_f32.y);
+
+sum(vec_f32, 1.1, 2.2);
+
+printf("v(%f, %f)\n", vec_f32.x, vec_f32.y);
+
+delete vec_f32;
+
+// f64
+printf("f64\n");
+implement test_vector2(f64) as test_vector2_f64;
+var new test_vector2_f64* vec_f64;
+vec_f64.x = 101.5;
+vec_f64.y = 103.75;
+printf("v(%f, %f)\n", vec_f64.x, vec_f64.y);
+
+sum(vec_f64, 1.1, 2.2);
+
+printf("v(%f, %f)\n", vec_f64.x, vec_f64.y);
+
+delete vec_f64;
+
+// i64
+printf("i64\n");
+implement test_vector2(i64) as test_vector2_i64;
+var new test_vector2_i64* vec_i64;
+vec_i64.x = -1;
+vec_i64.y = 2;
+printf("v(%ld, %ld)\n", vec_i64.x, vec_i64.y);
+
+sum(vec_i64, 1.1, 2.2);
+
+printf("v(%ld, %ld)\n", vec_i64.x, vec_i64.y);
+
+delete vec_i64;
+
+// u64
+printf("u64\n");
+implement test_vector2(u64) as test_vector2_u64;
+var new test_vector2_u64* vec_u64;
+vec_u64.x = -1;
+vec_u64.y = 2;
+printf("v(%lu, %lu)\n", vec_u64.x, vec_u64.y);
+
+sum(vec_u64, 1.1, 2.2);
+
+printf("v(%lu, %lu)\n", vec_u64.x, vec_u64.y);
+
+delete vec_u64;
+
+
+// i32
+printf("i32\n");
+implement test_vector2(i32) as test_vector2_i32;
+var new test_vector2_i32* vec_i32;
+vec_i32.x = -1;
+vec_i32.y = 2;
+printf("v(%d, %d)\n", vec_i32.x, vec_i32.y);
+
+sum(vec_i32, 1.1, 2.2);
+
+printf("v(%d, %d)\n", vec_i32.x, vec_i32.y);
+
+delete vec_i32;
+
+
+// u32
+printf("u32\n");
+implement test_vector2(u32) as test_vector2_u32;
+var new test_vector2_u32* vec_u32;
+vec_u32.x = -1;
+vec_u32.y = 2;
+printf("v(%u, %u)\n", vec_u32.x, vec_u32.y);
+
+sum(vec_u32, 1.1, 2.2);
+
+printf("v(%u, %u)\n", vec_u32.x, vec_u32.y);
+
+delete vec_u32;
