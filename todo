@@ -1,0 +1,144 @@
+* test
+v8/test/webkit/
+duck*
+
+* struct initialization
+* var new type;
+
+uptr (ptrdiff)
++Infinity
+-Infinity
+NaN
+isNaN
+
+
+## declare return var
+
+fn sum(i8 a, i8 b) : i8 c {
+  c = a + b;
+}
+// implicit return is added with c
+// add c to all empty return statements
+
+
+comma in the last argument
+
+
+# enums
+
+http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2347.pdf
+Seem like a good start point.
+Also TAL to C#, the 'namespace-like' it's very resonable
+
+
+# errors
+
+structure declared as templated by no template declared
+structure alias name already in use
+structure member name already in use
+
+
+# check struct casting
+
+struct s_a {}
+struct s_b {}
+struct s_c {
+  s_a a;
+  s_b b;
+}
+
+var s_c c;
+var s_a* a = &c.a;
+var s_b* b = &c.b;
+
+$log a;
+$log b;
+
+
+# $$log / $log / log
+
+Debuggin is the most important thing in a language today.
+
+$$log x = (a + b) + c;
+
+// print all variables first
+input: a = 1 | b = 2 | c = 3;
+// then execute each expression one by one an return
+(a + b) = 2
+(a + b) + c = 3
+x = (a + b) + c = 3
+
+
+
+
+# extend struct
+
+struct a {
+  i8 a_prop;
+}
+
+struct a extends b {
+  i8 b_prop;
+}
+
+---
+
+var a _a;
+var a _b;
+
+_a.a_prop = 10;
+_a.b_prop = 100; // err
+
+struct a {
+  i8 a_prop;
+}
+
+struct a extends b {
+  i8 b_prop;
+}
+
+var b _b;
+
+_b.a_prop = 10;
+_b.b_prop = 100; // err
+
+
+---
+template $tpl;
+struct a($tpl) {
+  $tpl a_prop;
+}
+
+struct a extends b(i8) {
+  i8 b_prop;
+}
+
+var b _b;
+
+_b.a_prop = 10;
+_b.b_prop = 100; // err
+
+
+
+# threading & TLS
+https://msdn.microsoft.com/en-us/library/ms686749%28VS.85%29.aspx
+http://stackoverflow.com/questions/1460483/on-which-platforms-is-thread-local-storage-limited-and-how-much-is-available
+http://en.wikipedia.org/wiki/Thread-local_storage
+http://publib.boulder.ibm.com/infocenter/iseries/v7r1m0/index.jsp?topic=%2Frzahw%2Frzahwex1.htm
+http://publib.boulder.ibm.com/infocenter/iseries/v7r1m0/index.jsp?topic=%2Fapis%2Fusers_34.htm
+
+
+
+## getters & setters
+
+getters use: function property
+
+type name {
+  setters
+}
+
+## accessor
+
+struct['string']
+
+executed at runtime using the type-table find what to do...
